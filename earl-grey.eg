@@ -1,0 +1,1212 @@
+
+special_ops = {
+   "(" => .PFX
+   "[" => .PFX
+   "{" => .PFX
+   ")" => .SFX
+   "]" => .SFX
+   "}" => .SFX
+   "," => .IFX
+   ":" => .IFX
+   "." => .PFX
+}
+
+regexps = {
+   {op3,    op_f}
+   {id,     id_f}
+   {num,    num_f}
+   {str,    str_f}
+   {op,     op_f}
+   {op2,    op_f}
+   {indent, indent_f}
+   {cmnt,   cmnt_f}
+   {unkn,   unkn_f}
+} where [
+
+  id = Rx [
+     start
+     [>>"a-zA-Z$_"]
+     [>>"a-zA-Z$_0-9"]*
+  ]
+
+  id_f = {m, wsb, wsa, last_op} -> {.ID, .ID, m[0]}
+
+
+  num = Rx [
+     start
+     {d+}
+     [".", {d+}]?
+     [>>"eE", {[>>"+-"]?, d+}]?
+  ]
+
+  ;;num_f = {m, wsb, wsa, last_op} -> {.ID, .NUM, m[1], m[2], m[3]}
+  num_f = {m, wsb, wsa, last_op} -> {.ID, .NUM, m[0]}
+
+
+  str = Rx [
+     start
+     "\""
+     {["\\\\" || "\\\"" || [>>! "\""]]*}
+     "\""
+  ]
+
+  str_f = {m, wsb, wsa, last_op} -> [
+     repl = {
+        "\\\"" => "\""
+        "\\\\" => "\\"
+        "\\n" => "\n"
+     }
+     r = m[1].replace{Rxg{"\\\"" || "\\\\" || "\\n"}, {m} -> repl[m]}
+     {.ID, .STR, r}
+  ]
+
+  op = Rx [
+     start
+     [>> "+\\-*/~^<>=%&|?!#.:"]+
+  ]
+
+  op2 = Rx [
+     start
+     >>"([{}]),"
+  ]
+
+  op3 = Rx [
+     start
+     "with" || "where" || "and" || "or" || "in" || "instanceof"
+     boundary
+  ]
+
+  op_f = {m, wsb, wsa, last_op} -> [
+     op = m[0]
+     cond: [
+        [op in special_ops] => [
+           fixity = special_ops[op]
+           width = [
+              cond: [
+                 [fixity == "IFX"] => if{wsb || wsa, .wide, .short}
+                 [fixity == "SFX"] => if{wsb, .wide, .short}
+                 [fixity == "PFX"] => if{wsa, .wide, .short}
+              ]
+           ]
+           {.OP, fixity, width, op}
+        ]
+        [wsa && wsb] => [
+           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
+        ]
+        [[!wsa] && [!wsb]] => [
+           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
+        ]
+        wsa => [
+           {.OP, [cond: [[last_op => .PFX], [true => .SFX]]], .short, op}
+        ]
+        wsb => [
+           {.OP, .PFX, .short, op}
+        ]
+        true => [
+           {.OP, .PFX, .short, op}
+        ]
+     ]
+  ]
+
+  indent = Rx [
+     start
+     ["\n", " "*]+
+  ]
+
+  indent_f = {m, wsb, wsa, last_op} -> {.OP, .IFX, .wide, ","}
+
+
+  cmnt = Rx [
+     start
+     ";"
+     [>>!"\n"]*
+  ]
+
+  cmnt_f = {m, wsb, wsa, last_op} -> {.IGNORE}
+
+
+  unkn = Rx [
+     start
+     any
+  ]
+
+  unkn_f = {m, wsb, wsa, last_op} -> throw ["unknown character: " + m[0]]
+
+]
+
+
+;; TODO: ignore blank lines before continuation
+ws_re = Rx[" "*, ["\n", " "*, "\\", " "*]*]
+;; ws_re = Rx[" "*]
+
+
+tokenize{text} = [
+   last_op = true
+   results = {}
+   wsb = text.match{ws_re}[0].length
+   text := text.slice{wsb}
+   pos := wsb
+   while text: [
+      for [i = 0, i < regexps.length, ++i]: [
+         spec = regexps[i]
+         re = spec[0]
+         m = text.match{re}
+         cond: [
+            m => [
+               fn = spec[1]
+               skip = m[0].length
+               text := text.slice{skip}
+               wsa = text.match{ws_re}[0].length
+               r = fn{m, wsb > 0, wsa > 0, last_op}
+               type = r[0]
+               result = r.slice{1}
+               result.location := {pos, pos + skip}
+               cond: [
+                  [type == .IGNORE] => [
+                     null
+                  ]
+                  [type == .ID] => [
+                     cond: [
+                        [!last_op] => [
+                           w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+                           w.location := {pos, pos}
+                           results.push{w}
+                        ]
+                     ]
+                     results.push{result}
+                     last_op := false
+                  ]
+                  [type == .OP] => [
+                     cond: [
+                        last_op => [
+                           v = {.VOID}
+                           v.location := {pos, pos}
+                           results.push{v}
+                        ]
+                     ]
+                     cond: [
+                        [result[0] == .IFX] => [
+                           results.push{result}
+                           last_op := true
+                        ]
+                        [result[0] == .PFX] => [
+                           cond: [
+                              [!last_op] => [
+                                 w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+                                 w.location := {pos, pos}
+                                 v = {.VOID}
+                                 v.location := {pos, pos}
+                                 results.push{w}
+                                 results.push{v}
+                              ]
+                           ]
+                           results.push{result}
+                           last_op := true
+                        ]
+                        [result[0] == .SFX] => [
+                           results.push{result}
+                           v = {.VOID}
+                           v.location := {pos + skip, pos + skip}
+                           results.push{v}
+                           last_op := false
+                        ]
+                     ]
+                  ]
+               ]
+               text := text.slice{wsa}
+               wsb := wsa
+               pos := pos + skip + wsa
+               break
+            ]
+         ]
+      ]
+   ]
+   cond: [
+      last_op => [
+         v = {.VOID}
+         v.location := {pos, pos}
+         results.push{v}
+      ]
+   ]
+   results
+]
+
+
+
+MAX = 1/0
+
+order_map = {
+
+   IFX = {
+      wide = {
+         default = {900, 901}
+         WHITE = {1000, 1001}
+         "," => {1, 1}
+         "with" => {11, 10}
+         "where" => {11, 10}
+         "->" => {11, 10}
+         "=>" => {11, 10}
+         "=" => {11, 10}
+         ":=" => {11, 10}
+         "+" => {300, 301}
+         "*" => {400, 401}
+         "**" => {501, 500}
+         ":" => {1001, 2}
+      }
+      short = {
+         default = {1900, 1901}
+         WHITE = {2000, 2001}
+         "," => {1, 1}
+         ":" => {1001, 2}
+      }
+   }
+
+   PFX = {
+      wide = {
+         default = {MAX, 900}
+         "." => {MAX, 3000}
+         "(" => {MAX, 1}
+         "[" => {MAX, 1}
+         "{" => {MAX, 1}
+      }
+      short = {
+         default = {MAX, 1900}
+         "." => {MAX, 3000}
+         "(" => {MAX, 1}
+         "[" => {MAX, 1}
+         "{" => {MAX, 1}
+      }
+   }
+
+   SFX = {
+      wide = {
+         default = {901, MAX}
+         ")" => {1, MAX}
+         "]" => {1, MAX}
+         "}" => {1, MAX}
+      }
+      short = {
+         default = {1901, MAX}
+         ")" => {1, MAX}
+         "]" => {1, MAX}
+         "}" => {1, MAX}
+      }
+   }
+}
+
+
+
+DONE = -1
+NONE = 0
+LEFT = 1
+RIGHT = 2
+BOTH = 3
+
+oparse{next, order, finalize} = [
+   between = finalize{next{}}
+   right_op = next{}
+   stack = {}
+   left_op = null
+   current = null
+   while true: [
+      o = cond: [
+             [[!left_op] && [!right_op]] => [
+                DONE
+             ]
+             true => [
+                [[!left_op] && RIGHT]
+                 \ || [[!right_op] && LEFT]
+                 \ || order{left_op, right_op}
+             ]
+          ]
+      cond: [
+         [o == DONE] => [
+            return between
+         ]
+         [o == LEFT] => [
+            current.push{between}
+            between := finalize{current}
+            v = stack.pop{}
+            left_op := v 0
+            current := v 1
+         ]
+         [o == RIGHT] => [
+            stack.push{{left_op, current}}
+            left_op := right_op
+            current := {{right_op}, between}
+            between := finalize{next{}}
+            right_op := next{}
+         ]
+         [o == BOTH] => [
+            current[0].push{right_op}
+            current.push{between}
+            left_op := right_op
+            between := finalize{next{}}
+            right_op := next{}
+         ]
+         [o == NONE] => [
+            throw ["Undefined priority between " + left_op + " and " + right_op]
+         ]
+      ]
+   ]
+]
+
+
+consult{o} = [
+   map = order_map[o 0][o 1]
+   map[o 2] || map.default
+]
+
+order{o1, o2} = [
+   ord1 = consult{o1}[1]
+   ord2 = consult{o2}[0]
+   cond: [
+      [ord1 > ord2]  => LEFT
+      [ord1 < ord2]  => RIGHT
+      [ord1 == ord2] => BOTH
+   ]
+]
+
+finalize{x} = [
+   cond: [
+      [[typeof{x[0]} == "string"] && [x[0] == "ID"]] => [
+         x[1]
+      ]
+      [[typeof{x[0]} == "string"] && [x[0] == "NUM"]] => [
+         {.value, parseFloat{x[1]}}
+      ]
+      [[typeof{x[0]} == "string"] && [x[0] == "STR"]] => [
+         {.value, x[1]}
+      ]
+      [[typeof{x[0]} == "string"] && [x[0] == "VOID"]] => [
+         null
+      ]
+      true => [
+         opcat = [x[0].map with [{o} -> o[2]]].join{""}
+         op = x[0][0][2]
+         args = x.slice{1}
+         cond: [
+
+            [opcat == "WHITE:"] => [
+               {"send", args[0], {"data", {"code", args[1]}, {"code", args[2]}}}
+            ]
+
+            [opcat == ":"] => [
+               {"send", args[0], {"data", {"code", args[1]}}}
+            ]
+
+            [opcat == "with"] => [
+               target = args[0]
+               body = args[1]
+               body := cond: [
+                  [[body instanceof Array] && [body[0] == "multi"]] => [
+                     body.slice{1}
+                  ]
+                  true => [
+                     {body}
+                  ]
+               ]
+               cond: [
+                  [[target instanceof Array]
+                   \ && [target[0] == "send"]
+                   \ && [target[2] instanceof Array]
+                   \ && [target[2][0] == "data"]] => [
+                     {"send", target[1], target[2].concat{body}}
+                  ]
+                  [[target instanceof Array] && [target[0] == "data"]] => [
+                     target.concat{body}
+                  ]
+                  true => [
+                     {"send", target, {"data"}.concat{body}}
+                  ]
+               ]
+            ]
+
+            [[op == "["] || [op == ","]] => [
+               cond: [
+                  [op == "["] => args := args.slice{1, -1}
+               ]
+               args := args.filter{f} where [
+                  f{x} = [x !== null]
+               ]
+               cond: [
+                  [[args.length == 1] && [args[0] === null]] => [
+                     throw ["At least one expression must be enclosed in []"]
+                  ]
+                  [args.length == 1] => [
+                     args[0]
+                  ]
+                  true => [
+                     {"multi"}.concat{args}
+                  ]
+               ]
+            ]
+
+            [op == "{"] => [
+               {"data"}.concat{args.slice{1, -1}.filter{f}} where [
+                  f{x} = [x !== null]
+               ]
+            ]
+
+            [op == "WHITE"] => [
+               {"send"}.concat{args}
+            ]
+
+            [[args.length == 2] && [args[0] === null] && [args[1] === null]] => [
+               op
+            ]
+
+            true => [
+               {"send", op, {"data"}.concat{args}}
+            ]
+         ]
+      ]
+   ]
+]
+
+parse{text} = [
+   results = tokenize{text}
+   next{} = results.shift{}
+   oparse{next, order, finalize}
+]
+
+
+Env{parent} = [
+   store = Object{}
+   self{expr} = [
+      {.bind_env, self, expr}
+   ]
+   self.resolve := {name} -> [
+      attempt = store[name]
+      cond: [
+         attempt => attempt
+         true => self.parent.resolve{name}
+      ]
+   ]
+   self.register := {name, value} -> [
+      store[name] := value
+   ]
+   self.register_macro := {name, m} -> [
+      store[name] := {.macro, m}
+   ]
+   self.fork := {} -> [
+      Env{self}
+   ]
+   self.parent := parent
+   self.store := store
+   self
+]
+
+
+js_contexts = {
+   js_for = {.multi, .multi, .multi, .multi}
+}
+
+
+expand{env, context, expr} = [
+   expr := expand.step{env, context, expr}
+   cond: [
+      [typeof{expr} == "string"] => expr
+      [expr === null] => null
+      [expr instanceof Array] => [
+         type = expr[0]
+         cond: [
+            [type == "send"] => [
+               f = expand{env, .head, expr[1]}
+               arg = expr[2]
+               {.send, f, expand{env, .tail, arg}}
+            ]
+            [type == "value"] => [
+               expr
+            ]
+            [[type == "multi"] || [type == "code"] || [type == "array"] || [type == "object"]] => [
+               {type}.concat{expr.slice{1}.map{f}} where [
+                  f{x} = expand{env, type, x}
+               ]
+            ]
+            [type == "data"] => [
+               args = expr.slice{1}.map{f} where [
+                  f{x} = expand.step{env, type, x}
+               ]
+
+               is_obj = false
+               obj = {.object}
+               arr = {.array}
+               args.forEach with {x} -> [
+                  cond: [
+                     [[x instanceof Array] && [x[0] == "assoc"] && [x.length == 1]] => [
+                        is_obj := true
+                     ]
+                     [[x instanceof Array] && [x[0] == "assoc"]] => [
+                        is_obj := true
+                        obj.push with {.array, x[1], x[2]}
+                     ]
+                     true => [
+                        arr.push{x}
+                     ]
+                  ]
+               ]
+               r = cond: [
+                  [[arr.length > 1] && is_obj] => [
+                     arr.push{obj}
+                     arr
+                  ]
+                  is_obj => [
+                     obj
+                  ]
+                  true => [
+                     arr
+                  ]
+               ]
+               expand{env, context, r}
+            ]
+            [type == "lambda"] => [
+               {.lambda, expr[1].map{{x} -> expand{env, .decl, x}}
+                         expand{env, .multi, expr[2]}}
+            ]
+            [type == "declare"] => [
+               {.declare, expand{env, .decl, expr[1]}
+                          expand{env, .multi, expr[2]}}
+            ]
+            [type == "assign"] => [
+               {.assign, expand{env, .decl, expr[1]}
+                         expand{env, .multi, expr[2]}}
+            ]
+            [[type == "js_while"] || [type == "js_for"] || [type == "js_break"]
+             \ || [type == "js_continue"] || [type == "js_return"]
+             \ || [type == "js_throw"]
+             \ || [type == "if"]] => [
+               ctxs = js_contexts[type] || {}
+               {type}.concat{expr.slice{1}.map{f}} where [
+                  f{x, i} = expand{env, ctxs[i] || .expr, x}
+               ]
+            ]
+            true => [
+               console.log{"Oops1: " + type}
+            ]
+         ]
+      ]
+   ]
+]
+
+expand.step := {env, context, expr} -> [
+   cond: [
+      [typeof{expr} == "string"] => [
+         v = env.resolve{expr}
+         cond: [
+            [!v] => expr
+            [[v instanceof Array] && [v[0] == "macro"]] => [
+               cond: [
+                  [context == "head"] => v
+                  true => v[1]{env, context, null}
+               ]
+            ]
+            true => v
+         ]
+      ]
+      [expr instanceof Array] => [
+         type = expr[0]
+         cond: [
+            [type == "send"] => [
+               f = expand.step{env, .head, expr[1]}
+               arg = expr[2]
+               cond: [
+                  [[f instanceof Array] && [f[0] == "macro"]] => [
+                     expand.step{env, context, f[1]{env, context, arg}}
+                  ]
+                  true => [
+                     expr
+                  ]
+               ]
+            ]
+            true => [
+               expr
+            ]
+         ]
+      ]
+      [expr === null] => [
+         null
+      ]
+      true => [
+         console.log{"Oops2: " + expr}
+      ]
+   ]
+]
+
+aslist{expr} = [
+   cond: [
+      [[expr instanceof Array] && [expr[0] == "multi"]] => [
+         expr.slice{1}
+      ]
+      true => [
+         {expr}
+      ]
+   ]
+]
+
+
+nullenv = {resolve{x} = undefined}
+
+stdenv = Env{nullenv}
+
+stdenv.register{"+", "___plus"}
+stdenv.register{"-", "___minus"}
+stdenv.register{"*", "___times"}
+stdenv.register{"/", "___div"}
+stdenv.register{"%", "___mod"}
+stdenv.register{"^", "___binxor"}
+stdenv.register{"&", "___binand"}
+stdenv.register{"|", "___binor"}
+stdenv.register{"~", "___binnot"}
+stdenv.register{"&&", "___and"}
+stdenv.register{"||", "___or"}
+stdenv.register{"!", "___not"}
+stdenv.register{"===", "___is"}
+stdenv.register{"!==", "___isnt"}
+stdenv.register{"==", "___eq"}
+stdenv.register{"!=", "___neq"}
+stdenv.register{"<", "___lt"}
+stdenv.register{">", "___gt"}
+stdenv.register{"<=", "___lte"}
+stdenv.register{">=", "___gte"}
+stdenv.register{"in", "___in"}
+stdenv.register{"instanceof", "___instanceof"}
+stdenv.register{"++", "___plusplus"}
+stdenv.register{"--", "___minusminus"}
+
+stdenv.register_macro{"."} with {env, context, expr} -> [
+   cond: [
+      [typeof{expr[2]} == "string"] => [
+         {.value, expr[2]}
+      ]
+      true => [
+         throw {"invalid", expr}
+      ]
+   ]
+]
+
+stdenv.register_macro{"where"} with {env, context, expr} -> [
+   {.send, .let, {.data, {.code, expr[2]}, {.code, expr[1]}}}
+]
+
+stdenv.register_macro{"let"} with {env, context, expr} -> [
+   bindings = aslist{expr[1][1]}
+   body = aslist{expr[2][1]}
+   {.multi}.concat{bindings}.concat{body}
+]
+
+stdenv.register_macro{"->"} with {env, context, expr} -> [
+   binding = expr[1].slice{1}
+   body = expr[2]
+   {.lambda, binding, body}
+]
+
+stdenv.register_macro{"=>"} with {env, context, expr} -> [
+   cond: [
+      [context == "data"] => [
+         binding = expr[1]
+         value = expr[2]
+         {.assoc, binding, value}
+      ]
+      true => [
+         throw ["Illegal context for '=>' (" + context + ")"]
+      ]
+   ]
+]
+
+stdenv.register_macro{"="} with {env, context, expr} -> [
+   cond: [
+      [context == "head"] => [
+         throw "Illegal context for '=' (head)"
+      ]
+      [context == "tail"] => [
+         throw "Illegal context for '=' (tail)"
+      ]
+      [context == "multi"] => [
+         binding = expr[1]
+         value = expr[2]
+         cond: [
+            [[binding instanceof Array] && [binding[0] == "send"]] => [
+               {.declare, binding[1], {.lambda, binding[2].slice{1}, value}}
+            ]
+            true => [
+               {.declare, binding, value}
+            ]
+         ]
+      ]
+      [context == "data"] => [
+         binding = expr[1]
+         value = expr[2]
+         cond: [
+            [[binding instanceof Array] && [binding[0] == "send"]] => [
+               {.assoc, {.value, binding[1]}, {.lambda, binding[2].slice{1}, value}}
+            ]
+            true => [
+               {.assoc, {.value, binding}, value}
+            ]
+         ]
+      ]
+      true => [
+         throw ["Illegal context for '=' (" + context + ")"]
+      ]
+   ]
+]
+
+stdenv.register_macro{":="} with {env, context, expr} -> [
+   {.assign, expr[1], expr[2]}
+]
+
+stdenv.register_macro{"if"} with {env, context, expr} -> [
+   {.if, expr[1], expr[2], expr[3]}
+]
+
+stdenv.register_macro{"cond"} with {env, context, expr} -> [
+   handle{xs} = [
+      cond: [
+         [xs.length == 0] => {.value, false}
+         true => [
+            first = xs[0][2]
+            rest = xs.slice{1}
+            {.if, first[1], first[2], handle{rest}}
+         ]
+      ]
+   ]
+   handle{aslist{expr[1][1]}}
+]
+
+
+
+stdenv.register_macro{"while"} with {env, context, expr} -> [
+   {.js_while, expr[1][1], expr[2][1]}
+]
+
+stdenv.register_macro{"for"} with {env, context, expr} -> [
+   {.js_for, expr[1][1][1], expr[1][1][2], expr[1][1][3], expr[2][1]}
+]
+
+stdenv.register_macro{"return"} with {env, context, expr} -> [
+   {.js_return, expr}
+]
+
+stdenv.register_macro{"throw"} with {env, context, expr} -> [
+   {.js_throw, expr}
+]
+
+stdenv.register_macro{"break"} with {env, context, expr} -> [
+   {.js_break}
+]
+
+stdenv.register_macro{"continue"} with {env, context, expr} -> [
+   {.js_continue}
+]
+
+
+rx_wrap{x} = [
+   "(?:" + x + ")"
+]
+
+rx_quote{x} = [
+   x.replace{Rxg{>>".?*+^$[](){}|\\\\"}, "\\$1"}
+]
+
+rx_quote2{x} = [
+   x.replace{Rxg{>>"[](){}^"}, "\\$1"}
+]
+
+rx_build{expr} = [
+   cond: [
+      [expr == "any"] => "."
+      [expr == "start"] => "^"
+      [expr == "end"] => "$"
+      [expr == "alpha"] => "\\a"
+      [expr == "digit"] => "\\d"
+      [expr == "word"] => "\\w"
+      [expr == "space"] => "\\s"
+      [expr == "boundary"] => "\\b"
+      [expr == "a"] => "\\a"
+      [expr == "d"] => "\\d"
+      [expr == "w"] => "\\w"
+      [expr == "s"] => "\\s"
+      [expr == "b"] => "\\b"
+
+      [[expr instanceof Array] && [expr[0] == "value"]] => [
+         rx_quote{expr[1]}
+      ]
+
+      [[expr instanceof Array] && [expr[0] == "send"]] => [
+         f = expr[1]
+         a = expr[2][1]
+         b = expr[2][2]
+         cond: [
+            [f == "||"] => rx_wrap{rx_build{a} + "|" + rx_build{b}}
+            [f == "*"] => [
+               cond: [
+                  [b === null] => [
+                     rx_wrap{rx_build{a} + "*"}
+                  ]
+                  true => [
+                     throw "unsupported"
+                  ]
+               ]
+            ]
+            [f == "+"] => rx_wrap{rx_build{a} + "+"}
+            [f == "?"] => rx_wrap{rx_build{a} + "?"}
+            [f == ">>"] => [
+               ["[" + x + "]"] where [
+                  x = rx_quote2{b[1]}
+               ]
+            ]
+            [f == ">>!"] => [
+               ["[^" + x + "]"] where [
+                  x = rx_quote2{b[1]}
+               ]
+            ]
+         ]
+      ]
+
+      [[expr instanceof Array] && [expr[0] == "data"]] => [
+         "(" + expr.slice{1}.map{rx_build}.join{""} + ")"
+      ]
+
+      [[expr instanceof Array] && [expr[0] == "multi"]] => [
+         "(?:" + expr.slice{1}.map{rx_build}.join{""} + ")"
+      ]
+
+   ]
+]
+
+stdenv.register_macro{"Rx"} with {env, context, expr} -> [
+   {.send, "RegExp", {.array, {.value, rx_build{expr}}}}
+]
+
+stdenv.register_macro{"Rxg"} with {env, context, expr} -> [
+   {.send, "RegExp", {.array, {.value, rx_build{expr}}, {.value, "g"}}}
+]
+
+
+
+js_op_table = {
+   ___plus = "+"
+   ___minus = "-"
+   ___times = "*"
+   ___div = "/"
+   ___mod = "%"
+   ___binxor = "^"
+   ___binand = "&"
+   ___binor = "|"
+   ___binnot = "~"
+   ___and = "&&"
+   ___or = "||"
+   ___not = "!"
+   ___is = "==="
+   ___isnt = "!=="
+   ___eq = "=="
+   ___neq = "!="
+   ___lt = "<"
+   ___gt = ">"
+   ___lte = "<="
+   ___gte = ">="
+   ___in = " in "
+   ___instanceof = " instanceof "
+   ___plusplus = "++"
+   ___minusminus = "--"
+}
+
+
+translate{expr, mode} = [
+   cond: [
+      [typeof{expr} == "string"] => [
+         translate.expr{translate.mangle{expr}, mode}
+      ]
+      [expr === null] => [
+         translate.expr{"null", mode}
+      ]
+      [expr instanceof Array] => [
+         type = expr[0]
+         args = expr.slice{1}
+         cond: [
+
+            [type == "value"] => [
+               v = args[0]
+               r = cond: [
+                  [typeof{v} == "string"] => [
+                     repl = {
+                        "\"" => "\\\""
+                        "\n" => "\\n"
+                        "\\" => "\\\\"
+                     }
+                     v := v.replace{Rxg{"\"" || "\\" || "\n"}, {m} -> repl[m]}
+                     "\"" + v + "\""
+                  ]
+                  [typeof{v} == "number"] => [
+                     String{v}
+                  ]
+                  [[v === true] || [v === false]] => [
+                     String{v}
+                  ]
+                  true => [
+                     console.log with expr
+                     "?!?[" + v + "]?!?"
+                  ]
+               ]
+               translate.expr{r, mode}
+            ]
+
+            [type == "lambda"] => [
+               bindings = args[0]
+               body = args[1]
+               translate.expr{"function("+a+"){"+b+"}", mode} where [
+                  a = bindings.join{","}
+                  b = translate.body{body, .return}
+               ]
+            ]
+
+            [type == "if"] => [
+               cond: [
+                  [mode == "expr"] => translate.body{expr, .expr}
+                  true => [
+                     ["if(" + a + "){" + b + "}else{" + c + "}"] where [
+                        a = translate{args[0], .expr}
+                        b = translate{args[1], mode}
+                        c = translate{args[2], mode}
+                     ]
+                  ]
+               ]
+            ]
+
+            [type == "js_while"] => [
+               cond: [
+                  [mode == "expr"] => translate.body{expr, .expr}
+                  true => [
+                     ["while(" + a + "){" + b + "}"] where [
+                        a = translate{args[0], .expr}
+                        b = translate{args[1], .stmt}
+                     ]
+                  ]
+               ]
+            ]
+
+            [type == "js_for"] => [
+               cond: [
+                  [mode == "expr"] => translate.body{expr, .expr}
+                  true => [
+                     ["for("+a+b+c+"){"+d+"}"] where [
+                        a = translate{args[0], .stmt}
+                        b = translate{args[1], .stmt}
+                        c = translate{args[2], .expr}
+                        d = translate{args[3], .stmt}
+                     ]
+                  ]
+               ]
+            ]
+
+            [type == "declare"] => [
+               cond: [
+                  [[mode == "expr"] || [mode == "return"]] => throw "Invalid in expr ctx"
+                  true => [
+                     ["var " + a + "=" + b + ";"] where [
+                        a = translate{args[0], .expr}
+                        b = translate{args[1], .expr}
+                     ]
+                  ]
+               ]
+            ]
+
+            [type == "assign"] => [
+               translate.expr{"(" + a + "=" + b + ")", mode} where [
+                  a = translate{args[0], .expr}
+                  b = translate{args[1], .expr}
+               ]
+            ]
+
+            [type == "multi"] => [
+               translate.body{expr, mode}
+            ]
+
+            [type == "js_break"] => [
+               cond: [
+                  [mode == "expr"] => throw "Invalid break in ctx"
+                  true => "break;"
+               ]
+            ]
+
+            [type == "js_continue"] => [
+               cond: [
+                  [mode == "expr"] => throw "Invalid continue in ctx"
+                  true => "continue;"
+               ]
+            ]
+
+            [type == "js_return"] => [
+               cond: [
+                  [mode == "expr"] => throw "Invalid return in ctx"
+                  true => "return " + translate{args[0], .expr} + ";"
+               ]
+            ]
+
+            [type == "js_throw"] => [
+               cond: [
+                  [mode == "expr"] => throw "Invalid throw in ctx"
+                  true => "throw " + translate{args[0], .expr} + ";"
+               ]
+            ]
+
+            [type == "array"] => [
+               r = ["[" + args.map{f}.join{","} + "]"] where [
+                  f{x} = translate{x, .expr}
+               ]
+               translate.expr{r, mode}
+            ]
+
+            [type == "object"] => [
+               r = ["({" + args.map{f}.join{","} + "})"] where [
+                  f{x} = [
+                     a = translate{x[1], .expr}
+                     b = translate{x[2], .expr}
+                     a + ":" + b
+                  ]
+               ]
+               translate.expr{r, mode}
+            ]
+
+            [type == "send"] => [
+               f = args[0]
+               msg = args[1]
+               cond: [
+
+                  [[msg instanceof Array] && [msg[0] == "value"]] => [
+                     s = msg[1]
+                     cond: [
+                        [[typeof{s} == "string"]
+                         \ && s.match{Rx[start, [>>"a-zA-Z_$"]+, end]}] => [
+                           translate.expr{trf + "." + trmsg, mode} where [
+                              trf = translate{f, .expr}
+                              trmsg = translate{msg[1], .expr}
+                           ]
+                        ]
+                        true => [
+                           translate.expr{trf + "[" + trmsg + "]", mode} where [
+                              trf = translate{f, .expr}
+                              trmsg = translate{msg, .expr}
+                           ]
+                        ]
+                     ]
+                  ]
+
+                  [[msg instanceof Array] && [msg[0] == "array"]] => [
+                     op = [typeof{f} == "string"] && js_op_table[f]
+                     cond: [
+                        op => [
+                           translate.expr{translate.op{op, msg[1], msg[2]}, mode}
+                        ]
+                        true => [
+                           translate.expr{trf+"("+trargs.join{","}+")", mode} where [
+                              trf = translate{f, .expr}
+                              trargs = msg.slice{1}.map with {x} -> [
+                                 translate{x, .expr}
+                              ]
+                           ]
+                        ]
+                     ]
+                  ]
+
+                  true => [
+                     translate.expr{trf + "[" + trmsg + "]", mode} where [
+                        trf = translate{f, .expr}
+                        trmsg = translate{msg, .expr}
+                     ]
+                  ]
+
+               ]
+            ]
+
+         ]
+      ]
+   ]
+]
+
+
+translate.mangle := {name} -> [
+   tr = {
+      "+" => "__plus__"
+      "-" => "__minus__"
+      "*" => "__asterisk__"
+      "/" => "__slash__"
+      "%" => "__percent__"
+      "^" => "__caret__"
+      "#" => "__hash__"
+      "&" => "__amp__"
+      "|" => "__pipe__"
+      "@" => "__at__"
+      "!" => "__bang__"
+      "?" => "__qmark__"
+      "=" => "__equal__"
+      "<" => "__lt__"
+      ">" => "__gt__"
+      "~" => "__tilde__"
+   }
+   r = {}
+   for [i = 0, i < name.length, ++i]: [
+      c = name[i]
+      r.push{tr[c] || c}
+   ]
+   r.join{""}
+]
+
+
+translate.body := {b, mode} -> [
+   orig := b
+   b := aslist{b}
+   trst{stmt} = translate{stmt, .stmt}
+   cond: [
+      [mode == .expr] => [
+         translate{x, mode} where [
+            x = {.send, {.lambda, {}, orig}, {.array}}
+         ]
+      ]
+      [mode == .return] => [
+         stmts = b.slice{0, -1}
+         ret = b[b.length - 1]
+         stmts.map{trst}.join{""} + translate{ret, .return}
+      ]
+      [mode == .stmt] => [
+         b.map{trst}.join{""}
+      ]
+   ]
+]
+
+translate.expr := {x, mode} -> [
+   cond: [
+      [mode == .expr] => x
+      [mode == .stmt] => x + ";"
+      [mode == .return] => "return " + x + ";"
+   ]
+]
+
+translate.op := {op, a, b} -> [
+   e := cond: [
+           [a === null] => op + translate{b, .expr}
+           [b === null] => translate{a, .expr} + op
+           true => translate{a, .expr} + op + translate{b, .expr}
+        ]
+   "(" + e + ")"
+]
+
+
+
+fs = require{.fs}
+
+;; file = "bootstrap.tea"
+;; file = "niew.tea"
+
+file = process.argv[2]
+
+fs.readFile{file, "utf8", f} where [
+   f{err, data} = [
+      p = parse{data}
+      ex = expand{stdenv, .top, p}
+      ;; console.log with p
+      ;; console.log with ex
+      console.log with translate{ex, .stmt}
+   ]
+]
