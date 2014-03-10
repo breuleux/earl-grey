@@ -265,6 +265,7 @@ order_map = {
       wide = {
          default = {MAX, 900}
          "." => {MAX, 3000}
+         "#" => {MAX, 3000}
          "(" => {MAX, 1}
          "[" => {MAX, 1}
          "{" => {MAX, 1}
@@ -272,6 +273,7 @@ order_map = {
       short = {
          default = {MAX, 1900}
          "." => {MAX, 3000}
+         "#" => {MAX, 3000}
          "(" => {MAX, 1}
          "[" => {MAX, 1}
          "{" => {MAX, 1}
@@ -714,6 +716,24 @@ make_exact_checker{value} = {env, context, expr} -> [
    {.send, "___is", {.data, expr[1], value}}
 ]
 
+stdenv.register_macro{"#"} with {env, context, expr} -> [
+   tag = {.value, expr[2]}
+   {.macro, f} where f{env, context, expr} = [
+      cond: [
+         [context == "pattern"] => [
+            {.check, {.macro, f}, expr} where f{env, context, expr} = [
+               {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
+            ]
+         ]
+         true => [
+            {.send, {.send, "___lib", {.value, "Struct"}}, d} where d = [
+               {.data, tag}.concat{expr.slice{1}}
+            ]
+         ]
+      ]
+   ]
+]
+
 stdenv.register_macro{"=="} with {env, context, expr} -> [
    cond: [
       [context == "pattern"] => [
@@ -765,9 +785,21 @@ stdenv.register_macro{"let"} with {env, context, expr} -> [
 ]
 
 stdenv.register_macro{"->"} with {env, context, expr} -> [
-   binding = expr[1].slice{1}
-   body = expr[2]
-   {.lambda, binding, body}
+   body = {.multi}
+   args := expr[1].slice{1}.map with {x} -> [
+      cond: [
+         [typeof{x} == "string"] -> [
+            x
+         ]
+         true => [
+            t = gensym{}
+            body.push with {.send, "=", {.data, x, t}}
+            t
+         ]
+      ]
+   ]
+   body.push{expr[2]}
+   {.lambda, args, body}
 ]
 
 stdenv.register_macro{"=>"} with {env, context, expr} -> [
@@ -787,27 +819,54 @@ stdenv.register_macro{"="} with {env, context, expr} -> [
    cond: [
 
       [context == "multi"] => [
-         binding = expr[1]
-         value = expr[2]
+         lhs = expr[1]
+         rhs = expr[2]
+         p = parse_lhs{env, lhs, rhs}
+         vars = make_declarations{p[0]}
+         r = {.splice}.concat{vars}
+         clauses = p[1]
+      
+         mkif{x} = [
+            {.if, x, {.value, false}, {.js_throw, {.value, "a condition failed"}}}
+         ]
+      
          cond: [
-            [[binding instanceof Array] && [binding[0] == "send"]] => [
-               {.declare, binding[1], {.lambda, binding[2].slice{1}, value}}
+            [clauses.length == 1] => [
+               clause = clauses[0]
+               last = clause[clause.length - 1]
+               cond: [
+                  [[last instanceof Array] && [last[0] == "value"] && [last[1] === true]] => [
+                     r := r.concat{clause.slice{1, -1}}
+                  ]
+                  true => [
+                     r.push{mkif{clause}}
+                  ]
+               ]
             ]
             true => [
-               {.declare, binding, value}
+               ands = make_pattern_test{clauses}
+               r.push{mkif{ands}}
             ]
          ]
+         r
       ]
 
       [context == "data"] => [
-         binding = expr[1]
-         value = expr[2]
          cond: [
-            [[binding instanceof Array] && [binding[0] == "send"]] => [
-               {.assoc, {.value, binding[1]}, {.lambda, binding[2].slice{1}, value}}
+            [expr === null] => [
+               {.assoc}
             ]
             true => [
-               {.assoc, {.value, binding}, value}
+               binding = expr[1]
+               value = expr[2]
+               cond: [
+                  [[binding instanceof Array] && [binding[0] == "send"]] => [
+                     {.assoc, {.value, binding[1]}, {.lambda, binding[2].slice{1}, value}}
+                  ]
+                  true => [
+                     {.assoc, {.value, binding}, value}
+                  ]
+               ]
             ]
          ]
       ]
@@ -985,27 +1044,40 @@ stdenv.register_macro{"?"} with {env, context, expr} -> [
    {.macro, mac}
 ]
 
-stdenv.register_macro{"!"} with {env, context, expr} -> [
-   projector = {.send, expr[1], {.value, "__project__"}}
-   mac{env, context, expr} = [
-      cond: [
-         [context == "pattern"] => [
-            {.project, projector, expr}
-         ]
-         true => [
-            {.send, projector, {.data, expr}}
-         ]
-      ]
-   ]
-   {.macro, mac}
-]
 
+;; stdenv.register_macro{"!"} with {env, context, expr} -> [
+;;    projector = {.send, expr[1], {.value, "__project__"}}
+;;    mac{env, context, expr} = [
+;;       cond: [
+;;          [context == "pattern"] => [
+;;             {.project, projector, expr}
+;;          ]
+;;          true => [
+;;             {.send, projector, {.data, expr}}
+;;          ]
+;;       ]
+;;    ]
+;;    {.macro, mac}
+;; ]
+
+
+tempnum = 0
+gensym{} = [
+   name = "_tmp" + tempnum
+   tempnum := tempnum + 1
+   name
+]
 
 parse_lhs{env, lhs, rhs} = [
    vars = {}
    clauses = {}
    current = {.multi}
-   i = 0
+
+   mktemp{} = [
+      t = gensym{}
+      vars.push{t}
+      t
+   ]
 
    newclause{} = [
       cond: [
@@ -1014,13 +1086,6 @@ parse_lhs{env, lhs, rhs} = [
          ]
       ]
       current := {.multi}
-   ]
-
-   mktemp{} = [
-      name = "_tmp" + i
-      i := i + 1
-      vars.push{name}
-      name
    ]
 
    helper{lhs, curr} = [
@@ -1080,19 +1145,19 @@ parse_lhs{env, lhs, rhs} = [
             cmp = [
                cond: [
                   [rest === undefined] => "___eq"
-                  true => "___gt"
+                  true => "___gte"
                ]
             ]
             temp = mktemp{}
             len = mktemp{}
 
             current := current.concat with {
-               {.assign, temp, rhs}
+               {.assign, temp, curr}
                {.assign, len, {.send, temp, {.value, "length"}}}
                ;; Bounds check
-               ;; {.send, cmp, {.data, len, {.value, fw + bw}}}
+               {.send, cmp, {.data, len, {.value, fw + bw}}}
             }
-            ;; newclause{}
+            newclause{}
 
             for [j = 0, j < fw, ++j]: [
                helper_noexpand{members[j], {.send, temp, {.value, j}}}
@@ -1101,7 +1166,7 @@ parse_lhs{env, lhs, rhs} = [
             cond: [[rest !== undefined] => [
                slice = cond: [
                   [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
-                  true => {.data, {.value fw}}
+                  true => {.data, {.value, fw}}
                ]
                helper_noexpand{
                   members[fw][1]
@@ -1127,43 +1192,44 @@ parse_lhs{env, lhs, rhs} = [
    {vars, clauses}
 ]
 
-stdenv.register_macro{"%"} with {env, context, expr} -> [
-   lhs = expr[1]
-   rhs = expr[2]
-   p = parse_lhs{env, lhs, rhs}
-   vars = p[0].map with {name} -> [
+make_declarations{vars} = [
+   vars.map with {name} -> [
       {.declare, name, {.value, undefined}}
    ]
-   r = {.splice}.concat{vars}
-   clauses = p[1]
-
-   mkif{x} = [
-      {.if, x, {.value, false}, {.js_throw, {.value, "a condition failed"}}}
-   ]
-
-   cond: [
-      [clauses.length == 1] => [
-         clause = clauses[0]
-         last = clause[clause.length - 1]
-         cond: [
-            [[last instanceof Array] && [last[0] == "value"] && [last[1] === true]] => [
-               r := r.concat{clause.slice{1, -1}}
-            ]
-            true => [
-               r.push{mkif{clause}}
-            ]
-         ]
-      ]
-      true => [
-         ands = clauses.pop{}
-         while [clauses.length > 0]: [
-            ands := {.send, "___and", {.data, clauses.pop{}, ands}}
-         ]
-         r.push{mkif{ands}}
-      ]
-   ]
-   r
 ]
+
+make_pattern_test{clauses} = [
+   ands = clauses.pop{}
+   while [clauses.length > 0]: [
+      ands := {.send, "___and", {.data, clauses.pop{}, ands}}
+   ]
+   ands
+]
+
+stdenv.register_macro{"|>"} with {env, context, expr} -> [
+   to_match = expr[1]
+   clauses = cond: [
+      [expr[2][0] == .multi] => expr[2].slice{1}
+      true => {expr[2]}
+   ]
+   decls = {.multi}
+   r = {.js_throw, {.value, "Could not find a match"}}
+   while [clauses.length > 0]: [
+      clause = clauses.pop{}
+      lhs = clause[2][1]
+      body = clause[2][2]
+      p = parse_lhs{env, lhs, to_match}
+      test = make_pattern_test{p[1]}
+      r := {.if, test, body, r}
+      decls := decls.concat{make_declarations{p[0]}}
+   ]
+   decls.push{r}
+   decls
+]
+
+
+;; stdenv.register_macro{"%"} with {env, context, expr} -> [
+;; ]
 
 
 
@@ -1491,7 +1557,8 @@ translate.op := {op, a, b} -> [
 
 fs = require{.fs}
 
-file = "test.eg" ;; process.argv[2]
+file = process.argv[2]
+;; file = "test.eg"
 
 fs.readFile{file, "utf8", f} where [
    f{err, data} = [
@@ -1499,6 +1566,7 @@ fs.readFile{file, "utf8", f} where [
       ex = expand{stdenv, .top, {.multi, p}}
       ;; console.log with p
       ;; console.log with ex
-      console.log with translate{ex, .stmt}
+      prelude = "var ___lib=require(\"./lib\");"
+      console.log with prelude + translate{ex, .stmt}
    ]
 ]

@@ -1,0 +1,6 @@
+
+exports.Struct := {name} -> [
+   r = Array.prototype.slice.call{arguments, 1}
+   r["#"] := name
+   r
+]
