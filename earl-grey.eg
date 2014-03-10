@@ -520,19 +520,37 @@ expand{env, context, expr} = [
                expr
             ]
             [[type == "multi"] || [type == "code"] || [type == "array"] || [type == "object"]] => [
-               {type}.concat{expr.slice{1}.map{f}} where [
+               args = expr.slice{1}
+               arr = {}
+               while [args.length > 0]: [
+                  x = expand.step{env, type, args.shift{}}
+                  cond: [
+                     [[x instanceof Array] && [x[0] == "splice"]] => [
+                        args := x.slice{1}.concat{args}
+                     ]
+                     true => [
+                        arr.push{x}
+                     ]
+                  ]
+               ]
+               {type}.concat{arr.map{f}} where [
                   f{x} = expand{env, type, x}
                ]
             ]
             [type == "data"] => [
-               args = expr.slice{1}.map{f} where [
-                  f{x} = expand.step{env, type, x}
-               ]
+               ;args = expr.slice{1}.map{f} where [
+               ;   f{x} = expand.step{env, type, x}
+               ;]
+
+               args = expr.slice{1}
 
                is_obj = false
                obj = {.object}
                arr = {.array}
-               args.forEach with {x} -> [
+
+               while [args.length > 0]: [
+                  ;; args.forEach with {x} -> [
+                  x = expand.step{env, type, args.shift{}}
                   cond: [
                      [[x instanceof Array] && [x[0] == "assoc"] && [x.length == 1]] => [
                         is_obj := true
@@ -540,6 +558,9 @@ expand{env, context, expr} = [
                      [[x instanceof Array] && [x[0] == "assoc"]] => [
                         is_obj := true
                         obj.push with {.array, x[1], x[2]}
+                     ]
+                     [[x instanceof Array] && [x[0] == "splice"]] => [
+                        args := x.slice{1}.concat{args}
                      ]
                      true => [
                         arr.push{x}
@@ -598,7 +619,7 @@ expand.step := {env, context, expr} -> [
             [[v instanceof Array] && [v[0] == "macro"]] => [
                cond: [
                   [context == "head"] => v
-                  true => v[1]{env, context, null}
+                  true => expand.step{env, context, v[1]{env, context, null}}
                ]
             ]
             true => v
@@ -607,6 +628,12 @@ expand.step := {env, context, expr} -> [
       [expr instanceof Array] => [
          type = expr[0]
          cond: [
+            [type == "macro"] => [
+               cond: [
+                  [context == "head"] => expr
+                  true => expand.step{env, context, expr[1]{env, context, null}}
+               ]
+            ]
             [type == "send"] => [
                f = expand.step{env, .head, expr[1]}
                arg = expr[2]
@@ -663,7 +690,6 @@ stdenv.register{"||", "___or"}
 stdenv.register{"!", "___not"}
 stdenv.register{"===", "___is"}
 stdenv.register{"!==", "___isnt"}
-stdenv.register{"==", "___eq"}
 stdenv.register{"!=", "___neq"}
 stdenv.register{"<", "___lt"}
 stdenv.register{">", "___gt"}
@@ -673,6 +699,49 @@ stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
 stdenv.register{"++", "___plusplus"}
 stdenv.register{"--", "___minusminus"}
+
+
+;;stdenv.register_macro{"TEST"} with {env, context, expr} -> [
+;;   {.splice, "a", "b"}
+;;]
+
+
+make_checker{value} = {env, context, expr} -> [
+   {.send, "___eq", {.data, expr[1], value}}
+]
+
+make_exact_checker{value} = {env, context, expr} -> [
+   {.send, "___is", {.data, expr[1], value}}
+]
+
+stdenv.register_macro{"=="} with {env, context, expr} -> [
+   cond: [
+      [context == "pattern"] => [
+         {.check, {.macro, make_checker{expr[2]}}, null}
+      ]
+      [expr === null] => [
+         "___eq"
+      ]
+      true => [
+         {.send, "___eq", expr}
+      ]
+   ]
+]
+
+stdenv.register_macro{"*"} with {env, context, expr} -> [
+   cond: [
+      [context == "pattern"] => [
+         {.dynsplice, expr[1]}
+      ]
+      [expr === null] => [
+         "___times"
+      ]
+      true => [
+         {.send, "___times", expr}
+      ]
+   ]
+]
+
 
 stdenv.register_macro{"."} with {env, context, expr} -> [
    cond: [
@@ -716,12 +785,7 @@ stdenv.register_macro{"=>"} with {env, context, expr} -> [
 
 stdenv.register_macro{"="} with {env, context, expr} -> [
    cond: [
-      [context == "head"] => [
-         throw "Illegal context for '=' (head)"
-      ]
-      [context == "tail"] => [
-         throw "Illegal context for '=' (tail)"
-      ]
+
       [context == "multi"] => [
          binding = expr[1]
          value = expr[2]
@@ -734,6 +798,7 @@ stdenv.register_macro{"="} with {env, context, expr} -> [
             ]
          ]
       ]
+
       [context == "data"] => [
          binding = expr[1]
          value = expr[2]
@@ -746,6 +811,7 @@ stdenv.register_macro{"="} with {env, context, expr} -> [
             ]
          ]
       ]
+
       true => [
          throw ["Illegal context for '=' (" + context + ")"]
       ]
@@ -884,6 +950,224 @@ stdenv.register_macro{"Rxg"} with {env, context, expr} -> [
 ]
 
 
+stdenv.register_macro{"?"} with {env, context, expr} -> [
+   checker = cond: [
+      [expr[1] == "String"] => [
+         {.macro, f} where f{env, context, expr} = [
+            {.send, "___eq", {.data, {.send, "typeof", {.data, expr[1]}}
+                                     {.value, "string"}}}
+         ]
+      ]
+      [expr[1] == "Number"] => [
+         {.macro, f} where f{env, context, expr} = [
+            {.send, "___eq", {.data, {.send, "typeof", {.data, expr[1]}}
+                                     {.value, "number"}}}
+         ]
+      ]
+      [expr[1] == "true"] => {.macro, make_exact_checker{{.value, true}}}
+      [expr[1] == "false"] => {.macro, make_exact_checker{{.value, false}}}
+      [expr[1] == "null"] => {.macro, make_exact_checker{{.value, null}}}
+      [expr[1] == "undefined"] => {.macro, make_exact_checker{{.value, undefined}}}
+      true => [
+         {.send, expr[1], {.value, "__check__"}}
+      ]
+   ]
+   mac{env, context, expr} = [
+      cond: [
+         [context == "pattern"] => [
+            {.check, checker, expr}
+         ]
+         true => [
+            {.send, checker, {.data, expr}}
+         ]
+      ]
+   ]
+   {.macro, mac}
+]
+
+stdenv.register_macro{"!"} with {env, context, expr} -> [
+   projector = {.send, expr[1], {.value, "__project__"}}
+   mac{env, context, expr} = [
+      cond: [
+         [context == "pattern"] => [
+            {.project, projector, expr}
+         ]
+         true => [
+            {.send, projector, {.data, expr}}
+         ]
+      ]
+   ]
+   {.macro, mac}
+]
+
+
+parse_lhs{env, lhs, rhs} = [
+   vars = {}
+   clauses = {}
+   current = {.multi}
+   i = 0
+
+   newclause{} = [
+      cond: [
+         [current.length > 1] => [
+            clauses.push{current}
+         ]
+      ]
+      current := {.multi}
+   ]
+
+   mktemp{} = [
+      name = "_tmp" + i
+      i := i + 1
+      vars.push{name}
+      name
+   ]
+
+   helper{lhs, curr} = [
+      helper_noexpand{expand.step{env, .pattern, lhs}, curr}
+   ]
+
+   helper_noexpand{lhs, curr} = [
+      cond: [
+         [lhs === null] => [false]
+
+         [typeof{lhs} == "string"] => [
+            vars.push{lhs}
+            current.push{{.assign, lhs, curr}}
+            current.push{{.value, true}}
+         ]
+
+         [[lhs instanceof Array] && [lhs[0] == "value"]] => [
+            helper_noexpand{x, curr} where [
+               x = {.check, {.macro, make_checker{lhs}}, null}
+            ]
+         ]
+
+         [[lhs instanceof Array] && [lhs[0] == "check"]] => [
+            checker = lhs[1]
+            expr = lhs[2]
+            temp = mktemp{}
+            current := current.concat with {
+               {.assign, temp, curr}
+               {.send, checker, {.data, temp}}
+            }
+            newclause{}
+            helper{expr, temp}
+         ]
+
+         [[lhs instanceof Array] && [lhs[0] == "send"]] => [
+            fname = lhs[1]
+            spec = lhs[2]
+            helper{fname, {.send, "->", {.data, spec, curr}}}
+         ]
+
+         [[lhs instanceof Array] && [lhs[0] == "data"]] => [
+            fw = 0
+            bw = 0
+            rest = undefined
+            members = lhs.slice{1}.map with {x} -> [
+               v = expand.step{env, .pattern, x}
+               cond: [
+                  [[v instanceof Array] && [v[0] == "dynsplice"]] => [
+                     rest := v[1]
+                  ]
+                  [rest === undefined] => [fw := fw + 1]
+                  true => [bw := bw + 1]
+               ]
+               v
+            ]
+
+            cmp = [
+               cond: [
+                  [rest === undefined] => "___eq"
+                  true => "___gt"
+               ]
+            ]
+            temp = mktemp{}
+            len = mktemp{}
+
+            current := current.concat with {
+               {.assign, temp, rhs}
+               {.assign, len, {.send, temp, {.value, "length"}}}
+               ;; Bounds check
+               ;; {.send, cmp, {.data, len, {.value, fw + bw}}}
+            }
+            ;; newclause{}
+
+            for [j = 0, j < fw, ++j]: [
+               helper_noexpand{members[j], {.send, temp, {.value, j}}}
+            ]
+
+            cond: [[rest !== undefined] => [
+               slice = cond: [
+                  [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
+                  true => {.data, {.value fw}}
+               ]
+               helper_noexpand{
+                  members[fw][1]
+                  {.send, {.send, temp, {.value, "slice"}}, slice}}
+            ]]
+
+            for [j = 0, j < bw, ++j]: [
+               helper_noexpand{members[fw + j + 1],
+                               {.send, temp, {.send, "___minus",
+                                              {.data, len, {.value, bw - j}}}}}
+            ]
+         ]
+
+         true => [
+            console.log with {"oops_lhs", lhs, curr}
+         ]
+      ]
+   ]
+   helper{lhs, rhs}
+   cond: [
+      [current.length > 1] => clauses.push{current}
+   ]
+   {vars, clauses}
+]
+
+stdenv.register_macro{"%"} with {env, context, expr} -> [
+   lhs = expr[1]
+   rhs = expr[2]
+   p = parse_lhs{env, lhs, rhs}
+   vars = p[0].map with {name} -> [
+      {.declare, name, {.value, undefined}}
+   ]
+   r = {.splice}.concat{vars}
+   clauses = p[1]
+
+   mkif{x} = [
+      {.if, x, {.value, false}, {.js_throw, {.value, "a condition failed"}}}
+   ]
+
+   cond: [
+      [clauses.length == 1] => [
+         clause = clauses[0]
+         last = clause[clause.length - 1]
+         cond: [
+            [[last instanceof Array] && [last[0] == "value"] && [last[1] === true]] => [
+               r := r.concat{clause.slice{1, -1}}
+            ]
+            true => [
+               r.push{mkif{clause}}
+            ]
+         ]
+      ]
+      true => [
+         ands = clauses.pop{}
+         while [clauses.length > 0]: [
+            ands := {.send, "___and", {.data, clauses.pop{}, ands}}
+         ]
+         r.push{mkif{ands}}
+      ]
+   ]
+   r
+]
+
+
+
+
 
 js_op_table = {
    ___plus = "+"
@@ -941,7 +1225,7 @@ translate{expr, mode} = [
                   [typeof{v} == "number"] => [
                      String{v}
                   ]
-                  [[v === true] || [v === false]] => [
+                  [[v === true] || [v === false] || [v === null] || [v === undefined]] => [
                      String{v}
                   ]
                   true => [
@@ -1020,7 +1304,18 @@ translate{expr, mode} = [
             ]
 
             [type == "multi"] => [
-               translate.body{expr, mode}
+               isdecl{x} = [[x instanceof Array] && [x[0] == .declare]]
+               cond: [
+                   [args.length == 1] => translate{args[0], mode}
+                   [[mode == "expr"] && [args.filter{isdecl}.length == 0]] => [
+                      ["(" + xs.join{","} + ")"] where [
+                         xs = args.map with {x} -> [
+                            translate{x, .expr}
+                         ]
+                      ]
+                   ]
+                   true => translate.body{expr, mode}
+               ]
             ]
 
             [type == "js_break"] => [
@@ -1046,7 +1341,7 @@ translate{expr, mode} = [
 
             [type == "js_throw"] => [
                cond: [
-                  [mode == "expr"] => throw "Invalid throw in ctx"
+                  ;; [mode == "expr"] => throw "Invalid throw in ctx"
                   true => "throw " + translate{args[0], .expr} + ";"
                ]
             ]
@@ -1196,15 +1491,12 @@ translate.op := {op, a, b} -> [
 
 fs = require{.fs}
 
-;; file = "bootstrap.tea"
-;; file = "niew.tea"
-
-file = process.argv[2]
+file = "test.eg" ;; process.argv[2]
 
 fs.readFile{file, "utf8", f} where [
    f{err, data} = [
       p = parse{data}
-      ex = expand{stdenv, .top, p}
+      ex = expand{stdenv, .top, {.multi, p}}
       ;; console.log with p
       ;; console.log with ex
       console.log with translate{ex, .stmt}
