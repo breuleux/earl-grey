@@ -521,7 +521,7 @@ expand{env, context, expr} = [
             [type == "value"] => [
                expr
             ]
-            [[type == "multi"] || [type == "code"] || [type == "array"] || [type == "object"]] => [
+            [[type == "multi"] || [type == "code"] || [type == "array"] || [type == "object"] || [type == "splice"]] => [
                args = expr.slice{1}
                arr = {}
                while [args.length > 0]: [
@@ -605,7 +605,7 @@ expand{env, context, expr} = [
                ]
             ]
             true => [
-               console.log{"Oops1: " + type}
+               throw {"Oops", type, context}
             ]
          ]
       ]
@@ -825,18 +825,26 @@ stdenv.register_macro{"="} with {env, context, expr} -> [
          vars = make_declarations{p[0]}
          r = {.splice}.concat{vars}
          clauses = p[1]
-      
+
          mkif{x} = [
             {.if, x, {.value, false}, {.js_throw, {.value, "a condition failed"}}}
          ]
-      
+
          cond: [
             [clauses.length == 1] => [
                clause = clauses[0]
                last = clause[clause.length - 1]
                cond: [
-                  [[last instanceof Array] && [last[0] == "value"] && [last[1] === true]] => [
-                     r := r.concat{clause.slice{1, -1}}
+                  [[last instanceof Array]
+                   \ && [last[0] == "value"] && [last[1] === true]] => [
+                     cond: [
+                        [[vars.length == 1] && [clause.length == 3]] => [
+                           r := {.declare}.concat{clause[1].slice{1}}
+                        ]
+                        true => [
+                           r := r.concat{clause.slice{1, -1}}
+                        ]
+                     ]
                   ]
                   true => [
                      r.push{mkif{clause}}
@@ -1382,6 +1390,10 @@ translate{expr, mode} = [
                    ]
                    true => translate.body{expr, mode}
                ]
+            ]
+
+            [type == "splice"] => [
+               translate{{.multi}.concat{args}, mode}
             ]
 
             [type == "js_break"] => [
