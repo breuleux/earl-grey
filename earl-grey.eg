@@ -321,32 +321,32 @@ oparse{next, order, finalize} = [
                  \ || order{left_op, right_op}
              ]
           ]
-      cond: [
-         [o == DONE] => [
+      o |> [
+         [== DONE] -> [
             return between
          ]
-         [o == LEFT] => [
+         [== LEFT] -> [
             current.push{between}
             between := finalize{current}
             v = stack.pop{}
             left_op := v 0
             current := v 1
          ]
-         [o == RIGHT] => [
+         [== RIGHT] -> [
             stack.push{{left_op, current}}
             left_op := right_op
             current := {{right_op}, between}
             between := finalize{next{}}
             right_op := next{}
          ]
-         [o == BOTH] => [
+         [== BOTH] -> [
             current[0].push{right_op}
             current.push{between}
             left_op := right_op
             between := finalize{next{}}
             right_op := next{}
          ]
-         [o == NONE] => [
+         [== NONE] -> [
             throw ["Undefined priority between " + left_op + " and " + right_op]
          ]
       ]
@@ -370,101 +370,80 @@ order{o1, o2} = [
 ]
 
 finalize{x} = [
-   cond: [
-      [[typeof{x[0]} == "string"] && [x[0] == "ID"]] => [
-         x[1]
-      ]
-      [[typeof{x[0]} == "string"] && [x[0] == "NUM"]] => [
-         {.value, parseFloat{x[1]}}
-      ]
-      [[typeof{x[0]} == "string"] && [x[0] == "STR"]] => [
-         {.value, x[1]}
-      ]
-      [[typeof{x[0]} == "string"] && [x[0] == "VOID"]] => [
-         null
-      ]
-      true => [
-         opcat = [x[0].map with [{o} -> o[2]]].join{""}
-         op = x[0][0][2]
-         args = x.slice{1}
-         cond: [
-
-            [opcat == "WHITE:"] => [
-               {"send", args[0], {"data", {"code", args[1]}, {"code", args[2]}}}
+   x |> [
+      {.ID, value} -> value
+      {.NUM, value} -> {.value, parseFloat{value}}
+      {.STR, value} -> {.value, value}
+      {.VOID} -> null
+      {ops, args*} -> [
+         opcat = [ops.map with [{o} -> o[2]]].join{""}
+         op = ops[0][2]
+         {opcat, args} |> [
+            {"WHITE:", {f, arg, body}} -> [
+               {"send", f, {"data", {"code", arg}, {"code", body}}}
             ]
-
-            [opcat == ":"] => [
-               {"send", args[0], {"data", {"code", args[1]}}}
+            {":", {f, body}} -> [
+               {"send", f, {"data", {"code", body}}}
             ]
-
-            [opcat == "with"] => [
-               target = args[0]
-               body = args[1]
-               body := cond: [
-                  [[body instanceof Array] && [body[0] == "multi"]] => [
-                     body.slice{1}
-                  ]
-                  true => [
-                     {body}
-                  ]
+            {"with", {target, body}} -> [
+               body := body |> [
+                  {.multi, rest*} -> rest
+                  other -> {body}
                ]
-               cond: [
-                  [[target instanceof Array]
-                   \ && [target[0] == "send"]
-                   \ && [target[2] instanceof Array]
-                   \ && [target[2][0] == "data"]] => [
-                     {"send", target[1], target[2].concat{body}}
+               target |> [
+                  {.send, f, {.data, args*}} -> [
+                     {.send, f, {.data}.concat{args}.concat{body}}
                   ]
-                  [[target instanceof Array] && [target[0] == "data"]] => [
+                  {.data, args*} -> [
                      target.concat{body}
                   ]
-                  true => [
+                  other -> [
                      {"send", target, {"data"}.concat{body}}
                   ]
                ]
             ]
+            other -> [
+               cond: [
 
-            [[op == "["] || [op == ","]] => [
-               cond: [
-                  [op == "["] => args := args.slice{1, -1}
-               ]
-               args := args.filter{f} where [
-                  f{x} = [x !== null]
-               ]
-               cond: [
-                  [[args.length == 1] && [args[0] === null]] => [
-                     throw ["At least one expression must be enclosed in []"]
+                  [[op == "["] || [op == ","]] => [
+                     cond: [
+                        [op == "["] => args := args.slice{1, -1}
+                     ]
+                     args := args.filter{f} where [
+                        f{x} = [x !== null]
+                     ]
+
+                     args |> [
+                        {} -> throw ["At least one expression must be enclosed in []"]
+                        {x} -> x
+                        other -> {"multi"}.concat{args}
+                     ]
                   ]
-                  [args.length == 1] => [
-                     args[0]
+
+                  [op == "{"] => [
+                     {"data"}.concat{args.slice{1, -1}.filter{f}} where [
+                        f{x} = [x !== null]
+                     ]
                   ]
+
+                  [op == "WHITE"] => [
+                     {"send"}.concat{args}
+                  ]
+
+                  [[args.length == 2] && [args[0] === null] && [args[1] === null]] => [
+                     op
+                  ]
+
                   true => [
-                     {"multi"}.concat{args}
+                     {"send", op, {"data"}.concat{args}}
                   ]
                ]
-            ]
-
-            [op == "{"] => [
-               {"data"}.concat{args.slice{1, -1}.filter{f}} where [
-                  f{x} = [x !== null]
-               ]
-            ]
-
-            [op == "WHITE"] => [
-               {"send"}.concat{args}
-            ]
-
-            [[args.length == 2] && [args[0] === null] && [args[1] === null]] => [
-               op
-            ]
-
-            true => [
-               {"send", op, {"data"}.concat{args}}
             ]
          ]
       ]
    ]
 ]
+
 
 parse{text} = [
    results = tokenize{text}
@@ -507,6 +486,18 @@ js_contexts = {
 
 expand{env, context, expr} = [
    expr := expand.step{env, context, expr}
+
+   ;; expr |> [
+   ;;    String? -> expr
+   ;;    null? -> null
+   ;;    {.send, f, arg} -> [
+   ;;       f = expand{env, .head, expr[1]}
+   ;;       arg = expr[2]
+   ;;       {.send, f, expand{env, .tail, arg}}
+   ;;    ]
+   ;;    {.value, v} -> expr      
+   ;; ]
+
    cond: [
       [typeof{expr} == "string"] => expr
       [expr === null] => null
@@ -730,6 +721,34 @@ stdenv.register_macro{"#"} with {env, context, expr} -> [
                {.data, tag}.concat{expr.slice{1}}
             ]
          ]
+      ]
+   ]
+]
+
+stdenv.register_macro{"&&"} with {env, context, expr} -> [
+   cond: [
+      [context == "pattern"] => [
+         {.all, expr[1], expr[2]}
+      ]
+      [expr === null] => [
+         "___and"
+      ]
+      true => [
+         {.send, "___and", expr}
+      ]
+   ]
+]
+
+stdenv.register_macro{"||"} with {env, context, expr} -> [
+   cond: [
+      [context == "pattern"] => [
+         {.any, expr[1], expr[2]}
+      ]
+      [expr === null] => [
+         "___or"
+      ]
+      true => [
+         {.send, "___or", expr}
       ]
    ]
 ]
@@ -1116,6 +1135,50 @@ parse_lhs{env, lhs, rhs} = [
             ]
          ]
 
+         [[lhs instanceof Array] && [lhs[0] == "all"]] => [
+            temp = mktemp{}
+            current := current.concat with {
+               {.assign, temp, curr}
+            }
+            lhs.slice{1}.forEach with {x} -> [
+               helper{x, temp}
+            ]
+         ]
+
+         [[lhs instanceof Array] && [lhs[0] == "any"]] => [
+            normalize{vars} = [
+               vars.filter{{x} -> x.slice{0, 4} !== "_tmp"}.sort{}.join{","}
+            ]
+
+            temp = mktemp{}
+            current := current.concat with {
+               {.assign, temp, curr}
+            }
+            myvars = undefined
+            clauses = {}
+            lhs.slice{1}.forEach with {x} -> [
+               p = parse_lhs{env, x, temp}
+               cond: [
+                  [myvars === undefined] => [
+                     myvars := p[0]
+                  ]
+                  [normalize{p[0]} !== normalize{myvars}] => [
+                     throw with {
+                        "Must have the same set of variables in both branches!"
+                        myvars
+                     }
+                  ]
+                  true => [
+                     vars := vars.concat{p[0]}
+                  ]
+               ]
+               clauses.push with make_pattern_test{p[1]}
+            ]
+            current.push with make_or_pattern{clauses}
+            vars := vars.concat{myvars}
+            newclause{}
+         ]
+
          [[lhs instanceof Array] && [lhs[0] == "check"]] => [
             checker = lhs[1]
             expr = lhs[2]
@@ -1212,6 +1275,14 @@ make_pattern_test{clauses} = [
       ands := {.send, "___and", {.data, clauses.pop{}, ands}}
    ]
    ands
+]
+
+make_or_pattern{clauses} = [
+   ors = clauses.pop{}
+   while [clauses.length > 0]: [
+      ors := {.send, "___or", {.data, clauses.pop{}, ors}}
+   ]
+   ors
 ]
 
 stdenv.register_macro{"|>"} with {env, context, expr} -> [
