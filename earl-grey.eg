@@ -495,7 +495,8 @@ expand{env, context, expr} = [
    ;;       arg = expr[2]
    ;;       {.send, f, expand{env, .tail, arg}}
    ;;    ]
-   ;;    {.value, v} -> expr      
+   ;;    {.value, v} -> expr
+      
    ;; ]
 
    cond: [
