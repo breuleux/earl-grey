@@ -1353,6 +1353,17 @@ translate{expr, mode} = [
          ]
       ]
 
+      {.declare, binding, {.value, undefined?}} -> [
+         mode |> [
+            [.expr || .return] -> throw "Invalid in expr ctx"
+            other -> [
+               ["var " + a + ";"] where [
+                  a = translate{binding, .expr}
+               ]
+            ]
+         ]
+      ]
+
       {.declare, binding, value} -> [
          mode |> [
             [.expr || .return] -> throw "Invalid in expr ctx"
@@ -1376,7 +1387,8 @@ translate{expr, mode} = [
          isdecl{x} = [[x instanceof Array] && [x[0] == .declare]]
          cond: [
              [args.length == 1] => translate{args[0], mode}
-             [[mode == "expr"] && [args.filter{isdecl}.length == 0]] => [
+             ;; [[mode == "expr"] && [args.filter{isdecl}.length == 0]] => [
+             [[mode == "expr"] && [!args.some{isdecl}]] => [
                 ["(" + xs.join{","} + ")"] where [
                    xs = args.map with {x} -> [
                       translate{x, .expr}
