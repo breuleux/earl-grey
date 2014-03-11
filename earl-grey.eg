@@ -161,11 +161,11 @@ tokenize{text} = [
                type = r[0]
                result = r.slice{1}
                result.location := {pos, pos + skip}
-               cond: [
-                  [type == .IGNORE] => [
+               type |> [
+                  .IGNORE -> [
                      null
                   ]
-                  [type == .ID] => [
+                  .ID -> [
                      cond: [
                         [!last_op] => [
                            w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
@@ -176,7 +176,7 @@ tokenize{text} = [
                      results.push{result}
                      last_op := false
                   ]
-                  [type == .OP] => [
+                  .OP -> [
                      cond: [
                         last_op => [
                            v = {.VOID}
@@ -184,12 +184,12 @@ tokenize{text} = [
                            results.push{v}
                         ]
                      ]
-                     cond: [
-                        [result[0] == .IFX] => [
+                     result[0] |> [
+                        .IFX -> [
                            results.push{result}
                            last_op := true
                         ]
-                        [result[0] == .PFX] => [
+                        .PFX -> [
                            cond: [
                               [!last_op] => [
                                  w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
@@ -203,7 +203,7 @@ tokenize{text} = [
                            results.push{result}
                            last_op := true
                         ]
-                        [result[0] == .SFX] => [
+                        .SFX -> [
                            results.push{result}
                            v = {.VOID}
                            v.location := {pos + skip, pos + skip}
@@ -528,9 +528,6 @@ expand{env, context, expr} = [
          while [args.length > 0]: [
             x = expand.step{env, type, args.shift{}}
             x |> [
-               ;; TODO: add a check for null in the pattern matcher
-               ;; so that the null? clause isn't necessary
-               null? -> arr.push{null}
                {.assoc} -> is_obj := true
                {.assoc, k, v} -> [
                   is_obj := true
@@ -616,7 +613,7 @@ expand.step := {env, context, expr} -> [
       {type, args*} -> [
          expr
       ]
-      other => [
+      other -> [
          throw {"Oops2", expr}
       ]      
    ]
@@ -849,7 +846,7 @@ stdenv.register_macro{"="} with {env, context, expr} -> [
          {.assoc, {.value, binding}, value}
       ]
 
-      other => [
+      other -> [
          throw ["Illegal context for '=' (" + context + ")"]
       ]
    ]
@@ -1000,7 +997,7 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} -> [
    mac{env, context, expr} = [
       context |> [
          .pattern -> {.check, checker, expr}
-         other => {.send, checker, {.data, expr}}
+         other -> {.send, checker, {.data, expr}}
       ]
    ]
    {.macro, mac}
@@ -1055,32 +1052,35 @@ parse_lhs{env, lhs, rhs} = [
    ]
 
    helper_noexpand{lhs, curr} = [
-      cond: [
-         [lhs === null] => [false]
+      lhs |> [
 
-         [typeof{lhs} == "string"] => [
+         null? -> false
+
+         ;; || "_"
+
+         String? -> [
             vars.push{lhs}
             current.push{{.assign, lhs, curr}}
             current.push{{.value, true}}
          ]
 
-         [[lhs instanceof Array] && [lhs[0] == "value"]] => [
+         {.value, v} -> [
             helper_noexpand{x, curr} where [
                x = {.check, {.macro, make_checker{lhs}}, null}
             ]
          ]
 
-         [[lhs instanceof Array] && [lhs[0] == "all"]] => [
+         {.all, xs*} -> [
             temp = mktemp{}
             current := current.concat with {
                {.assign, temp, curr}
             }
-            lhs.slice{1}.forEach with {x} -> [
+            xs.forEach with {x} -> [
                helper{x, temp}
             ]
          ]
 
-         [[lhs instanceof Array] && [lhs[0] == "any"]] => [
+         {.any, xs*} -> [
             normalize{vars} = [
                vars.filter{{x} -> x.slice{0, 4} !== "_tmp"}.sort{}.join{","}
             ]
@@ -1091,7 +1091,7 @@ parse_lhs{env, lhs, rhs} = [
             }
             myvars = undefined
             clauses = {}
-            lhs.slice{1}.forEach with {x} -> [
+            xs.forEach with {x} -> [
                p = parse_lhs{env, x, temp}
                cond: [
                   [myvars === undefined] => [
@@ -1114,9 +1114,7 @@ parse_lhs{env, lhs, rhs} = [
             newclause{}
          ]
 
-         [[lhs instanceof Array] && [lhs[0] == "check"]] => [
-            checker = lhs[1]
-            expr = lhs[2]
+         {.check, checker, expr} -> [
             temp = mktemp{}
             current := current.concat with {
                {.assign, temp, curr}
@@ -1126,17 +1124,15 @@ parse_lhs{env, lhs, rhs} = [
             helper{expr, temp}
          ]
 
-         [[lhs instanceof Array] && [lhs[0] == "send"]] => [
-            fname = lhs[1]
-            spec = lhs[2]
+         {.send, fname, spec} -> [
             helper{fname, {.send, "->", {.data, spec, curr}}}
          ]
 
-         [[lhs instanceof Array] && [lhs[0] == "data"]] => [
+         {.data, specs*} -> [
             fw = 0
             bw = 0
             rest = undefined
-            members = lhs.slice{1}.map with {x} -> [
+            members = specs.map with {x} -> [
                v = expand.step{env, .pattern, x}
                cond: [
                   [[v instanceof Array] && [v[0] == "dynsplice"]] => [
@@ -1190,10 +1186,6 @@ parse_lhs{env, lhs, rhs} = [
                                               {.data, len, {.value, bw - j}}}}}
             ]
          ]
-
-         true => [
-            console.log with {"oops_lhs", lhs, curr}
-         ]
       ]
    ]
    helper{lhs, rhs}
@@ -1202,6 +1194,7 @@ parse_lhs{env, lhs, rhs} = [
    ]
    {vars, clauses}
 ]
+
 
 make_declarations{vars} = [
    vars.map with {name} -> [
@@ -1225,18 +1218,17 @@ make_or_pattern{clauses} = [
    ors
 ]
 
-stdenv.register_macro{"|>"} with {env, context, expr} -> [
-   to_match = expr[1]
-   clauses = cond: [
-      [expr[2][0] == .multi] => expr[2].slice{1}
-      true => {expr[2]}
+stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} -> [
+   ;; TODO: temp for to_match
+   clauses = cl |> [
+      {.multi, cls*} -> cls
+      other -> {other}
    ]
    decls = {.multi}
+   ;; r = {.js_throw, {.data, {.value, "Could not find a match"}, to_match}}
    r = {.js_throw, {.value, "Could not find a match"}}
    while [clauses.length > 0]: [
-      clause = clauses.pop{}
-      lhs = clause[2][1]
-      body = clause[2][2]
+      {.send, "->", {.data, lhs, body}} = clauses.pop{}
       p = parse_lhs{env, lhs, to_match}
       test = make_pattern_test{p[1]}
       r := {.if, test, body, r}
@@ -1283,228 +1275,212 @@ js_op_table = {
 
 
 translate{expr, mode} = [
-   cond: [
-      [typeof{expr} == "string"] => [
+
+   expr |> [
+
+      String? -> [
          translate.expr{translate.mangle{expr}, mode}
       ]
-      [expr === null] => [
+
+      null? -> [
          translate.expr{"null", mode}
       ]
-      [expr instanceof Array] => [
-         type = expr[0]
-         args = expr.slice{1}
-         cond: [
 
-            [type == "value"] => [
-               v = args[0]
-               r = cond: [
-                  [typeof{v} == "string"] => [
-                     repl = {
-                        "\"" => "\\\""
-                        "\n" => "\\n"
-                        "\\" => "\\\\"
-                     }
-                     v := v.replace{Rxg{"\"" || "\\" || "\n"}, {m} -> repl[m]}
-                     "\"" + v + "\""
-                  ]
-                  [typeof{v} == "number"] => [
-                     String{v}
-                  ]
-                  [[v === true] || [v === false] || [v === null] || [v === undefined]] => [
-                     String{v}
-                  ]
-                  true => [
-                     console.log with expr
-                     "?!?[" + v + "]?!?"
-                  ]
-               ]
-               translate.expr{r, mode}
+      {.value, v} -> [
+         r = v |> [
+            String? -> [
+               repl = {
+                  "\"" => "\\\""
+                  "\n" => "\\n"
+                  "\\" => "\\\\"
+               }
+               v := v.replace{Rxg{"\"" || "\\" || "\n"}, {m} -> repl[m]}
+               "\"" + v + "\""
             ]
-
-            [type == "lambda"] => [
-               bindings = args[0]
-               body = args[1]
-               translate.expr{"function("+a+"){"+b+"}", mode} where [
-                  a = bindings.join{","}
-                  b = translate.body{body, .return}
-               ]
+            [Number? || true? || false? || null? || undefined?] -> [
+               String{v}
             ]
-
-            [type == "if"] => [
-               cond: [
-                  [mode == "expr"] => translate.body{expr, .expr}
-                  true => [
-                     ["if(" + a + "){" + b + "}else{" + c + "}"] where [
-                        a = translate{args[0], .expr}
-                        b = translate{args[1], mode}
-                        c = translate{args[2], mode}
-                     ]
-                  ]
-               ]
+            other -> [
+               "?!?[" + v + "]?!?"
             ]
-
-            [type == "js_while"] => [
-               cond: [
-                  [mode == "expr"] => translate.body{expr, .expr}
-                  true => [
-                     ["while(" + a + "){" + b + "}"] where [
-                        a = translate{args[0], .expr}
-                        b = translate{args[1], .stmt}
-                     ]
-                  ]
-               ]
-            ]
-
-            [type == "js_for"] => [
-               cond: [
-                  [mode == "expr"] => translate.body{expr, .expr}
-                  true => [
-                     ["for("+a+b+c+"){"+d+"}"] where [
-                        a = translate{args[0], .stmt}
-                        b = translate{args[1], .stmt}
-                        c = translate{args[2], .expr}
-                        d = translate{args[3], .stmt}
-                     ]
-                  ]
-               ]
-            ]
-
-            [type == "declare"] => [
-               cond: [
-                  [[mode == "expr"] || [mode == "return"]] => throw "Invalid in expr ctx"
-                  true => [
-                     ["var " + a + "=" + b + ";"] where [
-                        a = translate{args[0], .expr}
-                        b = translate{args[1], .expr}
-                     ]
-                  ]
-               ]
-            ]
-
-            [type == "assign"] => [
-               translate.expr{"(" + a + "=" + b + ")", mode} where [
-                  a = translate{args[0], .expr}
-                  b = translate{args[1], .expr}
-               ]
-            ]
-
-            [type == "multi"] => [
-               isdecl{x} = [[x instanceof Array] && [x[0] == .declare]]
-               cond: [
-                   [args.length == 1] => translate{args[0], mode}
-                   [[mode == "expr"] && [args.filter{isdecl}.length == 0]] => [
-                      ["(" + xs.join{","} + ")"] where [
-                         xs = args.map with {x} -> [
-                            translate{x, .expr}
-                         ]
-                      ]
-                   ]
-                   true => translate.body{expr, mode}
-               ]
-            ]
-
-            [type == "splice"] => [
-               translate{{.multi}.concat{args}, mode}
-            ]
-
-            [type == "js_break"] => [
-               cond: [
-                  [mode == "expr"] => throw "Invalid break in ctx"
-                  true => "break;"
-               ]
-            ]
-
-            [type == "js_continue"] => [
-               cond: [
-                  [mode == "expr"] => throw "Invalid continue in ctx"
-                  true => "continue;"
-               ]
-            ]
-
-            [type == "js_return"] => [
-               cond: [
-                  [mode == "expr"] => throw "Invalid return in ctx"
-                  true => "return " + translate{args[0], .expr} + ";"
-               ]
-            ]
-
-            [type == "js_throw"] => [
-               cond: [
-                  ;; [mode == "expr"] => throw "Invalid throw in ctx"
-                  true => "throw " + translate{args[0], .expr} + ";"
-               ]
-            ]
-
-            [type == "array"] => [
-               r = ["[" + args.map{f}.join{","} + "]"] where [
-                  f{x} = translate{x, .expr}
-               ]
-               translate.expr{r, mode}
-            ]
-
-            [type == "object"] => [
-               r = ["({" + args.map{f}.join{","} + "})"] where [
-                  f{x} = [
-                     a = translate{x[1], .expr}
-                     b = translate{x[2], .expr}
-                     a + ":" + b
-                  ]
-               ]
-               translate.expr{r, mode}
-            ]
-
-            [type == "send"] => [
-               f = args[0]
-               msg = args[1]
-               cond: [
-
-                  [[msg instanceof Array] && [msg[0] == "value"]] => [
-                     s = msg[1]
-                     cond: [
-                        [[typeof{s} == "string"]
-                         \ && s.match{Rx[start, [>>"a-zA-Z_$"]+, end]}] => [
-                           translate.expr{trf + "." + trmsg, mode} where [
-                              trf = translate{f, .expr}
-                              trmsg = translate{msg[1], .expr}
-                           ]
-                        ]
-                        true => [
-                           translate.expr{trf + "[" + trmsg + "]", mode} where [
-                              trf = translate{f, .expr}
-                              trmsg = translate{msg, .expr}
-                           ]
-                        ]
-                     ]
-                  ]
-
-                  [[msg instanceof Array] && [msg[0] == "array"]] => [
-                     op = [typeof{f} == "string"] && js_op_table[f]
-                     cond: [
-                        op => [
-                           translate.expr{translate.op{op, msg[1], msg[2]}, mode}
-                        ]
-                        true => [
-                           translate.expr{trf+"("+trargs.join{","}+")", mode} where [
-                              trf = translate{f, .expr}
-                              trargs = msg.slice{1}.map with {x} -> [
-                                 translate{x, .expr}
-                              ]
-                           ]
-                        ]
-                     ]
-                  ]
-
-                  true => [
-                     translate.expr{trf + "[" + trmsg + "]", mode} where [
-                        trf = translate{f, .expr}
-                        trmsg = translate{msg, .expr}
-                     ]
-                  ]
-
-               ]
-            ]
-
          ]
+         translate.expr{r, mode}
+      ]
+
+      {.lambda, bindings, body} -> [
+         translate.expr{"function("+a+"){"+b+"}", mode} where [
+            a = bindings.join{","}
+            b = translate.body{body, .return}
+         ]
+      ]
+
+      {.if, test, pos, neg} -> [
+         mode |> [
+            .expr -> translate.body{expr, .expr}
+            other -> [
+               ["if(" + a + "){" + b + "}else{" + c + "}"] where [
+                  a = translate{test, .expr}
+                  b = translate{pos, mode}
+                  c = translate{neg, mode}
+               ]
+            ]
+         ]
+      ]
+
+      {.js_while, test, body} -> [
+         mode |> [
+            .expr -> translate.body{expr, .expr}
+            other -> [
+               ["while(" + a + "){" + b + "}"] where [
+                  a = translate{test, .expr}
+                  b = translate{body, .stmt}
+               ]
+            ]
+         ]
+      ]
+
+      {.js_for, x, y, z, body} -> [
+         mode |> [
+            .expr -> translate.body{expr, .expr}
+            other -> [
+               ["for("+a+b+c+"){"+d+"}"] where [
+                  a = translate{x, .stmt}
+                  b = translate{y, .stmt}
+                  c = translate{z, .expr}
+                  d = translate{body, .stmt}
+               ]
+            ]
+         ]
+      ]
+
+      {.declare, binding, value} -> [
+         mode |> [
+            [.expr || .return] -> throw "Invalid in expr ctx"
+            other -> [
+               ["var " + a + "=" + b + ";"] where [
+                  a = translate{binding, .expr}
+                  b = translate{value, .expr}
+               ]
+            ]
+         ]
+      ]
+
+      {.assign, lhs, rhs} -> [
+         translate.expr{"(" + a + "=" + b + ")", mode} where [
+            a = translate{lhs, .expr}
+            b = translate{rhs, .expr}
+         ]
+      ]
+
+      {.multi, args*} -> [
+         isdecl{x} = [[x instanceof Array] && [x[0] == .declare]]
+         cond: [
+             [args.length == 1] => translate{args[0], mode}
+             [[mode == "expr"] && [args.filter{isdecl}.length == 0]] => [
+                ["(" + xs.join{","} + ")"] where [
+                   xs = args.map with {x} -> [
+                      translate{x, .expr}
+                   ]
+                ]
+             ]
+             true => translate.body{expr, mode}
+         ]
+      ]
+
+      {.splice, args*} -> [
+         translate{{.multi}.concat{args}, mode}
+      ]
+
+      {.js_break} -> [
+         cond: [
+            [mode == "expr"] => throw "Invalid break in ctx"
+            true => "break;"
+         ]
+      ]
+
+      {.js_continue} -> [
+         cond: [
+            [mode == "expr"] => throw "Invalid continue in ctx"
+            true => "continue;"
+         ]
+      ]
+
+      {.js_return, value} -> [
+         cond: [
+            [mode == "expr"] => throw "Invalid return in ctx"
+            true => "return " + translate{value, .expr} + ";"
+         ]
+      ]
+
+      {.js_throw, value} -> [
+         cond: [
+            ;; [mode == "expr"] => throw "Invalid throw in ctx"
+            true => "throw " + translate{value, .expr} + ";"
+         ]
+      ]
+
+      {.array, args*} -> [
+         r = ["[" + args.map{f}.join{","} + "]"] where [
+            f{x} = translate{x, .expr}
+         ]
+         translate.expr{r, mode}
+      ]
+
+      {.object, args*} -> [
+         r = ["({" + args.map{f}.join{","} + "})"] where [
+            f{x} = [
+               a = translate{x[1], .expr}
+               b = translate{x[2], .expr}
+               a + ":" + b
+            ]
+         ]
+         translate.expr{r, mode}
+      ]
+
+      {.send, f, msg && {.value, s}} -> [
+         cond: [
+            [[typeof{s} == "string"]
+             \ && s.match{Rx[start, [>>"a-zA-Z_$"]+, end]}] => [
+               translate.expr{trf + "." + trmsg, mode} where [
+                  trf = translate{f, .expr}
+                  trmsg = translate{s, .expr}
+               ]
+            ]
+            true => [
+               translate.expr{trf + "[" + trmsg + "]", mode} where [
+                  trf = translate{f, .expr}
+                  trmsg = translate{msg, .expr}
+               ]
+            ]
+         ]
+      ]
+
+      {.send, f, {.array, args*}} -> [
+         op = [typeof{f} == "string"] && js_op_table[f]
+         cond: [
+            op => [
+               translate.expr{translate.op{op, args[0], args[1]}, mode}
+            ]
+            true => [
+               translate.expr{trf+"("+trargs.join{","}+")", mode} where [
+                  trf = translate{f, .expr}
+                  trargs = args.map with {x} -> [
+                     translate{x, .expr}
+                  ]
+               ]
+            ]
+         ]
+      ]
+
+      {.send, f, msg} -> [
+         translate.expr{trf + "[" + trmsg + "]", mode} where [
+            trf = translate{f, .expr}
+            trmsg = translate{msg, .expr}
+         ]
+      ]
+
+      other -> [
+         throw other
       ]
    ]
 ]
@@ -1542,28 +1518,28 @@ translate.body := {b, mode} -> [
    orig := b
    b := aslist{b}
    trst{stmt} = translate{stmt, .stmt}
-   cond: [
-      [mode == .expr] => [
+   mode |> [
+      .expr -> [
          translate{x, mode} where [
             x = {.send, {.lambda, {}, orig}, {.array}}
          ]
       ]
-      [mode == .return] => [
+      .return -> [
          stmts = b.slice{0, -1}
          ret = b[b.length - 1]
          stmts.map{trst}.join{""} + translate{ret, .return}
       ]
-      [mode == .stmt] => [
+      .stmt -> [
          b.map{trst}.join{""}
       ]
    ]
 ]
 
 translate.expr := {x, mode} -> [
-   cond: [
-      [mode == .expr] => x
-      [mode == .stmt] => x + ";"
-      [mode == .return] => "return " + x + ";"
+   mode |> [
+      .expr -> x
+      .stmt -> x + ";"
+      .return -> "return " + x + ";"
    ]
 ]
 
