@@ -14,6 +14,7 @@ special_ops = {
 regexps = {
    {op3,    op_f}
    {id,     id_f}
+   {numr,   numr_f}
    {num,    num_f}
    {str,    str_f}
    {op,     op_f}
@@ -31,14 +32,30 @@ regexps = {
   id_f = {m, wsb, wsa, last_op} -> {.ID, .ID, m[0]}
 
 
+  numr = Rx
+     start
+     {d+}, >>"rR"
+     {[>>"A-Za-z0-9_"]+}
+     [".", {[>>"A-Za-z0-9_"]+}]?
+
+  numr_f = {m, wsb, wsa, last_op} ->
+     {_, radix, int, frac} = m
+     value := parseInt{int.replace{Rxg"_", ""}, radix}
+     cond:
+        frac =>
+           frac := frac.replace{Rxg"_", ""}
+           value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
+     {.ID, .NUM, value}
+
+
   num = Rx
      start
-     {d+}
+     {[>>"0-9_"]+}
      [".", {d+}]?
-     [>>"eE", {[>>"+-"]?, d+}]?
+     [>>"eE", {[>>"+-"]?, [>>"0-9_"]+}]?
 
-  ;;num_f = {m, wsb, wsa, last_op} -> {.ID, .NUM, m[1], m[2], m[3]}
-  num_f = {m, wsb, wsa, last_op} -> {.ID, .NUM, m[0]}
+  num_f = {m, wsb, wsa, last_op} ->
+     {.ID, .NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
 
 
   str = Rx
@@ -402,7 +419,7 @@ order{o1, o2} =
 finalize{x} =
    x |>
       {.ID, value} -> value
-      {.NUM, value} -> {.value, parseFloat{value}}
+      {.NUM, value} -> {.value, value}
       {.STR, value} -> {.value, value}
       {.VOID} -> null
 
