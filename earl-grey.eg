@@ -188,7 +188,7 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
       .ID ->
          cond:
             [!last_op] =>
-               w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+               w = {.IFX, if{wsb, .wide, .short}, .WHITE}
                w.location := {pos, pos}
                accum.push{w}
          accum.push{result}
@@ -207,7 +207,7 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
             .PFX ->
                cond:
                   [!last_op] =>
-                     w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+                     w = {.IFX, if{wsb, .wide, .short}, .WHITE}
                      w.location := {pos, pos}
                      v = {.VOID}
                      v.location := {pos, pos}
@@ -243,10 +243,14 @@ tokenize{text} =
                text := text.slice{skip}
                wsa = text.match{ws_re}[0].length
                eol = text.match{eol_re} && true
-               token = fn{m, wsb > 0, if{eol, wsb > 0, wsa > 0}, last_op}
+               bwsb = wsb > 0
+               bwsa = if{eol, bwsb, wsa > 0}
+               ;; bwsb = if{eol, true, wsb > 0}
+               ;; bwsa = if{eol, true, wsa > 0}
+               token = fn{m, bwsb, bwsa, last_op}
                tokens = indent{token}
                tokens.forEach with {x} ->
-                  last_op := process_token{x, last_op, wsa, wsb, pos, endpos, results}
+                  last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
                text := text.slice{wsa}
                wsb := wsa
                pos := endpos + wsa
