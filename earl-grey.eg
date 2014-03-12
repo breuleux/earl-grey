@@ -82,10 +82,11 @@ regexps = {
         [op in special_ops] => [
            fixity = special_ops[op]
            width = [
-              cond: [
-                 [fixity == "IFX"] => if{wsb || wsa, .wide, .short}
-                 [fixity == "SFX"] => if{wsb, .wide, .short}
-                 [fixity == "PFX"] => if{wsa, .wide, .short}
+              fixity |> [
+                 .IFX -> if{wsb || wsa, .wide, .short}
+                 .SFX -> if{wsb, .wide, .short}
+                 .PFX -> if{wsa, .wide, .short}
+                 other -> throw "OopsA"
               ]
            ]
            {.OP, fixity, width, op}
@@ -110,10 +111,15 @@ regexps = {
 
   indent = Rx [
      start
-     ["\n", " "*]+
+     ["\n", {" "*}]+
   ]
 
-  indent_f = {m, wsb, wsa, last_op} -> {.OP, .IFX, .wide, ","}
+  indent_f = {m, wsb, wsa, last_op} -> [
+     ilen = m[1].length
+     ;; {.OP, .IFX, .wide, ilen}
+     ;; {.OP, .IFX, .wide, ","}
+     {.INDENT, ilen}
+  ]
 
 
   cmnt = Rx [
@@ -136,8 +142,124 @@ regexps = {
 
 
 ;; TODO: ignore blank lines before continuation
+;; ws_re = Rx[start, " "*, ["\n", " "*, "\\", " "*]*]
 ws_re = Rx[" "*, ["\n", " "*, "\\", " "*]*]
-;; ws_re = Rx[" "*]
+
+eol_re = Rx[start, " "*, "\n" || end]
+
+indent_tracker{} = [
+   curr = false
+   stack = {}
+   stacks = {stack}
+   {token} -> [
+      token |> [
+         {.INDENT, new_indent} -> [
+            cond: [
+               [curr === false] => [
+                  curr := new_indent
+                  {{.OP, .IFX, .wide, ","}}
+               ]
+               [new_indent > curr] => [
+                  stack.push{curr}
+                  curr := new_indent
+                  {{.OP, .PFX, .wide, "["}}
+               ]
+               [new_indent == curr] => [
+                  {{.OP, .IFX, .wide, ","}}
+               ]
+               [new_indent < curr] => [
+                  rval = {}
+                  while [[stack.length > 0] && [new_indent < curr]]: [
+                     curr := stack.pop{}
+                     rval.push{{.OP, .SFX, .wide, "]"}}
+                  ]
+                  rval.push{{.OP, .IFX, .wide, ","}}
+                  rval
+               ]
+               true => throw {curr, new_indent}
+            ]
+         ]
+         {.ID, stuff*} -> {token}
+         {.OP, fixity, width, "[" || "{"} -> [
+            stack.push{curr}
+            stacks.push{stack}
+            stack := {}
+            curr := false
+            {token}
+         ]
+         {.OP, fixity, width, "]" || "}"} -> [
+            rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
+            stack := stacks.pop{}
+            curr := stack.pop{}
+            rval.push{token}
+            rval
+         ]
+         other -> {token}
+      ]
+   ]
+]
+
+process_token{token, last_op, wsa, wsb, pos, endpos, accum} = [
+   {type, result*} = token
+   type |> [
+      .IGNORE -> [
+         last_op
+      ]
+
+      .ID -> [
+         cond: [
+            [!last_op] => [
+               w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+               w.location := {pos, pos}
+               accum.push{w}
+            ]
+         ]
+         accum.push{result}
+         false
+      ]
+
+      .OP -> [
+         cond: [
+            last_op => [
+               v = {.VOID}
+               v.location := {pos, pos}
+               accum.push{v}
+            ]
+         ]
+         result[0] |> [
+            .IFX -> [
+               accum.push{result}
+               true
+            ]
+            .PFX -> [
+               cond: [
+                  [!last_op] => [
+                     ;; w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+                     ;; w = {.IFX, result[1], .WHITE}
+
+                     w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
+                     w.location := {pos, pos}
+                     v = {.VOID}
+                     v.location := {pos, pos}
+                     accum.push{w}
+                     accum.push{v}
+                  ]
+               ]
+               accum.push{result}
+               true
+            ]
+            .SFX -> [
+               accum.push{result}
+               v = {.VOID}
+               v.location := {endpos, endpos}
+               accum.push{v}
+               false
+            ]
+         ]
+      ]
+      other -> throw "OopsB"
+   ]
+]
 
 
 tokenize{text} = [
@@ -146,76 +268,27 @@ tokenize{text} = [
    wsb = text.match{ws_re}[0].length
    text := text.slice{wsb}
    pos := wsb
+   indent = indent_tracker{}
+
    while text: [
       for [i = 0, i < regexps.length, ++i]: [
-         spec = regexps[i]
-         re = spec[0]
+         {re, fn} = regexps[i]
          m = text.match{re}
          cond: [
             m => [
-               fn = spec[1]
                skip = m[0].length
+               endpos = pos + skip
                text := text.slice{skip}
                wsa = text.match{ws_re}[0].length
-               r = fn{m, wsb > 0, wsa > 0, last_op}
-               type = r[0]
-               result = r.slice{1}
-               result.location := {pos, pos + skip}
-               type |> [
-                  .IGNORE -> [
-                     null
-                  ]
-                  .ID -> [
-                     cond: [
-                        [!last_op] => [
-                           w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
-                           w.location := {pos, pos}
-                           results.push{w}
-                        ]
-                     ]
-                     results.push{result}
-                     last_op := false
-                  ]
-                  .OP -> [
-                     cond: [
-                        last_op => [
-                           v = {.VOID}
-                           v.location := {pos, pos}
-                           results.push{v}
-                        ]
-                     ]
-                     result[0] |> [
-                        .IFX -> [
-                           results.push{result}
-                           last_op := true
-                        ]
-                        .PFX -> [
-                           cond: [
-                              [!last_op] => [
-                                 w = {.IFX, if{wsa || wsb, .wide, .short}, .WHITE}
-                                 w.location := {pos, pos}
-                                 v = {.VOID}
-                                 v.location := {pos, pos}
-                                 results.push{w}
-                                 results.push{v}
-                              ]
-                           ]
-                           results.push{result}
-                           last_op := true
-                        ]
-                        .SFX -> [
-                           results.push{result}
-                           v = {.VOID}
-                           v.location := {pos + skip, pos + skip}
-                           results.push{v}
-                           last_op := false
-                        ]
-                     ]
-                  ]
+               eol = text.match{eol_re} && true
+               token = fn{m, wsb > 0, if{eol, wsb > 0, wsa > 0}, last_op}
+               tokens = indent{token}
+               tokens.forEach with {x} -> [
+                  last_op := process_token{x, last_op, wsa, wsb, pos, endpos, results}
                ]
                text := text.slice{wsa}
                wsb := wsa
-               pos := pos + skip + wsa
+               pos := endpos + wsa
                break
             ]
          ]
@@ -241,7 +314,7 @@ order_map = {
       wide = {
          default = {900, 901}
          WHITE = {1000, 1001}
-         "," => {1, 1}
+         "," => {5, 5}
          "with" => {11, 10}
          "where" => {11, 10}
          "->" => {11, 10}
@@ -251,13 +324,13 @@ order_map = {
          "+" => {300, 301}
          "*" => {400, 401}
          "**" => {501, 500}
-         ":" => {1001, 2}
+         ":" => {1001, 6}
       }
       short = {
          default = {1900, 1901}
          WHITE = {2000, 2001}
-         "," => {1, 1}
-         ":" => {1001, 2}
+         "," => {5, 5}
+         ":" => {1001, 6}
       }
    }
 
@@ -266,32 +339,32 @@ order_map = {
          default = {MAX, 900}
          "." => {MAX, 3000}
          "#" => {MAX, 3000}
-         "(" => {MAX, 1}
-         "[" => {MAX, 1}
-         "{" => {MAX, 1}
+         "(" => {MAX, 5}
+         "[" => {MAX, 5}
+         "{" => {MAX, 5}
       }
       short = {
          default = {MAX, 1900}
          "." => {MAX, 3000}
          "#" => {MAX, 3000}
-         "(" => {MAX, 1}
-         "[" => {MAX, 1}
-         "{" => {MAX, 1}
+         "(" => {MAX, 5}
+         "[" => {MAX, 5}
+         "{" => {MAX, 5}
       }
    }
 
    SFX = {
       wide = {
          default = {901, MAX}
-         ")" => {1, MAX}
-         "]" => {1, MAX}
-         "}" => {1, MAX}
+         ")" => {5, MAX}
+         "]" => {5, MAX}
+         "}" => {5, MAX}
       }
       short = {
          default = {1901, MAX}
-         ")" => {1, MAX}
-         "]" => {1, MAX}
-         "}" => {1, MAX}
+         ")" => {5, MAX}
+         "]" => {5, MAX}
+         "}" => {5, MAX}
       }
    }
 }
@@ -349,14 +422,24 @@ oparse{next, order, finalize} = [
          [== NONE] -> [
             throw ["Undefined priority between " + left_op + " and " + right_op]
          ]
+         other -> throw "OopsC"
       ]
    ]
 ]
 
 
 consult{o} = [
-   map = order_map[o 0][o 1]
-   map[o 2] || map.default
+   o |> [
+      {fixity, width, Number? n} -> [
+         p = 5 - [1 / [n + 1]]
+         {p, p}
+      ]
+      {fixity, width, op} -> [
+         map = order_map[fixity][width]
+         map[op] || map.default
+      ]
+      other -> throw "OopsD"
+   ]
 ]
 
 order{o1, o2} = [
@@ -375,17 +458,21 @@ finalize{x} = [
       {.NUM, value} -> {.value, parseFloat{value}}
       {.STR, value} -> {.value, value}
       {.VOID} -> null
+
       {ops, args*} -> [
-         opcat = [ops.map with [{o} -> o[2]]].join{""}
-         op = ops[0][2]
-         {opcat, args} |> [
-            {"WHITE:", {f, arg, body}} -> [
+         ops := [ops.map with [{o} -> o[2]]]
+         op = ops[0]
+         {ops, args} |> [
+
+            {{"WHITE", ":"}, {f, arg, body}} -> [
                {"send", f, {"data", {"code", arg}, {"code", body}}}
             ]
-            {":", {f, body}} -> [
+
+            {{":"}, {f, body}} -> [
                {"send", f, {"data", {"code", body}}}
             ]
-            {"with", {target, body}} -> [
+
+            {{"with"}, {target, body}} -> [
                body := body |> [
                   {.multi, rest*} -> rest
                   other -> {body}
@@ -402,51 +489,53 @@ finalize{x} = [
                   ]
                ]
             ]
-            other -> [
+
+            {{"[" || ",", _*}, _} -> [
                cond: [
-
-                  [[op == "["] || [op == ","]] => [
-                     cond: [
-                        [op == "["] => args := args.slice{1, -1}
-                     ]
-                     args := args.filter{f} where [
-                        f{x} = [x !== null]
-                     ]
-
-                     args |> [
-                        {} -> throw ["At least one expression must be enclosed in []"]
-                        {x} -> x
-                        other -> {"multi"}.concat{args}
-                     ]
-                  ]
-
-                  [op == "{"] => [
-                     {"data"}.concat{args.slice{1, -1}.filter{f}} where [
-                        f{x} = [x !== null]
-                     ]
-                  ]
-
-                  [op == "WHITE"] => [
-                     {"send"}.concat{args}
-                  ]
-
-                  [[args.length == 2] && [args[0] === null] && [args[1] === null]] => [
-                     op
-                  ]
-
-                  true => [
-                     {"send", op, {"data"}.concat{args}}
-                  ]
+                  [op == "["] => args := args.slice{1, -1}
                ]
+               args := args.filter{f} where [
+                  f{x} = [x !== null]
+               ]
+
+               result = args |> [
+                  {} -> throw ["At least one expression must be enclosed in []"]
+                  {x} -> x
+                  other -> {"multi"}.concat{args}
+               ]
+               result
+            ]
+
+            {{"{", _*}, _} -> [
+               {"data"}.concat{args.slice{1, -1}.filter{f}} where [
+                  f{x} = [x !== null]
+               ]
+            ]
+
+            {{.WHITE}, _} -> [
+               {"send"}.concat{args}
+            ]
+
+            {{_}, {null?, null?}} -> [
+               op
+            ]
+            {{_}, {a, b}} -> [
+               {"send", op, {"data", a, b}}
+            ]
+
+            other -> [
+               throw {"Unknown node", ops, args}
             ]
          ]
       ]
+      other -> throw "OopsE"
    ]
 ]
 
 
 parse{text} = [
    results = tokenize{text}
+   ;; ___lib.pr{results}
    next{} = results.shift{}
    oparse{next, order, finalize}
 ]
@@ -631,6 +720,7 @@ aslist{expr} = [
 
 nullenv = {resolve{x} = undefined}
 
+
 stdenv = Env{nullenv}
 
 stdenv.register{"+", "___plus"}
@@ -663,6 +753,11 @@ stdenv.register{"--", "___minusminus"}
 ;;]
 
 
+stdenv.register_macro{"<>"} with {env, context, {.data, null?, x}} -> [
+   {.send, {.send, "___lib", {.value, "pr"}}, {.data, x}}
+]
+
+
 make_checker{value} = {env, context, expr} -> [
    {.send, "___eq", {.data, expr[1], value}}
 ]
@@ -670,6 +765,7 @@ make_checker{value} = {env, context, expr} -> [
 make_exact_checker{value} = {env, context, expr} -> [
    {.send, "___is", {.data, expr[1], value}}
 ]
+
 
 stdenv.register_macro{"#"} with {env, context, expr} -> [
    tag = {.value, expr[2]}
@@ -876,8 +972,14 @@ stdenv.register_macro{"cond"} with {env, context, {.data, {.code, clauses}}} -> 
 
 
 
-stdenv.register_macro{"while"} with
-      \ {env, context, {.data, {.code, test}, {.code, body}}} -> [
+;; stdenv.register_macro{"while"} with
+;;       \ {env, context, {.data, {.code, test}, {.code, body}}} -> [
+;;    {.js_while, test, body}
+;; ]
+
+stdenv.register_macro{"while"} with {env, context, expr} -> [
+   ;; ___lib.pr{expr}
+   {.data, {.code, test}, {.code, body}} = expr
    {.js_while, test, body}
 ]
 
@@ -960,6 +1062,7 @@ rx_build{expr} = [
       {.multi, args*} -> [
          "(?:" + args.map{rx_build}.join{""} + ")"
       ]
+      otherA -> throw "OopsF"
    ]
 ]
 
@@ -1054,9 +1157,7 @@ parse_lhs{env, lhs, rhs} = [
    helper_noexpand{lhs, curr} = [
       lhs |> [
 
-         null? -> false
-
-         ;; || "_"
+         [null? || "_"] -> false
 
          String? -> [
             vars.push{lhs}
@@ -1186,6 +1287,7 @@ parse_lhs{env, lhs, rhs} = [
                                               {.data, len, {.value, bw - j}}}}}
             ]
          ]
+         other -> throw "OopsG"
       ]
    ]
    helper{lhs, rhs}
@@ -1219,7 +1321,6 @@ make_or_pattern{clauses} = [
 ]
 
 stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} -> [
-   ;; TODO: temp for to_match
    clauses = cl |> [
       {.multi, cls*} -> cls
       other -> {other}
@@ -1237,10 +1338,6 @@ stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} -> [
    decls.push{r}
    decls
 ]
-
-
-;; stdenv.register_macro{"%"} with {env, context, expr} -> [
-;; ]
 
 
 
@@ -1544,6 +1641,7 @@ translate.body := {b, mode} -> [
       .stmt -> [
          b.map{trst}.join{""}
       ]
+      other -> throw "OopsH"
    ]
 ]
 
@@ -1552,6 +1650,7 @@ translate.expr := {x, mode} -> [
       .expr -> x
       .stmt -> x + ";"
       .return -> "return " + x + ";"
+      other -> throw "OopsI"
    ]
 ]
 
