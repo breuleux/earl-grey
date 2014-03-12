@@ -1,45 +1,35 @@
 
-exports.Struct := {name} -> [
+exports.Struct := {name} ->
    r = Array.prototype.slice.call{arguments, 1}
    r["#"] := name
    r
-]
 
-pr{x} = [
+pr{x} =
    r = repr{x}
    pre = String.fromCharCode{27} + "[?0;7y+h <div class=\"ug\">"
    post = "</div>" + String.fromCharCode{7}
    console.log with [pre + r + post]
-]
 exports.pr := pr
 
 
-[cls // contents] = [
-   contents |> [
+[cls // contents] =
+   contents |>
       String? -> "<span class=\"" + cls + "\">" + contents + "</span>"
       other -> "<span class=\"" + cls + "\">" + contents.join{""} + "</span>"
-   ]
-]
 
-repr{x} = [
-   x |> [
+repr{x} =
+   x |>
       true? -> .special // [.true // "true"]
       false? -> .special // [.false // "false"]
       null? -> .special // [.nil // "null"]
       undefined? -> .special // [.nil // "undefined"]
       Number? -> .num // String{x}
       String? -> .str // x
-      entries -> [
+      entries ->
          tag = entries"#"
-         tag |> [
-            undefined? -> [
+         tag |>
+            undefined? ->
                .sequence // entries.map{{x} -> repr{x}}
-            ]
-            other -> [
+            other ->
                .struct // {.sym // tag, .sequence // entries.map{{x} -> repr{x}}}
-            ]
-         ]
-      ]
-   ]
-]
 exports.repr := repr
