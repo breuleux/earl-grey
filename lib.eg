@@ -10,6 +10,12 @@ exports.StructFactory := {name} ->
             {true, value}
          true =>
             {true, make{value}}
+   make.___check := {value} ->
+      cond:
+         [value instanceof Array and value["#"] == name] =>
+            true
+         true =>
+            false
    make
 
 
@@ -65,7 +71,7 @@ exports.repr := repr
 
 exports.send := {obj, msg} ->
    msg |>
-      [String? or Number?] -> obj[msg]
+      [String? or Number?] -> ___js_fetch{obj, msg}
       other -> obj.___send{msg}
 
 Function.prototype.___send := {args} ->

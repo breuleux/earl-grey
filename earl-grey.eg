@@ -1411,6 +1411,11 @@ translate{expr, mode} =
                   trf = translate{f, .expr}
                   trmsg = translate{msg, .expr}
 
+      {.send, "___js_fetch", {.array, f, msg}} ->
+         translate.expr{trf + "[" + trmsg + "]", mode} where
+            trf = translate{f, .expr}
+            trmsg = translate{msg, .expr}
+
       {.send, f, {.array, args*}} ->
          op = [typeof{f} == "string"] and js_op_table[f]
          cond:
@@ -1421,11 +1426,6 @@ translate{expr, mode} =
                   trf = translate{f, .expr}
                   trargs = args.map with {x} ->
                      translate{x, .expr}
-
-      ;; {.send, f, msg} ->
-      ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
-      ;;       trf = translate{f, .expr}
-      ;;       trmsg = translate{msg, .expr}
 
       {.send, f, msg} ->
          translate.expr{"___lib.send(" + trf + "," + trmsg + ")", mode} where
