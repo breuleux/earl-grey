@@ -62,7 +62,7 @@ regexps = {
   str = Rx
      start
      "\""
-     {["\\\\" || "\\\"" || [>>! "\""]]*}
+     {["\\\\" or "\\\"" or [>>! "\""]]*}
      "\""
 
   str_f = {m, wsb, wsa, last_op} ->
@@ -71,7 +71,7 @@ regexps = {
         "\\\\" => "\\"
         "\\n" => "\n"
      }
-     r = m[1].replace{Rxg{"\\\"" || "\\\\" || "\\n"}, {m} -> repl[m]}
+     r = m[1].replace{Rxg{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
      {.ID, .STR, r}
 
   op = Rx
@@ -84,7 +84,7 @@ regexps = {
 
   op3 = Rx
      start
-     "with" || "where" || "and" || "not" || "or" || "in" || "instanceof" || "mod"
+     "with" or "where" or "and" or "not" or "or" or "in" or "instanceof" or "mod"
      boundary
 
   op4 = Rx
@@ -92,22 +92,22 @@ regexps = {
      "`", {[>>"A-Za-z0-9_"]+}, "`"
 
   op_f = {m, wsb, wsa, last_op} ->
-     op = m[1] || m[0]
+     op = m[1] or m[0]
      cond:
         [op in special_ops] =>
            fixity = special_ops[op]
            width =
               fixity |>
-                 .IFX -> if{wsb || wsa, .wide, .short}
+                 .IFX -> if{wsb or wsa, .wide, .short}
                  .SFX -> if{wsb, .wide, .short}
                  .PFX -> if{wsa, .wide, .short}
                  other -> throw "OopsA"
            {.OP, fixity, width, op}
 
-        [wsa && wsb] =>
+        [wsa and wsb] =>
            {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
 
-        [[!wsa] && [!wsb]] =>
+        [not wsa and not wsb] =>
            {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
 
         wsa =>
@@ -148,7 +148,7 @@ regexps = {
 
 ;; TODO: ignore blank lines before continuation
 ws_re = Rx[start, " "*, ["\n", " "*, "\\", " "*]*]
-eol_re = Rx[start, " "*, "\n" || end]
+eol_re = Rx[start, " "*, "\n" or end]
 
 indent_tracker{} =
    curr = false
@@ -172,7 +172,7 @@ indent_tracker{} =
 
                [new_indent < curr] =>
                   rval = {}
-                  while [[stack.length > 0] && [new_indent < curr]]:
+                  while [[stack.length > 0] and [new_indent < curr]]:
                      curr := stack.pop{}
                      rval.push{{.OP, .SFX, .wide, "]"}}
                   rval.push{{.OP, .IFX, .wide, ","}}
@@ -182,14 +182,14 @@ indent_tracker{} =
 
          {.ID, stuff*} -> {token}
 
-         {.OP, fixity, width, "[" || "{"} ->
+         {.OP, fixity, width, "[" or "{"} ->
             stack.push{curr}
             stacks.push{stack}
             stack := {}
             curr := false
             {token}
 
-         {.OP, fixity, width, "]" || "}"} ->
+         {.OP, fixity, width, "]" or "}"} ->
             rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
             stack := stacks.pop{}
             curr := stack.pop{}
@@ -207,7 +207,7 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
 
       .ID ->
          cond:
-            [!last_op] =>
+            [not last_op] =>
                w = {.IFX, if{wsb, .wide, .short}, .WHITE}
                w.location := {pos, pos}
                accum.push{w}
@@ -226,7 +226,7 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
                true
             .PFX ->
                cond:
-                  [!last_op] =>
+                  [not last_op] =>
                      w = {.IFX, if{wsb, .wide, .short}, .WHITE}
                      w.location := {pos, pos}
                      v = {.VOID}
@@ -262,7 +262,7 @@ tokenize{text} =
                endpos = pos + skip
                text := text.slice{skip}
                wsa = text.match{ws_re}[0].length
-               eol = text.match{eol_re} && true
+               eol = text.match{eol_re} and true
                bwsb = wsb > 0
                bwsa = if{eol, bwsb, wsa > 0}
                ;; bwsb = if{eol, true, wsb > 0}
@@ -403,12 +403,12 @@ oparse{next, order, finalize} =
    current = null
    while true:
       o = cond:
-             [[!left_op] && [!right_op]] =>
+             [not left_op and not right_op] =>
                 DONE
              true =>
-                [[!left_op] && RIGHT]
-                 \ || [[!right_op] && LEFT]
-                 \ || order{left_op, right_op}
+                [not left_op and RIGHT]
+                 \ or [not right_op and LEFT]
+                 \ or order{left_op, right_op}
       o |>
          [== DONE] ->
             return between
@@ -442,7 +442,7 @@ oparse{next, order, finalize} =
 
 consult{{fixity, width, op}} =
    map = order_map[fixity][width]
-   map[op] || map.default
+   map[op] or map.default
 
 
 order{o1, o2} =
@@ -487,7 +487,7 @@ finalize{x} =
                   other ->
                      {"send", target, {"data"}.concat{body}}
 
-            {{"[" || ",", _*}, _} ->
+            {{"[" or ",", _*}, _} ->
                cond:
                   [op == "["] => args := args.slice{1, -1}
                args := args.filter{f} where
@@ -564,12 +564,12 @@ expand{env, context, expr} =
 
       {.value, v} -> expr
 
-      {type && [.multi || .code || .array || .object || .splice], args*} ->
+      {type and [.multi or .code or .array or .object or .splice], args*} ->
          arr = {}
          while [args.length > 0]:
             x = expand.step{env, type, args.shift{}}
             cond:
-               [[x instanceof Array] && [x[0] == "splice"]] =>
+               [[x instanceof Array] and [x[0] == "splice"]] =>
                   args := x.slice{1}.concat{args}
                true =>
                   arr.push{x}
@@ -594,7 +594,7 @@ expand{env, context, expr} =
                other ->
                   arr.push{other}
          r = cond:
-            [[arr.length > 1] && is_obj] =>
+            [[arr.length > 1] and is_obj] =>
                arr.push{obj}
                arr
             is_obj =>
@@ -615,11 +615,11 @@ expand{env, context, expr} =
          {.assign, expand{env, .decl, lhs}
                    expand{env, .multi, rhs}}
 
-      {.js_while || .js_for || .js_break
-       \ || .js_continue || .js_return || .js_throw || .if, args*} ->
-         ctxs = js_contexts[type] || {}
+      {.js_while or .js_for or .js_break
+       \ or .js_continue or .js_return or .js_throw or .if, args*} ->
+         ctxs = js_contexts[type] or {}
          {type}.concat{args.map{f}} where
-            f{x, i} = expand{env, ctxs[i] || .expr, x}
+            f{x, i} = expand{env, ctxs[i] or .expr, x}
 
       other -> throw {"Oops", type, context}
 
@@ -732,7 +732,7 @@ stdenv.register_macro{"#"} with {env, context, expr} ->
                {.data, tag}.concat{expr.slice{1}}
 
 
-stdenv.register_macro{"&&"} with {env, context, expr} ->
+andf{env, context, expr} =
    {context, expr} |>
       {.pattern, {.data, a, b}} ->
          {.all, a, b}
@@ -740,9 +740,10 @@ stdenv.register_macro{"&&"} with {env, context, expr} ->
          "___and"
       other ->
          {.send, "___and", expr}
+stdenv.register_macro{"&&"} with andf
+stdenv.register_macro{"and"} with andf
 
-
-stdenv.register_macro{"||"} with {env, context, expr} ->
+orf{env, context, expr} =
    {context, expr} |>
       {.pattern, {.data, a, b}} ->
          {.any, a, b}
@@ -750,6 +751,8 @@ stdenv.register_macro{"||"} with {env, context, expr} ->
          "___or"
       other ->
          {.send, "___or", expr}
+stdenv.register_macro{"||"} with orf
+stdenv.register_macro{"or"} with orf
 
 
 partial_pattern{operator} = {env, context, expr} ->
@@ -835,9 +838,9 @@ stdenv.register_macro{"="} with {env, context, expr} ->
                last = clause[clause.length - 1]
                cond:
                   [[last instanceof Array]
-                   \ && [last[0] == "value"] && [last[1] === true]] =>
+                   \ and [last[0] == "value"] and [last[1] === true]] =>
                      cond:
-                        [[vars.length == 1] && [clause.length == 3]] =>
+                        [[vars.length == 1] and [clause.length == 3]] =>
                            r := {.declare}.concat{clause[1].slice{1}}
                         true =>
                            r := r.concat{clause.slice{1, -1}}
@@ -939,6 +942,8 @@ rx_build{expr} =
       {.value, x} -> rx_quote{x}
       {.send, "||", {.data, a, b}} ->
          rx_wrap{rx_build{a} + "|" + rx_build{b}}
+      {.send, "or", {.data, a, b}} ->
+         rx_wrap{rx_build{a} + "|" + rx_build{b}}
       {.send, "*", {.data, a, null?}} ->
          rx_wrap{rx_build{a} + "*"}
       {.send, "+", {.data, a, null?}} ->
@@ -1034,7 +1039,7 @@ parse_lhs{env, lhs, rhs} =
    helper_noexpand{lhs, curr} =
       lhs |>
 
-         [null? || "_"] -> false
+         [null? or "_"] -> false
 
          String? ->
             vars.push{lhs}
@@ -1099,7 +1104,7 @@ parse_lhs{env, lhs, rhs} =
             members = specs.map with {x} ->
                v = expand.step{env, .pattern, x}
                cond:
-                  [[v instanceof Array] && [v[0] == "dynsplice"]] =>
+                  [[v instanceof Array] and [v[0] == "dynsplice"]] =>
                      rest := v[1]
                   [rest === undefined] => [fw := fw + 1]
                   true => [bw := bw + 1]
@@ -1235,9 +1240,9 @@ translate{expr, mode} =
                   "\n" => "\\n"
                   "\\" => "\\\\"
                }
-               v := v.replace{Rxg{"\"" || "\\" || "\n"}, {m} -> repl[m]}
+               v := v.replace{Rxg{"\"" or "\\" or "\n"}, {m} -> repl[m]}
                "\"" + v + "\""
-            [Number? || true? || false? || null? || undefined?] ->
+            [Number? or true? or false? or null? or undefined?] ->
                String{v}
             other ->
                "?!?[" + v + "]?!?"
@@ -1277,14 +1282,14 @@ translate{expr, mode} =
 
       {.declare, binding, {.value, undefined?}} ->
          mode |>
-            [.expr || .return] -> throw "Invalid in expr ctx"
+            [.expr or .return] -> throw "Invalid in expr ctx"
             other ->
                ["var " + a + ";"] where
                   a = translate{binding, .expr}
 
       {.declare, binding, value} ->
          mode |>
-            [.expr || .return] -> throw "Invalid in expr ctx"
+            [.expr or .return] -> throw "Invalid in expr ctx"
             other ->
                ["var " + a + "=" + b + ";"] where
                   a = translate{binding, .expr}
@@ -1296,10 +1301,10 @@ translate{expr, mode} =
             b = translate{rhs, .expr}
 
       {.multi, args*} ->
-         isdecl{x} = [[x instanceof Array] && [x[0] == .declare]]
+         isdecl{x} = [[x instanceof Array] and [x[0] == .declare]]
          cond:
              [args.length == 1] => translate{args[0], mode}
-             [[mode == "expr"] && [!args.some{isdecl}]] =>
+             [[mode == "expr"] and [not args.some{isdecl}]] =>
                 ["(" + xs.join{","} + ")"] where
                    xs = args.map with {x} ->
                       translate{x, .expr}
@@ -1341,10 +1346,10 @@ translate{expr, mode} =
                a + ":" + b
          translate.expr{r, mode}
 
-      {.send, f, msg && {.value, s}} ->
+      {.send, f, msg and {.value, s}} ->
          cond:
             [[typeof{s} == "string"]
-             \ && s.match{Rx[start, [>>"a-zA-Z_$"]+, end]}] =>
+             \ and s.match{Rx[start, [>>"a-zA-Z_$"]+, end]}] =>
                translate.expr{trf + "." + trmsg, mode} where
                   trf = translate{f, .expr}
                   trmsg = translate{s, .expr}
@@ -1354,7 +1359,7 @@ translate{expr, mode} =
                   trmsg = translate{msg, .expr}
 
       {.send, f, {.array, args*}} ->
-         op = [typeof{f} == "string"] && js_op_table[f]
+         op = [typeof{f} == "string"] and js_op_table[f]
          cond:
             op =>
                translate.expr{translate.op{op, args[0], args[1]}, mode}
@@ -1396,7 +1401,7 @@ translate.mangle := {name} ->
    r = {}
    for [i = 0, i < name.length, ++i]:
       c = name[i]
-      r.push{tr[c] || c}
+      r.push{tr[c] or c}
    r.join{""}
 
 
