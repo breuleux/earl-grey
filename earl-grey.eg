@@ -19,6 +19,7 @@ regexps = {
    {str,    str_f}
    {op,     op_f}
    {op2,    op_f}
+   {op4,    op_f}
    {indent, indent_f}
    {cmnt,   cmnt_f}
    {unkn,   unkn_f}
@@ -83,11 +84,15 @@ regexps = {
 
   op3 = Rx
      start
-     "with" || "where" || "and" || "or" || "in" || "instanceof"
+     "with" || "where" || "and" || "not" || "or" || "in" || "instanceof" || "mod"
      boundary
 
+  op4 = Rx
+     start
+     "`", {[>>"A-Za-z0-9_"]+}, "`"
+
   op_f = {m, wsb, wsa, last_op} ->
-     op = m[0]
+     op = m[1] || m[0]
      cond:
         [op in special_ops] =>
            fixity = special_ops[op]
@@ -106,7 +111,9 @@ regexps = {
            {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
 
         wsa =>
-           {.OP, [cond: [[last_op => .PFX], [true => .SFX]]], .short, op}
+           cond:
+              last_op => {.OP, .PFX, .wide, op}
+              true => {.OP, .SFX, .short, op}
 
         wsb =>
            {.OP, .PFX, .short, op}
@@ -283,62 +290,99 @@ order_map = {
 
    IFX = {
       wide = {
-         default = {900, 901}
-         WHITE = {1000, 1001}
-         "," => {5, 5}
+         ","     => {{2r1111, 1}, {2r1111, 1}}
 
-         "with" => {999, 10}
-         "where" => {11, 10}
-         "|>" => {11, 10}
-         "->" => {11, 10}
-         "=>" => {11, 10}
-         "=" => {11, 10}
-         ":=" => {11, 10}
+         "with"  => {{2r1111, 999}, {2r1111, 10}}
+         "where" => {{2r1111, 11},  {2r1111, 10}}
+         "|>"    => {{2r1111, 11},  {2r1111, 10}}
+         "->"    => {{2r1111, 11},  {2r1111, 10}}
+         "=>"    => {{2r1111, 11},  {2r1111, 10}}
+         "="     => {{2r1111, 11},  {2r1111, 10}}
+         ":="    => {{2r1111, 11},  {2r1111, 10}}
+         "+="    => {{2r1111, 11},  {2r1111, 10}}
+         "-="    => {{2r1111, 11},  {2r1111, 10}}
+         "*="    => {{2r1111, 11},  {2r1111, 10}}
+         "/="    => {{2r1111, 11},  {2r1111, 10}}
+         "<<="   => {{2r1111, 11},  {2r1111, 10}}
+         ">>="   => {{2r1111, 11},  {2r1111, 10}}
+         ">>>="  => {{2r1111, 11},  {2r1111, 10}}
 
-         "+" => {300, 301}
-         "*" => {400, 401}
-         "**" => {501, 500}
-         ":" => {1001, 6}
+         ;; Logical
+         "||"  => {{2r1111, 100}, {2r1111, 101}}
+         "&&"  => {{2r1111, 110}, {2r1111, 111}}
+         "or"  => {{2r1111, 100}, {2r1111, 101}}
+         "and" => {{2r1111, 110}, {2r1111, 111}}
+         "not" => {{2r1111, 120}, {2r1111, 121}}
+
+         ;; Comparison
+         "==" => {{2r1111, 200}, {2r1111, 201}}
+         "!=" => {{2r1111, 200}, {2r1111, 201}}
+         ">=" => {{2r1111, 200}, {2r1111, 201}}
+         "<=" => {{2r1111, 200}, {2r1111, 201}}
+         ">"  => {{2r1111, 200}, {2r1111, 201}}
+         "<"  => {{2r1111, 200}, {2r1111, 201}}
+
+         ;; Binary
+         "^." => {{2r1111, 400}, {2r1111, 401}}
+         "|." => {{2r1111, 410}, {2r1111, 411}}
+         "&." => {{2r1111, 420}, {2r1111, 421}}
+
+         ;; Arithmetic
+         "<<"  => {{2r0001, 500}, {2r0001, 501}}
+         ">>"  => {{2r0001, 500}, {2r0001, 501}}
+         ">>>" => {{2r0001, 500}, {2r0001, 501}}
+         "+"   => {{2r0001, 550}, {2r0001, 551}}
+         "-"   => {{2r0001, 550}, {2r0001, 551}}
+         "*"   => {{2r0001, 560}, {2r0001, 561}}
+         "/"   => {{2r0001, 560}, {2r0001, 561}}
+         "mod" => {{2r0001, 560}, {2r0001, 561}}
+         "**"  => {{2r0001, 571}, {2r0001, 570}}
+
+         ;; Others
+         default = {{2r1000, 900}, {2r0100, 901}}
+         WHITE   = {{2r1111, 1000}, {2r1111, 1001}}
+         ":"    => {{2r1111, 1001}, {2r1111, 2}}
       }
       short = {
-         default = {1900, 1901}
-         WHITE = {2000, 2001}
-         "," => {5, 5}
-         ":" => {1001, 6}
+         default = {{2r1111, 1900}, {2r1111, 1901}}
+         WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
+         ","    => {{2r1111, 1},    {2r1111, 1}}
+         ":"    => {{2r1111, 1001}, {2r1111, 2}}
       }
    }
 
    PFX = {
       wide = {
-         default = {MAX, 900}
-         "." => {MAX, 3000}
-         "#" => {MAX, 3000}
-         "(" => {MAX, 5}
-         "[" => {MAX, 5}
-         "{" => {MAX, 5}
+         default = {{2r1111, MAX}, {2r1111, 900}}
+         "." => {{2r1111, MAX}, {2r1111, 3000}}
+         "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "<>" => {{2r1111, MAX}, {2r1111, 5}}
+         "(" => {{2r1111, MAX}, {2r1111, 1}}
+         "[" => {{2r1111, MAX}, {2r1111, 1}}
+         "{" => {{2r1111, MAX}, {2r1111, 1}}
       }
       short = {
-         default = {MAX, 1900}
-         "." => {MAX, 3000}
-         "#" => {MAX, 3000}
-         "(" => {MAX, 5}
-         "[" => {MAX, 5}
-         "{" => {MAX, 5}
+         default = {{2r1111, MAX}, {2r1111, 1900}}
+         "." => {{2r1111, MAX}, {2r1111, 3000}}
+         "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "(" => {{2r1111, MAX}, {2r1111, 1}}
+         "[" => {{2r1111, MAX}, {2r1111, 1}}
+         "{" => {{2r1111, MAX}, {2r1111, 1}}
       }
    }
 
    SFX = {
       wide = {
-         default = {901, MAX}
-         ")" => {5, MAX}
-         "]" => {5, MAX}
-         "}" => {5, MAX}
+         default = {{2r1111, 901}, {2r1111, MAX}}
+         ")" => {{2r1111, 1}, {2r1111, MAX}}
+         "]" => {{2r1111, 1}, {2r1111, MAX}}
+         "}" => {{2r1111, 1}, {2r1111, MAX}}
       }
       short = {
-         default = {1901, MAX}
-         ")" => {5, MAX}
-         "]" => {5, MAX}
-         "}" => {5, MAX}
+         default = {{2r1111, 1901}, {2r1111, MAX}}
+         ")" => {{2r1111, 1}, {2r1111, MAX}}
+         "]" => {{2r1111, 1}, {2r1111, MAX}}
+         "}" => {{2r1111, 1}, {2r1111, MAX}}
       }
    }
 }
@@ -396,21 +440,16 @@ oparse{next, order, finalize} =
          other -> throw "OopsC"
 
 
-consult{o} =
-   o |>
-      {fixity, width, Number? n} ->
-         p = 5 - [1 / [n + 1]]
-         {p, p}
-      {fixity, width, op} ->
-         map = order_map[fixity][width]
-         map[op] || map.default
-      other -> throw "OopsD"
+consult{{fixity, width, op}} =
+   map = order_map[fixity][width]
+   map[op] || map.default
 
 
 order{o1, o2} =
-   ord1 = consult{o1}[1]
-   ord2 = consult{o2}[0]
+   {code1, ord1} = consult{o1}[1]
+   {code2, ord2} = consult{o2}[0]
    cond:
+      [[code1 & code2] == 0] => throw {"Cannot mix", o1, o2}
       [ord1 > ord2]  => LEFT
       [ord1 < ord2]  => RIGHT
       [ord1 == ord2] => BOTH
@@ -520,8 +559,7 @@ expand{env, context, expr} =
       undefined? -> throw ["undefined? why?"]
 
       {.send, f, arg} ->
-         f = expand{env, .head, expr[1]}
-         arg = expr[2]
+         f := expand{env, .head, f}
          {.send, f, expand{env, .tail, arg}}
 
       {.value, v} -> expr
@@ -643,6 +681,9 @@ stdenv.register{"~", "___binnot"}
 stdenv.register{"&&", "___and"}
 stdenv.register{"||", "___or"}
 stdenv.register{"!", "___not"}
+stdenv.register{"and", "___and"}
+stdenv.register{"or", "___or"}
+stdenv.register{"not", "___not"}
 stdenv.register{"===", "___is"}
 stdenv.register{"!==", "___isnt"}
 stdenv.register{"!=", "___neq"}
@@ -650,6 +691,9 @@ stdenv.register{"<", "___lt"}
 stdenv.register{">", "___gt"}
 stdenv.register{"<=", "___lte"}
 stdenv.register{">=", "___gte"}
+stdenv.register{"<<", "___shl"}
+stdenv.register{">>", "___shr"}
+stdenv.register{">>>", "___shr2"}
 stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
 stdenv.register{"++", "___plusplus"}
@@ -660,6 +704,13 @@ stdenv.register{"--", "___minusminus"}
 ;;   {.splice, "a", "b"}
 ;;]
 
+
+stdenv.register_macro{"**"} with {env, context, {.data, a, b}} ->
+   {.send, {.send, .Math, {.value, .pow}}, {.data, a, b}}
+
+stdenv.register_macro{"//"} with {env, context, {.data, a, b}} ->
+   {.send, {.send, .Math, {.value, .floor}}, {.data, div}} where
+      div = {.send, "___div", {.data, a, b}}
 
 stdenv.register_macro{"<>"} with {env, context, {.data, null?, x}} ->
    {.send, {.send, "___lib", {.value, "pr"}}, {.data, x}}
@@ -809,8 +860,21 @@ stdenv.register_macro{"="} with {env, context, expr} ->
       other ->
          throw ["Illegal context for '=' (" + context + ")"]
 
+
+make_assigner{op} = {env, context, {.data, a, b}} ->
+   {.assign, a, {.send, op, {.data, a, b}}}
+
 stdenv.register_macro{":="} with {env, context, {.data, a, b}} ->
    {.assign, a, b}
+
+stdenv.register_macro{"+="} with make_assigner{"+"}
+stdenv.register_macro{"-="} with make_assigner{"-"}
+stdenv.register_macro{"*="} with make_assigner{"*"}
+stdenv.register_macro{"/="} with make_assigner{"/"}
+stdenv.register_macro{"<<="} with make_assigner{"<<"}
+stdenv.register_macro{">>="} with make_assigner{">>"}
+stdenv.register_macro{">>>="} with make_assigner{">>>"}
+
 
 stdenv.register_macro{"if"} with {env, context, {.data, test, a, b}} ->
    {.if, test, a, b}
@@ -1143,6 +1207,9 @@ js_op_table = {
    ___gt = ">"
    ___lte = "<="
    ___gte = ">="
+   ___shl = "<<"
+   ___shr = ">>"
+   ___shr2 = ">>>"
    ___in = " in "
    ___instanceof = " instanceof "
    ___plusplus = "++"
@@ -1324,6 +1391,7 @@ translate.mangle := {name} ->
       "<" => "__lt__"
       ">" => "__gt__"
       "~" => "__tilde__"
+      "." => "__dot__"
    }
    r = {}
    for [i = 0, i < name.length, ++i]:
