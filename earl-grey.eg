@@ -30,7 +30,7 @@ regexps = {
      [>>"a-zA-Z$_"]
      [>>"a-zA-Z$_0-9"]*
 
-  id_f = {m, wsb, wsa, last_op} -> {.ID, .ID, m[0]}
+  id_f = {m, wsb, wsa, last_op} -> #id{.ID, m[0]}
 
 
   numr = Rx
@@ -46,7 +46,8 @@ regexps = {
         frac =>
            frac := frac.replace{Rxg"_", ""}
            value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
-     {.ID, .NUM, value}
+     #id{.value, value}
+     ;; #id{.NUM, value}
 
 
   num = Rx
@@ -56,7 +57,8 @@ regexps = {
      [>>"eE", {[>>"+-"]?, [>>"0-9_"]+}]?
 
   num_f = {m, wsb, wsa, last_op} ->
-     {.ID, .NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
+     #id{.value, parseFloat{m[0].replace{Rxg"_", ""}}}
+     ;; #id{.NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
 
 
   str = Rx
@@ -72,7 +74,7 @@ regexps = {
         "\\n" => "\n"
      }
      r = m[1].replace{Rxg{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
-     {.ID, .STR, r}
+     #id{.value, r}
 
   op = Rx
      start
@@ -102,24 +104,24 @@ regexps = {
                  .SFX -> if{wsb, .wide, .short}
                  .PFX -> if{wsa, .wide, .short}
                  other -> throw "OopsA"
-           {.OP, fixity, width, op}
+           #op{fixity, width, op}
 
         [wsa and wsb] =>
-           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
+           #op{[cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
 
         [not wsa and not wsb] =>
-           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
+           #op{[cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
 
         wsa =>
            cond:
-              last_op => {.OP, .PFX, .wide, op}
-              true => {.OP, .SFX, .short, op}
+              last_op => #op{.PFX, .wide, op}
+              true => #op{.SFX, .short, op}
 
         wsb =>
-           {.OP, .PFX, .short, op}
+           #op{.PFX, .short, op}
 
         true =>
-           {.OP, .PFX, .short, op}
+           #op{.PFX, .short, op}
 
   indent = Rx
      start
@@ -127,7 +129,7 @@ regexps = {
 
   indent_f = {m, wsb, wsa, last_op} ->
      ilen = m[1].length
-     {.INDENT, ilen}
+     #indent{ilen}
 
 
   cmnt = Rx
@@ -135,7 +137,7 @@ regexps = {
      ";"
      [>>!"\n"]*
 
-  cmnt_f = {m, wsb, wsa, last_op} -> {.IGNORE}
+  cmnt_f = {m, wsb, wsa, last_op} -> #ignore{}
 
 
   unkn = Rx
@@ -156,41 +158,41 @@ indent_tracker{} =
    stacks = {stack}
    {token} ->
       token |>
-         {.INDENT, new_indent} ->
+         #indent{new_indent} ->
             cond:
                [curr === false] =>
                   curr := new_indent
-                  {{.OP, .IFX, .wide, ","}}
+                  {#op{.IFX, .wide, ","}}
 
                [new_indent > curr] =>
                   stack.push{curr}
                   curr := new_indent
-                  {{.OP, .PFX, .wide, "["}}
+                  {#op{.PFX, .wide, "["}}
 
                [new_indent == curr] =>
-                  {{.OP, .IFX, .wide, ","}}
+                  {#op{.IFX, .wide, ","}}
 
                [new_indent < curr] =>
                   rval = {}
                   while [[stack.length > 0] and [new_indent < curr]]:
                      curr := stack.pop{}
-                     rval.push{{.OP, .SFX, .wide, "]"}}
-                  rval.push{{.OP, .IFX, .wide, ","}}
+                     rval.push{#op{.SFX, .wide, "]"}}
+                  rval.push{#op{.IFX, .wide, ","}}
                   rval
 
                true => throw {curr, new_indent}
 
-         {.ID, stuff*} -> {token}
+         #id{stuff*} -> {token}
 
-         {.OP, fixity, width, "[" or "{"} ->
+         #op{fixity, width, "[" or "{"} ->
             stack.push{curr}
             stacks.push{stack}
             stack := {}
             curr := false
             {token}
 
-         {.OP, fixity, width, "]" or "}"} ->
-            rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
+         #op{fixity, width, "]" or "}"} ->
+            rval = stack.map{{x} -> #op{.SFX, .short, "]"}}
             stack := stacks.pop{}
             curr := stack.pop{}
             rval.push{token}
@@ -200,12 +202,12 @@ indent_tracker{} =
 
 
 process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
-   {type, result*} = token
-   type |>
-      .IGNORE ->
+   ;; {type, result*} = token
+   token |>
+      #ignore{} ->
          last_op
 
-      .ID ->
+      #id{result*} ->
          cond:
             [not last_op] =>
                w = {.IFX, if{wsb, .wide, .short}, .WHITE}
@@ -214,7 +216,7 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
          accum.push{result}
          false
 
-      .OP ->
+      #op{result*} ->
          cond:
             last_op =>
                v = {.VOID}
@@ -458,8 +460,9 @@ order{o1, o2} =
 finalize{x} =
    x |>
       {.ID, value} -> value
-      {.NUM, value} -> {.value, value}
-      {.STR, value} -> {.value, value}
+      {.value, value} -> {.value, value}
+      ;; {.NUM, value} -> {.value, value}
+      ;; {.STR, value} -> {.value, value}
       {.VOID} -> null
 
       {ops, args*} ->
@@ -758,7 +761,7 @@ stdenv.register_macro{"or"} with orf
 partial_pattern{operator} = {env, context, expr} ->
    {context, expr} |>
       {.pattern, {.data, null?, val}} ->
-         {.check, {.macro, make_checker{val, operator}}, null}
+         {.check, {.macro, make_checker{val, operator}}, {.ignore}}
       {_, null?} ->
          operator
       other ->
@@ -805,6 +808,7 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    args := args.slice{1}.map with {x} -> x |>
       String? -> x
       other ->
+         <> "why"
          t = gensym{}
          body.push with {.send, "=", {.data, x, t}}
          t
@@ -833,6 +837,8 @@ stdenv.register_macro{"="} with {env, context, expr} ->
             {.if, x, {.value, false}, {.js_throw, {.value, "a condition failed"}}}
 
          cond:
+            [clauses.length == 0] =>
+               r.push{{.value, false}}
             [clauses.length == 1] =>
                clause = clauses[0]
                last = clause[clause.length - 1]
@@ -1039,16 +1045,26 @@ parse_lhs{env, lhs, rhs} =
    helper_noexpand{lhs, curr} =
       lhs |>
 
-         [null? or "_"] -> false
+         null? ->
+            helper_noexpand{x, curr} where
+               x = {.check, {.macro, make_checker{{.value, null}, "___eq"}}, {.ignore}}
+
+         "_" ->
+            current.push{curr}
+            current.push{{.value, true}}
 
          String? ->
             vars.push{lhs}
             current.push{{.assign, lhs, curr}}
             current.push{{.value, true}}
 
+         {.ignore} ->
+            current.push{curr}
+            current.push{{.value, true}}
+
          {.value, v} ->
             helper_noexpand{x, curr} where
-               x = {.check, {.macro, make_checker{lhs, "___eq"}}, null}
+               x = {.check, {.macro, make_checker{lhs, "___eq"}}, {.ignore}}
 
          {.all, xs*} ->
             temp = mktemp{}
@@ -1172,15 +1188,15 @@ make_or_pattern{clauses} =
    ors
 
 stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
+   temp = gensym{}
    clauses = cl |>
       {.multi, cls*} -> cls
       other -> {other}
-   decls = {.multi}
-   ;; r = {.js_throw, {.data, {.value, "Could not find a match"}, to_match}}
-   r = {.js_throw, {.value, "Could not find a match"}}
+   decls = {.multi, {.declare, temp, to_match}}
+   r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
    while [clauses.length > 0]:
       {.send, "->", {.data, lhs, body}} = clauses.pop{}
-      p = parse_lhs{env, lhs, to_match}
+      p = parse_lhs{env, lhs, temp}
       test = make_pattern_test{p[1]}
       r := {.if, test, body, r}
       decls := decls.concat{make_declarations{p[0]}}
