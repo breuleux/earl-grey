@@ -901,9 +901,11 @@ stdenv.register_macro{"cond"} with {env, context, {.data, {.code, clauses}}} ->
       cond:
          [xs.length == 0] => {.value, false}
          true =>
-            first = xs[0][2]
-            rest = xs.slice{1}
-            {.if, first[1], first[2], handle{rest}}
+            {{.send, "=>", {.data, test, body}}, rest*} = xs
+            test := test |>
+               "else" -> {.value, true}
+               _ -> test
+            {.if, test, body, handle{rest}}
    handle{aslist{clauses}}
 
 
