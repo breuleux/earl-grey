@@ -160,7 +160,7 @@ indent_tracker{} =
       token |>
          {.INDENT, new_indent} ->
             cond:
-               [curr === false] =>
+               [curr == false] =>
                   curr := new_indent
                   {{.OP, .IFX, .wide, ","}}
 
@@ -495,7 +495,7 @@ finalize{x} =
                cond:
                   [op == "["] => args := args.slice{1, -1}
                args := args.filter{f} where
-                  f{x} = [x !== null]
+                  f{x} = [x != null]
 
                result = args |>
                   {} -> throw ["At least one expression must be enclosed in []"]
@@ -505,7 +505,7 @@ finalize{x} =
 
             {{"{", _*}, _} ->
                {.data}.concat{args.slice{1, -1}.filter{f}} where
-                  f{x} = [x !== null]
+                  f{x} = [x != null]
 
             {{.WHITE}, _} ->
                {.send}.concat{args}
@@ -1091,7 +1091,7 @@ parse_lhs{env, lhs, rhs} =
 
          {.any, xs*} ->
             normalize{vars} =
-               vars.filter{{x} -> x.slice{0, 4} !== "_tmp"}.sort{}.join{","}
+               vars.filter{{x} -> x.slice{0, 4} != "_tmp"}.sort{}.join{","}
 
             temp = mktemp{}
             current := current.concat with {
@@ -1102,9 +1102,9 @@ parse_lhs{env, lhs, rhs} =
             xs.forEach with {x} ->
                p = parse_lhs{env, x, temp}
                cond:
-                  [myvars === undefined] =>
+                  [myvars == undefined] =>
                      myvars := p[0]
-                  [normalize{p[0]} !== normalize{myvars}] =>
+                  [normalize{p[0]} != normalize{myvars}] =>
                      throw with {
                         "Must have the same set of variables in both branches!"
                         myvars
@@ -1150,13 +1150,13 @@ parse_lhs{env, lhs, rhs} =
                      rest := variable
                   other ->
                      cond:
-                        [rest === undefined] => [fw := fw + 1]
+                        [rest == undefined] => [fw := fw + 1]
                         true => [bw := bw + 1]
                v
 
             cmp =
                cond:
-                  [rest === undefined] => "___eq"
+                  [rest == undefined] => "___eq"
                   true => "___gte"
             temp = mktemp{}
             len = mktemp{}
@@ -1177,7 +1177,7 @@ parse_lhs{env, lhs, rhs} =
             for [j = 0, j < fw, ++j]:
                helper_noexpand{members[j], {.send, temp, {.value, j}}}
 
-            cond: [[rest !== undefined] => [
+            cond: [[rest != undefined] => [
                slice = cond:
                   [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
                   true => {.data, {.value, fw}}
@@ -1251,8 +1251,8 @@ js_op_table = {
    ___not = "!"
    ___is = "==="
    ___isnt = "!=="
-   ___eq = "=="
-   ___neq = "!="
+   ___eq = "==="
+   ___neq = "!=="
    ___lt = "<"
    ___gt = ">"
    ___lte = "<="
@@ -1488,8 +1488,8 @@ translate.expr := {x, mode} ->
 
 translate.op := {op, a, b} ->
    e := cond:
-           [a === null] => op + translate{b, .expr}
-           [b === null] => translate{a, .expr} + op
+           [a == null] => op + translate{b, .expr}
+           [b == null] => translate{a, .expr} + op
            true => translate{a, .expr} + op + translate{b, .expr}
    "(" + e + ")"
 

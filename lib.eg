@@ -26,12 +26,12 @@ exports.Struct := {name} ->
 
 exports.Struct.___check := {value} ->
    cond:
-      [value instanceof Array] => value["#"] !== undefined
+      [value instanceof Array] => value["#"] != undefined
       true => false
 
 exports.Struct.___deconstruct := {value} ->
    cond:
-      [value instanceof Array and value["#"] !== undefined] ->
+      [value instanceof Array and value["#"] != undefined] ->
          {value["#"]}.concat{value.slice{0}}
       true => throw "cannot deconstruct"
 
