@@ -739,8 +739,8 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
 
 stdenv.register_macro{"when"} with {env, context, {.data, pattern, condition}} ->
    pattern |>
-      null? -> #test{condition, {.ignore}}
-      other -> #test{condition, pattern}
+      null? -> {.test, condition, {.ignore}}
+      other -> {.test, condition, pattern}
 
 andf{env, context, expr} =
    {context, expr} |>
@@ -1067,6 +1067,11 @@ parse_lhs{env, lhs, rhs} =
             helper_noexpand{x, curr} where
                x = {.check, {.macro, make_checker{lhs, "___eq"}}, {.ignore}}
 
+         {.test, condition, pattern} ->
+            helper{pattern, curr}
+            current.push{condition}
+            newclause{}
+
          {.all, xs*} ->
             temp = mktemp{}
             current := current.concat with {
@@ -1315,6 +1320,12 @@ translate{expr, mode} =
                   a = translate{binding, .expr}
                   b = translate{value, .expr}
 
+      {.assign, {.send, obj, msg}, rhs} ->
+         translate.expr{"(" + a + "[" + b + "]=" + c + ")", mode} where
+            a = translate{obj, .expr}
+            b = translate{msg, .expr}
+            c = translate{rhs, .expr}
+
       {.assign, lhs, rhs} ->
          translate.expr{"(" + a + "=" + b + ")", mode} where
             a = translate{lhs, .expr}
@@ -1391,8 +1402,13 @@ translate{expr, mode} =
                   trargs = args.map with {x} ->
                      translate{x, .expr}
 
+      ;; {.send, f, msg} ->
+      ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
+      ;;       trf = translate{f, .expr}
+      ;;       trmsg = translate{msg, .expr}
+
       {.send, f, msg} ->
-         translate.expr{trf + "[" + trmsg + "]", mode} where
+         translate.expr{"___lib.send(" + trf + "," + trmsg + ")", mode} where
             trf = translate{f, .expr}
             trmsg = translate{msg, .expr}
 
