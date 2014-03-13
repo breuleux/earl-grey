@@ -1,8 +1,35 @@
 
+exports.StructFactory := {name} ->
+   make{} =
+      r = Array.prototype.slice.call{arguments, 0}
+      r["#"] := name
+      r
+   make.___project := {value} ->
+      cond:
+         [value instanceof Array and value["#"] == name] =>
+            {true, value}
+         true =>
+            {true, make{value}}
+   make
+
+
 exports.Struct := {name} ->
    r = Array.prototype.slice.call{arguments, 1}
    r["#"] := name
    r
+
+exports.Struct.___check := {value} ->
+   cond:
+      [value instanceof Array] => value["#"] !== undefined
+      true => false
+
+exports.Struct.___deconstruct := {value} ->
+   cond:
+      [value instanceof Array and value["#"] !== undefined] ->
+         {value["#"]}.concat{value.slice{0}}
+      true => throw "cannot deconstruct"
+
+
 
 pr{x} =
    r = repr{x}
@@ -34,6 +61,8 @@ repr{x} =
                .struct /// {.sym /// tag, .sequence /// entries.map{{x} -> repr{x}}}
 exports.repr := repr
 
+
+
 exports.send := {obj, msg} ->
    msg |>
       [String? or Number?] -> obj[msg]
@@ -41,3 +70,36 @@ exports.send := {obj, msg} ->
 
 Function.prototype.___send := {args} ->
    this.apply{this, args}
+
+
+exports.checker := {type} ->
+   type.___check |>
+      undefined? ->
+         {value} -> value instanceof type
+      f ->
+         {value} -> f{value}
+
+
+
+exports.projector := {type} -> {value} ->
+   type.___project |>
+      undefined? ->
+         cond:
+            [value instanceof type] => {true, value}
+            true => {false, null}
+      f -> f{value}
+
+Array.___project := {value} -> value |>
+   Array? -> {true, value}
+   _ -> {true, {value}}
+
+
+
+exports.deconstructor := {type} -> {value} ->
+   type.___deconstruct |>
+      undefined? ->
+         cond:
+            [value instanceof Array] => {true, value}
+            true => {false, null}
+      f -> f{value}
+

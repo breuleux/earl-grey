@@ -685,7 +685,7 @@ stdenv.register{"|", "___binor"}
 stdenv.register{"~", "___binnot"}
 stdenv.register{"&&", "___and"}
 stdenv.register{"||", "___or"}
-stdenv.register{"!", "___not"}
+;; stdenv.register{"!", "___not"}
 stdenv.register{"and", "___and"}
 stdenv.register{"or", "___or"}
 stdenv.register{"not", "___not"}
@@ -703,11 +703,15 @@ stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
 stdenv.register{"++", "___plusplus"}
 stdenv.register{"--", "___minusminus"}
+stdenv.register{"Struct", {.send, "___lib", {.value, "Struct"}}}
 
 
 ;;stdenv.register_macro{"TEST"} with {env, context, expr} -> [
 ;;   {.splice, "a", "b"}
 ;;]
+
+make_checker{value, op} = {env, context, expr} ->
+   {.send, op, {.data, expr[1], value}}
 
 
 stdenv.register_macro{"**"} with {env, context, {.data, a, b}} ->
@@ -721,10 +725,6 @@ stdenv.register_macro{"<>"} with {env, context, {.data, null?, x}} ->
    {.send, {.send, "___lib", {.value, "pr"}}, {.data, x}}
 
 
-make_checker{value, op} = {env, context, expr} ->
-   {.send, op, {.data, expr[1], value}}
-
-
 stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
    tag := {.value, tag}
    {.macro, f} where f{env, context, expr} =
@@ -733,8 +733,13 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
             {.check, {.macro, f}, expr or {.ignore}} where f{env, context, expr} =
                {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
          true =>
-            {.send, {.send, "___lib", {.value, "Struct"}}, d} where d =
-               {.data, tag}.concat{expr.slice{1}}
+            expr |>
+               null? ->
+                  {.send, {.send, "___lib", {.value, "StructFactory"}}, d} where d =
+                     {.data, tag}
+               {.data, args*} ->
+                  {.send, {.send, "___lib", {.value, "Struct"}}, d} where d =
+                     {.data, tag}.concat{args}
 
 
 stdenv.register_macro{"when"} with {env, context, {.data, pattern, condition}} ->
@@ -981,7 +986,8 @@ stdenv.register_macro{"Rxg"} with {env, context, expr} ->
 
 stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
    checker = expr |>
-      null? -> {.send, expr, {.value, "__check__"}}
+      ;; null? -> {.send, {.send, "___lib", {.value, "checker"}}, {.data, expr}}
+      null? -> throw "not implemented"
       .String ->
          {.macro, f} where f{env, context, {.data, expr}} =
             {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
@@ -994,7 +1000,7 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
       .false -> {.macro, make_checker{{.value, false}, "___is"}}
       .null -> {.macro, make_checker{{.value, null}, "___is"}}
       .undefined -> {.macro, make_checker{{.value, undefined}, "___is"}}
-      other -> {.send, expr, {.value, "__check__"}}
+      other -> {.send, {.send, "___lib", {.value, "checker"}}, {.data, expr}}
 
    mac{env, context, expr} =
       context |>
@@ -1004,20 +1010,23 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
    {.macro, mac}
 
 
-;; stdenv.register_macro{"!"} with {env, context, expr} -> [
-;;    projector = {.send, expr[1], {.value, "__project__"}}
-;;    mac{env, context, expr} = [
-;;       cond: [
-;;          [context == "pattern"] => [
-;;             {.project, projector, expr}
-;;          ]
-;;          true => [
-;;             {.send, projector, {.data, expr}}
-;;          ]
-;;       ]
-;;    ]
-;;    {.macro, mac}
-;; ]
+stdenv.register_macro{"!"} with {env, context, {.data, expr, null?}} ->
+   projector = expr |>
+      null? -> throw "not implemented"
+      .String ->
+         {.macro, f} where f{env, context, {.data, expr}} =
+            {.data, {.value, true}, {.send, "String", {.data, expr}}}
+      .Number ->
+         {.macro, f} where f{env, context, {.data, expr}} =
+            {.data, {.value, true}, {.send, "parseFloat", {.data, expr}}}
+      other -> {.send, {.send, "___lib", {.value, "projector"}}, {.data, expr}}
+
+   mac{env, context, expr} =
+      context |>
+         .pattern -> {.project, projector, expr or {.ignore}}
+         other -> {.send, projector, {.data, expr}}
+
+   {.macro, mac}
 
 
 tempnum = 0
@@ -1115,6 +1124,17 @@ parse_lhs{env, lhs, rhs} =
             }
             newclause{}
             helper{expr, temp}
+
+         {.project, projector, expr} ->
+            temp = mktemp{}
+            temp2 = mktemp{}
+            current := current.concat with {
+               {.assign, temp, curr}
+               {.assign, temp2, {.send, projector, {.data, temp}}}
+               {.send, temp2, {.value, 0}}
+            }
+            newclause{}
+            helper{expr, {.send, temp2, {.value, 1}}}
 
          {.send, fname, spec} ->
             helper{fname, {.send, "->", {.data, spec, curr}}}
