@@ -12,24 +12,30 @@ pr{x} =
 exports.pr := pr
 
 
-[cls // contents] =
+[cls /// contents] =
    contents |>
       String? -> "<span class=\"" + cls + "\">" + contents + "</span>"
       other -> "<span class=\"" + cls + "\">" + contents.join{""} + "</span>"
 
 repr{x} =
    x |>
-      true? -> .special // [.true // "true"]
-      false? -> .special // [.false // "false"]
-      null? -> .special // [.nil // "null"]
-      undefined? -> .special // [.nil // "undefined"]
-      Number? -> .num // String{x}
-      String? -> .str // x
+      true? -> .special /// [.true /// "true"]
+      false? -> .special /// [.false /// "false"]
+      null? -> .special /// [.nil /// "null"]
+      undefined? -> .special /// [.nil /// "undefined"]
+      Number? -> .num /// String{x}
+      String? -> .str /// x
       entries ->
          tag = entries"#"
          tag |>
             undefined? ->
-               .sequence // entries.map{{x} -> repr{x}}
+               .sequence /// entries.map{{x} -> repr{x}}
             other ->
-               .struct // {.sym // tag, .sequence // entries.map{{x} -> repr{x}}}
+               .struct /// {.sym /// tag, .sequence /// entries.map{{x} -> repr{x}}}
 exports.repr := repr
+
+exports.send := {obj, msg} ->
+   msg |>
+      [String? or Number?] -> obj[msg]
+      other -> obj.___send{msg}
+

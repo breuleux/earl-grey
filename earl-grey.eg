@@ -857,7 +857,6 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    args := args.slice{1}.map with {x} -> x |>
       String? -> x
       other ->
-         <> "why"
          t = gensym{}
          body.push with {.send, "=", {.data, x, t}}
          t
