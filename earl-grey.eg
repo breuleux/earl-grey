@@ -84,7 +84,9 @@ regexps = {
 
   op3 = Rx
      start
-     "with" or "where" or "and" or "not" or "or" or "in" or "instanceof" or "mod"
+     "with" or "where" or "when"
+       \ or "and" or "not" or "or"
+       \ or "in" or "instanceof" or "mod"
      boundary
 
   op4 = Rx
@@ -308,11 +310,12 @@ order_map = {
          ">>>="  => {{2r1111, 11},  {2r1111, 10}}
 
          ;; Logical
-         "||"  => {{2r1111, 100}, {2r1111, 101}}
-         "&&"  => {{2r1111, 110}, {2r1111, 111}}
-         "or"  => {{2r1111, 100}, {2r1111, 101}}
-         "and" => {{2r1111, 110}, {2r1111, 111}}
-         "not" => {{2r1111, 120}, {2r1111, 121}}
+         "when" => {{2r1111, 100}, {2r1111, 101}}
+         "||"   => {{2r1111, 110}, {2r1111, 111}}
+         "&&"   => {{2r1111, 120}, {2r1111, 121}}
+         "or"   => {{2r1111, 110}, {2r1111, 111}}
+         "and"  => {{2r1111, 120}, {2r1111, 121}}
+         "not"  => {{2r1111, 130}, {2r1111, 131}}
 
          ;; Comparison
          "==" => {{2r1111, 200}, {2r1111, 201}}
@@ -354,6 +357,7 @@ order_map = {
    PFX = {
       wide = {
          default = {{2r1111, MAX}, {2r1111, 900}}
+         "not"  => {{2r1111, 130}, {2r1111, 131}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
          "<>" => {{2r1111, MAX}, {2r1111, 5}}
@@ -468,10 +472,10 @@ finalize{x} =
          {ops, args} |>
 
             {{"WHITE", ":"}, {f, arg, body}} ->
-               {"send", f, {"data", {"code", arg}, {"code", body}}}
+               {.send, f, {.data, {"code", arg}, {"code", body}}}
 
             {{":"}, {f, body}} ->
-               {"send", f, {"data", {"code", body}}}
+               {.send, f, {.data, {"code", body}}}
 
             {{"with"}, {target, body}} ->
                body := body |>
@@ -485,7 +489,7 @@ finalize{x} =
                   {.data, args*} ->
                      target.concat{body}
                   other ->
-                     {"send", target, {"data"}.concat{body}}
+                     {.send, target, {.data}.concat{body}}
 
             {{"[" or ",", _*}, _} ->
                cond:
@@ -496,20 +500,20 @@ finalize{x} =
                result = args |>
                   {} -> throw ["At least one expression must be enclosed in []"]
                   {x} -> x
-                  other -> {"multi"}.concat{args}
+                  other -> {.multi}.concat{args}
                result
 
             {{"{", _*}, _} ->
-               {"data"}.concat{args.slice{1, -1}.filter{f}} where
+               {.data}.concat{args.slice{1, -1}.filter{f}} where
                   f{x} = [x !== null]
 
             {{.WHITE}, _} ->
-               {"send"}.concat{args}
+               {.send}.concat{args}
 
             {{_}, {null?, null?}} ->
                op
             {{_}, {a, b}} ->
-               {"send", op, {"data", a, b}}
+               {.send, op, {.data, a, b}}
 
             other ->
                throw {"Unknown node", ops, args}
@@ -568,10 +572,10 @@ expand{env, context, expr} =
          arr = {}
          while [args.length > 0]:
             x = expand.step{env, type, args.shift{}}
-            cond:
-               [[x instanceof Array] and [x[0] == "splice"]] =>
-                  args := x.slice{1}.concat{args}
-               true =>
+            x |>
+               {.splice, stmts*} ->
+                  args := stmts.concat{args}
+               other ->
                   arr.push{x}
          {type}.concat{arr.map{f}} where
             f{x} = expand{env, type, x}
@@ -583,7 +587,7 @@ expand{env, context, expr} =
          arr = {.array}
 
          while [args.length > 0]:
-            x = expand.step{env, type, args.shift{}}
+            x = expand.step{env, .data, args.shift{}}
             x |>
                {.assoc} -> is_obj := true
                {.assoc, k, v} ->
@@ -615,13 +619,14 @@ expand{env, context, expr} =
          {.assign, expand{env, .decl, lhs}
                    expand{env, .multi, rhs}}
 
-      {.js_while or .js_for or .js_break
-       \ or .js_continue or .js_return or .js_throw or .if, args*} ->
+      {type && [.js_while or .js_for or .js_break
+                \ or .js_continue or .js_return
+                \ or .js_throw or .if], args*} ->
          ctxs = js_contexts[type] or {}
          {type}.concat{args.map{f}} where
             f{x, i} = expand{env, ctxs[i] or .expr, x}
 
-      other -> throw {"Oops", type, context}
+      other -> throw {"Oops", expr, context}
 
 
 
@@ -720,17 +725,22 @@ make_checker{value, op} = {env, context, expr} ->
    {.send, op, {.data, expr[1], value}}
 
 
-stdenv.register_macro{"#"} with {env, context, expr} ->
-   tag = {.value, expr[2]}
+stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
+   tag := {.value, tag}
    {.macro, f} where f{env, context, expr} =
       cond:
          [context == "pattern"] =>
-            {.check, {.macro, f}, expr} where f{env, context, expr} =
+            {.check, {.macro, f}, expr or {.ignore}} where f{env, context, expr} =
                {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
          true =>
             {.send, {.send, "___lib", {.value, "Struct"}}, d} where d =
                {.data, tag}.concat{expr.slice{1}}
 
+
+stdenv.register_macro{"when"} with {env, context, {.data, pattern, condition}} ->
+   pattern |>
+      null? -> #test{condition, {.ignore}}
+      other -> #test{condition, pattern}
 
 andf{env, context, expr} =
    {context, expr} |>
@@ -758,7 +768,7 @@ stdenv.register_macro{"or"} with orf
 partial_pattern{operator} = {env, context, expr} ->
    {context, expr} |>
       {.pattern, {.data, null?, val}} ->
-         {.check, {.macro, make_checker{val, operator}}, null}
+         {.check, {.macro, make_checker{val, operator}}, {.ignore}}
       {_, null?} ->
          operator
       other ->
@@ -814,7 +824,7 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
 
 stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
    cond:
-      [context == "data"] =>
+      [context == .data] =>
          {.assoc, binding, value}
       true =>
          throw ["Illegal context for '=>' (" + context + ")"]
@@ -836,15 +846,14 @@ stdenv.register_macro{"="} with {env, context, expr} ->
             [clauses.length == 1] =>
                clause = clauses[0]
                last = clause[clause.length - 1]
-               cond:
-                  [[last instanceof Array]
-                   \ and [last[0] == "value"] and [last[1] === true]] =>
+               last |>
+                  {.value, true?} ->
                      cond:
                         [[vars.length == 1] and [clause.length == 3]] =>
                            r := {.declare}.concat{clause[1].slice{1}}
                         true =>
                            r := r.concat{clause.slice{1, -1}}
-                  true =>
+                  other ->
                      r.push{mkif{clause}}
             true =>
                ands = make_pattern_test{clauses}
@@ -989,7 +998,7 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
 
    mac{env, context, expr} =
       context |>
-         .pattern -> {.check, checker, expr}
+         .pattern -> {.check, checker, expr or {.ignore}}
          other -> {.send, checker, {.data, expr}}
 
    {.macro, mac}
@@ -1039,7 +1048,15 @@ parse_lhs{env, lhs, rhs} =
    helper_noexpand{lhs, curr} =
       lhs |>
 
-         [null? or "_"] -> false
+         ;; [null? or "_"] -> false
+
+         null? ->
+            helper_noexpand{x, curr} where
+               x = {.check, {.macro, make_checker{{.value, null}, "___eq"}}, {.ignore}}
+
+         ["_" or {.ignore}] ->
+            current.push{curr}
+            current.push{{.value, true}}
 
          String? ->
             vars.push{lhs}
@@ -1048,7 +1065,7 @@ parse_lhs{env, lhs, rhs} =
 
          {.value, v} ->
             helper_noexpand{x, curr} where
-               x = {.check, {.macro, make_checker{lhs, "___eq"}}, null}
+               x = {.check, {.macro, make_checker{lhs, "___eq"}}, {.ignore}}
 
          {.all, xs*} ->
             temp = mktemp{}
@@ -1103,11 +1120,13 @@ parse_lhs{env, lhs, rhs} =
             rest = undefined
             members = specs.map with {x} ->
                v = expand.step{env, .pattern, x}
-               cond:
-                  [[v instanceof Array] and [v[0] == "dynsplice"]] =>
-                     rest := v[1]
-                  [rest === undefined] => [fw := fw + 1]
-                  true => [bw := bw + 1]
+               v |>
+                  {.dynsplice, variable} ->
+                     rest := variable
+                  other ->
+                     cond:
+                        [rest === undefined] => [fw := fw + 1]
+                        true => [bw := bw + 1]
                v
 
             cmp =
@@ -1172,15 +1191,16 @@ make_or_pattern{clauses} =
    ors
 
 stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
+   temp = gensym{}
    clauses = cl |>
       {.multi, cls*} -> cls
       other -> {other}
-   decls = {.multi}
-   ;; r = {.js_throw, {.data, {.value, "Could not find a match"}, to_match}}
-   r = {.js_throw, {.value, "Could not find a match"}}
+   decls = {.multi, {.declare, temp, to_match}}
+   r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
+   ;; r = {.js_throw, {.value, "Could not find a match"}}
    while [clauses.length > 0]:
       {.send, "->", {.data, lhs, body}} = clauses.pop{}
-      p = parse_lhs{env, lhs, to_match}
+      p = parse_lhs{env, lhs, temp}
       test = make_pattern_test{p[1]}
       r := {.if, test, body, r}
       decls := decls.concat{make_declarations{p[0]}}
@@ -1301,7 +1321,9 @@ translate{expr, mode} =
             b = translate{rhs, .expr}
 
       {.multi, args*} ->
-         isdecl{x} = [[x instanceof Array] and [x[0] == .declare]]
+         isdecl{x} = x |>
+            {.declare, variable, value} -> true
+            other -> false
          cond:
              [args.length == 1] => translate{args[0], mode}
              [[mode == "expr"] and [not args.some{isdecl}]] =>
