@@ -30,7 +30,7 @@ regexps = {
      [>>"a-zA-Z$_"]
      [>>"a-zA-Z$_0-9"]*
 
-  id_f = {m, wsb, wsa, last_op} -> #id{.ID, m[0]}
+  id_f = {m, wsb, wsa, last_op} -> {.ID, .ID, m[0]}
 
 
   numr = Rx
@@ -46,7 +46,7 @@ regexps = {
         frac =>
            frac := frac.replace{Rxg"_", ""}
            value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
-     #id{.value, value}
+     {.ID, .NUM, value}
 
 
   num = Rx
@@ -56,7 +56,7 @@ regexps = {
      [>>"eE", {[>>"+-"]?, [>>"0-9_"]+}]?
 
   num_f = {m, wsb, wsa, last_op} ->
-     #id{.value, parseFloat{m[0].replace{Rxg"_", ""}}}
+     {.ID, .NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
 
 
   str = Rx
@@ -72,7 +72,7 @@ regexps = {
         "\\n" => "\n"
      }
      r = m[1].replace{Rxg{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
-     #id{.value, r}
+     {.ID, .STR, r}
 
   op = Rx
      start
@@ -102,24 +102,24 @@ regexps = {
                  .SFX -> if{wsb, .wide, .short}
                  .PFX -> if{wsa, .wide, .short}
                  other -> throw "OopsA"
-           #op{fixity, width, op}
+           {.OP, fixity, width, op}
 
         [wsa and wsb] =>
-           #op{[cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
+           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
 
         [not wsa and not wsb] =>
-           #op{[cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
+           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
 
         wsa =>
            cond:
-              last_op => #op{.PFX, .wide, op}
-              true => #op{.SFX, .short, op}
+              last_op => {.OP, .PFX, .wide, op}
+              true => {.OP, .SFX, .short, op}
 
         wsb =>
-           #op{.PFX, .short, op}
+           {.OP, .PFX, .short, op}
 
         true =>
-           #op{.PFX, .short, op}
+           {.OP, .PFX, .short, op}
 
   indent = Rx
      start
@@ -127,7 +127,7 @@ regexps = {
 
   indent_f = {m, wsb, wsa, last_op} ->
      ilen = m[1].length
-     #indent{ilen}
+     {.INDENT, ilen}
 
 
   cmnt = Rx
@@ -135,7 +135,7 @@ regexps = {
      ";"
      [>>!"\n"]*
 
-  cmnt_f = {m, wsb, wsa, last_op} -> #ignore{}
+  cmnt_f = {m, wsb, wsa, last_op} -> {.IGNORE}
 
 
   unkn = Rx
@@ -156,41 +156,41 @@ indent_tracker{} =
    stacks = {stack}
    {token} ->
       token |>
-         #indent{new_indent} ->
+         {.INDENT, new_indent} ->
             cond:
                [curr === false] =>
                   curr := new_indent
-                  {#op{.IFX, .wide, ","}}
+                  {{.OP, .IFX, .wide, ","}}
 
                [new_indent > curr] =>
                   stack.push{curr}
                   curr := new_indent
-                  {#op{.PFX, .wide, "["}}
+                  {{.OP, .PFX, .wide, "["}}
 
                [new_indent == curr] =>
-                  {#op{.IFX, .wide, ","}}
+                  {{.OP, .IFX, .wide, ","}}
 
                [new_indent < curr] =>
                   rval = {}
                   while [[stack.length > 0] and [new_indent < curr]]:
                      curr := stack.pop{}
-                     rval.push{#op{.SFX, .wide, "]"}}
-                  rval.push{#op{.IFX, .wide, ","}}
+                     rval.push{{.OP, .SFX, .wide, "]"}}
+                  rval.push{{.OP, .IFX, .wide, ","}}
                   rval
 
                true => throw {curr, new_indent}
 
-         #id{stuff*} -> {token}
+         {.ID, stuff*} -> {token}
 
-         #op{fixity, width, "[" or "{"} ->
+         {.OP, fixity, width, "[" or "{"} ->
             stack.push{curr}
             stacks.push{stack}
             stack := {}
             curr := false
             {token}
 
-         #op{fixity, width, "]" or "}"} ->
-            rval = stack.map{{x} -> #op{.SFX, .short, "]"}}
+         {.OP, fixity, width, "]" or "}"} ->
+            rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
             stack := stacks.pop{}
             curr := stack.pop{}
             rval.push{token}
@@ -200,11 +200,12 @@ indent_tracker{} =
 
 
 process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
-   token |>
-      #ignore{} ->
+   {type, result*} = token
+   type |>
+      .IGNORE ->
          last_op
 
-      #id{result*} ->
+      .ID ->
          cond:
             [not last_op] =>
                w = {.IFX, if{wsb, .wide, .short}, .WHITE}
@@ -213,7 +214,7 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
          accum.push{result}
          false
 
-      #op{result*} ->
+      .OP ->
          cond:
             last_op =>
                v = {.VOID}
@@ -457,7 +458,8 @@ order{o1, o2} =
 finalize{x} =
    x |>
       {.ID, value} -> value
-      {.value, value} -> {.value, value}
+      {.NUM, value} -> {.value, value}
+      {.STR, value} -> {.value, value}
       {.VOID} -> null
 
       {ops, args*} ->
@@ -466,10 +468,10 @@ finalize{x} =
          {ops, args} |>
 
             {{"WHITE", ":"}, {f, arg, body}} ->
-               {.send, f, {.data, {"code", arg}, {"code", body}}}
+               {"send", f, {"data", {"code", arg}, {"code", body}}}
 
             {{":"}, {f, body}} ->
-               {.send, f, {.data, {"code", body}}}
+               {"send", f, {"data", {"code", body}}}
 
             {{"with"}, {target, body}} ->
                body := body |>
@@ -483,7 +485,7 @@ finalize{x} =
                   {.data, args*} ->
                      target.concat{body}
                   other ->
-                     {.send, target, {.data}.concat{body}}
+                     {"send", target, {"data"}.concat{body}}
 
             {{"[" or ",", _*}, _} ->
                cond:
@@ -494,20 +496,20 @@ finalize{x} =
                result = args |>
                   {} -> throw ["At least one expression must be enclosed in []"]
                   {x} -> x
-                  other -> {.multi}.concat{args}
+                  other -> {"multi"}.concat{args}
                result
 
             {{"{", _*}, _} ->
-               {.data}.concat{args.slice{1, -1}.filter{f}} where
+               {"data"}.concat{args.slice{1, -1}.filter{f}} where
                   f{x} = [x !== null]
 
             {{.WHITE}, _} ->
-               {.send}.concat{args}
+               {"send"}.concat{args}
 
             {{_}, {null?, null?}} ->
                op
             {{_}, {a, b}} ->
-               {.send, op, {.data, a, b}}
+               {"send", op, {"data", a, b}}
 
             other ->
                throw {"Unknown node", ops, args}
@@ -534,7 +536,7 @@ Env{parent} =
    self.register := {name, value} ->
       store[name] := value
    self.register_macro := {name, m} ->
-      store[name] := #macro{m}
+      store[name] := {.macro, m}
    self.fork := {} ->
       Env{self}
    self.parent := parent
@@ -566,62 +568,13 @@ expand{env, context, expr} =
          arr = {}
          while [args.length > 0]:
             x = expand.step{env, type, args.shift{}}
-            x |>
-               {.splice, stmts*} ->
-                  args := stmts.concat{args}
-               other ->
+            cond:
+               [[x instanceof Array] and [x[0] == "splice"]] =>
+                  args := x.slice{1}.concat{args}
+               true =>
                   arr.push{x}
          {type}.concat{arr.map{f}} where
             f{x} = expand{env, type, x}
-
-      ;; {.data, args*} ->
-
-      ;;    is_obj = false
-      ;;    obj = {.object}
-      ;;    arr = {.array}
-      ;;    parts = {}
-
-      ;;    newpart{} =
-      ;;       arr |>
-      ;;          {.array} -> false
-      ;;          other ->
-      ;;             parts.push{arr}
-      ;;             arr := {.array}
-
-      ;;    while [args.length > 0]:
-      ;;       x = expand.step{env, type, args.shift{}}
-      ;;       x |>
-      ;;          {.assoc} -> is_obj := true
-      ;;          {.assoc, k, v} ->
-      ;;             is_obj := true
-      ;;             obj.push with {.array, k, v}
-      ;;          {.splice, exprs*} ->
-      ;;             args := exprs.concat{args}
-      ;;          {.dynsplice, expr} ->
-      ;;             newpart{}
-      ;;             parts.push{expr}
-      ;;          other ->
-      ;;             arr.push{other}
-
-      ;;    newpart{}
-
-      ;;    r = cond:
-      ;;       [parts.length == 0 and is_obj] =>
-      ;;          obj
-      ;;       is_obj =>
-      ;;          arr.push{obj}
-      ;;          newpart{}
-               
-
-      ;;       [[arr.length > 1] and is_obj] =>
-      ;;          arr.push{obj}
-      ;;          arr
-      ;;       is_obj =>
-      ;;          obj
-      ;;       true =>
-      ;;          arr
-
-      ;;    expand{env, context, r}
 
       {.data, args*} ->
 
@@ -678,14 +631,14 @@ expand.step := {env, context, expr} ->
          v = env.resolve{expr}
          {v, context} |>
             {undefined?, _} -> expr
-            {#macro{m}, .head} -> v
-            {#macro{m}, _} -> expand.step{env, context, m{env, context, null}}
+            {{.macro, m}, .head} -> v
+            {{.macro, m}, _} -> expand.step{env, context, m{env, context, null}}
             other -> v
 
       null? -> null
       undefined? -> throw ["undefined? why?"]
 
-      #macro{m} ->
+      {.macro, m} ->
          cond:
             [context == "head"] => expr
             true => expand.step{env, context, m{env, context, null}}
@@ -693,19 +646,14 @@ expand.step := {env, context, expr} ->
       {.send, f, arg} ->
          f := expand.step{env, .head, f}
          f |>
-            #macro{m} -> expand.step{env, context, m{env, context, arg}}
+            {.macro, m} -> expand.step{env, context, m{env, context, arg}}
             other -> expr
 
-      other -> expr
+      {type, args*} ->
+         expr
 
-      ;; {type, args*} ->
-      ;;    expr
-
-      ;; #ignore{} -> expr
-
-      ;; other ->
-      ;;    <> expr
-      ;;    throw {"Oops2", expr}
+      other ->
+         throw {"Oops2", expr}
 
 
 aslist{expr} =
@@ -774,10 +722,10 @@ make_checker{value, op} = {env, context, expr} ->
 
 stdenv.register_macro{"#"} with {env, context, expr} ->
    tag = {.value, expr[2]}
-   #macro{f} where f{env, context, expr} =
+   {.macro, f} where f{env, context, expr} =
       cond:
          [context == "pattern"] =>
-            #check{#macro{f}, expr} where f{env, context, expr} =
+            {.check, {.macro, f}, expr} where f{env, context, expr} =
                {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
          true =>
             {.send, {.send, "___lib", {.value, "Struct"}}, d} where d =
@@ -787,7 +735,7 @@ stdenv.register_macro{"#"} with {env, context, expr} ->
 andf{env, context, expr} =
    {context, expr} |>
       {.pattern, {.data, a, b}} ->
-         #all{a, b}
+         {.all, a, b}
       {_, null?} ->
          "___and"
       other ->
@@ -798,7 +746,7 @@ stdenv.register_macro{"and"} with andf
 orf{env, context, expr} =
    {context, expr} |>
       {.pattern, {.data, a, b}} ->
-         #any{a, b}
+         {.any, a, b}
       {_, null?} ->
          "___or"
       other ->
@@ -810,7 +758,7 @@ stdenv.register_macro{"or"} with orf
 partial_pattern{operator} = {env, context, expr} ->
    {context, expr} |>
       {.pattern, {.data, null?, val}} ->
-         #check{#macro{make_checker{val, operator}}, #ignore{}}
+         {.check, {.macro, make_checker{val, operator}}, null}
       {_, null?} ->
          operator
       other ->
@@ -866,7 +814,7 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
 
 stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
    cond:
-      [context == .data] =>
+      [context == "data"] =>
          {.assoc, binding, value}
       true =>
          throw ["Illegal context for '=>' (" + context + ")"]
@@ -885,19 +833,18 @@ stdenv.register_macro{"="} with {env, context, expr} ->
             {.if, x, {.value, false}, {.js_throw, {.value, "a condition failed"}}}
 
          cond:
-            [clauses.length == 0] =>
-               r.push{{.value, false}}
             [clauses.length == 1] =>
                clause = clauses[0]
                last = clause[clause.length - 1]
-               last |>
-                  {.value, true?} ->
+               cond:
+                  [[last instanceof Array]
+                   \ and [last[0] == "value"] and [last[1] === true]] =>
                      cond:
-                        [vars.length == 1 and clause.length == 3] =>
+                        [[vars.length == 1] and [clause.length == 3]] =>
                            r := {.declare}.concat{clause[1].slice{1}}
                         true =>
                            r := r.concat{clause.slice{1, -1}}
-                  other ->
+                  true =>
                      r.push{mkif{clause}}
             true =>
                ands = make_pattern_test{clauses}
@@ -1027,25 +974,25 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
    checker = expr |>
       null? -> {.send, expr, {.value, "__check__"}}
       .String ->
-         #macro{f} where f{env, context, {.data, expr}} =
+         {.macro, f} where f{env, context, {.data, expr}} =
             {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
                                      {.value, "string"}}}
       .Number ->
-         #macro{f} where f{env, context, {.data, expr}} =
+         {.macro, f} where f{env, context, {.data, expr}} =
             {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
                                      {.value, "number"}}}
-      .true -> #macro{make_checker{{.value, true}, "___is"}}
-      .false -> #macro{make_checker{{.value, false}, "___is"}}
-      .null -> #macro{make_checker{{.value, null}, "___is"}}
-      .undefined -> #macro{make_checker{{.value, undefined}, "___is"}}
+      .true -> {.macro, make_checker{{.value, true}, "___is"}}
+      .false -> {.macro, make_checker{{.value, false}, "___is"}}
+      .null -> {.macro, make_checker{{.value, null}, "___is"}}
+      .undefined -> {.macro, make_checker{{.value, undefined}, "___is"}}
       other -> {.send, expr, {.value, "__check__"}}
 
    mac{env, context, expr} =
       context |>
-         .pattern -> #check{checker, expr}
+         .pattern -> {.check, checker, expr}
          other -> {.send, checker, {.data, expr}}
 
-   #macro{mac}
+   {.macro, mac}
 
 
 ;; stdenv.register_macro{"!"} with {env, context, expr} -> [
@@ -1060,7 +1007,7 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
 ;;          ]
 ;;       ]
 ;;    ]
-;;    #macro{mac}
+;;    {.macro, mac}
 ;; ]
 
 
@@ -1092,28 +1039,18 @@ parse_lhs{env, lhs, rhs} =
    helper_noexpand{lhs, curr} =
       lhs |>
 
-         null? ->
-            helper_noexpand{x, curr} where
-               x = #check{#macro{make_checker{{.value, null}, "___eq"}}, #ignore{}}
-
-         "_" ->
-            current.push{curr}
-            current.push{{.value, true}}
+         [null? or "_"] -> false
 
          String? ->
             vars.push{lhs}
             current.push{{.assign, lhs, curr}}
             current.push{{.value, true}}
 
-         #ignore{} ->
-            current.push{curr}
-            current.push{{.value, true}}
-
          {.value, v} ->
             helper_noexpand{x, curr} where
-               x = #check{#macro{make_checker{lhs, "___eq"}}, #ignore{}}
+               x = {.check, {.macro, make_checker{lhs, "___eq"}}, null}
 
-         #all{xs*} ->
+         {.all, xs*} ->
             temp = mktemp{}
             current := current.concat with {
                {.assign, temp, curr}
@@ -1121,7 +1058,7 @@ parse_lhs{env, lhs, rhs} =
             xs.forEach with {x} ->
                helper{x, temp}
 
-         #any{xs*} ->
+         {.any, xs*} ->
             normalize{vars} =
                vars.filter{{x} -> x.slice{0, 4} !== "_tmp"}.sort{}.join{","}
 
@@ -1148,7 +1085,7 @@ parse_lhs{env, lhs, rhs} =
             vars := vars.concat{myvars}
             newclause{}
 
-         #check{checker, expr} ->
+         {.check, checker, expr} ->
             temp = mktemp{}
             current := current.concat with {
                {.assign, temp, curr}
@@ -1166,13 +1103,11 @@ parse_lhs{env, lhs, rhs} =
             rest = undefined
             members = specs.map with {x} ->
                v = expand.step{env, .pattern, x}
-               v |>
-                  {.dynsplice, variable} ->
-                     rest := variable
-                  other ->
-                     cond:
-                        [rest === undefined] => [fw := fw + 1]
-                        true => [bw := bw + 1]
+               cond:
+                  [[v instanceof Array] and [v[0] == "dynsplice"]] =>
+                     rest := v[1]
+                  [rest === undefined] => [fw := fw + 1]
+                  true => [bw := bw + 1]
                v
 
             cmp =
@@ -1237,15 +1172,15 @@ make_or_pattern{clauses} =
    ors
 
 stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
-   temp = gensym{}
    clauses = cl |>
       {.multi, cls*} -> cls
       other -> {other}
-   decls = {.multi, {.declare, temp, to_match}}
-   r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
+   decls = {.multi}
+   ;; r = {.js_throw, {.data, {.value, "Could not find a match"}, to_match}}
+   r = {.js_throw, {.value, "Could not find a match"}}
    while [clauses.length > 0]:
       {.send, "->", {.data, lhs, body}} = clauses.pop{}
-      p = parse_lhs{env, lhs, temp}
+      p = parse_lhs{env, lhs, to_match}
       test = make_pattern_test{p[1]}
       r := {.if, test, body, r}
       decls := decls.concat{make_declarations{p[0]}}
@@ -1366,9 +1301,7 @@ translate{expr, mode} =
             b = translate{rhs, .expr}
 
       {.multi, args*} ->
-         isdecl{x} = x |>
-            {.declare, variable, value} -> true
-            other -> false
+         isdecl{x} = [[x instanceof Array] and [x[0] == .declare]]
          cond:
              [args.length == 1] => translate{args[0], mode}
              [[mode == "expr"] and [not args.some{isdecl}]] =>

@@ -39,3 +39,5 @@ exports.send := {obj, msg} ->
       [String? or Number?] -> obj[msg]
       other -> obj.___send{msg}
 
+Function.prototype.___send := {args} ->
+   this.apply{this, args}
