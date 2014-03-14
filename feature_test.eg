@@ -12,11 +12,10 @@
 
 <> "Fibonacci"
 
-fib{n} =
-   n |>
-      0 -> 0
-      1 -> 1
-      n -> fib{n - 1} + fib{n - 2}
+fib{|>} =
+   0 -> 0
+   1 -> 1
+   n -> fib{n - 1} + fib{n - 2}
 
 <> with
    fib{3} == 2

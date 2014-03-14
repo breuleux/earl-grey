@@ -13,23 +13,20 @@ exports.StructFactory := {name} ->
       r["#"] := name
       r
    make.___project := {value} ->
-      cond:
-         [value instanceof Array and value["#"] == name] =>
-            {true, value}
-         true =>
-            {true, make{value}}
+      ? | [value instanceof Array and value["#"] == name] =>
+          {true, value}
+        | else =>
+          {true, make{value}}
    make.___check := {value} ->
-      cond:
-         [value instanceof Array and value["#"] == name] =>
-            true
-         true =>
-            false
+      ? | [value instanceof Array and value["#"] == name] =>
+          true
+        | else =>
+          false
    make.___deconstruct := {value} ->
-      cond:
-         [value instanceof Array and value["#"] == name] =>
-            {true, value.slice{0}}
-         true =>
-            {false, false}
+      ? | [value instanceof Array and value["#"] == name] =>
+          {true, value.slice{0}}
+        | else =>
+          {false, false}
    make
 
 
@@ -39,15 +36,13 @@ exports.Struct := {name} ->
    r
 
 exports.Struct.___check := {value} ->
-   cond:
-      [value instanceof Array] => value["#"] != undefined
-      true => false
+   ? | [value instanceof Array] => value["#"] != undefined
+     | else => false
 
 exports.Struct.___deconstruct := {value} ->
-   cond:
-      [value instanceof Array and value["#"] != undefined] =>
-         {value["#"]}.concat{value.slice{0}}
-      true => throw "cannot deconstruct"
+   ? | [value instanceof Array and value["#"] != undefined] =>
+       {value["#"]}.concat{value.slice{0}}
+     | else => throw "cannot deconstruct"
 
 
 
@@ -104,9 +99,8 @@ exports.checker := {type} ->
 exports.projector := {type} -> {value} ->
    type.___project |>
       undefined? ->
-         cond:
-            [value instanceof type] => {true, value}
-            true => {false, null}
+         ? | [value instanceof type] => {true, value}
+           | else => {false, null}
       f -> f{value}
 
 Array.___project := {value} -> value |>
@@ -118,8 +112,7 @@ Array.___project := {value} -> value |>
 exports.deconstructor := {type} -> {value} ->
    type.___deconstruct |>
       undefined? ->
-         cond:
-            [value instanceof Array] => {true, value}
-            true => {false, null}
+         ? | [value instanceof Array] => {true, value}
+           | else => {false, null}
       f -> f{value}
 
