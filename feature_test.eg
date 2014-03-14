@@ -41,11 +41,10 @@ positivity{x} =
 
 <> "Pattern matching"
 
-compare{x, threshold} =
-   x |>
-      [> threshold] -> "above"
-      [< threshold] -> "below"
-      [== threshold] -> "equal"
+compare{|>, threshold} =
+   [> threshold] -> "above"
+   [< threshold] -> "below"
+   [== threshold] -> "equal"
 
 <> with
    compare{-41, 0} == "below"
@@ -71,4 +70,21 @@ calc{expr} =
 
 <> with
    [a + b + c] == 6
+
+
+tr{|>} =
+   String? s -> s
+   Number? n -> String{n}
+   #send{f, |>} ->
+      String? s -> tr{f} + "." + s
+      #data{args*} -> tr{f} + "{" + args.join{", "} + "}"
+   other -> throw "illegal expression"
+
+<> with
+   tr{x} == "a.b" where x = #send{"a", "b"}
+   tr{x} == "a{b, 12}" where x = #send{"a", #data{"b", 12}}
+
+
+
+
 

@@ -848,16 +848,32 @@ stdenv.register_macro{"let"} with {env, context, {.data, {.code, a}, {.code, b}}
    {.multi}.concat{bindings}.concat{body}
 
 
+;; stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
+;;    body = {.multi}
+;;    args := args.slice{1}.map with {x} -> x |>
+;;       String? -> x
+;;       other ->
+;;          t = gensym{}
+;;          body.push with {.send, "=", {.data, x, t}}
+;;          t
+;;    body.push{stmts}
+;;    {.lambda, args, body}
+
 stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    body = {.multi}
-   args := args.slice{1}.map with {x} -> x |>
+   {placeholder, newargs} = find_arrow{args}
+   newargs := newargs.slice{1}.map with {x} -> x |>
       String? -> x
       other ->
          t = gensym{}
          body.push with {.send, "=", {.data, x, t}}
          t
-   body.push{stmts}
-   {.lambda, args, body}
+   body.push with
+     ? | placeholder =>
+         {.send, "|>", {.data, placeholder, stmts}}
+       | else => stmts
+   {.lambda, newargs, body}
+
 
 
 stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
@@ -1319,31 +1335,36 @@ make_or_pattern{clauses} =
       ors := {.send, "___or", {.data, clauses.pop{}, ors}}
    ors
 
-;; stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
-;;    temp = gensym{}
-;;    clauses = cl |>
-;;       {.multi, cls*} -> cls
-;;       other -> {other}
-;;    decls = {.multi, {.declare, temp, to_match}}
-;;    r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
-;;    ;; r = {.js_throw, {.value, "Could not find a match"}}
-;;    while [clauses.length > 0]:
-;;       {.send, "->", {.data, lhs, body}} = clauses.pop{}
-;;       p = parse_lhs{env, lhs, temp}
-;;       test = make_pattern_test{p[1]}
-;;       r := {.if, test, body, r}
-;;       decls := decls.concat{make_declarations{p[0]}}
-;;    decls.push{r}
-;;    decls
+
+find_arrow{lhs} =
+   lhs |>
+      "|>" ->
+         placeholder = gensym{}
+         {placeholder, placeholder}
+      "|>*" ->
+         placeholder = gensym{}
+         {placeholder, {.send, "*", {.data, placeholder, null}}}
+      String? or null? ->
+         {false, lhs}
+      {.value, v} ->
+         {false, lhs}
+      {kind, args*} ->
+         placeholder = false
+         new_args = args.map with {arg} ->
+            {ph, new_arg} = find_arrow{arg}
+            ? | ph => placeholder := ph
+            new_arg
+         {placeholder, {kind}.concat{new_args}}
+
 
 same{a, b} = {a, b} |>
    {String? x, String? y} -> x == y
    {{.value, x}, {.value, y}} -> x == y
    {{.macro, x}, {.macro, y}} -> x == y
    {{.send, f, x}, {.send, g, y}} -> same{f, g} and same{x, y}
-   {{.multi, xs*}, {.multi, ys*}} ->
-      xs.every with {x, i} ->
-         same{x, ys[i]}
+   ;; {{.multi, xs*}, {.multi, ys*}} ->
+   ;;    xs.every with {x, i} ->
+   ;;       same{x, ys[i]}
    {{kind1, xs*}, {kind2, ys*}} ->
       kind1 == kind2 and allequal where
          allequal = xs.every with {x, i} ->
@@ -1362,9 +1383,12 @@ stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
    stmts = {.multi, {.declare, temp, to_match}}
    clauses := clauses.map with {clause} ->
       {.send, "->", {.data, lhs, body}} = clause
-      {decls, conditions} = parse_lhs{env, lhs, temp}
+      {placeholder, new_lhs} = find_arrow{lhs}
+      {decls, conditions} = parse_lhs{env, new_lhs, temp}
       stmts := stmts.concat with make_declarations{decls}
-      {conditions.map{f}, body} where
+      {conditions.map{f}, b} where
+         b = ? | placeholder => {.send, "|>", {.data, placeholder, body}}
+               | else => body
          f{x} = {.done, expand{env, .expr, x}}
 
    ;; BEGIN OPT
