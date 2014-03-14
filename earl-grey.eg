@@ -107,20 +107,20 @@ regexps = {
            {.OP, fixity, width, op}
 
         [wsa and wsb] =>
-           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .wide, op}
+           {.OP, [cond: [[last_op => .PFX], [else => .IFX]]], .wide, op}
 
         [not wsa and not wsb] =>
-           {.OP, [cond: [[last_op => .PFX], [true => .IFX]]], .short, op}
+           {.OP, [cond: [[last_op => .PFX], [else => .IFX]]], .short, op}
 
         wsa =>
            cond:
               last_op => {.OP, .PFX, .wide, op}
-              true => {.OP, .SFX, .short, op}
+              else => {.OP, .SFX, .short, op}
 
         wsb =>
            {.OP, .PFX, .short, op}
 
-        true =>
+        else =>
            {.OP, .PFX, .short, op}
 
   indent = Rx
@@ -180,7 +180,7 @@ indent_tracker{} =
                   rval.push{{.OP, .IFX, .wide, ","}}
                   rval
 
-               true => throw {curr, new_indent}
+               else => throw {curr, new_indent}
 
          {.ID, stuff*} -> {token}
 
@@ -409,7 +409,7 @@ oparse{next, order, finalize} =
       o = cond:
              [not left_op and not right_op] =>
                 DONE
-             true =>
+             else =>
                 [not left_op and RIGHT]
                  \ or [not right_op and LEFT]
                  \ or order{left_op, right_op}
@@ -536,7 +536,7 @@ Env{parent} =
       attempt = store[name]
       cond:
          attempt => attempt
-         true => self.parent.resolve{name}
+         else => self.parent.resolve{name}
    self.register := {name, value} ->
       store[name] := value
    self.register_macro := {name, m} ->
@@ -603,7 +603,7 @@ expand{env, context, expr} =
                arr
             is_obj =>
                obj
-            true =>
+            else =>
                arr
          expand{env, context, r}
 
@@ -646,7 +646,7 @@ expand.step := {env, context, expr} ->
       {.macro, m} ->
          cond:
             [context == "head"] => expr
-            true => expand.step{env, context, m{env, context, null}}
+            else => expand.step{env, context, m{env, context, null}}
 
       {.send, f, arg} ->
          f := expand.step{env, .head, f}
@@ -730,9 +730,18 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
    {.macro, f} where f{env, context, expr} =
       cond:
          [context == "pattern"] =>
-            {.check, {.macro, f}, expr or {.ignore}} where f{env, context, expr} =
+            checker_mac = {.macro, f} where f{env, context, expr} =
                {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
-         true =>
+            expr |>
+               {.data, subp*} ->
+                  deconstructor_mac = {.macro, f} where f{env, context, expr} =
+                     {.data, {.value, true}
+                             {.send, {.send, expr[1], {.value, "slice"}}
+                                     {.data, {.value, 0}}}}
+                  {.check, checker_mac, {.project, deconstructor_mac, expr}}
+               other ->
+                  {.check, checker_mac, expr or {.ignore}}
+         else =>
             expr |>
                null? ->
                   {.send, {.send, "___lib", {.value, "StructFactory"}}, d} where d =
@@ -831,7 +840,7 @@ stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
    cond:
       [context == .data] =>
          {.assoc, binding, value}
-      true =>
+      else =>
          throw ["Illegal context for '=>' (" + context + ")"]
 
 
@@ -856,11 +865,11 @@ stdenv.register_macro{"="} with {env, context, expr} ->
                      cond:
                         [[vars.length == 1] and [clause.length == 3]] =>
                            r := {.declare}.concat{clause[1].slice{1}}
-                        true =>
+                        else =>
                            r := r.concat{clause.slice{1, -1}}
                   other ->
                      r.push{mkif{clause}}
-            true =>
+            else =>
                ands = make_pattern_test{clauses}
                r.push{mkif{ands}}
          r
@@ -900,7 +909,7 @@ stdenv.register_macro{"cond"} with {env, context, {.data, {.code, clauses}}} ->
    handle{xs} =
       cond:
          [xs.length == 0] => {.value, false}
-         true =>
+         else =>
             {{.send, "=>", {.data, test, body}}, rest*} = xs
             test := test |>
                "else" -> {.value, true}
@@ -987,9 +996,10 @@ stdenv.register_macro{"Rxg"} with {env, context, expr} ->
 
 
 stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
+   orig_expr = expr
+
    checker = expr |>
-      ;; null? -> {.send, {.send, "___lib", {.value, "checker"}}, {.data, expr}}
-      null? -> throw "not implemented"
+      null? -> throw "can't use ? on its own"
       .String ->
          {.macro, f} where f{env, context, {.data, expr}} =
             {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
@@ -1006,7 +1016,14 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
 
    mac{env, context, expr} =
       context |>
-         .pattern -> {.check, checker, expr or {.ignore}}
+         .pattern -> expr |>
+            {.data, subp*} ->
+               projector = {.send, {.send, "___lib", {.value, .deconstructor}}
+                                   {.data, orig_expr}}
+               {.check, checker, {.project, projector, expr}}
+            other ->
+               {.check, checker, expr or {.ignore}}
+         ;; .pattern -> {.check, checker, expr or {.ignore}}
          other -> {.send, checker, {.data, expr}}
 
    {.macro, mac}
@@ -1014,7 +1031,7 @@ stdenv.register_macro{"?"} with {env, context, {.data, expr, null?}} ->
 
 stdenv.register_macro{"!"} with {env, context, {.data, expr, null?}} ->
    projector = expr |>
-      null? -> throw "not implemented"
+      null? -> throw "can't use ! on its own"
       .String ->
          {.macro, f} where f{env, context, {.data, expr}} =
             {.data, {.value, true}, {.send, "String", {.data, expr}}}
@@ -1111,7 +1128,7 @@ parse_lhs{env, lhs, rhs} =
                         "Must have the same set of variables in both branches!"
                         myvars
                      }
-                  true =>
+                  else =>
                      vars := vars.concat{p[0]}
                clauses.push with make_pattern_test{p[1]}
             current.push with make_or_pattern{clauses}
@@ -1153,19 +1170,24 @@ parse_lhs{env, lhs, rhs} =
                   other ->
                      cond:
                         [rest == undefined] => [fw := fw + 1]
-                        true => [bw := bw + 1]
+                        else => [bw := bw + 1]
                v
 
             cmp =
                cond:
                   [rest == undefined] => "___eq"
-                  true => "___gte"
+                  else => "___gte"
             temp = mktemp{}
             len = mktemp{}
 
             current := current.concat with {
                {.assign, temp, curr}
                {.send, "___instanceof", {.data, temp, "Array"}}
+            }
+            newclause{}
+
+            current := current.concat with {
+               {.send, "___is", {.data, {.send, temp, {.value, "#"}}, {.value, undefined}}}
             }
             newclause{}
 
@@ -1182,7 +1204,7 @@ parse_lhs{env, lhs, rhs} =
             cond: [[rest != undefined] => [
                slice = cond:
                   [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
-                  true => {.data, {.value, fw}}
+                  else => {.data, {.value, fw}}
                helper_noexpand{
                   members[fw][1]
                   {.send, {.send, temp, {.value, "slice"}}, slice}
@@ -1363,7 +1385,7 @@ translate{expr, mode} =
                 ["(" + xs.join{","} + ")"] where
                    xs = args.map with {x} ->
                       translate{x, .expr}
-             true => translate.body{expr, mode}
+             else => translate.body{expr, mode}
 
       {.splice, args*} ->
          translate{{.multi}.concat{args}, mode}
@@ -1371,22 +1393,22 @@ translate{expr, mode} =
       {.js_break} ->
          cond:
             [mode == "expr"] => throw "Invalid break in ctx"
-            true => "break;"
+            else => "break;"
 
       {.js_continue} ->
          cond:
             [mode == "expr"] => throw "Invalid continue in ctx"
-            true => "continue;"
+            else => "continue;"
 
       {.js_return, value} ->
          cond:
             [mode == "expr"] => throw "Invalid return in ctx"
-            true => "return " + translate{value, .expr} + ";"
+            else => "return " + translate{value, .expr} + ";"
 
       {.js_throw, value} ->
          cond:
             ;; [mode == "expr"] => throw "Invalid throw in ctx"
-            true => "throw " + translate{value, .expr} + ";"
+            else => "throw " + translate{value, .expr} + ";"
 
       {.array, args*} ->
          r = ["[" + args.map{f}.join{","} + "]"] where
@@ -1408,7 +1430,7 @@ translate{expr, mode} =
                translate.expr{trf + "." + trmsg, mode} where
                   trf = translate{f, .expr}
                   trmsg = translate{s, .expr}
-            true =>
+            else =>
                translate.expr{trf + "[" + trmsg + "]", mode} where
                   trf = translate{f, .expr}
                   trmsg = translate{msg, .expr}
@@ -1423,7 +1445,7 @@ translate{expr, mode} =
          cond:
             op =>
                translate.expr{translate.op{op, args[0], args[1]}, mode}
-            true =>
+            else =>
                translate.expr{trf+"("+trargs.join{","}+")", mode} where
                   trf = translate{f, .expr}
                   trargs = args.map with {x} ->
@@ -1493,8 +1515,11 @@ translate.op := {op, a, b} ->
            [a == null] => op + translate{b, .expr}
            [b == null] => translate{a, .expr} + op
            true => translate{a, .expr} + op + translate{b, .expr}
+   ;; e = {a, b} |>
+   ;;    {null?, _} -> op + translate{b, .expr}
+   ;;    {_, null?} -> translate{a, .expr} + op
+   ;;    _ -> translate{a, .expr} + op + translate{b, .expr}
    "(" + e + ")"
-
 
 
 fs = require{.fs}

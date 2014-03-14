@@ -16,6 +16,12 @@ exports.StructFactory := {name} ->
             true
          true =>
             false
+   make.___deconstruct := {value} ->
+      cond:
+         [value instanceof Array and value["#"] == name] =>
+            {true, value.slice{0}}
+         true =>
+            {false, false}
    make
 
 
@@ -31,7 +37,7 @@ exports.Struct.___check := {value} ->
 
 exports.Struct.___deconstruct := {value} ->
    cond:
-      [value instanceof Array and value["#"] != undefined] ->
+      [value instanceof Array and value["#"] != undefined] =>
          {value["#"]}.concat{value.slice{0}}
       true => throw "cannot deconstruct"
 
