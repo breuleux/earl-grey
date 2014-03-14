@@ -749,6 +749,10 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
                {.data, args*} ->
                   {.send, {.send, "___lib", {.value, "Struct"}}, d} where d =
                      {.data, tag}.concat{args}
+               other ->
+                  factory = {.send, {.send, "___lib", {.value, "StructFactory"}}, d} where
+                     d = {.data, tag}
+                  {.send, factory, other}
 
 
 stdenv.register_macro{"when"} with {env, context, {.data, pattern, condition}} ->
