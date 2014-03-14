@@ -611,22 +611,6 @@ expand{env, context, expr} =
 
          newpart{}
 
-         ;; r = cond:
-         ;;    [parts.length == 0 and is_obj] =>
-         ;;       obj
-         ;;    is_obj =>
-         ;;       arr.push{obj}
-         ;;       newpart{}
-               
-
-         ;;    [[arr.length > 1] and is_obj] =>
-         ;;       arr.push{obj}
-         ;;       arr
-         ;;    is_obj =>
-         ;;       obj
-         ;;    true =>
-         ;;       arr
-
          r = parts |>
             {} when is_obj ->
                obj
@@ -640,34 +624,6 @@ expand{env, context, expr} =
                {.send, patch, {.array}.concat{parts}}
 
          expand{env, context, r}
-
-
-      ;; {.data, args*} ->
-
-      ;;    is_obj = false
-      ;;    obj = {.object}
-      ;;    arr = {.array}
-
-      ;;    while [args.length > 0]:
-      ;;       x = expand.step{env, .data, args.shift{}}
-      ;;       x |>
-      ;;          {.assoc} -> is_obj := true
-      ;;          {.assoc, k, v} ->
-      ;;             is_obj := true
-      ;;             obj.push with {.array, k, v}
-      ;;          {.splice, exprs*} ->
-      ;;             args := exprs.concat{args}
-      ;;          other ->
-      ;;             arr.push{other}
-      ;;    r = cond:
-      ;;       [[arr.length > 1] and is_obj] =>
-      ;;          arr.push{obj}
-      ;;          arr
-      ;;       is_obj =>
-      ;;          obj
-      ;;       else =>
-      ;;          arr
-      ;;    expand{env, context, r}
 
       {.lambda, bindings, body} ->
          {.lambda, bindings.map{{x} -> expand{env, .decl, x}}
@@ -687,6 +643,9 @@ expand{env, context, expr} =
          ctxs = js_contexts[type] or {}
          {type}.concat{args.map{f}} where
             f{x, i} = expand{env, ctxs[i] or .expr, x}
+
+      {.done, expr} ->
+         expr
 
       other -> throw {"Oops", expr, context}
 
@@ -797,10 +756,9 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
             expr |>
                {.data, subp*} ->
                   deconstructor_mac = {.macro, f} where f{env, context, expr} =
-                     {.data, {.value, true}
-                             {.send, {.send, expr[1], {.value, "slice"}}
-                                     {.data, {.value, 0}}}}
-                  {.check, checker_mac, {.project, deconstructor_mac, expr}}
+                     {.data, {.value, true}, expr[1]}
+                  {.check, checker_mac, {.project, deconstructor_mac,
+                                                   {.duck}.concat{subp}}}
                other ->
                   {.check, checker_mac, expr or {.ignore}}
          else =>
@@ -1116,19 +1074,26 @@ stdenv.register_macro{"!"} with {env, context, {.data, expr, null?}} ->
    {.macro, mac}
 
 
-tempnum = 0
-gensym{} =
-   name = "_tmp" + tempnum
-   tempnum := tempnum + 1
-   name
+gensym_factory{prefix} =
+   prefix := "τ" + prefix
+   id = 0
+   {} ->
+      name = prefix + String{id}
+      id := id + 1
+      name
 
-parse_lhs{env, lhs, rhs} =
+gensym = gensym_factory{""}
+
+
+parse_lhs{env, lhs, rhs, gen} =
+   gen := gen or gensym_factory{"p"}
+
    vars = {}
    clauses = {}
    current = {.multi}
 
    mktemp{} =
-      t = gensym{}
+      t = gen{}
       vars.push{t}
       t
 
@@ -1142,6 +1107,64 @@ parse_lhs{env, lhs, rhs} =
       helper_noexpand{expand.step{env, .pattern, lhs}, curr}
 
    helper_noexpand{lhs, curr} =
+
+      helper_data{temp, specs} =
+         fw = 0
+         bw = 0
+         rest = undefined
+         members = specs.map with {x} ->
+            v = expand.step{env, .pattern, x}
+            v |>
+               {.dynsplice, variable} ->
+                  rest := variable
+               other ->
+                  cond:
+                     [rest == undefined] => [fw := fw + 1]
+                     else => [bw := bw + 1]
+            v
+
+         cmp =
+            cond:
+               [rest == undefined] => "___eq"
+               else => "___gte"
+
+         ;; Note: I am splitting length assignment into two parts
+         ;; because it lets the crude optimizer reuse it across
+         ;; different clauses
+
+         ;; Part 1: temp <- length
+         len = mktemp{}
+         current := current.concat with {
+            {.assign, len, {.send, temp, {.value, "length"}}}
+            {.value, true}
+         }
+         newclause{}
+
+         ;; Part 2: check length
+         current := current.concat with {
+            ;; Bounds check
+            {.send, cmp, {.data, len, {.value, fw + bw}}}
+         }
+         newclause{}
+
+         for [j = 0, j < fw, ++j]:
+            helper_noexpand{members[j], {.send, temp, {.value, j}}}
+
+         cond: [[rest != undefined] => [
+            slice = cond:
+               [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
+               else => {.data, {.value, fw}}
+            helper_noexpand{
+               members[fw][1]
+               {.send, {.send, temp, {.value, "slice"}}, slice}
+            }
+         ]]
+
+         for [j = 0, j < bw, ++j]:
+            helper_noexpand{members[fw + j + 1],
+                            {.send, temp, {.send, "___minus",
+                                           {.data, len, {.value, bw - j}}}}}
+
       lhs |>
 
          ;; [null? or "_"] -> false
@@ -1178,7 +1201,7 @@ parse_lhs{env, lhs, rhs} =
 
          {.any, xs*} ->
             normalize{vars} =
-               vars.filter{{x} -> x.slice{0, 4} != "_tmp"}.sort{}.join{","}
+               vars.filter{{x} -> x[0] != "τ"}.sort{}.join{","}
 
             temp = mktemp{}
             current := current.concat with {
@@ -1187,14 +1210,15 @@ parse_lhs{env, lhs, rhs} =
             myvars = undefined
             clauses = {}
             xs.forEach with {x} ->
-               p = parse_lhs{env, x, temp}
+               p = parse_lhs{env, x, temp, gensym}
                cond:
                   [myvars == undefined] =>
                      myvars := p[0]
                   [normalize{p[0]} != normalize{myvars}] =>
                      throw with {
                         "Must have the same set of variables in both branches!"
-                        myvars
+                        "[" + String{myvars} + "]"
+                        "[" + String{p[0]} + "]"
                      }
                   else =>
                      vars := vars.concat{p[0]}
@@ -1226,28 +1250,19 @@ parse_lhs{env, lhs, rhs} =
          {.send, fname, spec} ->
             helper{fname, {.send, "->", {.data, spec, curr}}}
 
-         {.data, specs*} ->
-            fw = 0
-            bw = 0
-            rest = undefined
-            members = specs.map with {x} ->
-               v = expand.step{env, .pattern, x}
-               v |>
-                  {.dynsplice, variable} ->
-                     rest := variable
-                  other ->
-                     cond:
-                        [rest == undefined] => [fw := fw + 1]
-                        else => [bw := bw + 1]
-               v
+         {.duck, specs*} ->
 
-            cmp =
-               cond:
-                  [rest == undefined] => "___eq"
-                  else => "___gte"
             temp = mktemp{}
-            len = mktemp{}
+            current := current.concat with {
+               {.assign, temp, curr}
+               {.value, true}
+            }
 
+            helper_data{temp, specs}
+
+         {.data, specs*} ->
+
+            temp = mktemp{}
             current := current.concat with {
                {.assign, temp, curr}
                {.send, "___instanceof", {.data, temp, "Array"}}
@@ -1259,30 +1274,8 @@ parse_lhs{env, lhs, rhs} =
             }
             newclause{}
 
-            current := current.concat with {
-               {.assign, len, {.send, temp, {.value, "length"}}}
-               ;; Bounds check
-               {.send, cmp, {.data, len, {.value, fw + bw}}}
-            }
-            newclause{}
+            helper_data{temp, specs}
 
-            for [j = 0, j < fw, ++j]:
-               helper_noexpand{members[j], {.send, temp, {.value, j}}}
-
-            cond: [[rest != undefined] => [
-               slice = cond:
-                  [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
-                  else => {.data, {.value, fw}}
-               helper_noexpand{
-                  members[fw][1]
-                  {.send, {.send, temp, {.value, "slice"}}, slice}
-               }
-            ]]
-
-            for [j = 0, j < bw, ++j]:
-               helper_noexpand{members[fw + j + 1],
-                               {.send, temp, {.send, "___minus",
-                                              {.data, len, {.value, bw - j}}}}}
          other -> throw "OopsG"
 
    helper{lhs, rhs}
@@ -1307,22 +1300,93 @@ make_or_pattern{clauses} =
       ors := {.send, "___or", {.data, clauses.pop{}, ors}}
    ors
 
+;; stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
+;;    temp = gensym{}
+;;    clauses = cl |>
+;;       {.multi, cls*} -> cls
+;;       other -> {other}
+;;    decls = {.multi, {.declare, temp, to_match}}
+;;    r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
+;;    ;; r = {.js_throw, {.value, "Could not find a match"}}
+;;    while [clauses.length > 0]:
+;;       {.send, "->", {.data, lhs, body}} = clauses.pop{}
+;;       p = parse_lhs{env, lhs, temp}
+;;       test = make_pattern_test{p[1]}
+;;       r := {.if, test, body, r}
+;;       decls := decls.concat{make_declarations{p[0]}}
+;;    decls.push{r}
+;;    decls
+
+same{a, b} = {a, b} |>
+   {String? x, String? y} -> x == y
+   {{.value, x}, {.value, y}} -> x == y
+   {{.macro, x}, {.macro, y}} -> x == y
+   {{.send, f, x}, {.send, g, y}} -> same{f, g} and same{x, y}
+   {{.multi, xs*}, {.multi, ys*}} ->
+      xs.every with {x, i} ->
+         same{x, ys[i]}
+   {{kind1, xs*}, {kind2, ys*}} ->
+      kind1 == kind2 and allequal where
+         allequal = xs.every with {x, i} ->
+            same{x, ys[i]}
+   other ->
+      false
+
+
 stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
    temp = gensym{}
    clauses = cl |>
       {.multi, cls*} -> cls
       other -> {other}
-   decls = {.multi, {.declare, temp, to_match}}
+
+   cached_conditions = {}
+
+   stmts = {.multi, {.declare, temp, to_match}}
+   clauses := clauses.map with {clause} ->
+      {.send, "->", {.data, lhs, body}} = clause
+      {decls, conditions} = parse_lhs{env, lhs, temp}
+      stmts := stmts.concat with make_declarations{decls}
+      {conditions.map{f}, body} where
+         f{x} = {.done, expand{env, .expr, x}}
+
+   ;; BEGIN OPT
+   shares = clauses.slice{1}.map{f} where f{{conditions, body}, i} =
+      res = 0
+      prev_conditions = clauses[i][0]
+      nc = conditions.length
+      for [j = 0, j < nc and same{conditions[j], prev_conditions[j]}, j++]:
+         res++
+      res
+   max = Math.max shares
+   shares.push{0}
+
+   vars = {}
+   for [i = 0, i < max, i++]: vars.push{gensym{}}
+
+   stmts := stmts.concat with make_declarations{vars}
+
+   shared_last = 0
+   new_clauses = clauses.map with {{conditions, body}, i} ->
+      shared = if{shared_last, {vars[shared_last - 1]}, {}}
+      n_to_share = Math.max{shared_last, shares[i]}
+      to_share = conditions.slice{shared_last, n_to_share}.map with
+         {x, j} -> {.assign, vars[shared_last + j], x}
+      shared_last := shares[i]
+      {shared.concat{to_share}.concat{rest}, body} where
+         rest = conditions.slice{n_to_share}
+
+   clauses := new_clauses
+   ;; END OPT
+
    r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
-   ;; r = {.js_throw, {.value, "Could not find a match"}}
+
    while [clauses.length > 0]:
-      {.send, "->", {.data, lhs, body}} = clauses.pop{}
-      p = parse_lhs{env, lhs, temp}
-      test = make_pattern_test{p[1]}
+      {conditions, body} = clauses.pop{}
+      test = make_pattern_test{conditions}
       r := {.if, test, body, r}
-      decls := decls.concat{make_declarations{p[0]}}
-   decls.push{r}
-   decls
+
+   stmts.push{r}
+   stmts
 
 
 
@@ -1523,6 +1587,11 @@ translate{expr, mode} =
          translate.expr{"___lib.send(" + trf + "," + trmsg + ")", mode} where
             trf = translate{f, .expr}
             trmsg = translate{msg, .expr}
+
+      ;; {.send, f, msg} ->
+      ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
+      ;;       trf = translate{f, .expr}
+      ;;       trmsg = translate{msg, .expr}
 
       other ->
          throw other
