@@ -1085,6 +1085,13 @@ gensym_factory{prefix} =
 gensym = gensym_factory{""}
 
 
+is_symbol{x, env} =
+   x |>
+      String? -> env.resolve{x} |>
+         {.macro, m} -> false
+         _ -> true
+      _ -> false
+
 parse_lhs{env, lhs, rhs, gen} =
    gen := gen or gensym_factory{"p"}
 
@@ -1102,6 +1109,17 @@ parse_lhs{env, lhs, rhs, gen} =
          [current.length > 1] =>
             clauses.push{current}
       current := {.multi}
+
+   maybe_temp{x} =
+      cond:
+         is_symbol{x, env} =>
+            x
+         else =>
+            temp = mktemp{}
+            current := current.concat with {
+               {.assign, temp, x}
+            }
+            temp
 
    helper{lhs, curr} =
       helper_noexpand{expand.step{env, .pattern, lhs}, curr}
@@ -1174,8 +1192,10 @@ parse_lhs{env, lhs, rhs, gen} =
                x = {.check, {.macro, make_checker{{.value, null}, "___eq"}}, {.ignore}}
 
          ["_" or {.ignore}] ->
-            current.push{curr}
-            current.push{{.value, true}}
+            cond:
+               [not is_symbol{curr, env}] =>
+                  current.push{curr}
+                  current.push{{.value, true}}
 
          String? ->
             vars.push{lhs}
@@ -1192,10 +1212,12 @@ parse_lhs{env, lhs, rhs, gen} =
             newclause{}
 
          {.all, xs*} ->
-            temp = mktemp{}
-            current := current.concat with {
-               {.assign, temp, curr}
-            }
+            ;; temp = mktemp{}
+            ;; current := current.concat with {
+            ;;    {.assign, temp, curr}
+            ;;    ;; {.value, true}
+            ;; }
+            temp = maybe_temp{curr}
             xs.forEach with {x} ->
                helper{x, temp}
 
@@ -1203,10 +1225,13 @@ parse_lhs{env, lhs, rhs, gen} =
             normalize{vars} =
                vars.filter{{x} -> x[0] != "τ"}.sort{}.join{","}
 
-            temp = mktemp{}
-            current := current.concat with {
-               {.assign, temp, curr}
-            }
+            ;; temp = mktemp{}
+            ;; current := current.concat with {
+            ;;    {.assign, temp, curr}
+            ;;    ;; {.value, true}
+            ;; }
+
+            temp = maybe_temp{curr}
             myvars = undefined
             clauses = {}
             xs.forEach with {x} ->
@@ -1228,19 +1253,20 @@ parse_lhs{env, lhs, rhs, gen} =
             newclause{}
 
          {.check, checker, expr} ->
-            temp = mktemp{}
+            temp = maybe_temp{curr}
+            ;; temp = mktemp{}
             current := current.concat with {
-               {.assign, temp, curr}
+               ;; {.assign, temp, curr}
                {.send, checker, {.data, temp}}
             }
             newclause{}
             helper{expr, temp}
 
          {.project, projector, expr} ->
-            temp = mktemp{}
+            temp = maybe_temp{curr}
             temp2 = mktemp{}
             current := current.concat with {
-               {.assign, temp, curr}
+               ;; {.assign, temp, curr}
                {.assign, temp2, {.send, projector, {.data, temp}}}
                {.send, temp2, {.value, 0}}
             }
@@ -1252,9 +1278,10 @@ parse_lhs{env, lhs, rhs, gen} =
 
          {.duck, specs*} ->
 
-            temp = mktemp{}
+            temp = maybe_temp{curr}
+            ;; temp = mktemp{}
             current := current.concat with {
-               {.assign, temp, curr}
+               ;; {.assign, temp, curr}
                {.value, true}
             }
 
@@ -1262,9 +1289,10 @@ parse_lhs{env, lhs, rhs, gen} =
 
          {.data, specs*} ->
 
-            temp = mktemp{}
+            temp = maybe_temp{curr}
+            ;; temp = mktemp{}
             current := current.concat with {
-               {.assign, temp, curr}
+               ;; {.assign, temp, curr}
                {.send, "___instanceof", {.data, temp, "Array"}}
             }
             newclause{}
@@ -1292,7 +1320,7 @@ make_pattern_test{clauses} =
    ands = clauses.pop{}
    while [clauses.length > 0]:
       ands := {.send, "___and", {.data, clauses.pop{}, ands}}
-   ands
+   ands or {.value, true}
 
 make_or_pattern{clauses} =
    ors = clauses.pop{}
@@ -1331,7 +1359,6 @@ same{a, b} = {a, b} |>
             same{x, ys[i]}
    other ->
       false
-
 
 stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
    temp = gensym{}
