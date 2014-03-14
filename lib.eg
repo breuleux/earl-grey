@@ -1,4 +1,12 @@
 
+
+exports.patch_array := {} ->
+   r = {}
+   for [i = 0, i < arguments.length, i++]:
+      r := r.concat{arguments[i]}
+   r
+
+
 exports.StructFactory := {name} ->
    make{} =
       r = Array.prototype.slice.call{arguments, 0}

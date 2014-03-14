@@ -585,9 +585,17 @@ expand{env, context, expr} =
          is_obj = false
          obj = {.object}
          arr = {.array}
+         parts = {}
+
+         newpart{} =
+            arr |>
+               {.array} -> false
+               other ->
+                  parts.push{arr}
+                  arr := {.array}
 
          while [args.length > 0]:
-            x = expand.step{env, .data, args.shift{}}
+            x = expand.step{env, type, args.shift{}}
             x |>
                {.assoc} -> is_obj := true
                {.assoc, k, v} ->
@@ -595,17 +603,71 @@ expand{env, context, expr} =
                   obj.push with {.array, k, v}
                {.splice, exprs*} ->
                   args := exprs.concat{args}
+               {.dynsplice, expr} ->
+                  newpart{}
+                  parts.push{expr}
                other ->
                   arr.push{other}
-         r = cond:
-            [[arr.length > 1] and is_obj] =>
-               arr.push{obj}
-               arr
-            is_obj =>
+
+         newpart{}
+
+         ;; r = cond:
+         ;;    [parts.length == 0 and is_obj] =>
+         ;;       obj
+         ;;    is_obj =>
+         ;;       arr.push{obj}
+         ;;       newpart{}
+               
+
+         ;;    [[arr.length > 1] and is_obj] =>
+         ;;       arr.push{obj}
+         ;;       arr
+         ;;    is_obj =>
+         ;;       obj
+         ;;    true =>
+         ;;       arr
+
+         r = parts |>
+            {} when is_obj ->
                obj
-            else =>
+            {} -> {.array}
+            {arr and {.array, things*}} ->
+               cond: is_obj => arr.push{obj}
                arr
+            other ->
+               cond: is_obj => parts.push{{.array, obj}}
+               patch = {.send, "___lib", {.value, "patch_array"}}
+               {.send, patch, {.array}.concat{parts}}
+
          expand{env, context, r}
+
+
+      ;; {.data, args*} ->
+
+      ;;    is_obj = false
+      ;;    obj = {.object}
+      ;;    arr = {.array}
+
+      ;;    while [args.length > 0]:
+      ;;       x = expand.step{env, .data, args.shift{}}
+      ;;       x |>
+      ;;          {.assoc} -> is_obj := true
+      ;;          {.assoc, k, v} ->
+      ;;             is_obj := true
+      ;;             obj.push with {.array, k, v}
+      ;;          {.splice, exprs*} ->
+      ;;             args := exprs.concat{args}
+      ;;          other ->
+      ;;             arr.push{other}
+      ;;    r = cond:
+      ;;       [[arr.length > 1] and is_obj] =>
+      ;;          arr.push{obj}
+      ;;          arr
+      ;;       is_obj =>
+      ;;          obj
+      ;;       else =>
+      ;;          arr
+      ;;    expand{env, context, r}
 
       {.lambda, bindings, body} ->
          {.lambda, bindings.map{{x} -> expand{env, .decl, x}}
@@ -802,7 +864,9 @@ stdenv.register_macro{">"} with partial_pattern{"___gt"}
 
 stdenv.register_macro{"*"} with {env, context, expr} ->
    {context, expr} |>
-      {.pattern, {.data, val, null?}} ->
+      {.pattern, null?} ->
+         {.dynsplice, {.ignore}}
+      {.pattern or .data, {.data, val, null?}} ->
          {.dynsplice, val}
       {_, null?} ->
          "___times"
