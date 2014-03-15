@@ -658,13 +658,15 @@ expand.step := {env, context, expr and |>} ->
    null? -> null
    undefined? -> throw ["undefined? why?"]
 
-   {.macro, m} ->
-      ? | [context == "head"] => expr
-        | else => expand.step{env, context, m{env, context, null}}
+   {.macro, m} when [context == .head] ->
+      expr
+
+   ;; TODO: fix the bug that forces "when true"
+   {.macro, m} when true ->
+      expand.step{env, context, m{env, context, null}}
 
    {.send, f, arg} ->
-      f := expand.step{env, .head, f}
-      f |>
+      expand.step{env, .head, f} |>
          {.macro, m} -> expand.step{env, context, m{env, context, arg}}
          other -> expr
 
@@ -1303,7 +1305,7 @@ parse_lhs{env, lhs, rhs, gen} =
 
             helper_data{temp, specs}
 
-         other -> throw "OopsG"
+         other -> throw {"OopsG", other}
 
    helper{lhs, rhs}
    ? | [current.length > 1] => clauses.push{current}
@@ -1353,7 +1355,7 @@ same{a, b} = {a, b} |>
    {{.macro, x}, {.macro, y}} -> x == y
    {{.send, f, x}, {.send, g, y}} -> same{f, g} and same{x, y}
    {{kind1, xs*}, {kind2, ys*}} ->
-      kind1 == kind2 and allequal where
+      kind1 == kind2 and xs.length == ys.length and allequal where
          allequal = xs.every with {x, i} ->
             same{x, ys[i]}
    other ->
