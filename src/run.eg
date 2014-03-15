@@ -1,0 +1,23 @@
+
+eg = require{"./earl-grey"}
+fs = require{.fs}
+path = require{.path}
+file = process.argv[2]
+out = process.argv[3]
+
+stats = fs.statSync{file}
+? | stats.isDirectory{} =>
+    d = fs.readdirSync{file}
+    ? | not fs.existsSync{out} =>
+        fs.mkdirSync{out}
+    d.forEach with {x} ->
+       ? | x.match{Rx[".eg", end]} =>
+           data = fs.readFileSync{path.join{file, x}, .utf8}
+           fs.writeFileSync{path.join{out, x.replace{".eg", ".js"}}} with
+              eg.generate{data} + "\n"
+  | out =>
+    data = fs.readFileSync{file, .utf8}
+    fs.writeFileSync{out} with [eg.generate{data} + "\n"]
+  | else =>
+    data = fs.readFileSync{file, .utf8}
+    console.log with eg.generate{data}
