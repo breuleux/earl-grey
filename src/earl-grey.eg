@@ -1708,19 +1708,27 @@ translate.op := {op, a, b} ->
    "(" + e + ")"
 
 
-docopt = require{.docopt}
-
-
-fs = require{.fs}
-
-file = process.argv[2]
-;; file = "test.eg"
-
-fs.readFile{file, "utf8", f} where
-   f{err, data} =
-      p = parse{data}
-      ex = expand{stdenv, .top, {.multi, p}}
-      ;; console.log with p
-      ;; console.log with ex
+generate{data} =
+   p = parse{data}
+   ex = expand{stdenv, .top, {.multi, p}}
+   prelude + translate{ex, .stmt} where
       prelude = "var ___lib=require(\"./lib\");"
-      console.log with prelude + translate{ex, .stmt}
+
+exports.generate := generate
+
+
+;; docopt = require{.docopt}
+
+;; fs = require{.fs}
+
+;; file = process.argv[2]
+;; ;; file = "test.eg"
+
+;; fs.readFile{file, "utf8", f} where
+;;    f{err, data} =
+;;       p = parse{data}
+;;       ex = expand{stdenv, .top, {.multi, p}}
+;;       ;; console.log with p
+;;       ;; console.log with ex
+;;       prelude = "var ___lib=require(\"./lib\");"
+;;       console.log with prelude + translate{ex, .stmt}
