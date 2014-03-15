@@ -86,6 +86,7 @@ regexps = {
      "with" or "where" or "when"
        \ or "and" or "not" or "or"
        \ or "in" or "instanceof" or "mod"
+       \ or "each"
      boundary
 
   op4 = Rx
@@ -158,47 +159,46 @@ indent_tracker{} =
    curr = false
    stack = {}
    stacks = {stack}
-   {token} ->
-      token |>
+   {token and |>} ->
 
-         {.INDENT, new_indent and |>} ->
-            when [curr == false] ->
-               curr := new_indent
-               {{.OP, .IFX, .wide, ","}}
+      {.INDENT, new_indent and |>} ->
+         when [curr == false] ->
+            curr := new_indent
+            {{.OP, .IFX, .wide, ","}}
 
-            [> curr] ->
-               stack.push{curr}
-                curr := new_indent
-               {{.OP, .PFX, .wide, "["}}
-
-            [== curr] ->
-               {{.OP, .IFX, .wide, ","}}
-
-            [< curr] ->
-               rval = {}
-               while [[stack.length > 0] and [new_indent < curr]]:
-                  curr := stack.pop{}
-                  rval.push{{.OP, .SFX, .wide, "]"}}
-               rval.push{{.OP, .IFX, .wide, ","}}
-               rval
-
-         {.ID, stuff*} -> {token}
-
-         {.OP, fixity, width, "[" or "{"} ->
+         [> curr] ->
             stack.push{curr}
-            stacks.push{stack}
-            stack := {}
-            curr := false
-            {token}
+             curr := new_indent
+            {{.OP, .PFX, .wide, "["}}
 
-         {.OP, fixity, width, "]" or "}"} ->
-            rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
-            stack := stacks.pop{}
-            curr := stack.pop{}
-            rval.push{token}
+         [== curr] ->
+            {{.OP, .IFX, .wide, ","}}
+
+         [< curr] ->
+            rval = {}
+            while [[stack.length > 0] and [new_indent < curr]]:
+               curr := stack.pop{}
+               rval.push{{.OP, .SFX, .wide, "]"}}
+            rval.push{{.OP, .IFX, .wide, ","}}
             rval
 
-         other -> {token}
+      {.ID, stuff*} -> {token}
+
+      {.OP, fixity, width, "[" or "{"} ->
+         stack.push{curr}
+         stacks.push{stack}
+         stack := {}
+         curr := false
+         {token}
+
+      {.OP, fixity, width, "]" or "}"} ->
+         rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
+         stack := stacks.pop{}
+         curr := stack.pop{}
+         rval.push{token}
+         rval
+
+      other -> {token}
 
 
 process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
@@ -297,6 +297,7 @@ order_map = {
          ","     => {{2r1111, 1}, {2r1111, 1}}
 
          "with"  => {{2r1111, 999}, {2r1111, 10}}
+         "each"  => {{2r1111, 11},  {2r1111, 10}}
          "where" => {{2r1111, 11},  {2r1111, 10}}
          "|>"    => {{2r1111, 11},  {2r1111, 10}}
          "->"    => {{2r1111, 11},  {2r1111, 10}}
@@ -868,6 +869,30 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    {.lambda, newargs, body}
 
 
+stdenv.register_macro{"each"} with {env, context, {.data, arr, patterns}} ->
+   res = gensym{}
+   temp = gensym{}
+   len = gensym{}
+   stmts = {.multi, {.declare, res, {.data}}
+                    {.declare, temp, arr}
+                    {.declare, len, {.send, temp, {.value, "length"}}}}
+   patterns := aslist{patterns}.map with {|>} ->
+      {.send, "->", {.data, patt, expr}} ->
+         {.send, "->",
+            {.data, patt
+                    {.send, {.send, res, {.value, "push"}}, {.data, expr}}}}
+   patterns.push with {.send, "->", {.data, "other", {.value, false}}}
+   lvar = gensym{}
+   loop = {.js_for, a, b, c, body} where
+      a = {.declare, lvar, {.value, 0}}
+      b = {.send, "___lt", {.data, lvar, len}}
+      c = {.send, "___plusplus", {.data, lvar, null}}
+      body = {.send, "|>", {.data, {.send, "___js_fetch", {.data, temp, lvar}}
+                                   {.multi, patterns*}}}
+   stmts.push{loop}
+   stmts.push{res}
+   stmts
+
 
 stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
    ? | [context == .data] =>
@@ -891,7 +916,7 @@ stdenv.register_macro{"="} with {env, context, expr} ->
          clauses |>
             {clause} ->
                clause[clause.length - 1] |>
-                  {.value, true?} ->
+                  {.value, == true} ->
                      ? | [[vars.length == 1] and [clause.length == 3]] =>
                          r := {.declare}.concat{clause[1].slice{1}}
                        | else =>
@@ -1472,7 +1497,9 @@ translate{expr and |>, mode} =
             }
             v := v.replace{Rxg{"\"" or "\\" or "\n"}, {m} -> repl[m]}
             "\"" + v + "\""
-         [Number? or true? or false? or null? or undefined?] ->
+         undefined? ->
+            "(void 0)"
+         [Number? or [== true] or [== false] or null?] ->
             String{v}
          other ->
             "?!?[" + v + "]?!?"
@@ -1679,6 +1706,9 @@ translate.op := {op, a, b} ->
    ;;    {_, null?} -> translate{a, .expr} + op
    ;;    _ -> translate{a, .expr} + op + translate{b, .expr}
    "(" + e + ")"
+
+
+docopt = require{.docopt}
 
 
 fs = require{.fs}
