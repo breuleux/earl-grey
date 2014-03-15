@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+r = require("../lib/run.js")
+r.run(process.argv.slice(2))
+

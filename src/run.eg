@@ -2,30 +2,38 @@
 eg = require{"./earl-grey"}
 fs = require{.fs}
 path = require{.path}
-file = process.argv[2]
-out = process.argv[3]
 
-stats = fs.statSync{file}
 
-;; libdata = "var ___lib=require(\"./lib\");"
-libdata = fs.readFileSync{path.join{__dirname, "lib.js"}}
+run{args} =
 
-? | stats.isDirectory{} =>
-    d = fs.readdirSync{file}
-    ? | not fs.existsSync{out} =>
-        fs.mkdirSync{out}
-    d.forEach with {x} ->
-       ? | x.match{Rx[".eg", end]} =>
-           data = fs.readFileSync{path.join{file, x}, .utf8}
-           outfile = path.join{out, x.replace{".eg", ".js"}}
-           fs.writeFileSync{outfile} with
-              eg.generate{data, prelude} + "\n" where
-                 prelude =
-                    ? | x == "lib.eg" => ""
-                      | else => libdata
-  | out =>
-    data = fs.readFileSync{file, .utf8}
-    fs.writeFileSync{out} with [eg.generate{data, libdata} + "\n"]
-  | else =>
-    data = fs.readFileSync{file, .utf8}
-    console.log with eg.generate{data, libdata}
+   file = process.argv[2]
+   out = process.argv[3]
+
+   stats = fs.statSync{file}
+
+   libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
+
+   ? | stats.isDirectory{} =>
+       d = fs.readdirSync{file}
+       ? | not fs.existsSync{out} =>
+           fs.mkdirSync{out}
+       d.forEach with {x} ->
+          ? | x.match{Rx[".eg", end]} =>
+              data = fs.readFileSync{path.join{file, x}, .utf8}
+              outfile = path.join{out, x.replace{".eg", ".js"}}
+              fs.writeFileSync{outfile} with
+                 eg.generate{data, prelude} + "\n" where
+                    prelude =
+                       ? | x.match{Rx[".raw.eg", end]} => ""
+                         | else => libdata
+
+     | out =>
+       data = fs.readFileSync{file, .utf8}
+       fs.writeFileSync{out} with [eg.generate{data, libdata} + "\n"]
+
+     | else =>
+       data = fs.readFileSync{file, .utf8}
+       console.log with eg.generate{data, libdata}
+
+exports.run := run
+
