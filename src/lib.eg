@@ -1,13 +1,12 @@
 
 
-exports.patch_array := {} ->
+patch_array{} =
    r = {}
    for [i = 0, i < arguments.length, i++]:
-      r := r.concat{arguments[i]}
+      r := r.concat{___js_fetch{arguments, i}}
    r
 
-
-exports.StructFactory := {name} ->
+StructFactory{name} =
    make{} =
       r = Array.prototype.slice.call{arguments, 0}
       r["#"] := name
@@ -29,21 +28,21 @@ exports.StructFactory := {name} ->
           {false, false}
    make
 
-
-exports.Struct := {name} ->
+XStruct{name} =
    r = Array.prototype.slice.call{arguments, 1}
    r["#"] := name
    r
 
-exports.Struct.___check := {value} ->
+XStruct.___check := {value} ->
    ? | [value instanceof Array] => value["#"] != undefined
      | else => false
 
-exports.Struct.___deconstruct := {value} ->
+XStruct.___deconstruct := {value} ->
    ? | [value instanceof Array and value["#"] != undefined] =>
        {value["#"]}.concat{value.slice{0}}
      | else => throw "cannot deconstruct"
 
+Struct = XStruct
 
 
 pr{x} =
@@ -51,7 +50,6 @@ pr{x} =
    pre = String.fromCharCode{27} + "[?0;7y+h <div class=\"ug\">"
    post = "</div>" + String.fromCharCode{7}
    console.log with [pre + r + post]
-exports.pr := pr
 
 
 [cls /// contents] =
@@ -74,11 +72,10 @@ repr{x} =
                .sequence /// entries.map{{x} -> repr{x}}
             other ->
                .struct /// {.sym /// tag, .sequence /// entries.map{{x} -> repr{x}}}
-exports.repr := repr
 
 
 
-exports.send := {obj, msg} ->
+send{obj, msg} =
    msg |>
       [String? or Number?] -> ___js_fetch{obj, msg}
       other -> obj.___send{msg}
@@ -87,7 +84,7 @@ Function.prototype.___send := {args} ->
    this.apply{this, args}
 
 
-exports.checker := {type} ->
+checker{type} =
    type.___check |>
       undefined? ->
          {value} -> value instanceof type
@@ -95,8 +92,7 @@ exports.checker := {type} ->
          {value} -> f{value}
 
 
-
-exports.projector := {type} -> {value} ->
+projector{type} = {value} ->
    type.___project |>
       undefined? ->
          ? | [value instanceof type] => {true, value}
@@ -109,7 +105,7 @@ Array.___project := {value} -> value |>
 
 
 
-exports.deconstructor := {type} -> {value} ->
+deconstructor{type} = {value} ->
    type.___deconstruct |>
       undefined? ->
          ? | [value instanceof Array] => {true, value}

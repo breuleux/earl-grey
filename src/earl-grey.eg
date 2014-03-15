@@ -527,6 +527,11 @@ parse{text} =
    oparse{next, order, finalize}
 
 
+libf{f} =
+   ;; {.send, "___lib", {.value, f}}
+   f
+
+
 Env{parent} =
    store = Object{}
    self{expr} =
@@ -616,7 +621,7 @@ expand{env, context, expr} =
                arr
             other ->
                ? | is_obj => parts.push{{.array, obj}}
-               patch = {.send, "___lib", {.value, "patch_array"}}
+               patch = libf{"patch_array"}
                {.send, patch, {.array}.concat{parts}}
 
          expand{env, context, r}
@@ -719,7 +724,7 @@ stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
 stdenv.register{"++", "___plusplus"}
 stdenv.register{"--", "___minusminus"}
-stdenv.register{"Struct", {.send, "___lib", {.value, "Struct"}}}
+;; stdenv.register{"Struct", libf{"Struct"}}
 
 
 ;;stdenv.register_macro{"TEST"} with {env, context, expr} -> [
@@ -738,7 +743,7 @@ stdenv.register_macro{"//"} with {env, context, {.data, a, b}} ->
       div = {.send, "___div", {.data, a, b}}
 
 stdenv.register_macro{"<>"} with {env, context, {.data, null?, x}} ->
-   {.send, {.send, "___lib", {.value, "pr"}}, {.data, x}}
+   {.send, libf{"pr"}, {.data, x}}
 
 
 stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
@@ -758,13 +763,13 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
       _ ->
           expr |>
              null? ->
-                {.send, {.send, "___lib", {.value, "StructFactory"}}, d} where d =
+                {.send, libf{"StructFactory"}, d} where d =
                    {.data, tag}
              {.data, args*} ->
-                {.send, {.send, "___lib", {.value, "Struct"}}, d} where d =
+                {.send, libf{"Struct"}, d} where d =
                    {.data, tag}.concat{args}
              other ->
-                factory = {.send, {.send, "___lib", {.value, "StructFactory"}}, d} where
+                factory = {.send, libf{"StructFactory"}, d} where
                    d = {.data, tag}
                 {.send, factory, other}
 
@@ -1075,12 +1080,12 @@ stdenv.register_macro{"?"} with {env, context, |>} ->
          .false -> {.macro, make_checker{{.value, false}, "___is"}}
          .null -> {.macro, make_checker{{.value, null}, "___is"}}
          .undefined -> {.macro, make_checker{{.value, undefined}, "___is"}}
-         other -> {.send, {.send, "___lib", {.value, "checker"}}, {.data, expr}}
+         other -> {.send, libf{"checker"}, {.data, expr}}
 
       mac{env, |>, expr} =
          .pattern -> expr |>
             {.data, subp*} ->
-               projector = {.send, {.send, "___lib", {.value, .deconstructor}}
+               projector = {.send, libf{.deconstructor}
                                    {.data, orig_expr}}
                {.check, checker, {.project, projector, expr}}
             other ->
@@ -1099,7 +1104,7 @@ stdenv.register_macro{"!"} with {env, context, {.data, expr, null?}} ->
       .Number ->
          {.macro, f} where f{env, context, {.data, expr}} =
             {.data, {.value, true}, {.send, "parseFloat", {.data, expr}}}
-      other -> {.send, {.send, "___lib", {.value, "projector"}}, {.data, expr}}
+      other -> {.send, libf{"projector"}, {.data, expr}}
 
    mac{env, |>, expr} =
       .pattern -> {.project, projector, expr or {.ignore}}
@@ -1635,7 +1640,7 @@ translate{expr and |>, mode} =
                 translate{x, .expr}
 
    {.send, f, msg} ->
-      translate.expr{"___lib.send(" + trf + "," + trmsg + ")", mode} where
+      translate.expr{"send(" + trf + "," + trmsg + ")", mode} where
          trf = translate{f, .expr}
          trmsg = translate{msg, .expr}
 
@@ -1708,11 +1713,10 @@ translate.op := {op, a, b} ->
    "(" + e + ")"
 
 
-generate{data} =
+generate{data, prelude} =
    p = parse{data}
    ex = expand{stdenv, .top, {.multi, p}}
-   prelude + translate{ex, .stmt} where
-      prelude = "var ___lib=require(\"./lib\");"
+   prelude + translate{ex, .stmt}
 
 exports.generate := generate
 
