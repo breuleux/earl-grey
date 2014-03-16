@@ -498,7 +498,7 @@ finalize{|>} =
                f{x} = [x != null]
 
             result = args |>
-               {} -> throw ["At least one expression must be enclosed in []"]
+               {} -> {.value, undefined} ;; throw ["At least one expression must be enclosed in []"]
                {x} -> x
                other -> {.multi}.concat{args}
             result
@@ -1716,7 +1716,7 @@ translate.op := {op, a, b} ->
 generate{data, prelude} =
    p = parse{data}
    ex = expand{stdenv, .top, {.multi, p}}
-   prelude + translate{ex, .stmt}
+   [prelude or ""] + translate{ex, .stmt}
 
 exports.generate := generate
 

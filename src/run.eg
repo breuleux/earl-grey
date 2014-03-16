@@ -1,39 +1,82 @@
 
+
 eg = require{"./earl-grey"}
 fs = require{.fs}
 path = require{.path}
+vm = require{.vm}
 
 
-run{args} =
+usage = "
+usage:
 
-   file = process.argv[2]
-   out = process.argv[3]
+earl translate <file> [outfile]
+  Translate a source file, output to outfile. Without outfile
+  specified, print to standard out.
 
-   stats = fs.statSync{file}
+earl translate <directory> <outdir>
+  Translate all the .eg files in the specified directory.
 
-   libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
+earl run [file] [arguments...]
+  Run the specified file as a script.
+"
 
-   ? | stats.isDirectory{} =>
-       d = fs.readdirSync{file}
-       ? | not fs.existsSync{out} =>
-           fs.mkdirSync{out}
-       d.forEach with {x} ->
-          ? | x.match{Rx[".eg", end]} =>
-              data = fs.readFileSync{path.join{file, x}, .utf8}
-              outfile = path.join{out, x.replace{".eg", ".js"}}
-              fs.writeFileSync{outfile} with
-                 eg.generate{data, prelude} + "\n" where
-                    prelude =
-                       ? | x.match{Rx[".raw.eg", end]} => ""
-                         | else => libdata
+libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 
-     | out =>
-       data = fs.readFileSync{file, .utf8}
-       fs.writeFileSync{out} with [eg.generate{data, libdata} + "\n"]
+run{|>} =
 
-     | else =>
-       data = fs.readFileSync{file, .utf8}
-       console.log with eg.generate{data, libdata}
+   {} or {.interactive || .i} ->
+      repl = require{.repl}
+      ctx = vm.createContext{}
+      vm.runInContext{libdata, ctx, "stdin"}
+      settings = {
+         prompt = "<> "
+         ignoreUndefined = true
+         eval{input, context, filename, callback} =
+            text = eg.generate{input.slice{1, -1}}
+            result = vm.runInContext{text, ctx, "stdin"}
+            callback{null, result}
+      }
+      run = repl.start with settings
+      run.on{.exit} with {} -> run.outputStream.write{"\n"}
+
+   {.run, file} ->
+      data = fs.readFileSync{file, .utf8}
+      code = eg.generate{data, libdata}
+      ;; TODO: eval is not the right thing to do
+      eval{libdata}
+      eval{code}
+
+   {.translate, file, args*} ->
+
+      out = args[0]
+
+      stats = fs.statSync{file}
+
+      ? | stats.isDirectory{} =>
+          d = fs.readdirSync{file}
+          ? | not fs.existsSync{out} =>
+              fs.mkdirSync{out}
+          d.forEach with {x} ->
+             ? | x.match{Rx[".eg", end]} =>
+                 data = fs.readFileSync{path.join{file, x}, .utf8}
+                 outfile = path.join{out, x.replace{".eg", ".js"}}
+                 fs.writeFileSync{outfile} with
+                    eg.generate{data, prelude} + "\n" where
+                       prelude =
+                          ? | x.match{Rx[".raw.eg", end]} => ""
+                            | else => libdata
+
+        | out =>
+          data = fs.readFileSync{file, .utf8}
+          fs.writeFileSync{out} with [eg.generate{data, libdata} + "\n"]
+
+        | else =>
+          data = fs.readFileSync{file, .utf8}
+          console.log with eg.generate{data, libdata}
+
+   other ->
+      console.log with usage
+
 
 exports.run := run
 

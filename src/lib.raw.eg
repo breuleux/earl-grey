@@ -28,21 +28,19 @@ StructFactory{name} =
           {false, false}
    make
 
-XStruct{name} =
+Struct{name} =
    r = Array.prototype.slice.call{arguments, 1}
    r["#"] := name
    r
 
-XStruct.___check := {value} ->
+Struct.___check := {value} ->
    ? | [value instanceof Array] => value["#"] != undefined
      | else => false
 
-XStruct.___deconstruct := {value} ->
+Struct.___deconstruct := {value} ->
    ? | [value instanceof Array and value["#"] != undefined] =>
        {value["#"]}.concat{value.slice{0}}
      | else => throw "cannot deconstruct"
-
-Struct = XStruct
 
 
 pr{x} =
