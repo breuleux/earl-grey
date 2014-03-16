@@ -9,6 +9,7 @@ special_ops = {
    "," => .IFX
    ":" => .IFX
    "." => .PFX
+   "'" => .PFX
 }
 
 regexps = {
@@ -75,7 +76,7 @@ regexps = {
 
   op = Rx
      start
-     [>> "+\\-*/~^<>=%&|?!#.:"]+
+     [>> "+\\-*/~^<>=%&|?!#.:'"]+
 
   op2 = Rx
      start
@@ -351,7 +352,7 @@ order_map = {
          ":"    => {{2r1111, 1001}, {2r1111, 2}}
       }
       short = {
-         default = {{2r1111, 1900}, {2r1111, 1901}}
+         default = {{2r1111, 1800}, {2r1111, 1801}}
          WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
          ","    => {{2r1111, 1},    {2r1111, 1}}
          ":"    => {{2r1111, 1001}, {2r1111, 2}}
@@ -371,7 +372,7 @@ order_map = {
          "{" => {{2r1111, MAX}, {2r1111, 1}}
       }
       short = {
-         default = {{2r1111, MAX}, {2r1111, 1900}}
+         default = {{2r1111, MAX}, {2r1111, 1901}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
          "(" => {{2r1111, MAX}, {2r1111, 1}}
@@ -388,7 +389,7 @@ order_map = {
          "}" => {{2r1111, 1}, {2r1111, MAX}}
       }
       short = {
-         default = {{2r1111, 1901}, {2r1111, MAX}}
+         default = {{2r1111, 1900}, {2r1111, MAX}}
          ")" => {{2r1111, 1}, {2r1111, MAX}}
          "]" => {{2r1111, 1}, {2r1111, MAX}}
          "}" => {{2r1111, 1}, {2r1111, MAX}}
@@ -1468,7 +1469,21 @@ stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
    stmts
 
 
+qqstruct{name, args} =
+   {.data, {.value, name}, args*}
 
+qq{expr and |>} =
+   String? s -> {.value, s}
+   null? -> {.value, null}
+   {.value, v} ->
+      qqstruct{.value, {expr}}
+   {.send, "^", {.data, null?, insert}} ->
+      insert
+   {name, args*} ->
+      qqstruct{name, args each arg -> qq{arg}}
+
+stdenv.register_macro{"'"} with {env, context, {.data, null?, expr}} ->
+   qq{expr}
 
 
 js_op_table = {
