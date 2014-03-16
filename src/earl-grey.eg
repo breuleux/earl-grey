@@ -193,7 +193,8 @@ indent_tracker{} =
          {token}
 
       {.OP, fixity, width, "]" or "}"} ->
-         rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
+         ;; rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
+         rval = stack each _ -> {.OP, .SFX, .short, "]"}
          stack := stacks.pop{}
          curr := stack.pop{}
          rval.push{token}
@@ -274,8 +275,10 @@ tokenize{text} =
              ;; bwsa = if{eol, true, wsa > 0}
              token = fn{m, bwsb, bwsa, last_op, column}
              tokens = indent{token}
-             tokens.forEach with {x} ->
+             tokens each x ->
                 last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
+             ;;tokens.forEach with {x} ->
+             ;;   last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
              text := text.slice{wsa}
              column += wsa
              wsb := wsa
@@ -470,15 +473,16 @@ finalize{|>} =
    {.VOID} -> null
 
    {ops, args*} ->
-      ops := [ops.map with [{o} -> o[2]]]
+      ;; ops := [ops.map with [{o} -> o[2]]]
+      ops := ops each o -> o[2]
       op = ops[0]
       {ops, args} |>
 
          {{"WHITE", ":"}, {f, arg, body}} ->
-            {.send, f, {.data, {"code", arg}, {"code", body}}}
+            {.send, f, {.data, arg, body}}
 
          {{":"}, {f, body}} ->
-            {.send, f, {.data, {"code", body}}}
+            {.send, f, {.data, body}}
 
          {{"with"}, {target, body}} ->
             body := body |>
@@ -573,7 +577,7 @@ expand{env, context, expr} =
 
       {.value, v} -> expr
 
-      {type and [.multi or .code or .array or .object or .splice], args*} ->
+      {type and [.array or .object], args*} -> ;; or .splice
          arr = {}
          while [args.length > 0]:
             expand.step{env, type, args.shift{}} |>
@@ -581,8 +585,20 @@ expand{env, context, expr} =
                   args := stmts.concat{args}
                other ->
                   arr.push{other}
-         {type}.concat{arr.map{f}} where
-            f{x} = expand{env, type, x}
+         {type}.concat with
+            arr each x -> expand{env, type, x}
+
+      {.multi, args*} ->
+         arr = {}
+         while [args.length > 0]:
+            type = if{args.length == 1, .expr, .multi}
+            expand.step{env, type, args.shift{}} |>
+               {.splice, stmts*} ->
+                  args := stmts.concat{args}
+               other ->
+                  arr.push{{other, type}}
+         {.multi}.concat with
+            arr each {x, type} -> expand{env, type, x}
 
       {.data, args*} ->
 
@@ -629,16 +645,18 @@ expand{env, context, expr} =
          expand{env, context, r}
 
       {.lambda, bindings, body} ->
-         {.lambda, bindings.map{{x} -> expand{env, .decl, x}}
-                   expand{env, .multi, body}}
+         ;;{.lambda, bindings.map{{x} -> expand{env, .decl, x}}
+         ;;          expand{env, .expr, body}}
+         {.lambda, bindings each x -> expand{env, .decl, x}
+                   expand{env, .expr, body}}
 
       {.declare, binding, value} ->
          {.declare, expand{env, .decl, binding}
-                    expand{env, .multi, value}}
+                    expand{env, .expr, value}}
 
       {.assign, lhs, rhs} ->
          {.assign, expand{env, .decl, lhs}
-                   expand{env, .multi, rhs}}
+                   expand{env, .expr, rhs}}
 
       {type && [.js_while or .js_for or .js_break
                 \ or .js_continue or .js_return
@@ -841,10 +859,10 @@ stdenv.register_macro{"."} with {env, context, |>} ->
 
 
 stdenv.register_macro{"where"} with {env, context, {.data, a, b}} ->
-   {.send, .let, {.data, {.code, b}, {.code, a}}}
+   {.send, .let, {.data, b, a}}
 
 
-stdenv.register_macro{"let"} with {env, context, {.data, {.code, a}, {.code, b}}} ->
+stdenv.register_macro{"let"} with {env, context, {.data, a, b}} ->
    bindings = aslist{a}
    body = aslist{b}
    {.multi}.concat{bindings}.concat{body}
@@ -864,7 +882,7 @@ stdenv.register_macro{"let"} with {env, context, {.data, {.code, a}, {.code, b}}
 stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    body = {.multi}
    {placeholder, newargs} = find_arrow{args}
-   newargs := newargs.slice{1}.map with {|>} ->
+   newargs := newargs.slice{1} each ;;.map with {|>} ->
       String? s -> s
       other ->
          t = gensym{}
@@ -877,29 +895,73 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    {.lambda, newargs, body}
 
 
-stdenv.register_macro{"each"} with {env, context, {.data, arr, patterns}} ->
-   res = gensym{}
-   temp = gensym{}
-   len = gensym{}
-   stmts = {.multi, {.declare, res, {.data}}
-                    {.declare, temp, arr}
-                    {.declare, len, {.send, temp, {.value, "length"}}}}
-   patterns := aslist{patterns}.map with {|>} ->
-      {.send, "->", {.data, patt, expr}} ->
-         {.send, "->",
-            {.data, patt
-                    {.send, {.send, res, {.value, "push"}}, {.data, expr}}}}
-   patterns.push with {.send, "->", {.data, "other", {.value, false}}}
-   lvar = gensym{}
-   loop = {.js_for, a, b, c, body} where
-      a = {.declare, lvar, {.value, 0}}
-      b = {.send, "___lt", {.data, lvar, len}}
-      c = {.send, "___plusplus", {.data, lvar, null}}
-      body = {.send, "|>", {.data, {.send, "___js_fetch", {.data, temp, lvar}}
-                                   {.multi, patterns*}}}
-   stmts.push{loop}
-   stmts.push{res}
-   stmts
+;; stdenv.register_macro{"each"} with {env, context, {.data, arr, patterns}} ->
+;;    res = gensym{}
+;;    temp = gensym{}
+;;    len = gensym{}
+;;    stmts = {.multi, {.declare, res, {.data}}
+;;                     {.declare, temp, arr}
+;;                     {.declare, len, {.send, temp, {.value, "length"}}}}
+;;    patterns := aslist{patterns}.map with {|>} ->
+;;       {.send, "->", {.data, patt, expr}} ->
+;;          {.send, "->",
+;;             {.data, patt
+;;                     {.send, {.send, res, {.value, "push"}}, {.data, expr}}}}
+;;    patterns.push with {.send, "->", {.data, "other", {.value, false}}}
+;;    lvar = gensym{}
+;;    loop = {.js_for, a, b, c, body} where
+;;       a = {.declare, lvar, {.value, 0}}
+;;       b = {.send, "___lt", {.data, lvar, len}}
+;;       c = {.send, "___plusplus", {.data, lvar, null}}
+;;       body = {.send, "|>", {.data, {.send, "___js_fetch", {.data, temp, lvar}}
+;;                                    {.multi, patterns*}}}
+;;    stmts.push{loop}
+;;    stmts.push{res}
+;;    stmts
+
+
+stdenv.register_macro{"each"} with {env, |>, {.data, arr, patterns}} ->
+   .multi ->
+      temp = gensym{}
+      len = gensym{}
+      stmts = '
+         ^temp = ^arr
+         ^len = [^temp].length
+      patterns := aslist{patterns}
+      patterns.push with '[other -> false]
+      lvar = gensym{}
+      loop = {.js_for, a, b, c, body} where
+         a = ' | ^lvar = 0
+         b = ' | ^lvar < ^len
+         c = ' | [^lvar]++
+         body = '[___js_fetch{^temp, ^lvar} |> ^{.multi, patterns*}]
+      stmts.push{loop}
+      stmts.push{{.value, false}}
+      stmts
+
+   other ->
+      res = gensym{}
+      temp = gensym{}
+      len = gensym{}
+      stmts = '
+         ^res = {}
+         ^temp = ^arr
+         ^len = [^temp].length
+      patterns := aslist{patterns} each ;; .map with {|>} ->
+         {.send, "->", {.data, patt, expr}} ->
+            '[^patt -> [^res].push{^expr}]
+         other ->
+            INVALID_PATTERN ;; TODO: fix into throw
+      patterns.push with '[other -> false]
+      lvar = gensym{}
+      loop = {.js_for, a, b, c, body} where
+         a = ' | ^lvar = 0
+         b = ' | ^lvar < ^len
+         c = ' | [^lvar]++
+         body = '[___js_fetch{^temp, ^lvar} |> ^{.multi, patterns*}]
+      stmts.push{loop}
+      stmts.push{res}
+      stmts
 
 
 stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
@@ -912,7 +974,7 @@ stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
 stdenv.register_macro{"="} with {env, context, expr} ->
    {context, expr} |>
 
-      {.multi, {.data, lhs, rhs}} ->
+      {.multi or .expr, {.data, lhs, rhs}} ->
          p = parse_lhs{env, lhs, rhs}
          vars = make_declarations{p[0]}
          r = {.splice}.concat{vars}
@@ -967,7 +1029,7 @@ stdenv.register_macro{">>>="} with make_assigner{">>>"}
 stdenv.register_macro{"if"} with {env, context, {.data, test, a, b}} ->
    {.if, test, a, b}
 
-stdenv.register_macro{"cond"} with {env, context, {.data, {.code, clauses}}} ->
+stdenv.register_macro{"cond"} with {env, context, {.data, clauses}} ->
    handle{xs} =
       xs |> | {} -> {.value, false}
             | {{.send, "=>", {.data, test, body}}, rest*} ->
@@ -979,11 +1041,11 @@ stdenv.register_macro{"cond"} with {env, context, {.data, {.code, clauses}}} ->
 
 
 stdenv.register_macro{"while"} with {env, context, expr} ->
-   {.data, {.code, test}, {.code, body}} = expr
+   {.data, test, body} = expr
    {.js_while, test, body}
 
 stdenv.register_macro{"for"} with {env, context, expr} ->
-   {.data, {.code, {.multi, a, b, c}}, {.code, body}} = expr
+   {.data, {.multi, a, b, c}, body} = expr
    {.js_for, a, b, c, body}
 
 stdenv.register_macro{"!!"} with {env, context, {.data, expr, matchers}} ->
@@ -991,10 +1053,10 @@ stdenv.register_macro{"!!"} with {env, context, {.data, expr, matchers}} ->
    res = gensym{}
    m = aslist{matchers} |>
       {{.send, "->", _}, *} ->
-         {.send, "|>", {.data, excv, matchers}}
+         '[^excv |> ^matchers]
       x ->
          matchers
-   f = {.send, "->", {.data, {.data, excv}, {.assign, res, m}}}
+   f = '[{^excv} -> ^res := ^m]
    {.multi
       {.declare, res, {.value, undefined}}
       {.js_try, {.assign, res, expr}, f, null}
@@ -1079,7 +1141,7 @@ stdenv.register_macro{"Rxg"} with {env, context, expr} ->
 stdenv.register_macro{"?"} with {env, context, |>} ->
 
    {.data, null?, expr} ->
-      {.send, "cond", {.data, {.code, expr}}}
+      {.send, "cond", {.data, expr}}
 
    {.data, expr, null?} ->
       orig_expr = expr
@@ -1184,7 +1246,7 @@ parse_lhs{env, lhs, rhs, gen} =
          fw = 0
          bw = 0
          rest = undefined
-         members = specs.map with {x} ->
+         members = specs each x -> ;;.map with {x} ->
             v = expand.step{env, .pattern, x}
             v |>
                {.dynsplice, variable} ->
@@ -1268,8 +1330,10 @@ parse_lhs{env, lhs, rhs, gen} =
             ;;    ;; {.value, true}
             ;; }
             temp = maybe_temp{curr}
-            xs.forEach with {x} ->
-               helper{x, temp}
+            xs each x -> helper{x, temp}
+            false
+            ;; xs.forEach with {x} ->
+            ;;    helper{x, temp}
 
          {.any, xs*} ->
             normalize{vars} =
@@ -1284,7 +1348,8 @@ parse_lhs{env, lhs, rhs, gen} =
             temp = maybe_temp{curr}
             myvars = undefined
             clauses = {}
-            xs.forEach with {x} ->
+            ;; xs.forEach with {x} ->
+            xs each x ->
                p = parse_lhs{env, x, temp, gensym}
                ? | [myvars == undefined] =>
                    myvars := p[0]
@@ -1361,7 +1426,7 @@ parse_lhs{env, lhs, rhs, gen} =
 
 
 make_declarations{vars} =
-   vars.map with {name} ->
+   vars each name -> ;;.map with {name} ->
       {.declare, name, {.value, undefined}}
 
 make_pattern_test{clauses} =
@@ -1390,7 +1455,7 @@ find_arrow{|>} =
       {false, x}
    {kind, args*} ->
       placeholder = false
-      new_args = args.map with {arg} ->
+      new_args = args each arg -> ;; .map with {arg} ->
          {ph, new_arg} = find_arrow{arg}
          ? | ph => placeholder := ph
          new_arg
@@ -1419,7 +1484,7 @@ stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
    cached_conditions = {}
 
    stmts = {.multi, {.declare, temp, to_match}}
-   clauses := clauses.map with {clause} ->
+   clauses := clauses each clause -> ;; .map with {clause} ->
       {.send, "->", {.data, lhs, body}} = clause
       {placeholder, new_lhs} = find_arrow{lhs}
       {decls, conditions} = parse_lhs{env, new_lhs, temp}
@@ -1616,7 +1681,7 @@ translate{expr and |>, mode} =
       ? | [args.length == 1] => translate{args[0], mode}
         | [[mode == "expr"] and [not args.some{isdecl}]] =>
           ["(" + xs.join{","} + ")"] where
-             xs = args.map with {x} ->
+             xs = args each x -> ;;.map with {x} ->
                 translate{x, .expr}
         | else => translate.body{expr, mode}
 
@@ -1677,7 +1742,7 @@ translate{expr and |>, mode} =
         | else =>
           translate.expr{trf+"("+trargs.join{","}+")", mode} where
              trf = translate{f, .expr}
-             trargs = args.map with {x} ->
+             trargs = args each x -> ;;.map with {x} ->
                 translate{x, .expr}
 
    {.send, f, msg} ->
