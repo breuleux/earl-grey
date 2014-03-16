@@ -57,8 +57,8 @@ pr{x} =
 
 repr{x} =
    x |>
-      true? -> .special /// [.true /// "true"]
-      false? -> .special /// [.false /// "false"]
+      == true -> .special /// [.true /// "true"]
+      == false -> .special /// [.false /// "false"]
       null? -> .special /// [.nil /// "null"]
       undefined? -> .special /// [.nil /// "undefined"]
       Number? -> .num /// String{x}
@@ -87,7 +87,7 @@ checker{type} =
       undefined? ->
          {value} -> value instanceof type
       f ->
-         {value} -> f{value}
+         {value} -> f.call{type, value}
 
 
 projector{type} = {value} ->
@@ -95,12 +95,7 @@ projector{type} = {value} ->
       undefined? ->
          ? | [value instanceof type] => {true, value}
            | else => {false, null}
-      f -> f{value}
-
-Array.___project := {value} -> value |>
-   Array? -> {true, value}
-   _ -> {true, {value}}
-
+      f -> f.call{type, value}
 
 
 deconstructor{type} = {value} ->
@@ -108,5 +103,19 @@ deconstructor{type} = {value} ->
       undefined? ->
          ? | [value instanceof Array] => {true, value}
            | else => {false, null}
-      f -> f{value}
+      f -> f.call{this, value}
 
+
+
+Array.___project := {value} -> value |>
+   Array? -> {true, value}
+   _ -> {true, {value}}
+
+
+RegExp.prototype.___check := {value} ->
+   value.match{this}
+
+RegExp.prototype.___project := {value} ->
+   value.match{this} |>
+      null? m -> {false, null}
+      m -> {true, m}

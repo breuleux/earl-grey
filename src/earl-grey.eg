@@ -87,7 +87,7 @@ regexps = {
      "with" or "where" or "when"
        \ or "and" or "not" or "or"
        \ or "in" or "instanceof" or "mod"
-       \ or "each"
+       \ or "each" or "as"
      boundary
 
   op4 = Rx
@@ -193,7 +193,6 @@ indent_tracker{} =
          {token}
 
       {.OP, fixity, width, "]" or "}"} ->
-         ;; rval = stack.map{{x} -> {.OP, .SFX, .short, "]"}}
          rval = stack each _ -> {.OP, .SFX, .short, "]"}
          stack := stacks.pop{}
          curr := stack.pop{}
@@ -277,8 +276,6 @@ tokenize{text} =
              tokens = indent{token}
              tokens each x ->
                 last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
-             ;;tokens.forEach with {x} ->
-             ;;   last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
              text := text.slice{wsa}
              column += wsa
              wsb := wsa
@@ -473,7 +470,6 @@ finalize{|>} =
    {.VOID} -> null
 
    {ops, args*} ->
-      ;; ops := [ops.map with [{o} -> o[2]]]
       ops := ops each o -> o[2]
       op = ops[0]
       {ops, args} |>
@@ -504,7 +500,8 @@ finalize{|>} =
                f{x} = [x != null]
 
             result = args |>
-               {} -> {.value, undefined} ;; throw ["At least one expression must be enclosed in []"]
+               {} -> {.value, undefined}
+               ;; throw ["At least one expression must be enclosed in []"]
                {x} -> x
                other -> {.multi}.concat{args}
             result
@@ -528,14 +525,14 @@ finalize{|>} =
 
 parse{text} =
    results = tokenize{text}
-   ;; ___lib.pr{results}
    next{} = results.shift{}
    oparse{next, order, finalize}
 
 
 libf{f} =
    ;; {.send, "___lib", {.value, f}}
-   f
+   ;; f          ;; ORIGINAL
+   {.symbol, f}  ;; TRANSITIONAL
 
 
 Env{parent} =
@@ -566,7 +563,8 @@ expand{env, context, expr} =
    expr := expand.step{env, context, expr}
 
    expr |>
-      String? -> expr
+      String? s -> s
+      {.symbol, s} -> s
 
       null? -> null
       undefined? -> throw ["undefined? why?"]
@@ -645,8 +643,6 @@ expand{env, context, expr} =
          expand{env, context, r}
 
       {.lambda, bindings, body} ->
-         ;;{.lambda, bindings.map{{x} -> expand{env, .decl, x}}
-         ;;          expand{env, .expr, body}}
          {.lambda, bindings each x -> expand{env, .decl, x}
                    expand{env, .expr, body}}
 
@@ -674,10 +670,10 @@ expand{env, context, expr} =
 
 
 expand.step := {env, context, expr and |>} ->
-   String? ->
-      v = env.resolve{expr}
+   String? s or {.symbol, s} ->
+      v = env.resolve{s}
       {v, context} |>
-         {undefined?, _} -> expr
+         {undefined?, _} -> s
          {{.macro, m}, .head} -> v
          {{.macro, m}, _} -> expand.step{env, context, m{env, context, null}}
          other -> v
@@ -745,7 +741,6 @@ stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
 stdenv.register{"++", "___plusplus"}
 stdenv.register{"--", "___minusminus"}
-;; stdenv.register{"Struct", libf{"Struct"}}
 
 
 ;;stdenv.register_macro{"TEST"} with {env, context, expr} -> [
@@ -852,7 +847,7 @@ stdenv.register_macro{"*"} with {env, context, expr} ->
 
 
 stdenv.register_macro{"."} with {env, context, |>} ->
-   {.data, null?, String? s} ->
+   {.data, null?, String? s or {.symbol, s}} ->
       {.value, s}
    other ->
       throw {"invalid", other}
@@ -868,56 +863,20 @@ stdenv.register_macro{"let"} with {env, context, {.data, a, b}} ->
    {.multi}.concat{bindings}.concat{body}
 
 
-;; stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
-;;    body = {.multi}
-;;    args := args.slice{1}.map with {x} -> x |>
-;;       String? -> x
-;;       other ->
-;;          t = gensym{}
-;;          body.push with {.send, "=", {.data, x, t}}
-;;          t
-;;    body.push{stmts}
-;;    {.lambda, args, body}
-
 stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    body = {.multi}
    {placeholder, newargs} = find_arrow{args}
-   newargs := newargs.slice{1} each ;;.map with {|>} ->
+   newargs := newargs.slice{1} each
       String? s -> s
+      {.symbol, s} -> s
       other ->
          t = gensym{}
-         body.push with {.send, "=", {.data, other, t}}
+         body.push with '[^other = ^t]
          t
    body.push with
-     ? | placeholder =>
-         {.send, "|>", {.data, placeholder, stmts}}
+     ? | placeholder => '[^placeholder |> ^stmts]
        | else => stmts
    {.lambda, newargs, body}
-
-
-;; stdenv.register_macro{"each"} with {env, context, {.data, arr, patterns}} ->
-;;    res = gensym{}
-;;    temp = gensym{}
-;;    len = gensym{}
-;;    stmts = {.multi, {.declare, res, {.data}}
-;;                     {.declare, temp, arr}
-;;                     {.declare, len, {.send, temp, {.value, "length"}}}}
-;;    patterns := aslist{patterns}.map with {|>} ->
-;;       {.send, "->", {.data, patt, expr}} ->
-;;          {.send, "->",
-;;             {.data, patt
-;;                     {.send, {.send, res, {.value, "push"}}, {.data, expr}}}}
-;;    patterns.push with {.send, "->", {.data, "other", {.value, false}}}
-;;    lvar = gensym{}
-;;    loop = {.js_for, a, b, c, body} where
-;;       a = {.declare, lvar, {.value, 0}}
-;;       b = {.send, "___lt", {.data, lvar, len}}
-;;       c = {.send, "___plusplus", {.data, lvar, null}}
-;;       body = {.send, "|>", {.data, {.send, "___js_fetch", {.data, temp, lvar}}
-;;                                    {.multi, patterns*}}}
-;;    stmts.push{loop}
-;;    stmts.push{res}
-;;    stmts
 
 
 stdenv.register_macro{"each"} with {env, |>, {.data, arr, patterns}} ->
@@ -947,7 +906,7 @@ stdenv.register_macro{"each"} with {env, |>, {.data, arr, patterns}} ->
          ^res = {}
          ^temp = ^arr
          ^len = [^temp].length
-      patterns := aslist{patterns} each ;; .map with {|>} ->
+      patterns := aslist{patterns} each
          {.send, "->", {.data, patt, expr}} ->
             '[^patt -> [^res].push{^expr}]
          other ->
@@ -1052,8 +1011,9 @@ stdenv.register_macro{"!!"} with {env, context, {.data, expr, matchers}} ->
    excv = gensym{}
    res = gensym{}
    m = aslist{matchers} |>
-      {{.send, "->", _}, *} ->
-         '[^excv |> ^matchers]
+      ms and {{.send, "->", _}, *} ->
+         ms.push with '[___exc -> throw ___exc]
+         '[^excv |> ^{.multi, ms*}]
       x ->
          matchers
    f = '[{^excv} -> ^res := ^m]
@@ -1074,6 +1034,7 @@ stdenv.register_macro{"break"} with {env, context, expr} ->
 
 stdenv.register_macro{"continue"} with {env, context, expr} ->
    {.js_continue}
+
 
 
 rx_wrap{x} =
@@ -1101,6 +1062,10 @@ rx_build{|>} =
    .b -> "\\b"
 
    {.value, x} -> rx_quote{x}
+
+   {.send, "raw", {.value, s}} ->
+      s
+
    {.send, |>, {.data, a, b}} ->
       "||" ->
          rx_wrap{rx_build{a} + "|" + rx_build{b}}
@@ -1156,8 +1121,10 @@ stdenv.register_macro{"?"} with {env, context, |>} ->
             {.macro, f} where f{env, context, {.data, expr}} =
                {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
                                         {.value, "number"}}}
-         .true -> {.macro, make_checker{{.value, true}, "___is"}}
-         .false -> {.macro, make_checker{{.value, false}, "___is"}}
+         .true -> {.macro, {_, _, {.data, expr}} -> expr}
+         .false -> {.macro, {_, _, {.data, expr}} -> '[not ^expr]}
+         ;;.true -> {.macro, make_checker{{.value, true}, "___is"}}
+         ;;.false -> {.macro, make_checker{{.value, false}, "___is"}}
          .null -> {.macro, make_checker{{.value, null}, "___is"}}
          .undefined -> {.macro, make_checker{{.value, undefined}, "___is"}}
          other -> {.send, libf{"checker"}, {.data, expr}}
@@ -1205,7 +1172,7 @@ gensym = gensym_factory{""}
 
 
 is_symbol{|>, env} =
-   String? s -> env.resolve{s} |>
+   String? s or {.symbol, s} -> env.resolve{s} |>
       {.macro, m} -> false
       _ -> true
    _ -> false
@@ -1246,7 +1213,7 @@ parse_lhs{env, lhs, rhs, gen} =
          fw = 0
          bw = 0
          rest = undefined
-         members = specs each x -> ;;.map with {x} ->
+         members = specs each x ->
             v = expand.step{env, .pattern, x}
             v |>
                {.dynsplice, variable} ->
@@ -1298,8 +1265,6 @@ parse_lhs{env, lhs, rhs, gen} =
 
       lhs |>
 
-         ;; [null? or "_"] -> false
-
          null? ->
             helper_noexpand{x, curr} where
                x = {.check, {.macro, make_checker{{.value, null}, "___eq"}}, {.ignore}}
@@ -1309,9 +1274,9 @@ parse_lhs{env, lhs, rhs, gen} =
                 current.push{curr}
                 current.push{{.value, true}}
 
-         String? ->
-            vars.push{lhs}
-            current.push{{.assign, lhs, curr}}
+         String? s or {.symbol, s} ->
+            vars.push{s}
+            current.push{{.assign, s, curr}}
             current.push{{.value, true}}
 
          {.value, v} ->
@@ -1332,8 +1297,6 @@ parse_lhs{env, lhs, rhs, gen} =
             temp = maybe_temp{curr}
             xs each x -> helper{x, temp}
             false
-            ;; xs.forEach with {x} ->
-            ;;    helper{x, temp}
 
          {.any, xs*} ->
             normalize{vars} =
@@ -1348,7 +1311,6 @@ parse_lhs{env, lhs, rhs, gen} =
             temp = maybe_temp{curr}
             myvars = undefined
             clauses = {}
-            ;; xs.forEach with {x} ->
             xs each x ->
                p = parse_lhs{env, x, temp, gensym}
                ? | [myvars == undefined] =>
@@ -1426,7 +1388,7 @@ parse_lhs{env, lhs, rhs, gen} =
 
 
 make_declarations{vars} =
-   vars each name -> ;;.map with {name} ->
+   vars each name ->
       {.declare, name, {.value, undefined}}
 
 make_pattern_test{clauses} =
@@ -1451,11 +1413,13 @@ find_arrow{|>} =
       {placeholder, {.send, "*", {.data, placeholder, null}}}
    String? x or null? x ->
       {false, x}
+   {.symbol, x} ->
+      {false, x}
    x and {.value, v} ->
       {false, x}
    {kind, args*} ->
       placeholder = false
-      new_args = args each arg -> ;; .map with {arg} ->
+      new_args = args each arg ->
          {ph, new_arg} = find_arrow{arg}
          ? | ph => placeholder := ph
          new_arg
@@ -1465,6 +1429,7 @@ find_arrow{|>} =
 
 same{a, b} = {a, b} |>
    {String? x, String? y} -> x == y
+   {{.symbol x}, {.symbol, y}} -> x == y
    {{.value, x}, {.value, y}} -> x == y
    {{.macro, x}, {.macro, y}} -> x == y
    {{.send, f, x}, {.send, g, y}} -> same{f, g} and same{x, y}
@@ -1484,7 +1449,7 @@ stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
    cached_conditions = {}
 
    stmts = {.multi, {.declare, temp, to_match}}
-   clauses := clauses each clause -> ;; .map with {clause} ->
+   clauses := clauses each clause ->
       {.send, "->", {.data, lhs, body}} = clause
       {placeholder, new_lhs} = find_arrow{lhs}
       {decls, conditions} = parse_lhs{env, new_lhs, temp}
@@ -1538,17 +1503,61 @@ qqstruct{name, args} =
    {.data, {.value, name}, args*}
 
 qq{expr and |>} =
-   String? s -> {.value, s}
+   String? s or {.symbol, s} -> {.value, s}
    null? -> {.value, null}
    {.value, v} ->
       qqstruct{.value, {expr}}
    {.send, "^", {.data, null?, insert}} ->
       insert
+   {.send, "^=", {.data, null?, insert}} ->
+      qqstruct{.value, {insert}}
    {name, args*} ->
       qqstruct{name, args each arg -> qq{arg}}
 
 stdenv.register_macro{"'"} with {env, context, {.data, null?, expr}} ->
    qq{expr}
+
+
+stdenv.register_macro{"req"} with {env, context, {.data, expr}} ->
+
+   stmts = {}
+
+   topfetch{pkg, v} =
+      stmts.push with '[^v = ___node.require{^=pkg}]
+      v
+
+   produce{|>, fetch} =
+
+      String? s ->
+          fetch{s, s}
+
+      {.value, String? s} ->
+          fetch{s, gensym{}}
+
+      {.multi or .data, subp*} ->
+          subp each p -> produce{p, fetch}
+
+      {.send, "as", {.data, {.value, pkg} or pkg, String? s}} ->
+          fetch{pkg, s}
+
+      {.send, "->", {.data, pkg, subp}} ->
+          pkgv = produce{pkg, fetch}
+          produce{subp} with {pkg, v} ->
+              stmts.push with '[^v = ^pkgv ^=pkg]
+
+   produce{expr, topfetch}
+   {.multi, stmts*}
+
+
+
+stdenv.register_macro{"macro"} with {env, context, expr} ->
+   {.data, {.send, name, args}, body} = expr
+   fn = '[^args -> ^body]
+   code = generate_from_ast{fn}
+   efn = eval{"(" + code.slice{0, -1} + ")"}
+   env.register_macro{name, efn}
+   {.value, undefined}
+
 
 
 js_op_table = {
@@ -1584,7 +1593,7 @@ js_op_table = {
 
 translate{expr and |>, mode} =
 
-   String? s ->
+   String? s or {.symbol, s} ->
       translate.expr{translate.mangle{s}, mode}
 
    null? ->
@@ -1681,7 +1690,7 @@ translate{expr and |>, mode} =
       ? | [args.length == 1] => translate{args[0], mode}
         | [[mode == "expr"] and [not args.some{isdecl}]] =>
           ["(" + xs.join{","} + ")"] where
-             xs = args each x -> ;;.map with {x} ->
+             xs = args each x ->
                 translate{x, .expr}
         | else => translate.body{expr, mode}
 
@@ -1701,9 +1710,10 @@ translate{expr and |>, mode} =
         | else => "return " + translate{value, .expr} + ";"
 
    {.js_throw, value} ->
-      cond:
-         ;; [mode == "expr"] => throw "Invalid throw in ctx"
-         else => "throw " + translate{value, .expr} + ";"
+      ? | [mode == "expr"] =>
+          "function(){throw " + translate{value, .expr} + ";}()"
+        | else =>
+          "throw " + translate{value, .expr} + ";"
 
    {.array, args*} ->
       r = ["[" + args.map{f}.join{","} + "]"] where
@@ -1718,6 +1728,14 @@ translate{expr and |>, mode} =
             a + ":" + b
       translate.expr{r, mode}
 
+   {.send, "___node", {.value, f}} ->
+      f
+
+   {.send, "___js_fetch", {.array, f, msg}} ->
+      translate.expr{trf + "[" + trmsg + "]", mode} where
+         trf = translate{f, .expr}
+         trmsg = translate{msg, .expr}
+
    {.send, f, msg and {.value, s}} ->
       cond:
          [[typeof{s} == "string"]
@@ -1730,11 +1748,6 @@ translate{expr and |>, mode} =
                trf = translate{f, .expr}
                trmsg = translate{msg, .expr}
 
-   {.send, "___js_fetch", {.array, f, msg}} ->
-      translate.expr{trf + "[" + trmsg + "]", mode} where
-         trf = translate{f, .expr}
-         trmsg = translate{msg, .expr}
-
    {.send, f, {.array, args*}} ->
       op = [typeof{f} == "string"] and js_op_table[f]
       ? | op =>
@@ -1742,7 +1755,7 @@ translate{expr and |>, mode} =
         | else =>
           translate.expr{trf+"("+trargs.join{","}+")", mode} where
              trf = translate{f, .expr}
-             trargs = args each x -> ;;.map with {x} ->
+             trargs = args each x ->
                 translate{x, .expr}
 
    {.send, f, msg} ->
@@ -1809,15 +1822,16 @@ translate.expr := {x, |>} ->
    other -> throw "OopsI"
 
 translate.op := {op, a, b} ->
-   e := ? | [a == null] => op + translate{b, .expr}
-          | [b == null] => translate{a, .expr} + op
-          | true => translate{a, .expr} + op + translate{b, .expr}
-   ;; e = {a, b} |>
-   ;;    {null?, _} -> op + translate{b, .expr}
-   ;;    {_, null?} -> translate{a, .expr} + op
-   ;;    _ -> translate{a, .expr} + op + translate{b, .expr}
+   e = {a, b} |>
+          {null?, _} -> op + translate{b, .expr}
+          {_, null?} -> translate{a, .expr} + op
+          _ -> translate{a, .expr} + op + translate{b, .expr}
    "(" + e + ")"
 
+
+generate_from_ast{ast} =
+   ex = expand{stdenv, .top, {.multi, ast}}
+   translate{ex, .stmt}
 
 generate{data, prelude} =
    p = parse{data}
@@ -1825,20 +1839,3 @@ generate{data, prelude} =
    [prelude or ""] + translate{ex, .stmt}
 
 exports.generate := generate
-
-
-;; docopt = require{.docopt}
-
-;; fs = require{.fs}
-
-;; file = process.argv[2]
-;; ;; file = "test.eg"
-
-;; fs.readFile{file, "utf8", f} where
-;;    f{err, data} =
-;;       p = parse{data}
-;;       ex = expand{stdenv, .top, {.multi, p}}
-;;       ;; console.log with p
-;;       ;; console.log with ex
-;;       prelude = "var ___lib=require(\"./lib\");"
-;;       console.log with prelude + translate{ex, .stmt}

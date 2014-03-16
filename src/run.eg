@@ -1,9 +1,7 @@
 
-
-eg = require{"./earl-grey"}
-fs = require{.fs}
-path = require{.path}
-vm = require{.vm}
+req:
+   "./earl-grey" as eg
+   fs, path, vm
 
 
 usage = "
@@ -24,7 +22,7 @@ libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 
 run{|>} =
 
-   {} or {.interactive || .i} ->
+   {} or {.i or .[in] or .interactive} ->
       repl = require{.repl}
       ctx = vm.createContext{global}
       vm.runInContext{libdata, ctx, "stdin"}
@@ -46,7 +44,7 @@ run{|>} =
       ;; vm.runInThisContext{code, file}
       eval{code}
 
-   {.translate, file, args*} ->
+   {.tr or .translate, file, args*} ->
 
       out = args[0]
 
@@ -72,7 +70,7 @@ run{|>} =
 
         | else =>
           data = fs.readFileSync{file, .utf8}
-          console.log with eg.generate{data, libdata}
+          console.log with eg.generate{data, ""} ;; libdata}
 
    other ->
       console.log with usage
