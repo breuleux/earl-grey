@@ -299,6 +299,7 @@ order_map = {
          "with"  => {{2r1111, 999}, {2r1111, 10}}
          "each"  => {{2r1111, 11},  {2r1111, 10}}
          "where" => {{2r1111, 11},  {2r1111, 10}}
+         "!!"    => {{2r1111, 11},  {2r1111, 10}}
          "|>"    => {{2r1111, 11},  {2r1111, 10}}
          "->"    => {{2r1111, 11},  {2r1111, 10}}
          "=>"    => {{2r1111, 11},  {2r1111, 10}}
@@ -640,7 +641,8 @@ expand{env, context, expr} =
 
       {type && [.js_while or .js_for or .js_break
                 \ or .js_continue or .js_return
-                \ or .js_throw or .if], args*} ->
+                \ or .js_throw or .js_try
+                \ or .if], args*} ->
          ctxs = js_contexts[type] or {}
          {type}.concat{args.map{f}} where
             f{x, i} = expand{env, ctxs[i] or .expr, x}
@@ -982,6 +984,21 @@ stdenv.register_macro{"while"} with {env, context, expr} ->
 stdenv.register_macro{"for"} with {env, context, expr} ->
    {.data, {.code, {.multi, a, b, c}}, {.code, body}} = expr
    {.js_for, a, b, c, body}
+
+stdenv.register_macro{"!!"} with {env, context, {.data, expr, matchers}} ->
+   excv = gensym{}
+   res = gensym{}
+   m = aslist{matchers} |>
+      {{.send, "->", _}, *} ->
+         {.send, "|>", {.data, excv, matchers}}
+      x ->
+         matchers
+   f = {.send, "->", {.data, {.data, excv}, {.assign, res, m}}}
+   {.multi
+      {.declare, res, {.value, undefined}}
+      {.js_try, {.assign, res, expr}, f, null}
+      res}
+
 
 stdenv.register_macro{"return"} with {env, context, expr} ->
    {.js_return, expr}
@@ -1379,6 +1396,7 @@ find_arrow{|>} =
       {placeholder, {kind}.concat{new_args}}
 
 
+
 same{a, b} = {a, b} |>
    {String? x, String? y} -> x == y
    {{.value, x}, {.value, y}} -> x == y
@@ -1541,6 +1559,14 @@ translate{expr and |>, mode} =
                b = translate{y, .stmt}
                c = translate{z, .expr}
                d = translate{body, .stmt}
+
+   {.js_try, attempt, {.lambda, {String? v}, body}, null?} ->
+      mode |>
+         .expr -> translate.body{expr, .expr}
+         other ->
+            "try{" + a + "}catch(" + v + "){" + b + "}" where
+               a = translate{attempt, .stmt}
+               b = translate{body, .stmt}
 
    {.declare, binding, {.value, undefined?}} ->
       mode |>

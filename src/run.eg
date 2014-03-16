@@ -26,14 +26,15 @@ run{|>} =
 
    {} or {.interactive || .i} ->
       repl = require{.repl}
-      ctx = vm.createContext{}
+      ctx = vm.createContext{global}
       vm.runInContext{libdata, ctx, "stdin"}
       settings = {
          prompt = "<> "
          ignoreUndefined = true
          eval{input, context, filename, callback} =
             text = eg.generate{input.slice{1, -1}}
-            result = vm.runInContext{text, ctx, "stdin"}
+            result = vm.runInContext{text, ctx, "stdin"} !!
+               e -> console.log{e.stack}
             callback{null, result}
       }
       run = repl.start with settings
@@ -42,8 +43,7 @@ run{|>} =
    {.run, file} ->
       data = fs.readFileSync{file, .utf8}
       code = eg.generate{data, libdata}
-      ;; TODO: eval is not the right thing to do
-      eval{libdata}
+      ;; vm.runInThisContext{code, file}
       eval{code}
 
    {.translate, file, args*} ->
