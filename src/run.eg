@@ -24,14 +24,14 @@ run{|>} =
 
    {} or {.i or .[in] or .interactive} ->
       repl = require{.repl}
-      ctx = vm.createContext{global}
-      vm.runInContext{libdata, ctx, "stdin"}
+      ;; ctx = vm.createContext{global}
+      vm.runInThisContext{libdata, "stdin"}
       settings = {
          prompt = "<> "
          ignoreUndefined = true
          eval{input, context, filename, callback} =
             text = eg.generate{input.slice{1, -1}}
-            result = vm.runInContext{text, ctx, "stdin"} !!
+            result = vm.runInThisContext{text, "stdin"} !!
                e -> console.log{e.stack}
             callback{null, result}
       }

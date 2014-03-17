@@ -314,6 +314,9 @@ order_map = {
          ">>="   => {{2r1111, 11},  {2r1111, 10}}
          ">>>="  => {{2r1111, 11},  {2r1111, 10}}
 
+         ;; Misc
+         "%"     => {{2r1111, 11}, {2r1111, 10}}
+
          ;; Logical
          "when" => {{2r1111, 100}, {2r1111, 101}}
          "||"   => {{2r1111, 110}, {2r1111, 111}}
@@ -716,7 +719,7 @@ stdenv.register{"+", "___plus"}
 stdenv.register{"-", "___minus"}
 stdenv.register{"*", "___times"}
 stdenv.register{"/", "___div"}
-stdenv.register{"%", "___mod"}
+stdenv.register{"mod", "___mod"}
 stdenv.register{"^", "___binxor"}
 stdenv.register{"&", "___binand"}
 stdenv.register{"|", "___binor"}
@@ -1155,7 +1158,7 @@ stdenv.register_macro{"!"} with {env, context, {.data, expr, null?}} ->
 
    mac{env, |>, expr} =
       .pattern -> {.project, projector, expr or {.ignore}}
-      other -> {.send, projector, {.data, expr}}
+      other -> {.send, {.send, projector, {.data, expr}}, {.value, 1}}
 
    {.macro, mac}
 
@@ -1547,6 +1550,35 @@ stdenv.register_macro{"req"} with {env, context, {.data, expr}} ->
 
    produce{expr, topfetch}
    {.multi, stmts*}
+
+
+
+stdenv.register_macro{"%"} with {env, context, {.data, descr, contents}} ->
+   tag = {.value, "div"}
+   id = {.value, null}
+   classes = {.data}
+   kv = {.data}
+   parse{|>} =
+      null? -> null
+      String? s -> tag := {.value, s}
+      {.value, x} ->
+         classes.push with {.value, x}
+      {.send, ".", {.data, null?, String? x}} ->
+         classes.push with {.value, x}
+      {.send, "#", {.data, null?, String? x}} ->
+         id := {.value, x}
+      {.send, "=", {.data, String? prop, value}} ->
+         kv.push with {.data, {.value, prop}, value}
+      {.send, expr, rest} ->
+         parse{expr}, parse{rest}
+      {.multi or .data, args*} ->
+         args.forEach{parse}
+   parse{descr}
+   contents := contents |>
+      null? -> {.data}
+      {.multi, args*} -> {.data, args*}
+      x -> x
+   '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
 
 

@@ -1,4 +1,15 @@
 
+create_node{tag, id, classes, kv, Array! contents} =
+   classes := classes each Rx[any+]? x -> x
+   accum = {"<", tag}
+   ? | id => accum := accum.concat with
+          " id=\"", id, "\""
+   ? | classes.length => accum := accum.concat with
+          " class=\"", classes.join{" "}, "\""
+   ? | kv => kv each {k, v} ->
+          accum := accum.concat with {" ", k, "=\"", v, "\""}
+   accum.concat{x}.join{""} where x =
+      {">", contents*, "</", tag, ">"}
 
 patch_array{} =
    r = {}
