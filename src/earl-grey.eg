@@ -76,7 +76,7 @@ regexps = {
 
   op = Rx
      start
-     [>> "+\\-*/~^<>=%&|?!#.:'"]+
+     [>> "+\\-*/~^<>=%&|?!@#.:'"]+
 
   op2 = Rx
      start
@@ -369,6 +369,7 @@ order_map = {
          "not"  => {{2r1111, MAX}, {2r1111, 131}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "@" => {{2r1111, MAX}, {2r1111, 3000}}
          "<>" => {{2r1111, MAX}, {2r1111, 5}}
          "(" => {{2r1111, MAX}, {2r1111, 1}}
          "[" => {{2r1111, MAX}, {2r1111, 1}}
@@ -378,6 +379,7 @@ order_map = {
          default = {{2r1111, MAX}, {2r1111, 1901}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "@" => {{2r1111, MAX}, {2r1111, 3000}}
          "(" => {{2r1111, MAX}, {2r1111, 1}}
          "[" => {{2r1111, MAX}, {2r1111, 1}}
          "{" => {{2r1111, MAX}, {2r1111, 1}}
@@ -490,6 +492,8 @@ finalize{|>} =
             target |>
                null? ->
                   {.data}.concat{body}
+               when target.fromop ->
+                  {.send, target, {.data}.concat{body}}
                {.send, f, {.data, args*}} ->
                   {.send, f, {.data}.concat{args}.concat{body}}
                {.data, args*} ->
@@ -518,7 +522,10 @@ finalize{|>} =
 
          {{_}, |>} ->
             {null?, null?} -> op
-            {a, b} -> {.send, op, {.data, a, b}}
+            {a, b} ->
+               rval = {.send, op, {.data, a, b}}
+               rval.fromop := true
+               rval
 
          other ->
             throw {"Unknown node", ops, args}
@@ -932,6 +939,9 @@ stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
      | else =>
        throw ["Illegal context for '=>' (" + context + ")"]
 
+
+stdenv.register_macro{"as"} with {env, context, {.data, expr, variable}} ->
+   '[^variable = ^expr]
 
 stdenv.register_macro{"="} with {env, context, expr} ->
    {context, expr} |>
@@ -1581,6 +1591,33 @@ stdenv.register_macro{"%"} with {env, context, {.data, descr, contents}} ->
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
 
+stdenv.register_macro{"chain"} with {env, context, {.data, defn, body}} ->
+   newenv = env.fork{}
+   temp = gensym{}
+
+   {variable, expr} = defn |>
+      {.send, "as", {.data, x, y}} -> {y, x}
+      other -> {"@", other}
+
+   newenv.register_macro{variable} with f where f{env, context, |>} =
+      null? -> temp
+      {.data, null?, |>} ->
+         String? s or {.symbol, s} ->
+            '[[^temp] [^=s]]
+         {.send, obj, msg} ->
+            '[^x ^msg] where x =
+               f{env, .head, {.data, null, obj}}
+         other ->
+            '[[^temp] [^other]]
+      other -> ;; throw {"invalid @ argument", other}
+         '[^temp ^other]
+   stmts = {.multi}.concat with aslist{body} each x -> '[^temp := ^x]
+   v = ' | ^temp = ^expr
+         | ^stmts
+         | ^temp
+   {.done, expand{newenv, context, v}}
+
+
 
 stdenv.register_macro{"macro"} with {env, context, expr} ->
    {.data, {.send, name, args}, body} = expr
@@ -1862,12 +1899,12 @@ translate.op := {op, a, b} ->
 
 
 generate_from_ast{ast} =
-   ex = expand{stdenv, .top, {.multi, ast}}
+   ex = expand{stdenv.fork{}, .top, {.multi, ast}}
    translate{ex, .stmt}
 
 generate{data, prelude} =
    p = parse{data}
-   ex = expand{stdenv, .top, {.multi, p}}
+   ex = expand{stdenv.fork{}, .top, {.multi, p}}
    [prelude or ""] + translate{ex, .stmt}
 
 exports.generate := generate
