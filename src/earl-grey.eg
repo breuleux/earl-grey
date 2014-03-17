@@ -569,8 +569,8 @@ js_contexts = {
 }
 
 
-expand{env, context, expr} =
-   expr := expand.step{env, context, expr}
+expand{{context, env}, expr} =
+   expr := expand.step{{context, env}, expr}
 
    expr |>
       String? s -> s
@@ -580,33 +580,33 @@ expand{env, context, expr} =
       undefined? -> throw ["undefined? why?"]
 
       {.send, f, arg} ->
-         f := expand{env, .head, f}
-         {.send, f, expand{env, .tail, arg}}
+         f := expand{{.head, env}, f}
+         {.send, f, expand{{.tail, env}, arg}}
 
       {.value, v} -> expr
 
       {type and [.array or .object], args*} -> ;; or .splice
          arr = {}
          while [args.length > 0]:
-            expand.step{env, type, args.shift{}} |>
+            expand.step{{type, env}, args.shift{}} |>
                {.splice, stmts*} ->
                   args := stmts.concat{args}
                other ->
                   arr.push{other}
          {type}.concat with
-            arr each x -> expand{env, type, x}
+            arr each x -> expand{{type, env}, x}
 
       {.multi, args*} ->
          arr = {}
          while [args.length > 0]:
             type = if{args.length == 1, .expr, .multi}
-            expand.step{env, type, args.shift{}} |>
+            expand.step{{type, env}, args.shift{}} |>
                {.splice, stmts*} ->
                   args := stmts.concat{args}
                other ->
                   arr.push{{other, type}}
          {.multi}.concat with
-            arr each {x, type} -> expand{env, type, x}
+            arr each {x, type} -> expand{{type, env}, x}
 
       {.data, args*} ->
 
@@ -623,7 +623,7 @@ expand{env, context, expr} =
                   arr := {.array}
 
          while [args.length > 0]:
-            expand.step{env, type, args.shift{}} |>
+            expand.step{{type, env}, args.shift{}} |>
                {.assoc} -> is_obj := true
                {.assoc, k, v} ->
                   is_obj := true
@@ -650,19 +650,19 @@ expand{env, context, expr} =
                patch = libf{"patch_array"}
                {.send, patch, {.array}.concat{parts}}
 
-         expand{env, context, r}
+         expand{{context, env}, r}
 
       {.lambda, bindings, body} ->
-         {.lambda, bindings each x -> expand{env, .decl, x}
-                   expand{env, .expr, body}}
+         {.lambda, bindings each x -> expand{{.decl, env}, x}
+                   expand{{.expr, env}, body}}
 
       {.declare, binding, value} ->
-         {.declare, expand{env, .decl, binding}
-                    expand{env, .expr, value}}
+         {.declare, expand{{.decl, env}, binding}
+                    expand{{.expr, env}, value}}
 
       {.assign, lhs, rhs} ->
-         {.assign, expand{env, .decl, lhs}
-                   expand{env, .expr, rhs}}
+         {.assign, expand{{.decl, env}, lhs}
+                   expand{{.expr, env}, rhs}}
 
       {type && [.js_while or .js_for or .js_break
                 \ or .js_continue or .js_return
@@ -670,7 +670,7 @@ expand{env, context, expr} =
                 \ or .if], args*} ->
          ctxs = js_contexts[type] or {}
          {type}.concat{args.map{f}} where
-            f{x, i} = expand{env, ctxs[i] or .expr, x}
+            f{x, i} = expand{{ctxs[i] or .expr, env}, x}
 
       {.done, expr} ->
          expr
@@ -679,13 +679,13 @@ expand{env, context, expr} =
 
 
 
-expand.step := {env, context, expr and |>} ->
+expand.step := {{context, env}, expr and |>} ->
    String? s or {.symbol, s} ->
       v = env.resolve{s}
       {v, context} |>
          {undefined?, _} -> s
          {{.macro, m}, .head} -> v
-         {{.macro, m}, _} -> expand.step{env, context, m{env, context, null}}
+         {{.macro, m}, _} -> expand.step{{context, env}, m{env, context, null}}
          other -> v
 
    null? -> null
@@ -696,11 +696,11 @@ expand.step := {env, context, expr and |>} ->
 
    ;; TODO: fix the bug that forces "when true"
    {.macro, m} when true ->
-      expand.step{env, context, m{env, context, null}}
+      expand.step{{context, env}, m{env, context, null}}
 
    {.send, f, arg} ->
-      expand.step{env, .head, f} |>
-         {.macro, m} -> expand.step{env, context, m{env, context, arg}}
+      expand.step{{.head, env}, f} |>
+         {.macro, m} -> expand.step{{context, env}, m{env, context, arg}}
          other -> expr
 
    {type, args*} ->
@@ -1218,7 +1218,7 @@ parse_lhs{env, lhs, rhs, gen} =
           temp
 
    helper{lhs, curr} =
-      helper_noexpand{expand.step{env, .pattern, lhs}, curr}
+      helper_noexpand{expand.step{{.pattern, env}, lhs}, curr}
 
    helper_noexpand{lhs, curr} =
 
@@ -1227,7 +1227,7 @@ parse_lhs{env, lhs, rhs, gen} =
          bw = 0
          rest = undefined
          members = specs each x ->
-            v = expand.step{env, .pattern, x}
+            v = expand.step{{.pattern, env}, x}
             v |>
                {.dynsplice, variable} ->
                   rest := variable
@@ -1470,7 +1470,7 @@ stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
       {conditions.map{f}, b} where
          b = ? | placeholder => {.send, "|>", {.data, placeholder, body}}
                | else => body
-         f{x} = {.done, expand{env, .expr, x}}
+         f{x} = {.done, expand{{.expr, env}, x}}
 
    ;; BEGIN OPT
    shares = clauses.slice{1}.map{f} where f{{conditions, body}, i} =
@@ -1615,7 +1615,7 @@ stdenv.register_macro{"chain"} with {env, context, {.data, defn, body}} ->
    v = ' | ^temp = ^expr
          | ^stmts
          | ^temp
-   {.done, expand{newenv, context, v}}
+   {.done, expand{{context, newenv}, v}}
 
 
 
@@ -1899,12 +1899,12 @@ translate.op := {op, a, b} ->
 
 
 generate_from_ast{ast} =
-   ex = expand{stdenv.fork{}, .top, {.multi, ast}}
+   ex = expand{{.top, stdenv.fork{}}, {.multi, ast}}
    translate{ex, .stmt}
 
 generate{data, prelude} =
    p = parse{data}
-   ex = expand{stdenv.fork{}, .top, {.multi, p}}
+   ex = expand{{.top, stdenv.fork{}}, {.multi, p}}
    [prelude or ""] + translate{ex, .stmt}
 
 exports.generate := generate
