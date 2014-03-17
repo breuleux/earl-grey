@@ -491,7 +491,7 @@ finalize{|>} =
 
             inserted = false
             result = transform{target} with {|>} ->
-               "..." -> [inserted := true, {.multi, body*}]
+               "..." -> [inserted := true, ~multi{body*}]
                [x when x.fromop] and {.send, f, ~data{a, b}} ->
                    {.send, this{f}, {.data, this{a}, this{b}}}
                {.data, args*} ->
@@ -621,7 +621,7 @@ expand{{context, env}, expr} =
          {type}.concat with
             arr each x -> expand{{type, env}, x}
 
-      {.multi, args*} ->
+      ~multi{args*} ->
          arr = {}
          while [args.length > 0]:
             type = if{args.length == 1, .expr, .multi}
@@ -738,7 +738,7 @@ expand.step := {{context, env}, expr and |>} ->
 aslist{|>} =
    null? -> {null}
    undefined? -> {undefined}
-   {.multi, args*} -> args
+   ~multi{args*} -> args
    other -> {other}
 
 
@@ -832,7 +832,7 @@ stdenv.register_macro{"#"} with {{context, env}, {.data, null?, tag}} ->
                 {.check, checker_mac
                          {.project, deconstructor_mac, {.duck, subp*}}}
              other ->
-                {.check, checker_mac, expr or {.ignore}}
+                {.check, checker_mac, expr or ~ignore{}}
       _ ->
           expr |>
              null? ->
@@ -853,10 +853,10 @@ stdenv.register_macro{"~"} with {{context, env}, {.data, null?, tag}} ->
              {.data, subp*} ->
                 deconstructor_mac = {.macro, f} where f{_, expr} =
                    '{^=true, [^expr[1]].slice{1}}
-                {.check, checker_mac
-                         {.project, deconstructor_mac, {.duck, subp*}}}
+                ~check{checker_mac
+                       ~project{deconstructor_mac, ~duck{subp*}}}
              other ->
-                {.check, checker_mac, expr or {.ignore}}
+                ~check{checker_mac, expr or ~ignore{}}
       _ ->
           expr |>
              null? ->
@@ -869,7 +869,7 @@ stdenv.register_macro{"~"} with {{context, env}, {.data, null?, tag}} ->
 
 
 stdenv.register_macro{"when"} with {{context, env}, {.data, |>, condition}} ->
-   null? -> {.test, condition, {.ignore}}
+   null? -> {.test, condition, ~ignore{}}
    other -> {.test, condition, other}
 
 andf{{context, env}, expr} =
@@ -898,7 +898,7 @@ stdenv.register_macro{"or"} with orf
 partial_pattern{operator} = {{context, env}, expr} ->
    {context, expr} |>
       {.pattern, {.data, null?, val}} ->
-         {.check, {.macro, make_checker{val, operator}}, {.ignore}}
+         {.check, {.macro, make_checker{val, operator}}, ~ignore{}}
       {_, null?} ->
          operator
       other ->
@@ -915,7 +915,7 @@ stdenv.register_macro{">"} with partial_pattern{"___gt"}
 stdenv.register_macro{"*"} with {{context, env}, expr} ->
    {context, expr} |>
       {.pattern, null?} ->
-         {.dynsplice, {.ignore}}
+         {.dynsplice, ~ignore{}}
       {.pattern or .data, {.data, val, null?}} ->
          {.dynsplice, val}
       {.pattern or .data, {.data, null?, val}} ->
@@ -1087,7 +1087,7 @@ stdenv.register_macro{"while"} with {{context, env}, expr} ->
    {.js_while, test, body}
 
 stdenv.register_macro{"for"} with {{context, env}, expr} ->
-   {.data, {.multi, a, b, c}, body} = expr
+   {.data, ~multi{a, b, c}, body} = expr
    {.js_for, a, b, c, body}
 
 stdenv.register_macro{"!!"} with {{context, env}, {.data, expr, matchers}} ->
@@ -1174,7 +1174,7 @@ rx_build{|>} =
 
    {.data, args*} ->
       "(" + args.map{rx_build}.join{""} + ")"
-   {.multi, args*} ->
+   ~multi{args*} ->
       "(?:" + args.map{rx_build}.join{""} + ")"
    otherA -> throw "OopsF"
 
@@ -1226,7 +1226,7 @@ rx_build2{|>} =
 
    {.data, args*} ->
       "(" + args.map{rx_build2}.join{""} + ")"
-   {.multi, args*} ->
+   ~multi{args*} ->
       "(?:" + args.map{rx_build2}.join{""} + ")"
    otherA -> throw "OopsF"
 
@@ -1280,7 +1280,7 @@ stdenv.register_macro{"?"} with {{context, env}, |>} ->
                                    {.data, orig_expr}}
                {.check, checker, {.project, projector, expr}}
             other ->
-               {.check, checker, expr or {.ignore}}
+               {.check, checker, expr or ~ignore{}}
          other -> {.send, checker, {.data, expr}}
 
       {.macro, mac}
@@ -1298,7 +1298,7 @@ stdenv.register_macro{"!"} with {{context, env}, {.data, expr, null?}} ->
       other -> {.send, libf{"projector"}, {.data, expr}}
 
    mac{{|>, env}, expr} =
-      .pattern -> {.project, projector, expr or {.ignore}}
+      .pattern -> {.project, projector, expr or ~ignore{}}
       other -> {.send, {.send, projector, {.data, expr}}, {.value, 1}}
 
    {.macro, mac}
@@ -1326,7 +1326,7 @@ parse_lhs{env, lhs, rhs, gen} =
 
    vars = {}
    clauses = {}
-   current = {.multi}
+   current = ~multi{}
 
    mktemp{} =
       t = gen{}
@@ -1336,7 +1336,7 @@ parse_lhs{env, lhs, rhs, gen} =
    newclause{} =
       ? | [current.length > 1] =>
           clauses.push{current}
-      current := {.multi}
+      current := ~multi{}
 
    maybe_temp{x} =
       ? | is_symbol{x, env} =>
@@ -1344,12 +1344,12 @@ parse_lhs{env, lhs, rhs, gen} =
         | else =>
           temp = mktemp{}
           current := current.concat with {
-             {.assign, temp, x}
+             ~assign{temp, x}
           }
           temp
 
    helper{lhs, curr} =
-      helper_noexpand{expand.step{{.pattern, env}, lhs}, curr}
+      helper_noexpand{expand.step{~pattern{env}, lhs}, curr}
 
    helper_noexpand{lhs, curr} =
 
@@ -1360,7 +1360,7 @@ parse_lhs{env, lhs, rhs, gen} =
          members = specs each x ->
             v = expand.step{{.pattern, env}, x}
             v |>
-               {.dynsplice, variable} ->
+               ~dynsplice{variable} ->
                   rest := variable
                when rest == undefined ->
                   fw := fw + 1
@@ -1378,79 +1378,66 @@ parse_lhs{env, lhs, rhs, gen} =
          ;; Part 1: temp <- length
          len = mktemp{}
          current := current.concat with {
-            {.assign, len, {.send, temp, {.value, "length"}}}
-            {.value, true}
+            ;; {.assign, len, {.send, temp, {.value, "length"}}}
+            ;; {.value, true}
+            '[^len := [^temp].length]
+            'true
          }
          newclause{}
 
          ;; Part 2: check length
          current := current.concat with {
             ;; Bounds check
-            {.send, cmp, {.data, len, {.value, fw + bw}}}
+            '[^cmp]{^len, ^=[fw + bw]}
          }
          newclause{}
 
-         for [j = 0, j < fw, ++j]:
-            helper_noexpand{members[j], {.send, temp, {.value, j}}}
+         [0 .. [fw - 1]] each j ->
+            helper_noexpand{members[j], '[^temp ^=j]}
 
          ? | [rest != undefined] =>
-             slice = ?
-                [bw > 0] => {.data, {.value, fw}, {.value, -bw}}
-                else => {.data, {.value, fw}}
+             slice = if{bw > 0, '{^=fw, ^=[-bw]}, '{^=fw}}
              helper_noexpand{
                 members[fw][1]
-                {.send, {.send, temp, {.value, "slice"}}, slice}
+                '[[^temp].slice ^slice]
              }
 
          for [j = 0, j < bw, ++j]:
-            helper_noexpand{members[fw + j + 1],
-                            {.send, temp, {.send, "___minus",
-                                           {.data, len, {.value, bw - j}}}}}
+            helper_noexpand{members[fw + j + 1], '[^temp][^len - ^=[bw - j]]}
 
       lhs |>
 
          null? ->
             helper_noexpand{x, curr} where
-               x = {.check, {.macro, make_checker{{.value, null}, "___eq"}}, {.ignore}}
+               x = {.check, {.macro, make_checker{{.value, null}, "___eq"}}, ~ignore{}}
 
-         ["_" or {.ignore}] ->
+         ["_" or ~ignore{}] ->
             ? | [not is_symbol{curr, env}] =>
                 current.push{curr}
-                current.push{{.value, true}}
+                current.push{'true}
 
-         String? s or {.symbol, s} ->
+         String? s or ~symbol{s} ->
             vars.push{s}
-            current.push{{.assign, s, curr}}
+            current.push{~assign{s, curr}}
             current.push{{.value, true}}
 
-         {.value, v} ->
+         ~value{v} ->
             helper_noexpand{x, curr} where
-               x = {.check, {.macro, make_checker{lhs, "___eq"}}, {.ignore}}
+               x = ~check{~macro{make_checker{lhs, "___eq"}}, ~ignore{}}
 
-         {.test, condition, pattern} ->
+         ~test{condition, pattern} ->
             helper{pattern, curr}
             current.push{condition}
             newclause{}
 
-         {.all, xs*} ->
-            ;; temp = mktemp{}
-            ;; current := current.concat with {
-            ;;    {.assign, temp, curr}
-            ;;    ;; {.value, true}
-            ;; }
+         ~all{xs*} ->
             temp = maybe_temp{curr}
             xs each x -> helper{x, temp}
             false
 
-         {.any, xs*} ->
+         ~any{xs*} ->
             normalize{vars} =
                vars.filter{{x} -> x[0] != "τ"}.sort{}.join{","}
-
-            ;; temp = mktemp{}
-            ;; current := current.concat with {
-            ;;    {.assign, temp, curr}
-            ;;    ;; {.value, true}
-            ;; }
 
             temp = maybe_temp{curr}
             myvars = undefined
@@ -1472,53 +1459,44 @@ parse_lhs{env, lhs, rhs, gen} =
             vars := vars.concat{myvars}
             newclause{}
 
-         {.check, checker, expr} ->
+         ~check{checker, expr} ->
             temp = maybe_temp{curr}
-            ;; temp = mktemp{}
             current := current.concat with {
-               ;; {.assign, temp, curr}
-               {.send, checker, {.data, temp}}
+               '[^checker {^temp}]
             }
             newclause{}
             helper{expr, temp}
 
-         {.project, projector, expr} ->
+         ~project{projector, expr} ->
             temp = maybe_temp{curr}
             temp2 = mktemp{}
             current := current.concat with {
-               ;; {.assign, temp, curr}
-               {.assign, temp2, {.send, projector, {.data, temp}}}
-               {.send, temp2, {.value, 0}}
+               '[^temp2 := [^projector]{^temp}]
+               '[^temp2 0]
             }
             newclause{}
-            helper{expr, {.send, temp2, {.value, 1}}}
+            helper{expr, '[^temp2 1]}
 
-         {.send, fname, spec} ->
-            helper{fname, {.send, "->", {.data, spec, curr}}}
+         ~send{fname, spec} ->
+            helper{fname, '[^spec -> ^curr]}
 
-         {.duck, specs*} ->
-
+         ~duck{specs*} ->
             temp = maybe_temp{curr}
-            ;; temp = mktemp{}
             current := current.concat with {
-               ;; {.assign, temp, curr}
                {.value, true}
             }
-
             helper_data{temp, specs}
 
          {.data, specs*} ->
 
             temp = maybe_temp{curr}
-            ;; temp = mktemp{}
             current := current.concat with {
-               ;; {.assign, temp, curr}
-               {.send, "___instanceof", {.data, temp, "Array"}}
+               '[^temp instanceof Array]
             }
             newclause{}
 
             current := current.concat with {
-               {.send, "___is", {.data, {.send, temp, {.value, "#"}}, {.value, undefined}}}
+               '[[^temp]"#" == undefined]
             }
             newclause{}
 
@@ -1533,18 +1511,18 @@ parse_lhs{env, lhs, rhs, gen} =
 
 make_declarations{vars} =
    vars each name ->
-      {.declare, name, {.value, undefined}}
+      ~declare{name, ~value{undefined}}
 
 make_pattern_test{clauses} =
    ands = clauses.pop{}
    while [clauses.length > 0]:
-      ands := {.send, "___and", {.data, clauses.pop{}, ands}}
-   ands or {.value, true}
+      ands := '[^clauses.pop{} and ^ands]
+   ands or ~value{true}
 
 make_or_pattern{clauses} =
    ors = clauses.pop{}
    while [clauses.length > 0]:
-      ors := {.send, "___or", {.data, clauses.pop{}, ors}}
+      ors := '[^clauses.pop{} or ^ors]
    ors
 
 
@@ -1554,12 +1532,12 @@ find_arrow{|>} =
       {placeholder, placeholder}
    "|>*" ->
       placeholder = gensym{}
-      {placeholder, {.send, "*", {.data, placeholder, null}}}
+      {placeholder, '[[^placeholder]*]}
    String? x or null? x ->
       {false, x}
-   {.symbol, x} ->
+   ~symbol{x} ->
       {false, x}
-   x and {.value, v} ->
+   x and ~value{v} ->
       {false, x}
    {kind, args*} ->
       placeholder = false
@@ -1567,16 +1545,16 @@ find_arrow{|>} =
          {ph, new_arg} = find_arrow{arg}
          ? | ph => placeholder := ph
          new_arg
-      {placeholder, {kind}.concat{new_args}}
+      {placeholder, {kind, new_args*}}
 
 
 
 same{a, b} = {a, b} |>
    {String? x, String? y} -> x == y
-   {{.symbol x}, {.symbol, y}} -> x == y
-   {{.value, x}, {.value, y}} -> x == y
-   {{.macro, x}, {.macro, y}} -> x == y
-   {{.send, f, x}, {.send, g, y}} -> same{f, g} and same{x, y}
+   {~symbol{x}, ~symbol{y}} -> x == y
+   {~value{x}, ~value{y}} -> x == y
+   {~macro{x}, ~macro{y}} -> x == y
+   {~send{f, x}, ~send{g, y}} -> same{f, g} and same{x, y}
    {{kind1, xs*}, {kind2, ys*}} ->
       kind1 == kind2 and xs.length == ys.length and allequal where
          allequal = xs.every with {x, i} ->
@@ -1587,14 +1565,14 @@ same{a, b} = {a, b} |>
 stdenv.register_macro{"|>"} with {{context, env}, {.data, to_match, cl}} ->
    temp = gensym{}
    clauses = cl |>
-      {.multi, cls*} -> cls
+      ~multi{cls*} -> cls
       other -> {other}
 
    cached_conditions = {}
 
-   stmts = {.multi, {.declare, temp, to_match}}
+   stmts = ~multi{{.declare, temp, to_match}}
    clauses := clauses each clause ->
-      {.send, "->", {.data, lhs, body}} = clause
+      ~send{"->", ~data{lhs, body}} = clause
       {placeholder, new_lhs} = find_arrow{lhs}
       {decls, conditions} = parse_lhs{env, new_lhs, temp}
       stmts := stmts.concat with make_declarations{decls}
@@ -1624,7 +1602,7 @@ stdenv.register_macro{"|>"} with {{context, env}, {.data, to_match, cl}} ->
       shared = if{shared_last, {vars[shared_last - 1]}, {}}
       n_to_share = Math.max{shared_last, shares[i]}
       to_share = conditions.slice{shared_last, n_to_share}.map with
-         {x, j} -> {.assign, vars[shared_last + j], x}
+         {x, j} -> ~assign{vars[shared_last + j], x}
       shared_last := shares[i]
       {shared.concat{to_share}.concat{rest}, body} where
          rest = conditions.slice{n_to_share}
@@ -1632,37 +1610,32 @@ stdenv.register_macro{"|>"} with {{context, env}, {.data, to_match, cl}} ->
    clauses := new_clauses
    ;; END OPT
 
-   r = {.js_throw, {.data, {.value, "Could not find a match"}, temp}}
+   r = ~js_throw{~data{~value{"Could not find a match"}, temp}}
 
    while [clauses.length > 0]:
       {conditions, body} = clauses.pop{}
       test = make_pattern_test{conditions}
-      r := {.if, test, body, r}
+      r := ~if{test, body, r}
 
    stmts.push{r}
    stmts
 
 
 qqstruct{name, args} =
-   {.data, {.value, name}, args*}
+   ~data{~value{name}, args*}
 
 qq{expr and |>} =
    String? s or {.symbol, s} -> {.value, s}
    null? -> {.value, null}
-   {.value, v} ->
+   ~value{v} ->
       qqstruct{.value, {expr}}
-   {.send, "^", {.data, null?, insert}} ->
+   ~send{"^", ~data{null?, insert}} ->
       insert
-   {.send, "^=", {.data, null?, insert}} ->
+   ~send{"^=", ~data{null?, insert}} ->
       qqstruct{.value, {insert}}
-   {.send, "^*", {.data, null?, insert}} ->
+   ~send{"^*", ~data{null?, insert}} ->
       '[* ^insert]
    {name, args*} ->
-      ;;{.name}.concat with patch_array.apply{null} with args each
-      ;;   {.send, "^*", {.data, null?, insert}} ->
-      ;;      insert
-      ;;   other -> {tr{other}}
-
       qqstruct{name, args each arg -> qq{arg}}
 
 stdenv.register_macro{"'"} with {{context, env}, {.data, null?, expr}} ->
@@ -1682,22 +1655,22 @@ stdenv.register_macro{"req"} with {{context, env}, {.data, expr}} ->
       String? s ->
           fetch{s, s}
 
-      {.value, String? s} ->
+      ~value{String? s} ->
           fetch{s, gensym{}}
 
       {.multi or .data, subp*} ->
           subp each p -> produce{p, fetch}
 
-      {.send, "as", {.data, {.value, pkg} or pkg, String? s}} ->
+      ~send{"as", ~data{~value{pkg} or pkg, String? s}} ->
           fetch{pkg, s}
 
-      {.send, "->", {.data, pkg, subp}} ->
+      ~send{"->", ~data{pkg, subp}} ->
           pkgv = produce{pkg, fetch}
           produce{subp} with {pkg, v} ->
               stmts.push with '[^v = ^pkgv ^=pkg]
 
    produce{expr, topfetch}
-   {.multi, stmts*}
+   ~multi{stmts*}
 
 
 
@@ -1724,7 +1697,7 @@ stdenv.register_macro{"%"} with {{context, env}, {.data, descr, contents}} ->
    parse{descr}
    contents := contents |>
       null? -> {.data}
-      {.multi, args*} -> {.data, args*}
+      ~multi{args*} -> {.data, args*}
       x -> x
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
@@ -1890,7 +1863,7 @@ translate{expr and |>, mode} =
          a = translate{lhs, .expr}
          b = translate{rhs, .expr}
 
-   {.multi, args*} ->
+   ~multi{args*} ->
       isdecl{|>} =
          {.declare, variable, value} -> true
          other -> false
@@ -2037,12 +2010,12 @@ translate.op := {op, a, b} ->
 
 
 generate_from_ast{ast} =
-   ex = expand{{.top, stdenv.fork{}}, {.multi, ast}}
+   ex = expand{{.top, stdenv.fork{}}, ~multi{ast}}
    translate{ex, .stmt}
 
 generate{data, prelude} =
    p = parse{data}
-   ex = expand{{.top, stdenv.fork{}}, {.multi, p}}
+   ex = expand{{.top, stdenv.fork{}}, ~multi{p}}
    [prelude or ""] + translate{ex, .stmt}
 
 exports.generate := generate
