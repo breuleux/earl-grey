@@ -80,6 +80,8 @@ You can also use `[]`, of course:
 
     array = {1, 2, 3}
     object = {a = 1, b = 2}
+    also_object = {"a" => 1, "b" => 2}
+    you_can_mix = {a = 1, "b" => 2, .c => 3}
 
 
 **Functions** can be defined using `=`, if you care to give them a
@@ -175,7 +177,7 @@ This is of course valid for function arguments as well
 
 Regular expressions are valid annotations
 
-    f{R"x"? s} = s + " is EXTREME"
+    f{R"^x"? s} = s + " is EXTREME"
     f{"xtreme frisbee"} ;; "xtreme frisbee is EXTREME"
     f{"frisbee"}        ;; error!
 
@@ -469,4 +471,45 @@ also act as a coercer:
     ;; name is "add"
     ;; args is {1, 2}
 
+
+## Regular expressions
+
+`R"regexp"` specifies a regular expression using the same semantics as
+JavaScript. `R.gi"regexp"` is equivalent to JS's `/regexp/gi`.
+
+Earl Grey also provides a regular expression sub-language used like
+`R'[expr]` where:
+
+* `any` matches one arbitrary character
+* `start` and `end` match the beginning/end of the string
+* `x` is equivalent to the regular expression `/\x/`, for most x
+* `*expr` ==> `/expr*/`
+* `+expr` ==> `/expr+/`
+* `?expr` ==> `/expr?/`
+* `e1 or e2` ==> `/e1|e2/`
+* `in "..."` ==> `/[...]/`
+* `not in "..."` ==> `/[^...]/`
+* `[e1, e2, ...]` ==> `(?:e1e2...)` (non-capturing)
+* `{...}` ==> `(...)` (capturing)
+
+Examples:
+
+    R'any                      ==> /./
+    R'[start, *"a", end]       ==> /^a*$/
+    R'["'", * not in "'", "'"] ==> /'[^']*'/
+    R'[start, raw "." or end]  ==> /^(?:.|$)/
+
+The operators are prefix to make blocks more natural to write. Note
+that `|` does not mean "or".
+
+    R' | start
+       | + in "0-9_"
+       | ? [".", {+ digit}]
+       | ? | in "eE"
+           | {? in "+-", + digit}
+    ==> /^[0-9_]+(?:\.(\d+))(?:[eE]([+\-]\d+))?/
+
+This domain specific language should be primarily used in situations
+where standard regular expression syntax becomes unwieldy (long
+regular expressions, or that require a lot of escaping).
 

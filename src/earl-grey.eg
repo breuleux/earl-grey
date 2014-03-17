@@ -80,7 +80,7 @@ regexps = {
 
   op2 = Rx
      start
-     >>"([{}]),"
+     >>"[{}],"
 
   op3 = Rx
      start
@@ -351,7 +351,7 @@ order_map = {
 
          ;; Others
          default = {{2r1000, 900}, {2r0100, 901}}
-         WHITE   = {{2r1111, 1000}, {2r1111, 1001}}
+         WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
          ":"    => {{2r1111, 1001}, {2r1111, 2}}
       }
       short = {
@@ -1153,11 +1153,72 @@ rx_build{|>} =
    otherA -> throw "OopsF"
 
 
+rx_build2{|>} =
+   .any -> "."
+   .start -> "^"
+   .end -> "$"
+   .alpha -> "\\a"
+   .digit -> "\\d"
+   .word -> "\\w"
+   .space -> "\\s"
+   .boundary -> "\\b"
+   .a -> "\\a"
+   .d -> "\\d"
+   .w -> "\\w"
+   .s -> "\\s"
+   .b -> "\\b"
+
+   {.value, x} -> rx_quote{x}
+
+   {.send, "raw", {.value, s}} ->
+      s
+
+   {.send, |>, {.data, a, b}} ->
+      "||" ->
+         rx_wrap{rx_build2{a} + "|" + rx_build2{b}}
+      "or" ->
+         rx_wrap{rx_build2{a} + "|" + rx_build2{b}}
+      "*" ->
+         null? = a
+         rx_wrap{rx_build2{b} + "*"}
+      "+" ->
+         null? = a
+         rx_wrap{rx_build2{b} + "+"}
+      "?" ->
+         null? = a
+         rx_wrap{rx_build2{b} + "?"}
+      "in" ->
+         null? = a
+         {.value, v} = b
+         ["[" + x + "]"] where
+            x = rx_quote2{v}
+      "not" ->
+         null? = a
+         b as {.send, "in", {.data, null?, {.value, v}}}
+         ["[^" + x + "]"] where
+            x = rx_quote2{v}
+
+   {.data, args*} ->
+      "(" + args.map{rx_build2}.join{""} + ")"
+   {.multi, args*} ->
+      "(?:" + args.map{rx_build2}.join{""} + ")"
+   otherA -> throw "OopsF"
+
+
 stdenv.register_macro{"Rx"} with {{context, env}, expr} ->
    {.send, "RegExp", {.array, {.value, rx_build{expr}}}}
 
 stdenv.register_macro{"Rxg"} with {{context, env}, expr} ->
    {.send, "RegExp", {.array, {.value, rx_build{expr}}, {.value, "g"}}}
+
+
+stdenv.register_macro{"R", mac} where mac{{context, env}, expr, flags} =
+   flags := flags or ""
+   expr |>
+      {.send, ".", {.data, null?, flag}} ->
+         {.macro, m} where m{ctx, x} = mac{ctx, x, flags + flag}
+      {.value, String? v} -> 'RegExp{^=v, ^=flags}
+      {.send, "'", {.data, null?, arg}} -> 'RegExp{^=rx_build2{arg}, ^=flags}
 
 
 stdenv.register_macro{"?"} with {{context, env}, |>} ->
