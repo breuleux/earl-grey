@@ -485,21 +485,44 @@ finalize{|>} =
          {{":"}, {f, body}} ->
             {.send, f, {.data, body}}
 
-         {{"with"}, {target, body}} ->
-            body := body |>
-               {.multi, rest*} -> rest
-               other -> {body}
-            target |>
-               null? ->
-                  {.data}.concat{body}
-               when target.fromop ->
-                  {.send, target, {.data}.concat{body}}
-               {.send, f, {.data, args*}} ->
-                  {.send, f, {.data}.concat{args}.concat{body}}
+         {{"with"}, {target, aslist! body}} ->
+
+            inserted = false
+            result = transform{target} with {|>} ->
+               "..." -> [inserted := true, {.multi, body*}]
+               [x when x.fromop] and {.send, f, {.data, a, b}} ->
+                   {.send, this{f}, {.data, this{a}, this{b}}}
                {.data, args*} ->
-                  target.concat{body}
-               other ->
-                  {.send, target, {.data}.concat{body}}
+                   tr := this
+                   {.data}.concat with patch_array.apply{null} with args each
+                      "..." -> [inserted := true, body]
+                      other -> {tr{other}}
+
+            ? | not inserted => target |>
+                null? ->
+                   {.data}.concat{body}
+                when target.fromop ->
+                   {.send, target, {.data}.concat{body}}
+                {.send, f, {.data, args*}} ->
+                   {.send, f, {.data}.concat{args}.concat{body}}
+                {.data, args*} ->
+                   target.concat{body}
+                other ->
+                   {.send, target, {.data}.concat{body}}
+              | else => result
+
+         ;; {{"with"}, {target, aslist! body}} ->
+         ;;    target |>
+         ;;       null? ->
+         ;;          {.data}.concat{body}
+         ;;       when target.fromop ->
+         ;;          {.send, target, {.data}.concat{body}}
+         ;;       {.send, f, {.data, args*}} ->
+         ;;          {.send, f, {.data}.concat{args}.concat{body}}
+         ;;       {.data, args*} ->
+         ;;          target.concat{body}
+         ;;       other ->
+         ;;          {.send, target, {.data}.concat{body}}
 
          {{"[" or ",", _*}, _} ->
             ? | [op == "["] => args := args.slice{1, -1}
@@ -685,7 +708,7 @@ expand.step := {{context, env}, expr and |>} ->
       {v, context} |>
          {undefined?, _} -> s
          {{.macro, m}, .head} -> v
-         {{.macro, m}, _} -> expand.step{{context, env}, m{env, context, null}}
+         {{.macro, m}, _} -> expand.step{{context, env}, m{{context, env}, null}}
          other -> v
 
    null? -> null
@@ -696,11 +719,11 @@ expand.step := {{context, env}, expr and |>} ->
 
    ;; TODO: fix the bug that forces "when true"
    {.macro, m} when true ->
-      expand.step{{context, env}, m{env, context, null}}
+      expand.step{{context, env}, m{{context, env}, null}}
 
    {.send, f, arg} ->
       expand.step{{.head, env}, f} |>
-         {.macro, m} -> expand.step{{context, env}, m{env, context, arg}}
+         {.macro, m} -> expand.step{{context, env}, m{{context, env}, arg}}
          other -> expr
 
    {type, args*} ->
@@ -717,8 +740,18 @@ aslist{|>} =
    other -> {other}
 
 
-nullenv = {resolve{x} = undefined}
+transform{expr, cb} =
+   tr{x} = transform{x, cb}
+   cb.call{tr, expr} !!
+      expr |>
+         null? -> null
+         String? s -> s
+         {.value, v} -> expr
+         {name, args*} ->
+            {name, args.map{tr}*}
 
+
+nullenv = {resolve{x} = undefined}
 
 stdenv = Env{nullenv}
 
@@ -749,38 +782,49 @@ stdenv.register{">>", "___shr"}
 stdenv.register{">>>", "___shr2"}
 stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
-stdenv.register{"++", "___plusplus"}
+;; stdenv.register{"++", "___plusplus"}
 stdenv.register{"--", "___minusminus"}
 
+stdenv.register_macro{"++"} with {_, |>} ->
+   {.data, null?, x} -> '[`___plusplus` ^x]
+   {.data, x, null?} -> {.send, "___plusplus", {.data, x, null}}
+   {.data, x, y} -> '[^x].concat{^y}
+   null? -> '[{x, y} -> x.concat{y}]
 
-;;stdenv.register_macro{"TEST"} with {env, context, expr} -> [
+stdenv.register_macro{".."} with {_, |>} ->
+   {.data, null?, x} -> 'range{1, ^x}
+   {.data, x, null?} -> 'range{^x}
+   {.data, x, y} -> 'range{^x, ^y}
+   null? -> 'range
+
+;;stdenv.register_macro{"TEST"} with {{context, env}, expr} -> [
 ;;   {.splice, "a", "b"}
 ;;]
 
-make_checker{value, op} = {env, context, expr} ->
+make_checker{value, op} = {{context, env}, expr} ->
    {.send, op, {.data, expr[1], value}}
 
 
-stdenv.register_macro{"**"} with {env, context, {.data, a, b}} ->
+stdenv.register_macro{"**"} with {{context, env}, {.data, a, b}} ->
    {.send, {.send, .Math, {.value, .pow}}, {.data, a, b}}
 
-stdenv.register_macro{"//"} with {env, context, {.data, a, b}} ->
+stdenv.register_macro{"//"} with {{context, env}, {.data, a, b}} ->
    {.send, {.send, .Math, {.value, .floor}}, {.data, div}} where
       div = {.send, "___div", {.data, a, b}}
 
-stdenv.register_macro{"<>"} with {env, context, {.data, null?, x}} ->
+stdenv.register_macro{"<>"} with {{context, env}, {.data, null?, x}} ->
    {.send, libf{"pr"}, {.data, x}}
 
 
-stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
+stdenv.register_macro{"#"} with {{context, env}, {.data, null?, tag}} ->
    tag := {.value, tag}
-   {.macro, f} where f{env, |>, expr} =
+   {.macro, f} where f{{|>, env}, expr} =
       .pattern ->
-          checker_mac = {.macro, f} where f{env, context, expr} =
+          checker_mac = {.macro, f} where f{{context, env}, expr} =
              {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
           expr |>
              {.data, subp*} ->
-                deconstructor_mac = {.macro, f} where f{env, context, expr} =
+                deconstructor_mac = {.macro, f} where f{{context, env}, expr} =
                    {.data, {.value, true}, expr[1]}
                 {.check, checker_mac, {.project, deconstructor_mac,
                                                  {.duck}.concat{subp}}}
@@ -800,11 +844,11 @@ stdenv.register_macro{"#"} with {env, context, {.data, null?, tag}} ->
                 {.send, factory, other}
 
 
-stdenv.register_macro{"when"} with {env, context, {.data, |>, condition}} ->
+stdenv.register_macro{"when"} with {{context, env}, {.data, |>, condition}} ->
    null? -> {.test, condition, {.ignore}}
    other -> {.test, condition, other}
 
-andf{env, context, expr} =
+andf{{context, env}, expr} =
    {context, expr} |>
       {.pattern, {.data, a, b}} ->
          {.all, a, b}
@@ -815,7 +859,7 @@ andf{env, context, expr} =
 stdenv.register_macro{"&&"} with andf
 stdenv.register_macro{"and"} with andf
 
-orf{env, context, expr} =
+orf{{context, env}, expr} =
    {context, expr} |>
       {.pattern, {.data, a, b}} ->
          {.any, a, b}
@@ -827,7 +871,7 @@ stdenv.register_macro{"||"} with orf
 stdenv.register_macro{"or"} with orf
 
 
-partial_pattern{operator} = {env, context, expr} ->
+partial_pattern{operator} = {{context, env}, expr} ->
    {context, expr} |>
       {.pattern, {.data, null?, val}} ->
          {.check, {.macro, make_checker{val, operator}}, {.ignore}}
@@ -838,13 +882,13 @@ partial_pattern{operator} = {env, context, expr} ->
 
 stdenv.register_macro{"=="} with partial_pattern{"___eq"}
 stdenv.register_macro{"!="} with partial_pattern{"___neq"}
-stdenv.register_macro{"<="} with partial_pattern{"___leq"}
-stdenv.register_macro{">="} with partial_pattern{"___geq"}
+stdenv.register_macro{"<="} with partial_pattern{"___lte"}
+stdenv.register_macro{">="} with partial_pattern{"___gte"}
 stdenv.register_macro{"<"} with partial_pattern{"___lt"}
 stdenv.register_macro{">"} with partial_pattern{"___gt"}
 
 
-stdenv.register_macro{"*"} with {env, context, expr} ->
+stdenv.register_macro{"*"} with {{context, env}, expr} ->
    {context, expr} |>
       {.pattern, null?} ->
          {.dynsplice, {.ignore}}
@@ -856,24 +900,24 @@ stdenv.register_macro{"*"} with {env, context, expr} ->
          {.send, "___times", expr}
 
 
-stdenv.register_macro{"."} with {env, context, |>} ->
+stdenv.register_macro{"."} with {{context, env}, |>} ->
    {.data, null?, String? s or {.symbol, s}} ->
       {.value, s}
    other ->
       throw {"invalid", other}
 
 
-stdenv.register_macro{"where"} with {env, context, {.data, a, b}} ->
+stdenv.register_macro{"where"} with {{context, env}, {.data, a, b}} ->
    {.send, .let, {.data, b, a}}
 
 
-stdenv.register_macro{"let"} with {env, context, {.data, a, b}} ->
+stdenv.register_macro{"let"} with {{context, env}, {.data, a, b}} ->
    bindings = aslist{a}
    body = aslist{b}
    {.multi}.concat{bindings}.concat{body}
 
 
-stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
+stdenv.register_macro{"->"} with {{context, env}, {.data, args, stmts}} ->
    body = {.multi}
    {placeholder, newargs} = find_arrow{args}
    newargs := newargs.slice{1} each
@@ -889,7 +933,7 @@ stdenv.register_macro{"->"} with {env, context, {.data, args, stmts}} ->
    {.lambda, newargs, body}
 
 
-stdenv.register_macro{"each"} with {env, |>, {.data, arr, patterns}} ->
+stdenv.register_macro{"each"} with {{|>, env}, {.data, arr, patterns}} ->
    .multi ->
       temp = gensym{}
       len = gensym{}
@@ -933,17 +977,17 @@ stdenv.register_macro{"each"} with {env, |>, {.data, arr, patterns}} ->
       stmts
 
 
-stdenv.register_macro{"=>"} with {env, context, {.data, binding, value}} ->
+stdenv.register_macro{"=>"} with {{context, env}, {.data, binding, value}} ->
    ? | [context == .data] =>
        {.assoc, binding, value}
      | else =>
        throw ["Illegal context for '=>' (" + context + ")"]
 
 
-stdenv.register_macro{"as"} with {env, context, {.data, expr, variable}} ->
+stdenv.register_macro{"as"} with {{context, env}, {.data, expr, variable}} ->
    '[^variable = ^expr]
 
-stdenv.register_macro{"="} with {env, context, expr} ->
+stdenv.register_macro{"="} with {{context, env}, expr} ->
    {context, expr} |>
 
       {.multi or .expr, {.data, lhs, rhs}} ->
@@ -983,10 +1027,10 @@ stdenv.register_macro{"="} with {env, context, expr} ->
          throw ["Illegal context for '=' (" + context + ")"]
 
 
-make_assigner{op} = {env, context, {.data, a, b}} ->
+make_assigner{op} = {{context, env}, {.data, a, b}} ->
    {.assign, a, {.send, op, {.data, a, b}}}
 
-stdenv.register_macro{":="} with {env, context, {.data, a, b}} ->
+stdenv.register_macro{":="} with {{context, env}, {.data, a, b}} ->
    {.assign, a, b}
 
 stdenv.register_macro{"+="} with make_assigner{"+"}
@@ -998,10 +1042,10 @@ stdenv.register_macro{">>="} with make_assigner{">>"}
 stdenv.register_macro{">>>="} with make_assigner{">>>"}
 
 
-stdenv.register_macro{"if"} with {env, context, {.data, test, a, b}} ->
+stdenv.register_macro{"if"} with {{context, env}, {.data, test, a, b}} ->
    {.if, test, a, b}
 
-stdenv.register_macro{"cond"} with {env, context, {.data, clauses}} ->
+stdenv.register_macro{"cond"} with {{context, env}, {.data, clauses}} ->
    handle{xs} =
       xs |> | {} -> {.value, false}
             | {{.send, "=>", {.data, test, body}}, rest*} ->
@@ -1012,15 +1056,15 @@ stdenv.register_macro{"cond"} with {env, context, {.data, clauses}} ->
    handle{aslist{clauses}}
 
 
-stdenv.register_macro{"while"} with {env, context, expr} ->
+stdenv.register_macro{"while"} with {{context, env}, expr} ->
    {.data, test, body} = expr
    {.js_while, test, body}
 
-stdenv.register_macro{"for"} with {env, context, expr} ->
+stdenv.register_macro{"for"} with {{context, env}, expr} ->
    {.data, {.multi, a, b, c}, body} = expr
    {.js_for, a, b, c, body}
 
-stdenv.register_macro{"!!"} with {env, context, {.data, expr, matchers}} ->
+stdenv.register_macro{"!!"} with {{context, env}, {.data, expr, matchers}} ->
    excv = gensym{}
    res = gensym{}
    m = aslist{matchers} |>
@@ -1036,16 +1080,16 @@ stdenv.register_macro{"!!"} with {env, context, {.data, expr, matchers}} ->
       res}
 
 
-stdenv.register_macro{"return"} with {env, context, expr} ->
+stdenv.register_macro{"return"} with {{context, env}, expr} ->
    {.js_return, expr}
 
-stdenv.register_macro{"throw"} with {env, context, expr} ->
+stdenv.register_macro{"throw"} with {{context, env}, expr} ->
    {.js_throw, expr}
 
-stdenv.register_macro{"break"} with {env, context, expr} ->
+stdenv.register_macro{"break"} with {{context, env}, expr} ->
    {.js_break}
 
-stdenv.register_macro{"continue"} with {env, context, expr} ->
+stdenv.register_macro{"continue"} with {{context, env}, expr} ->
    {.js_continue}
 
 
@@ -1109,14 +1153,14 @@ rx_build{|>} =
    otherA -> throw "OopsF"
 
 
-stdenv.register_macro{"Rx"} with {env, context, expr} ->
+stdenv.register_macro{"Rx"} with {{context, env}, expr} ->
    {.send, "RegExp", {.array, {.value, rx_build{expr}}}}
 
-stdenv.register_macro{"Rxg"} with {env, context, expr} ->
+stdenv.register_macro{"Rxg"} with {{context, env}, expr} ->
    {.send, "RegExp", {.array, {.value, rx_build{expr}}, {.value, "g"}}}
 
 
-stdenv.register_macro{"?"} with {env, context, |>} ->
+stdenv.register_macro{"?"} with {{context, env}, |>} ->
 
    {.data, null?, expr} ->
       {.send, "cond", {.data, expr}}
@@ -1127,11 +1171,11 @@ stdenv.register_macro{"?"} with {env, context, |>} ->
       checker = expr |>
          null? -> throw "can't use ? on its own"
          .String ->
-            {.macro, f} where f{env, context, {.data, expr}} =
+            {.macro, f} where f{{context, env}, {.data, expr}} =
                {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
                                         {.value, "string"}}}
          .Number ->
-            {.macro, f} where f{env, context, {.data, expr}} =
+            {.macro, f} where f{{context, env}, {.data, expr}} =
                {.send, "___eq", {.data, {.send, "typeof", {.data, expr}}
                                         {.value, "number"}}}
          .true -> {.macro, {_, _, {.data, expr}} -> expr}
@@ -1142,7 +1186,7 @@ stdenv.register_macro{"?"} with {env, context, |>} ->
          .undefined -> {.macro, make_checker{{.value, undefined}, "___is"}}
          other -> {.send, libf{"checker"}, {.data, expr}}
 
-      mac{env, |>, expr} =
+      mac{{|>, env}, expr} =
          .pattern -> expr |>
             {.data, subp*} ->
                projector = {.send, libf{.deconstructor}
@@ -1155,18 +1199,18 @@ stdenv.register_macro{"?"} with {env, context, |>} ->
       {.macro, mac}
 
 
-stdenv.register_macro{"!"} with {env, context, {.data, expr, null?}} ->
+stdenv.register_macro{"!"} with {{context, env}, {.data, expr, null?}} ->
    projector = expr |>
       null? -> throw "can't use ! on its own"
       .String ->
-         {.macro, f} where f{env, context, {.data, expr}} =
+         {.macro, f} where f{{context, env}, {.data, expr}} =
             {.data, {.value, true}, {.send, "String", {.data, expr}}}
       .Number ->
-         {.macro, f} where f{env, context, {.data, expr}} =
+         {.macro, f} where f{{context, env}, {.data, expr}} =
             {.data, {.value, true}, {.send, "parseFloat", {.data, expr}}}
       other -> {.send, libf{"projector"}, {.data, expr}}
 
-   mac{env, |>, expr} =
+   mac{{|>, env}, expr} =
       .pattern -> {.project, projector, expr or {.ignore}}
       other -> {.send, {.send, projector, {.data, expr}}, {.value, 1}}
 
@@ -1453,7 +1497,7 @@ same{a, b} = {a, b} |>
    other ->
       false
 
-stdenv.register_macro{"|>"} with {env, context, {.data, to_match, cl}} ->
+stdenv.register_macro{"|>"} with {{context, env}, {.data, to_match, cl}} ->
    temp = gensym{}
    clauses = cl |>
       {.multi, cls*} -> cls
@@ -1527,11 +1571,11 @@ qq{expr and |>} =
    {name, args*} ->
       qqstruct{name, args each arg -> qq{arg}}
 
-stdenv.register_macro{"'"} with {env, context, {.data, null?, expr}} ->
+stdenv.register_macro{"'"} with {{context, env}, {.data, null?, expr}} ->
    qq{expr}
 
 
-stdenv.register_macro{"req"} with {env, context, {.data, expr}} ->
+stdenv.register_macro{"req"} with {{context, env}, {.data, expr}} ->
 
    stmts = {}
 
@@ -1563,7 +1607,7 @@ stdenv.register_macro{"req"} with {env, context, {.data, expr}} ->
 
 
 
-stdenv.register_macro{"%"} with {env, context, {.data, descr, contents}} ->
+stdenv.register_macro{"%"} with {{context, env}, {.data, descr, contents}} ->
    tag = {.value, "div"}
    id = {.value, null}
    classes = {.data}
@@ -1591,7 +1635,7 @@ stdenv.register_macro{"%"} with {env, context, {.data, descr, contents}} ->
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
 
-stdenv.register_macro{"chain"} with {env, context, {.data, defn, body}} ->
+stdenv.register_macro{"chain"} with {{context, env}, {.data, defn, body}} ->
    newenv = env.fork{}
    temp = gensym{}
 
@@ -1599,7 +1643,7 @@ stdenv.register_macro{"chain"} with {env, context, {.data, defn, body}} ->
       {.send, "as", {.data, x, y}} -> {y, x}
       other -> {"@", other}
 
-   newenv.register_macro{variable} with f where f{env, context, |>} =
+   newenv.register_macro{variable} with f where f{{context, env}, |>} =
       null? -> temp
       {.data, null?, |>} ->
          String? s or {.symbol, s} ->
@@ -1619,7 +1663,7 @@ stdenv.register_macro{"chain"} with {env, context, {.data, defn, body}} ->
 
 
 
-stdenv.register_macro{"macro"} with {env, context, expr} ->
+stdenv.register_macro{"macro"} with {{context, env}, expr} ->
    {.data, {.send, name, args}, body} = expr
    fn = '[^args -> ^body]
    code = generate_from_ast{fn}

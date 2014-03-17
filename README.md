@@ -27,6 +27,20 @@ the **with** operator
     f{x, y}
     f{x} with y ;; same thing
 
+You can use the ellipsis `...` to tell `with` where to fill in the
+argument(s).
+
+    f{..., z} with y   ;; ==> f{y, z}
+    f{a, ..., d} with
+       b
+       c               ;; ==> f{a, b, c, d}
+
+`with` does *direct* substitution. In the below example the scope for
+`x * x` is the scope active where the ellipsis is.
+
+    {1, 2, 3}.map{{x} -> ...} with x * x
+    ;; {1, 4, 9}
+
 **Declare variables** with the `=` operator. **Assign** to them with
 the `:=` operator
 
@@ -119,6 +133,28 @@ The `each` operator also serves for list comprehensions:
 
     xs = {-1, 2, -3, 4} each n when n > 0 -> n
     ;; {2, 4}
+
+
+## Let and where
+
+You can define temporary variables with **let**:
+
+    let [x = 1, y = 2]:
+       x + y
+
+Alternatively, you can use **where**:
+
+    x + y where
+       x = 1
+       y = 2
+
+`where` is a good way to define callback functions in the middle of an
+expression. For instance, `setTimeout` takes a timeout argument
+*after* the callback, which is awkward. You also get to name the
+function so that you can call it recursively.
+
+    setTimeout{f, 1000} where f{} =
+       alert{"I am a good pop-up, don't close me!"}
 
 
 ## Optional type annotations
@@ -401,4 +437,36 @@ you can change the meaning of addition:
 
 This change won't leak outside of the scope of the declaration, so
 addition in other code will not be affected.
+
+
+## Ad hoc structs
+
+`#name{args*}` creates an *ad hoc* named struct, which doesn't need to
+be declared. They are matchable, so you can write code such as this:
+
+    calc{|>} =
+        Number? n -> n
+        #add{m, n} -> calc{m} + calc{n}
+        #sub{m, n} -> calc{m} - calc{n}
+        #mul{m, n} -> calc{m} * calc{n}
+        #div{m, n} -> calc{m} / calc{n}
+        #sub{n} -> -calc{n}
+
+    calc with #div{#add{1, 13}, #sub{2}} ;; -7
+
+There is no need for a question mark in that case. A struct label can
+also act as a coercer:
+
+    #foo! #foo{1, 2}   ;; #foo{1, 2}
+    #foo! 1            ;; #foo{1}
+
+`Struct` can be used to create or check for structs in a general way:
+
+    a = Struct{"add", 1, 2} ;; ==> #add{1, 2}
+    Struct? a               ;; true
+
+    Struct? {name, args*} = a
+    ;; name is "add"
+    ;; args is {1, 2}
+
 

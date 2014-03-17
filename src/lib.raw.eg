@@ -17,6 +17,12 @@ patch_array{} =
       r := r.concat{___js_fetch{arguments, i}}
    r
 
+range{from, to} =
+   rval = {}
+   for [i = from, i <= to, i++]:
+      rval.push{i}
+   rval
+
 StructFactory{name} =
    make{} =
       r = Array.prototype.slice.call{arguments, 0}
@@ -131,3 +137,4 @@ RegExp.prototype.___project := {value} ->
    value.match{this} |>
       null? m -> {false, null}
       m -> {true, m}
+
