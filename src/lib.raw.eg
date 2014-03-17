@@ -103,10 +103,11 @@ checker{type} =
 
 projector{type} = {value} ->
    type.___project |>
-      undefined? ->
-         ? | [value instanceof type] => {true, value}
-           | else => {false, null}
+      undefined? -> {true, type{value}}
       f -> f.call{type, value}
+
+;; ? | [value instanceof type] => {true, value}
+;;   | else => {false, null}
 
 
 deconstructor{type} = {value} ->
