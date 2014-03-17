@@ -31,7 +31,7 @@ regexps = {
      [>>"a-zA-Z$_"]
      [>>"a-zA-Z$_0-9"]*
 
-  id_f = {m, wsb, wsa, last_op} -> {.ID, .ID, m[0]}
+  id_f = {m, wsb, wsa, last_op} -> ~ID{.ID, m[0]}
 
 
   numr = Rx
@@ -46,7 +46,7 @@ regexps = {
      ? | frac =>
          frac := frac.replace{Rxg"_", ""}
          value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
-     {.ID, .NUM, value}
+     ~ID{.NUM, value}
 
 
   num = Rx
@@ -56,7 +56,7 @@ regexps = {
      [>>"eE", {[>>"+-"]?, [>>"0-9_"]+}]?
 
   num_f = {m, wsb, wsa, last_op} ->
-     {.ID, .NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
+     ~ID{.NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
 
 
   str = Rx
@@ -72,7 +72,7 @@ regexps = {
         "\\n" => "\n"
      }
      r = m[1].replace{Rxg{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
-     {.ID, .STR, r}
+     ~ID{.STR, r}
 
   op = Rx
      start
@@ -107,25 +107,25 @@ regexps = {
                .SFX -> if{wsb, .wide, .short}
                .PFX -> if{wsa, .wide, .short}
                other -> throw "OopsA"
-         {.OP, fixity, width, op}
+         ~OP{fixity, width, op}
 
        | [wsa and wsb] =>
-         {.OP, if{last_op, .PFX, .IFX}, .wide, op}
+         ~OP{if{last_op, .PFX, .IFX}, .wide, op}
 
        | [not wsa and not wsb] =>
-         {.OP, if{last_op, .PFX, .IFX}, .short, op}
+         ~OP{if{last_op, .PFX, .IFX}, .short, op}
 
        | [wsa and last_op] =>
-         {.OP, .PFX, .wide, op}
+         ~OP{.PFX, .wide, op}
 
        | wsa =>
-         {.OP, .SFX, .short, op}
+         ~OP{.SFX, .short, op}
 
        | wsb =>
-         {.OP, .PFX, .short, op}
+         ~OP{.PFX, .short, op}
 
        | else =>
-         {.OP, .PFX, .short, op}
+         ~OP{.PFX, .short, op}
 
   indent = Rx
      start
@@ -165,35 +165,35 @@ indent_tracker{} =
       {.INDENT, new_indent and |>} ->
          when [curr == false] ->
             curr := new_indent
-            {{.OP, .IFX, .wide, ","}}
+            {~OP{.IFX, .wide, ","}}
 
          [> curr] ->
             stack.push{curr}
              curr := new_indent
-            {{.OP, .PFX, .wide, "["}}
+            {~OP{.PFX, .wide, "["}}
 
          [== curr] ->
-            {{.OP, .IFX, .wide, ","}}
+            {~OP{.IFX, .wide, ","}}
 
          [< curr] ->
             rval = {}
             while [[stack.length > 0] and [new_indent < curr]]:
                curr := stack.pop{}
-               rval.push{{.OP, .SFX, .wide, "]"}}
-            rval.push{{.OP, .IFX, .wide, ","}}
+               rval.push{~OP{.SFX, .wide, "]"}}
+            rval.push{~OP{.IFX, .wide, ","}}
             rval
 
-      {.ID, stuff*} -> {token}
+      ~ID{stuff*} -> {token}
 
-      {.OP, fixity, width, "[" or "{"} ->
+      ~OP{fixity, width, "[" or "{"} ->
          stack.push{curr}
          stacks.push{stack}
          stack := {}
          curr := false
          {token}
 
-      {.OP, fixity, width, "]" or "}"} ->
-         rval = stack each _ -> {.OP, .SFX, .short, "]"}
+      ~OP{fixity, width, "]" or "}"} ->
+         rval = stack each _ -> ~OP{.SFX, .short, "]"}
          stack := stacks.pop{}
          curr := stack.pop{}
          rval.push{token}
@@ -369,6 +369,7 @@ order_map = {
          "not"  => {{2r1111, MAX}, {2r1111, 131}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "~" => {{2r1111, MAX}, {2r1111, 3000}}
          "@" => {{2r1111, MAX}, {2r1111, 3000}}
          "<>" => {{2r1111, MAX}, {2r1111, 5}}
          "(" => {{2r1111, MAX}, {2r1111, 1}}
@@ -379,6 +380,7 @@ order_map = {
          default = {{2r1111, MAX}, {2r1111, 1901}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "~" => {{2r1111, MAX}, {2r1111, 3000}}
          "@" => {{2r1111, MAX}, {2r1111, 3000}}
          "(" => {{2r1111, MAX}, {2r1111, 1}}
          "[" => {{2r1111, MAX}, {2r1111, 1}}
@@ -469,10 +471,10 @@ order{o1, o2} =
 
 
 finalize{|>} =
-   {.ID, value} -> value
-   {.NUM, value} -> {.value, value}
-   {.STR, value} -> {.value, value}
-   {.VOID} -> null
+   ~ID{value} -> value
+   ~NUM{value} -> {.value, value}
+   ~STR{value} -> {.value, value}
+   ~VOID{} -> null
 
    {ops, args*} ->
       ops := ops each o -> o[2]
@@ -480,17 +482,17 @@ finalize{|>} =
       {ops, args} |>
 
          {{"WHITE", ":"}, {f, arg, body}} ->
-            {.send, f, {.data, arg, body}}
+            {.send, f, ~data{arg, body}}
 
          {{":"}, {f, body}} ->
-            {.send, f, {.data, body}}
+            {.send, f, ~data{body}}
 
          {{"with"}, {target, aslist! body}} ->
 
             inserted = false
             result = transform{target} with {|>} ->
                "..." -> [inserted := true, {.multi, body*}]
-               [x when x.fromop] and {.send, f, {.data, a, b}} ->
+               [x when x.fromop] and {.send, f, ~data{a, b}} ->
                    {.send, this{f}, {.data, this{a}, this{b}}}
                {.data, args*} ->
                    tr := this
@@ -763,7 +765,7 @@ stdenv.register{"mod", "___mod"}
 stdenv.register{"^", "___binxor"}
 stdenv.register{"&", "___binand"}
 stdenv.register{"|", "___binor"}
-stdenv.register{"~", "___binnot"}
+;; stdenv.register{"~", "___binnot"}
 stdenv.register{"&&", "___and"}
 stdenv.register{"||", "___or"}
 ;; stdenv.register{"!", "___not"}
@@ -784,6 +786,7 @@ stdenv.register{"in", "___in"}
 stdenv.register{"instanceof", "___instanceof"}
 ;; stdenv.register{"++", "___plusplus"}
 stdenv.register{"--", "___minusminus"}
+
 
 stdenv.register_macro{"++"} with {_, |>} ->
    {.data, null?, x} -> '[`___plusplus` ^x]
@@ -820,28 +823,49 @@ stdenv.register_macro{"#"} with {{context, env}, {.data, null?, tag}} ->
    tag := {.value, tag}
    {.macro, f} where f{{|>, env}, expr} =
       .pattern ->
-          checker_mac = {.macro, f} where f{{context, env}, expr} =
-             {.send, "___eq", {.data, {.send, expr[1], {.value, "#"}}, tag}}
+          checker_mac = {.macro, f} where f{_, {.data, expr}} =
+             '[[^expr]"#" == ^tag]
           expr |>
              {.data, subp*} ->
-                deconstructor_mac = {.macro, f} where f{{context, env}, expr} =
-                   {.data, {.value, true}, expr[1]}
-                {.check, checker_mac, {.project, deconstructor_mac,
-                                                 {.duck}.concat{subp}}}
+                deconstructor_mac = {.macro, f} where f{_, expr} =
+                   '{^=true, ^expr[1]}
+                {.check, checker_mac
+                         {.project, deconstructor_mac, {.duck, subp*}}}
              other ->
                 {.check, checker_mac, expr or {.ignore}}
       _ ->
           expr |>
              null? ->
-                {.send, libf{"StructFactory"}, d} where d =
-                   {.data, tag}
+                'StructFactory{^tag}
              {.data, args*} ->
-                {.send, libf{"Struct"}, d} where d =
-                   {.data, tag}.concat{args}
+                'Struct{^tag, ^*args}
              other ->
-                factory = {.send, libf{"StructFactory"}, d} where
-                   d = {.data, tag}
-                {.send, factory, other}
+                '[StructFactory{^tag}][^other]
+
+
+stdenv.register_macro{"~"} with {{context, env}, {.data, null?, tag}} ->
+   tag := {.value, tag}
+   {.macro, f} where f{{|>, env}, expr} =
+      .pattern ->
+          checker_mac = {.macro, f} where f{_, {.data, expr}} =
+             '[[^expr instanceof Array] and [^expr][0] == ^tag]
+          expr |>
+             {.data, subp*} ->
+                deconstructor_mac = {.macro, f} where f{_, expr} =
+                   '{^=true, [^expr[1]].slice{1}}
+                {.check, checker_mac
+                         {.project, deconstructor_mac, {.duck, subp*}}}
+             other ->
+                {.check, checker_mac, expr or {.ignore}}
+      _ ->
+          expr |>
+             null? ->
+                '{^tag}
+             {.data, args*} ->
+                '{^tag, ^*args}
+             other ->
+                '{^tag}[^other]
+
 
 
 stdenv.register_macro{"when"} with {{context, env}, {.data, |>, condition}} ->
@@ -893,6 +917,8 @@ stdenv.register_macro{"*"} with {{context, env}, expr} ->
       {.pattern, null?} ->
          {.dynsplice, {.ignore}}
       {.pattern or .data, {.data, val, null?}} ->
+         {.dynsplice, val}
+      {.pattern or .data, {.data, null?, val}} ->
          {.dynsplice, val}
       {_, null?} ->
          "___times"
@@ -1629,7 +1655,14 @@ qq{expr and |>} =
       insert
    {.send, "^=", {.data, null?, insert}} ->
       qqstruct{.value, {insert}}
+   {.send, "^*", {.data, null?, insert}} ->
+      '[* ^insert]
    {name, args*} ->
+      ;;{.name}.concat with patch_array.apply{null} with args each
+      ;;   {.send, "^*", {.data, null?, insert}} ->
+      ;;      insert
+      ;;   other -> {tr{other}}
+
       qqstruct{name, args each arg -> qq{arg}}
 
 stdenv.register_macro{"'"} with {{context, env}, {.data, null?, expr}} ->
