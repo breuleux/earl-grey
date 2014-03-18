@@ -26,43 +26,43 @@ regexps = {
    {unkn,   unkn_f}
 } where
 
-  id = Rx
+  id = R'
      start
-     [>>"a-zA-Z$_"]
-     [>>"a-zA-Z$_0-9"]*
+     in "a-zA-Z$_"
+     * in "a-zA-Z$_0-9"
 
   id_f = {m, wsb, wsa, last_op} -> ~ID{.ID, m[0]}
 
 
-  numr = Rx
+  numr = R'
      start
-     {d+}, >>"rR"
-     {[>>"A-Za-z0-9_"]+}
-     [".", {[>>"A-Za-z0-9_"]+}]?
+     {+d}, in "rR"
+     {+ in"A-Za-z0-9_"}
+     ?[".", {+ in "A-Za-z0-9_"}]
 
   numr_f = {m, wsb, wsa, last_op} ->
      {_, radix, int, frac} = m
-     value := parseInt{int.replace{Rxg"_", ""}, radix}
+     value := parseInt{int.replace{R.g"_", ""}, radix}
      ? | frac =>
-         frac := frac.replace{Rxg"_", ""}
+         frac := frac.replace{R.g"_", ""}
          value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
      ~ID{.NUM, value}
 
 
-  num = Rx
+  num = R'
      start
-     {[>>"0-9_"]+}
-     [".", {d+}]?
-     [>>"eE", {[>>"+-"]?, [>>"0-9_"]+}]?
+     {+ in "0-9_"}
+     ?[".", {+d}]
+     ?[in "eE", {? in "+-", + in "0-9_"}]
 
   num_f = {m, wsb, wsa, last_op} ->
-     ~ID{.NUM, parseFloat{m[0].replace{Rxg"_", ""}}}
+     ~ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
 
 
-  str = Rx
+  str = R'
      start
      "\""
-     {["\\\\" or "\\\"" or [>>! "\""]]*}
+     {*["\\\\" or "\\\"" or [not in "\""]]}
      "\""
 
   str_f = {m, wsb, wsa, last_op} ->
@@ -71,18 +71,18 @@ regexps = {
         "\\\\" => "\\"
         "\\n" => "\n"
      }
-     r = m[1].replace{Rxg{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
+     r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
      ~ID{.STR, r}
 
-  op = Rx
+  op = R'
      start
-     [>> "+\\-*/~^<>=%&|?!@#.:'"]+
+     + in "+\\-*/~^<>=%&|?!@#.:'"
 
-  op2 = Rx
+  op2 = R'
      start
-     >>"[{}],"
+     in "[{}],"
 
-  op3 = Rx
+  op3 = R'
      start
      "with" or "where" or "when"
        \ or "and" or "not" or "or"
@@ -90,61 +90,61 @@ regexps = {
        \ or "each" or "as"
      boundary
 
-  op4 = Rx
+  op4 = R'
      start
-     "`", {[>>"A-Za-z0-9_"]+}, "`"
+     "`", {+ in "A-Za-z0-9_"}, "`"
 
   op_f = {m, wsb, wsa, last_op, column} ->
      op = m[1] or m[0]
      ? | [op == "|"] =>
-         {.INDENT, column - 1}
+          {.INDENT, column - 1}
 
        | [op in special_ops] =>
-         fixity = special_ops[op]
-         width =
-            fixity |>
-               .IFX -> if{wsb or wsa, .wide, .short}
-               .SFX -> if{wsb, .wide, .short}
-               .PFX -> if{wsa, .wide, .short}
-               other -> throw "OopsA"
-         ~OP{fixity, width, op}
+          fixity = special_ops[op]
+          width =
+             fixity |>
+                .IFX -> if{wsb or wsa, .wide, .short}
+                .SFX -> if{wsb, .wide, .short}
+                .PFX -> if{wsa, .wide, .short}
+                other -> throw "OopsA"
+          ~OP{fixity, width, op}
 
        | [wsa and wsb] =>
-         ~OP{if{last_op, .PFX, .IFX}, .wide, op}
+          ~OP{if{last_op, .PFX, .IFX}, .wide, op}
 
        | [not wsa and not wsb] =>
-         ~OP{if{last_op, .PFX, .IFX}, .short, op}
+          ~OP{if{last_op, .PFX, .IFX}, .short, op}
 
        | [wsa and last_op] =>
-         ~OP{.PFX, .wide, op}
+          ~OP{.PFX, .wide, op}
 
        | wsa =>
-         ~OP{.SFX, .short, op}
+          ~OP{.SFX, .short, op}
 
        | wsb =>
-         ~OP{.PFX, .short, op}
+          ~OP{.PFX, .short, op}
 
        | else =>
-         ~OP{.PFX, .short, op}
+          ~OP{.PFX, .short, op}
 
-  indent = Rx
+  indent = R'
      start
-     ["\n", {" "*}]+
+     +["\n", {*" "}]
 
   indent_f = {m, wsb, wsa, last_op} ->
      ilen = m[1].length
      {.INDENT, ilen}
 
 
-  cmnt = Rx
+  cmnt = R'
      start
      ";"
-     [>>!"\n"]*
+     * not in "\n"
 
   cmnt_f = {m, wsb, wsa, last_op} -> {.IGNORE}
 
 
-  unkn = Rx
+  unkn = R'
      start
      any
 
@@ -153,8 +153,8 @@ regexps = {
 
 
 ;; TODO: ignore blank lines before continuation
-ws_re = Rx[start, " "*, ["\n", " "*, "\\", " "*]*]
-eol_re = Rx[start, " "*, "\n" or end]
+ws_re = R'[start, *" ", *["\n", *" ", "\\", *" "]]
+eol_re = R'[start, *" ", "\n" or end]
 
 indent_tracker{} =
    curr = false
@@ -1119,59 +1119,10 @@ rx_wrap{x} =
    "(?:" + x + ")"
 
 rx_quote{x} =
-   x.replace{Rxg{>>".?*+^$[](){}|\\\\"}, "\\$1"}
+   x.replace{R.g'{in ".?*+^$[](){}|\\\\"}, "\\$1"}
 
 rx_quote2{x} =
-   x.replace{Rxg{>>"[](){}^"}, "\\$1"}
-
-rx_build{|>} =
-   .any -> "."
-   .start -> "^"
-   .end -> "$"
-   .alpha -> "\\a"
-   .digit -> "\\d"
-   .word -> "\\w"
-   .space -> "\\s"
-   .boundary -> "\\b"
-   .a -> "\\a"
-   .d -> "\\d"
-   .w -> "\\w"
-   .s -> "\\s"
-   .b -> "\\b"
-
-   ~value{x} -> rx_quote{x}
-
-   ~send{"raw", ~value{s}} ->
-      s
-
-   ~send{|>, ~data{a, b}} ->
-      "||" ->
-         rx_wrap{rx_build{a} + "|" + rx_build{b}}
-      "or" ->
-         rx_wrap{rx_build{a} + "|" + rx_build{b}}
-      "*" ->
-         null? = b
-         rx_wrap{rx_build{a} + "*"}
-      "+" ->
-         null? = b
-         rx_wrap{rx_build{a} + "+"}
-      "?" ->
-         null? = b
-         rx_wrap{rx_build{a} + "?"}
-      ">>" ->
-         null? = a
-         ["[" + x + "]"] where
-            x = rx_quote2{b[1]}
-      ">>!" ->
-         null? = a
-         ["[^" + x + "]"] where
-            x = rx_quote2{b[1]}
-
-   ~data{args*} ->
-      "(" + args.map{rx_build}.join{""} + ")"
-   ~multi{args*} ->
-      "(?:" + args.map{rx_build}.join{""} + ")"
-   otherA -> throw "OopsF"
+   x.replace{R.g'{in "[](){}^"}, "\\$1"}
 
 
 rx_build2{|>} =
@@ -1224,13 +1175,6 @@ rx_build2{|>} =
    ~multi{args*} ->
       "(?:" + args.map{rx_build2}.join{""} + ")"
    otherA -> throw "OopsF"
-
-
-stdenv.register_macro{"Rx"} with {{context, env}, expr} ->
-   ~send{"RegExp", ~array{~value{rx_build{expr}}}}
-
-stdenv.register_macro{"Rxg"} with {{context, env}, expr} ->
-   ~send{"RegExp", ~array{~value{rx_build{expr}}, ~value{"g"}}}
 
 
 stdenv.register_macro{"R", mac} where mac{{context, env}, expr, flags} =
@@ -1784,7 +1728,7 @@ translate{expr and |>, mode} =
                "\n" => "\\n"
                "\\" => "\\\\"
             }
-            v := v.replace{Rxg{"\"" or "\\" or "\n"}, {m} -> repl[m]}
+            v := v.replace{R.g'{"\"" or "\\" or "\n"}, {m} -> repl[m]}
             "\"" + v + "\""
          undefined? ->
             "(void 0)"
@@ -1916,7 +1860,7 @@ translate{expr and |>, mode} =
    ~send{f, msg and ~value{s}} ->
       cond:
          [[typeof{s} == "string"]
-          \ and s.match{Rx[start, [>>"a-zA-Z_$"]+, end]}] =>
+          \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
             translate.expr{trf + "." + trmsg, mode} where
                trf = translate{f, .expr}
                trmsg = translate{s, .expr}

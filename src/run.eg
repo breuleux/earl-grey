@@ -22,7 +22,7 @@ libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 
 run{|>} =
 
-   {} or {.i or .[in] or .interactive} ->
+   {} or {.i or "in" or .interactive} ->
       repl = require{.repl}
       ;; ctx = vm.createContext{global}
       vm.runInThisContext{libdata, "stdin"}
@@ -51,26 +51,24 @@ run{|>} =
       stats = fs.statSync{file}
 
       ? | stats.isDirectory{} =>
+          fs.mkdirSync{out} !! "ignore error"
           d = fs.readdirSync{file}
-          ? | not fs.existsSync{out} =>
-              fs.mkdirSync{out}
-          d.forEach with {x} ->
-             ? | x.match{Rx[".eg", end]} =>
-                 data = fs.readFileSync{path.join{file, x}, .utf8}
-                 outfile = path.join{out, x.replace{".eg", ".js"}}
-                 fs.writeFileSync{outfile} with
-                    eg.generate{data, prelude} + "\n" where
-                       prelude =
-                          ? | x.match{Rx[".raw.eg", end]} => ""
-                            | else => libdata
+          d each
+             R'[start, {*any}, ".eg", end]! {x, name} ->
+                data = fs.readFileSync{path.join{file, x}, .utf8}
+                outfile = path.join{out, name + ".js"}
+                fs.writeFileSync{outfile} with
+                   [eg.generate{data, ...} + "\n"] with
+                      if{R'[".raw.eg", end]? x, "", libdata}
 
         | out =>
-          data = fs.readFileSync{file, .utf8}
-          fs.writeFileSync{out} with [eg.generate{data, libdata} + "\n"]
+           data = fs.readFileSync{file, .utf8}
+           fs.writeFileSync{out} with
+              eg.generate{data, libdata} + "\n"
 
         | else =>
-          data = fs.readFileSync{file, .utf8}
-          console.log with eg.generate{data, ""} ;; libdata}
+           data = fs.readFileSync{file, .utf8}
+           console.log with eg.generate{data, ""} ;; libdata}
 
    other ->
       console.log with usage
