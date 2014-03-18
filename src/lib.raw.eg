@@ -9,7 +9,7 @@ create_node{tag, id, classes, kv, Array! contents} =
    ? | kv => kv each {k, v} ->
           accum := accum.concat with {" ", k, "=\"", v, "\""}
    accum.concat{x}.join{""} where x =
-      {">", contents*, "</", tag, ">"}
+      {">", *contents, "</", tag, ">"}
 
 patch_array{} =
    r = {}
@@ -56,8 +56,8 @@ Struct.___check := {value} ->
 
 Struct.___deconstruct := {value} ->
    ? | [value instanceof Array and value["#"] != undefined] =>
-       {value["#"]}.concat{value.slice{0}}
-     | else => throw "cannot deconstruct"
+        {true, {value["#"]}.concat{value.slice{0}}}
+     | else => {false, null} ;; throw "cannot deconstruct"
 
 
 pr{x} =
@@ -80,13 +80,20 @@ repr{x} =
       undefined? -> .special /// [.nil /// "undefined"]
       Number? -> .num /// String{x}
       String? -> .str /// x
-      entries ->
-         tag = entries"#"
-         tag |>
-            undefined? ->
-               .sequence /// entries.map{{x} -> repr{x}}
-            other ->
-               .struct /// {.sym /// tag, .sequence /// entries.map{{x} -> repr{x}}}
+      Struct? {tag, *entries} ->
+         .struct /// {.sym /// tag, .sequence /// entries.map{{x} -> repr{x}}}
+      Array? entries ->
+         .sequence /// entries.map{{x} -> repr{x}}
+      other ->
+         .unknown /// other.toString{}
+
+      ;; entries ->
+      ;;    tag = entries"#"
+      ;;    tag |>
+      ;;       undefined? ->
+      ;;          .sequence /// entries.map{{x} -> repr{x}}
+      ;;       other ->
+      ;;          .struct /// {.sym /// tag, .sequence /// entries.map{{x} -> repr{x}}}
 
 
 

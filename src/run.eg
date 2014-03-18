@@ -23,8 +23,7 @@ libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 run{|>} =
 
    {} or {.i or "in" or .interactive} ->
-      repl = require{.repl}
-      ;; ctx = vm.createContext{global}
+      req: repl
       vm.runInThisContext{libdata, "stdin"}
       settings = {
          prompt = "<> "
@@ -44,7 +43,7 @@ run{|>} =
       ;; vm.runInThisContext{code, file}
       eval{code}
 
-   {.tr or .translate, file, args*} ->
+   {.tr or .translate, file, *args} ->
 
       out = args[0]
 

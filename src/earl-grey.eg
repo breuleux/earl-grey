@@ -44,8 +44,8 @@ regexps = {
      {_, radix, int, frac} = m
      value := parseInt{int.replace{R.g"_", ""}, radix}
      ? | frac =>
-         frac := frac.replace{R.g"_", ""}
-         value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
+          frac := frac.replace{R.g"_", ""}
+          value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
      ~ID{.NUM, value}
 
 
@@ -133,7 +133,7 @@ regexps = {
 
   indent_f = {m, wsb, wsa, last_op} ->
      ilen = m[1].length
-     {.INDENT, ilen}
+     ~INDENT{ilen}
 
 
   cmnt = R'
@@ -141,7 +141,7 @@ regexps = {
      ";"
      * not in "\n"
 
-  cmnt_f = {m, wsb, wsa, last_op} -> {.IGNORE}
+  cmnt_f = {m, wsb, wsa, last_op} -> ~IGNORE{}
 
 
   unkn = R'
@@ -162,7 +162,7 @@ indent_tracker{} =
    stacks = {stack}
    {token and |>} ->
 
-      {.INDENT, new_indent and |>} ->
+      ~INDENT{new_indent and |>} ->
          when [curr == false] ->
             curr := new_indent
             {~OP{.IFX, .wide, ","}}
@@ -183,7 +183,7 @@ indent_tracker{} =
             rval.push{~OP{.IFX, .wide, ","}}
             rval
 
-      ~ID{stuff*} -> {token}
+      ~ID{*stuff} -> {token}
 
       ~OP{fixity, width, "[" or "{"} ->
          stack.push{curr}
@@ -203,36 +203,36 @@ indent_tracker{} =
 
 
 process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
-   {type, result*} = token
+   {type, *result} = token
    type |>
       .IGNORE ->
          last_op
 
       .ID ->
          ? | [not last_op] =>
-             w = {.IFX, if{wsb, .wide, .short}, .WHITE}
-             w.location := {pos, pos}
-             accum.push{w}
+              w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+              w.location := {pos, pos}
+              accum.push{w}
          accum.push{result}
          false
 
       .OP ->
          ? | last_op =>
-             v = {.VOID}
-             v.location := {pos, pos}
-             accum.push{v}
+              v = {.VOID}
+              v.location := {pos, pos}
+              accum.push{v}
          result[0] |>
             .IFX ->
                accum.push{result}
                true
             .PFX ->
                ? | [not last_op] =>
-                   w = {.IFX, if{wsb, .wide, .short}, .WHITE}
-                   w.location := {pos, pos}
-                   v = {.VOID}
-                   v.location := {pos, pos}
-                   accum.push{w}
-                   accum.push{v}
+                    w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+                    w.location := {pos, pos}
+                    v = {.VOID}
+                    v.location := {pos, pos}
+                    accum.push{w}
+                    accum.push{v}
                accum.push{result}
                true
             .SFX ->
@@ -255,6 +255,7 @@ tokenize{text} =
    indent = indent_tracker{}
 
    while text:
+      ;; regexps each {re, fn} ->
       for [i = 0, i < regexps.length, ++i]:
          {re, fn} = regexps[i]
          m = text.match{re}
@@ -476,7 +477,7 @@ finalize{|>} =
    ~STR{value} -> ~value{value}
    ~VOID{} -> null
 
-   {ops, args*} ->
+   {ops, *args} ->
       ops := ops each o -> o[2]
       op = ops[0]
       {ops, args} |>
@@ -491,10 +492,10 @@ finalize{|>} =
 
             inserted = false
             result = transform{target} with {|>} ->
-               "..." -> [inserted := true, ~multi{body*}]
+               "..." -> [inserted := true, ~multi{*body}]
                [x when x.fromop] and ~send{f, ~data{a, b}} ->
                    ~send{this{f}, ~data{this{a}, this{b}}}
-               ~data{args*} ->
+               ~data{*args} ->
                    tr := this
                    ~data{}.concat with patch_array.apply{null} with args each
                       "..." -> [inserted := true, body]
@@ -505,10 +506,10 @@ finalize{|>} =
                    ~data{*body}
                 when target.fromop ->
                    ~send{target, ~data{*body}}
-                ~send{f, ~data{args*}} ->
+                ~send{f, ~data{*args}} ->
                    ~send{f, ~data{*args, *body}}
-                ~data{args*} ->
-                   target.concat{body}
+                ~data{*args} ->
+                   target ++ body
                 other ->
                    ~send{target, ~data{*body}}
               | else => result
@@ -519,14 +520,14 @@ finalize{|>} =
          ;;          {.data}.concat{body}
          ;;       when target.fromop ->
          ;;          ~send{target, {.data}.concat{body}}
-         ;;       ~send{f, ~data{args*}} ->
+         ;;       ~send{f, ~data{*args}} ->
          ;;          ~send{f, {.data}.concat{args}.concat{body}}
-         ;;       ~data{args*} ->
+         ;;       ~data{*args} ->
          ;;          target.concat{body}
          ;;       other ->
          ;;          ~send{target, {.data}.concat{body}}
 
-         {{"[" or ",", _*}, _} ->
+         {{"[" or ",", *_}, _} ->
             ? | [op == "["] => args := args.slice{1, -1}
             args := args.filter{f} where
                f{x} = [x != null]
@@ -538,12 +539,12 @@ finalize{|>} =
                other -> ~multi{*args}
             result
 
-         {{"{", _*}, _} ->
+         {{"{", *_}, _} ->
             ~data{*args.slice{1, -1}.filter{f}} where
                f{x} = [x != null]
 
          {{.WHITE}, _} ->
-            {.send}.concat{args}
+            ~send{*args}
 
          {{_}, |>} ->
             {null?, null?} -> op
@@ -610,30 +611,30 @@ expand{{context, env}, expr} =
 
       ~value{v} -> expr
 
-      {type and [.array or .object], args*} -> ;; or .splice
+      {type and [.array or .object], *args} -> ;; or .splice
          arr = {}
          while [args.length > 0]:
             expand.step{{type, env}, args.shift{}} |>
-               ~splice{stmts*} ->
-                  args := stmts.concat{args}
+               ~splice{*stmts} ->
+                  args := stmts ++ args
                other ->
                   arr.push{other}
-         {type}.concat with
+         {type} ++
             arr each x -> expand{{type, env}, x}
 
-      ~multi{args*} ->
+      ~multi{*args} ->
          arr = {}
          while [args.length > 0]:
             type = if{args.length == 1, .expr, .multi}
             expand.step{{type, env}, args.shift{}} |>
-               ~splice{stmts*} ->
-                  args := stmts.concat{args}
+               ~splice{*stmts} ->
+                  args := stmts ++ args
                other ->
                   arr.push{{other, type}}
-         ~multi{}.concat with
+         ~multi{} ++
             arr each {x, type} -> expand{{type, env}, x}
 
-      ~data{args*} ->
+      ~data{*args} ->
 
          is_obj = false
          obj = ~object{}
@@ -653,8 +654,8 @@ expand{{context, env}, expr} =
                ~assoc{k, v} ->
                   is_obj := true
                   obj.push with ~array{k, v}
-               ~splice{exprs*} ->
-                  args := exprs.concat{args}
+               ~splice{*exprs} ->
+                  args := exprs ++ args
                ~dynsplice{expr} ->
                   newpart{}
                   parts.push{expr}
@@ -667,13 +668,13 @@ expand{{context, env}, expr} =
             {} when is_obj ->
                obj
             {} -> {.array}
-            {arr and ~array{things*}} ->
+            {arr and ~array{*things}} ->
                ? | is_obj => arr.push{obj}
                arr
             other ->
                ? | is_obj => parts.push{~array{obj}}
                patch = libf{"patch_array"}
-               ~send{patch, {.array}.concat{parts}}
+               ~send{patch, ~array{*parts}}
 
          expand{{context, env}, r}
 
@@ -692,9 +693,9 @@ expand{{context, env}, expr} =
       {type && [.js_while or .js_for or .js_break
                 \ or .js_continue or .js_return
                 \ or .js_throw or .js_try
-                \ or .if], args*} ->
+                \ or .if], *args} ->
          ctxs = js_contexts[type] or {}
-         {type}.concat{args.map{f}} where
+         {type, *args.map{f}} where
             f{x, i} = expand{{ctxs[i] or .expr, env}, x}
 
       ~done{expr} ->
@@ -728,7 +729,7 @@ expand.step := {{context, env}, expr and |>} ->
          ~macro{m} -> expand.step{{context, env}, m{{context, env}, arg}}
          other -> expr
 
-   {type, args*} ->
+   {type, *args} ->
       expr
 
    other ->
@@ -738,7 +739,7 @@ expand.step := {{context, env}, expr and |>} ->
 aslist{|>} =
    null? -> {null}
    undefined? -> {undefined}
-   ~multi{args*} -> args
+   ~multi{*args} -> args
    other -> {other}
 
 
@@ -749,8 +750,8 @@ transform{expr, cb} =
          null? -> null
          String? s -> s
          ~value{v} -> expr
-         {name, args*} ->
-            {name, args.map{tr}*}
+         {name, *args} ->
+            {name, *args.map{tr}}
 
 
 nullenv = {resolve{x} = undefined}
@@ -825,18 +826,18 @@ stdenv.register_macro{"#"} with {{context, env}, ~data{null?, tag}} ->
           checker_mac = ~macro with {_, ~data{expr}} ->
              '[[^expr]"#" == ^tag]
           expr |>
-             ~data{subp*} ->
+             ~data{*subp} ->
                 deconstructor_mac = ~macro with {_, expr} ->
                    '{^=true, ^expr[1]}
                 ~check{checker_mac
-                       ~project{deconstructor_mac, {.duck, 0, subp*}}}
+                       ~project{deconstructor_mac, {.duck, 0, *subp}}}
              other ->
                 ~check{checker_mac, expr or ~ignore{}}
       _ ->
           expr |>
              null? ->
                 'StructFactory{^tag}
-             ~data{args*} ->
+             ~data{*args} ->
                 'Struct{^tag, ^*args}
              other ->
                 '[StructFactory{^tag}][^other]
@@ -852,13 +853,13 @@ stdenv.register_macro{"~"} with {{context, env}, ~data{null?, tag}} ->
              f2{_, ~data{expr}} =
                 '[[^expr][0] == ^tag]
           expr |>
-             ~data{subp*} -> '{^tag, ^*subp}
+             ~data{*subp} -> '{^tag, ^*subp}
              other -> ~check{checker_mac, expr or ~ignore{}}
       _ ->
           expr |>
              null? ->
                 '{^tag}
-             ~data{args*} ->
+             ~data{*args} ->
                 '{^tag, ^*args}
              other ->
                 '{^tag}[^other]
@@ -913,8 +914,8 @@ stdenv.register_macro{"*"} with {{context, env}, expr} ->
    {context, expr} |>
       {.pattern, null?} ->
          ~dynsplice{~ignore{}}
-      {.pattern or .data, ~data{val, null?}} ->
-         ~dynsplice{val}
+      ;; {.pattern or .data, ~data{val, null?}} ->
+      ;;    ~dynsplice{val}
       {.pattern or .data, ~data{null?, val}} ->
          ~dynsplice{val}
       {_, null?} ->
@@ -956,55 +957,54 @@ stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
    ~lambda{newargs, body}
 
 
-stdenv.register_macro{"each"} with {{|>, env}, ~data{arr, patterns}} ->
+build_each{source, patterns, aslist! prelude, aslist! tail} =
+   temp = gensym{}
+   len = gensym{}
+   lvar = gensym{}
+   stmts = ~multi{*prelude} ++ {
+      ' | ^temp = ^source
+      ' | ^len = [^temp].length
+   }
+   loop = {.js_for, a, b, c, body} where
+      a = ' | ^lvar = 0
+      b = ' | ^lvar < ^len
+      c = ' | [^lvar]++
+      body = ' | ___js_fetch{^temp, ^lvar} |> ^patterns
+   stmts.push{loop}
+   stmts = stmts ++ tail
+   stmts
+
+
+stdenv.register_macro{"each"} with {{|>, env}, ~data{arr, aslist! patterns}} ->
+
    .multi ->
-      temp = gensym{}
-      len = gensym{}
-      stmts = '
-         ^temp = ^arr
-         ^len = [^temp].length
-      patterns := aslist{patterns}
       patterns.push with '[other -> false]
-      lvar = gensym{}
-      loop = {.js_for, a, b, c, body} where
-         a = ' | ^lvar = 0
-         b = ' | ^lvar < ^len
-         c = ' | [^lvar]++
-         body = '[___js_fetch{^temp, ^lvar} |> ^[~multi{*patterns}]]
-      stmts.push{loop}
-      stmts.push{~value{false}}
-      stmts
+      build_each with
+         arr
+         ~multi{*patterns}
+         ~multi{}
+         'false
 
    other ->
       res = gensym{}
-      temp = gensym{}
-      len = gensym{}
-      stmts = '
-         ^res = {}
-         ^temp = ^arr
-         ^len = [^temp].length
-      patterns := aslist{patterns} each
+      patterns := patterns each
          ~send{"->", ~data{patt, expr}} ->
             '[^patt -> [^res].push{^expr}]
          other ->
             INVALID_PATTERN ;; TODO: fix into throw
       patterns.push with '[other -> false]
-      lvar = gensym{}
-      loop = {.js_for, a, b, c, body} where
-         a = ' | ^lvar = 0
-         b = ' | ^lvar < ^len
-         c = ' | [^lvar]++
-         body = '[___js_fetch{^temp, ^lvar} |> ^[~multi{*patterns}]]
-      stmts.push{loop}
-      stmts.push{res}
-      stmts
+      build_each with
+         arr
+         ~multi{*patterns}
+         ' | ^res = {}
+         res
 
 
 stdenv.register_macro{"=>"} with {{context, env}, ~data{binding, value}} ->
    ? | [context == .data] =>
-       ~assoc{binding, value}
+        ~assoc{binding, value}
      | else =>
-       throw ["Illegal context for '=>' (" + context + ")"]
+        throw ["Illegal context for '=>' (" + context + ")"]
 
 
 stdenv.register_macro{"as"} with {_, ~data{expr, variable}} ->
@@ -1027,7 +1027,7 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
                      ? | [[vars.length == 1] and [clause.length == 3]] =>
                          r := ~declare{*clause[1].slice{1}}
                        | else =>
-                         r := r.concat{clause.slice{1, -1}}
+                         r := r ++ clause.slice{1, -1}
                   other ->
                      r.push{mkif{clause}}
             _ ->
@@ -1038,7 +1038,7 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
       ~data{null?} ->
          {.assoc}
 
-      ~data{~data{~send{f, ~data{args*}}, value}} ->
+      ~data{~data{~send{f, ~data{*args}}, value}} ->
          ~assoc{~value{f}, ~lambda{args, value}}
 
       ~data{~data{binding, value}} ->
@@ -1069,11 +1069,11 @@ stdenv.register_macro{"if"} with {{context, env}, ~data{test, a, b}} ->
 stdenv.register_macro{"cond"} with {{context, env}, ~data{clauses}} ->
    handle{xs} =
       xs |> | {} -> ~value{false}
-            | {~send{"=>", ~data{test, body}}, rest*} ->
-              test := test |>
-                 "else" -> ~value{true}
-                 _ -> test
-              ~if{test, body, handle{rest}}
+            | {~send{"=>", ~data{test, body}}, *rest} ->
+               test := test |>
+                  "else" -> ~value{true}
+                  _ -> test
+               ~if{test, body, handle{rest}}
    handle{aslist{clauses}}
 
 
@@ -1085,20 +1085,50 @@ stdenv.register_macro{"for"} with {{context, env}, expr} ->
    ~data{~multi{a, b, c}, body} = expr
    {.js_for, a, b, c, body}
 
-stdenv.register_macro{"!!"} with {{context, env}, ~data{expr, matchers}} ->
-   excv = gensym{}
-   res = gensym{}
-   m = aslist{matchers} |>
-      ms and {~send{"->", _}, *} ->
-         ms.push with '[___exc -> throw ___exc]
-         '[^excv |> ^[~multi{*ms}]]
-      x ->
-         matchers
-   f = '[{^excv} -> ^res := ^m]
-   ~multi with
-      ~declare{res, ~value{undefined}}
-      ~js_try{~assign{res, expr}, f, null}
-      res
+;; stdenv.register_macro{"!!"} with {{context, env}, ~data{expr, matchers}} ->
+
+;;    excv = gensym{}
+;;    res = gensym{}
+;;    m = aslist{matchers} |>
+;;       ms and {~send{"->", _}, *} ->
+;;          ms.push with '[___exc -> throw ___exc]
+;;          '[^excv |> ^[~multi{*ms}]]
+;;       x ->
+;;          matchers
+;;    f = '[{^excv} -> ^res := ^m]
+;;    ~multi with
+;;       ~declare{res, ~value{undefined}}
+;;       ~js_try{~assign{res, expr}, f, null}
+;;       res
+
+stdenv.register_macro{"!!"} with {{|>, env}, ~data{expr, matchers}} ->
+
+   .multi ->
+      excv = gensym{}
+      m = aslist{matchers} |>
+         ms and {~send{"->", _}, *} ->
+            ms.push with '[___exc -> throw ___exc]
+            '[^excv |> ^[~multi{*ms}]]
+         x ->
+            matchers
+      f = '[{^excv} -> ^m]
+      ~multi with
+         ~js_try{expr, f, null}
+
+   other ->
+      excv = gensym{}
+      res = gensym{}
+      m = aslist{matchers} |>
+         ms and {~send{"->", _}, *} ->
+            ms.push with '[___exc -> throw ___exc]
+            '[^excv |> ^[~multi{*ms}]]
+         x ->
+            matchers
+      f = '[{^excv} -> ^res := ^m]
+      ~multi with
+         ~declare{res, ~value{undefined}}
+         ~js_try{~assign{res, expr}, f, null}
+         res
 
 
 stdenv.register_macro{"return"} with {_, expr} ->
@@ -1170,9 +1200,9 @@ rx_build2{|>} =
          ["[^" + x + "]"] where
             x = rx_quote2{v}
 
-   ~data{args*} ->
+   ~data{*args} ->
       "(" + args.map{rx_build2}.join{""} + ")"
-   ~multi{args*} ->
+   ~multi{*args} ->
       "(?:" + args.map{rx_build2}.join{""} + ")"
    otherA -> throw "OopsF"
 
@@ -1210,7 +1240,7 @@ stdenv.register_macro{"?"} with {{context, env}, |>} ->
 
       mac{{|>, env}, expr} =
          .pattern -> expr |>
-            ~data{subp*} ->
+            ~data{*subp} ->
                projector = 'deconstructor{^orig_expr}
                ~check{checker, ~project{projector, expr}}
             other ->
@@ -1275,9 +1305,8 @@ parse_lhs{env, lhs, rhs, gen} =
           x
         | else =>
           temp = mktemp{}
-          current := current.concat with {
+          current.push with
              ~assign{temp, x}
-          }
           temp
 
    helper{lhs, curr} =
@@ -1291,13 +1320,12 @@ parse_lhs{env, lhs, rhs, gen} =
          rest = undefined
          members = specs each x ->
             v = expand.step{{.pattern, env}, x}
-            v |>
-               ~dynsplice{variable} ->
-                  rest := variable
-               when rest == undefined ->
-                  fw := fw + 1
-               other ->
-                  bw := bw + 1
+            v |> | ~dynsplice{variable} ->
+                    rest := variable
+                 | when rest == undefined ->
+                    fw := fw + 1
+                 | other ->
+                    bw := bw + 1
             v
 
          cmp = ? | [rest == undefined] => "___eq"
@@ -1309,19 +1337,17 @@ parse_lhs{env, lhs, rhs, gen} =
 
          ;; Part 1: temp <- length
          len = mktemp{}
-         current := current.concat with {
+         current.push with
             ;; {.assign, len, ~send{temp, ~value{"length"}}}
             ;; ~value{true}
             '[^len := [^temp].length]
             'true
-         }
          newclause{}
 
          ;; Part 2: check length
-         current := current.concat with {
+         current.push with
             ;; Bounds check
             '[^cmp]{^len, ^=[fw + bw + start]}
-         }
          newclause{}
 
          [0 .. [fw - 1]] each j ->
@@ -1334,7 +1360,7 @@ parse_lhs{env, lhs, rhs, gen} =
                 '[[^temp].slice ^slice]
              }
 
-         for [j = 0, j < bw, ++j]:
+         [0 .. [bw - 1]] each j ->
             helper_noexpand{members[fw + j + 1], '[^temp][^len - ^=[bw - j]]}
 
       lhs |>
@@ -1362,12 +1388,12 @@ parse_lhs{env, lhs, rhs, gen} =
             current.push{condition}
             newclause{}
 
-         ~all{xs*} ->
+         ~all{*xs} ->
             temp = maybe_temp{curr}
             xs each x -> helper{x, temp}
             false
 
-         ~any{xs*} ->
+         ~any{*xs} ->
             normalize{vars} =
                vars.filter{{x} -> x[0] != "τ"}.sort{}.join{","}
 
@@ -1385,60 +1411,54 @@ parse_lhs{env, lhs, rhs, gen} =
                       "[" + String{p[0]} + "]"
                    }
                  | else =>
-                   vars := vars.concat{p[0]}
+                   vars := vars ++ p[0]
                clauses.push with make_pattern_test{p[1]}
             current.push with make_or_pattern{clauses}
-            vars := vars.concat{myvars}
+            vars := vars ++ myvars
             newclause{}
 
-         ~check{~multi{checkers*}, expr} ->
+         ~check{~multi{*checkers}, expr} ->
             temp = maybe_temp{curr}
             checkers each checker ->
-               current := current.concat with {
+               current.push with
                   '[^checker {^temp}]
-               }
                newclause{}
             helper{expr, temp}
 
          ~check{checker, expr} ->
             temp = maybe_temp{curr}
-            current := current.concat with {
+            current.push with
                '[^checker {^temp}]
-            }
             newclause{}
             helper{expr, temp}
 
          ~project{projector, expr} ->
             temp = maybe_temp{curr}
             temp2 = mktemp{}
-            current := current.concat with {
+            current.push with
                '[^temp2 := [^projector]{^temp}]
                '[^temp2 0]
-            }
             newclause{}
             helper{expr, '[^temp2 1]}
 
          ~send{fname, spec} ->
             helper{fname, '[^spec -> ^curr]}
 
-         ~duck{i, specs*} ->
+         ~duck{i, *specs} ->
             temp = maybe_temp{curr}
-            current := current.concat with {
+            current.push with
                ~value{true}
-            }
             helper_data{temp, specs, i}
 
-         ~data{specs*} ->
+         ~data{*specs} ->
 
             temp = maybe_temp{curr}
-            current := current.concat with {
+            current.push with
                '[^temp instanceof Array]
-            }
             newclause{}
 
-            current := current.concat with {
+            current.push with
                '[[^temp]"#" == undefined]
-            }
             newclause{}
 
             helper_data{temp, specs, 0}
@@ -1473,20 +1493,20 @@ find_arrow{|>} =
       {placeholder, placeholder}
    "|>*" ->
       placeholder = gensym{}
-      {placeholder, '[[^placeholder]*]}
+      {placeholder, '[*[^placeholder]]}
    String? x or null? x ->
       {false, x}
    ~symbol{x} ->
       {false, x}
    x and ~value{v} ->
       {false, x}
-   {kind, args*} ->
+   {kind, *args} ->
       placeholder = false
       new_args = args each arg ->
          {ph, new_arg} = find_arrow{arg}
          ? | ph => placeholder := ph
          new_arg
-      {placeholder, {kind, new_args*}}
+      {placeholder, {kind, *new_args}}
 
 
 
@@ -1496,7 +1516,7 @@ same{a, b} = {a, b} |>
    {~value{x}, ~value{y}} -> x == y
    {~macro{x}, ~macro{y}} -> x == y
    {~send{f, x}, ~send{g, y}} -> same{f, g} and same{x, y}
-   {{kind1, xs*}, {kind2, ys*}} ->
+   {{kind1, *xs}, {kind2, *ys}} ->
       kind1 == kind2 and xs.length == ys.length and allequal where
          allequal = xs.every with {x, i} ->
             same{x, ys[i]}
@@ -1506,7 +1526,7 @@ same{a, b} = {a, b} |>
 stdenv.register_macro{"|>"} with {{context, env}, ~data{to_match, cl}} ->
    temp = gensym{}
    clauses = cl |>
-      ~multi{cls*} -> cls
+      ~multi{*cls} -> cls
       other -> {other}
 
    cached_conditions = {}
@@ -1516,7 +1536,7 @@ stdenv.register_macro{"|>"} with {{context, env}, ~data{to_match, cl}} ->
       ~send{"->", ~data{lhs, body}} = clause
       {placeholder, new_lhs} = find_arrow{lhs}
       {decls, conditions} = parse_lhs{env, new_lhs, temp}
-      stmts := stmts.concat with make_declarations{decls}
+      stmts := stmts ++ make_declarations{decls}
       {conditions.map{f}, b} where
          b = ? | placeholder => ~send{"|>", ~data{placeholder, body}}
                | else => body
@@ -1534,9 +1554,10 @@ stdenv.register_macro{"|>"} with {{context, env}, ~data{to_match, cl}} ->
    shares.push{0}
 
    vars = {}
-   for [i = 0, i < max, i++]: vars.push{gensym{}}
+   ;; for [i = 0, i < max, i++]: vars.push{gensym{}}
+   vars := vars.concat with [1 .. max] each _ -> gensym{}
 
-   stmts := stmts.concat with make_declarations{vars}
+   stmts := stmts ++ make_declarations{vars}
 
    shared_last = 0
    new_clauses = clauses.map with {{conditions, body}, i} ->
@@ -1563,7 +1584,7 @@ stdenv.register_macro{"|>"} with {{context, env}, ~data{to_match, cl}} ->
 
 
 qqstruct{name, args} =
-   ~data{~value{name}, args*}
+   ~data{~value{name}, *args}
 
 qq{expr and |>} =
    String? s or {.symbol, s} -> ~value{s}
@@ -1576,7 +1597,7 @@ qq{expr and |>} =
       qqstruct{.value, {insert}}
    ~send{"^*", ~data{null?, insert}} ->
       '[* ^insert]
-   {name, args*} ->
+   {name, *args} ->
       qqstruct{name, args each arg -> qq{arg}}
 
 stdenv.register_macro{"'"} with {{context, env}, ~data{null?, expr}} ->
@@ -1584,6 +1605,9 @@ stdenv.register_macro{"'"} with {{context, env}, ~data{null?, expr}} ->
 
 
 stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
+   'require{^expr}
+
+stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
 
    stmts = {}
 
@@ -1599,7 +1623,7 @@ stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
       ~value{String? s} ->
           fetch{s, gensym{}}
 
-      ~multi{subp*} or ~data{subp*} ->
+      ~multi{*subp} or ~data{*subp} ->
           subp each p -> produce{p, fetch}
 
       ~send{"as", ~data{~value{pkg} or pkg, String? s}} ->
@@ -1611,7 +1635,7 @@ stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
               stmts.push with '[^v = ^pkgv ^=pkg]
 
    produce{expr, topfetch}
-   ~multi{stmts*}
+   ~multi{*stmts}
 
 
 
@@ -1638,7 +1662,7 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
    parse{descr}
    contents := contents |>
       null? -> ~data{}
-      ~multi{args*} -> ~data{args*}
+      ~multi{*args} -> ~data{*args}
       x -> x
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
@@ -1669,6 +1693,69 @@ stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
          | ^temp
    ~done{expand{{context, newenv}, v}}
 
+
+stdenv.register_macro{"do"} with {{context, env}, ~data{aslist! body}} ->
+   ~multi{*body}
+
+
+group{xs, classifier} =
+   groups = {}
+   curr = {}
+   newgroup{} =
+      ? | curr.length > 0 => groups.push with curr
+      curr := {}
+   xs each x ->
+      ? | classifier{x} =>
+           newgroup{}
+      curr.push{x}
+   newgroup{}
+   groups
+
+blocktest_wrap{label, expr, accumulator} =
+   value = gensym{}
+   ' | ^value = [[...] !! __err -> #error{__err}] with
+        ^expr |>
+           true? x -> #success{x}
+           false? x -> #failure{x}
+     | [^accumulator].push with
+        #test_result{^label, ^value}
+
+blocktest_mac{label, tests, stmts, acc} =
+   ok = gensym{}
+   stmts.push with ' | ^ok = true
+   tests each
+      stmt and ~send{"do", ~data{aslist! body}} ->
+         ;; body := ~multi{*body, 'false}
+         stmts.push with
+            ' | ^stmt !! __err ->
+                 [^acc].push with #error{^label, __err}
+                 ^ok := false
+      ~send{"=>", ~data{new_label, aslist! new_tests}} ->
+         labv = gensym{}
+         stmts.push with
+            ' | ^labv = ^label ++ [Array! ^new_label]
+         blocktest_mac{labv, new_tests, stmts, acc}
+      expr ->
+         stmts.push with
+            ' ? | ^ok =>
+                   ^blocktest_wrap{label, expr, acc}
+                | else =>
+                   [^acc].push with #aborted{' ^expr}
+   stmts.push{acc}
+   stmts
+
+stdenv.register_macro{"blocktest"} with {{context, env}, ~data{*args}} ->
+   acc = gensym{}
+   labv = gensym{}
+   stmts = ~multi with '[^acc = {}]
+   rval = args |>
+      {aslist! tests} ->
+         stmts.push with '[^labv = {}]
+         blocktest_mac{labv, tests, stmts, acc}
+      {labels, aslist! tests} ->
+         stmts.push with '[^labv = [Array! ^labels]]
+         blocktest_mac{labv, tests, stmts, acc}
+   rval
 
 
 stdenv.register_macro{"macro"} with {{context, env}, expr} ->
@@ -1804,7 +1891,7 @@ translate{expr and |>, mode} =
          a = translate{lhs, .expr}
          b = translate{rhs, .expr}
 
-   ~multi{args*} ->
+   ~multi{*args} ->
       isdecl{|>} =
          ~declare{variable, value} -> true
          other -> false
@@ -1815,7 +1902,7 @@ translate{expr and |>, mode} =
                 translate{x, .expr}
         | else => translate.body{expr, mode}
 
-   ~splice{args*} ->
+   ~splice{*args} ->
       translate{~multi{*args}, mode}
 
    {.js_break} ->
@@ -1836,12 +1923,12 @@ translate{expr and |>, mode} =
         | else =>
           "throw " + translate{value, .expr} + ";"
 
-   ~array{args*} ->
+   ~array{*args} ->
       r = ["[" + args.map{f}.join{","} + "]"] where
          f{x} = translate{x, .expr}
       translate.expr{r, mode}
 
-   ~object{args*} ->
+   ~object{*args} ->
       r = ["({" + args.map{f}.join{","} + "})"] where
          f{x} =
             a = translate{x[1], .expr}
@@ -1869,7 +1956,7 @@ translate{expr and |>, mode} =
                trf = translate{f, .expr}
                trmsg = translate{msg, .expr}
 
-   ~send{f, ~array{args*}} ->
+   ~send{f, ~array{*args}} ->
       op = [typeof{f} == "string"] and js_op_table[f]
       ? | op =>
           translate.expr{translate.op{op, args[0], args[1]}, mode}
