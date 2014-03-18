@@ -535,11 +535,11 @@ finalize{|>} =
                {} -> ~value{undefined}
                ;; throw ["At least one expression must be enclosed in []"]
                {x} -> x
-               other -> {.multi}.concat{args}
+               other -> ~multi{*args}
             result
 
          {{"{", _*}, _} ->
-            {.data}.concat{args.slice{1, -1}.filter{f}} where
+            ~data{*args.slice{1, -1}.filter{f}} where
                f{x} = [x != null]
 
          {{.WHITE}, _} ->
@@ -630,7 +630,7 @@ expand{{context, env}, expr} =
                   args := stmts.concat{args}
                other ->
                   arr.push{{other, type}}
-         {.multi}.concat with
+         ~multi{}.concat with
             arr each {x, type} -> expand{{type, env}, x}
 
       ~data{args*} ->
@@ -809,28 +809,27 @@ make_checker{value, op} = {{context, env}, expr} ->
 
 
 stdenv.register_macro{"**"} with {{context, env}, ~data{a, b}} ->
-   ~send{~send{.Math, ~value{.pow}}, ~data{a, b}}
+   'Math.pow{^a, ^b}
 
 stdenv.register_macro{"//"} with {{context, env}, ~data{a, b}} ->
-   ~send{~send{.Math, ~value{.floor}}, ~data{div}} where
-      div = ~send{"___div", ~data{a, b}}
+   'Math.floor{^a / ^b}
 
 stdenv.register_macro{"<>"} with {{context, env}, ~data{null?, x}} ->
-   ~send{libf{"pr"}, ~data{x}}
+   'pr{^x}
 
 
 stdenv.register_macro{"#"} with {{context, env}, ~data{null?, tag}} ->
    tag := ~value{tag}
-   ~macro{f} where f{{|>, env}, expr} =
+   ~macro with {{|>, env}, expr} ->
       .pattern ->
-          checker_mac = ~macro{f} where f{_, ~data{expr}} =
+          checker_mac = ~macro with {_, ~data{expr}} ->
              '[[^expr]"#" == ^tag]
           expr |>
              ~data{subp*} ->
-                deconstructor_mac = ~macro{f} where f{_, expr} =
+                deconstructor_mac = ~macro with {_, expr} ->
                    '{^=true, ^expr[1]}
                 ~check{checker_mac
-                         ~project{deconstructor_mac, {.duck, 0, subp*}}}
+                       ~project{deconstructor_mac, {.duck, 0, subp*}}}
              other ->
                 ~check{checker_mac, expr or ~ignore{}}
       _ ->
@@ -938,11 +937,11 @@ stdenv.register_macro{"where"} with {{context, env}, ~data{a, b}} ->
 stdenv.register_macro{"let"} with {{context, env}, ~data{a, b}} ->
    bindings = aslist{a}
    body = aslist{b}
-   {.multi}.concat{bindings}.concat{body}
+   ~multi{*bindings, *body}
 
 
 stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
-   body = {.multi}
+   body = ~multi{}
    {placeholder, newargs} = find_arrow{args}
    newargs := newargs.slice{1} each
       String? s -> s
@@ -971,7 +970,7 @@ stdenv.register_macro{"each"} with {{|>, env}, ~data{arr, patterns}} ->
          a = ' | ^lvar = 0
          b = ' | ^lvar < ^len
          c = ' | [^lvar]++
-         body = '[___js_fetch{^temp, ^lvar} |> ^{.multi, patterns*}]
+         body = '[___js_fetch{^temp, ^lvar} |> ^[~multi{*patterns}]]
       stmts.push{loop}
       stmts.push{~value{false}}
       stmts
@@ -995,7 +994,7 @@ stdenv.register_macro{"each"} with {{|>, env}, ~data{arr, patterns}} ->
          a = ' | ^lvar = 0
          b = ' | ^lvar < ^len
          c = ' | [^lvar]++
-         body = '[___js_fetch{^temp, ^lvar} |> ^{.multi, patterns*}]
+         body = '[___js_fetch{^temp, ^lvar} |> ^[~multi{*patterns}]]
       stmts.push{loop}
       stmts.push{res}
       stmts
@@ -1008,27 +1007,25 @@ stdenv.register_macro{"=>"} with {{context, env}, ~data{binding, value}} ->
        throw ["Illegal context for '=>' (" + context + ")"]
 
 
-stdenv.register_macro{"as"} with {{context, env}, ~data{expr, variable}} ->
+stdenv.register_macro{"as"} with {_, ~data{expr, variable}} ->
    '[^variable = ^expr]
 
 stdenv.register_macro{"="} with {{context, env}, expr} ->
    {context, expr} |>
 
       {.multi or .expr, ~data{lhs, rhs}} ->
-         p = parse_lhs{env, lhs, rhs}
-         vars = make_declarations{p[0]}
-         r = {.splice}.concat{vars}
-         clauses = p[1]
+         {make_declarations! vars, clauses} = parse_lhs{env, lhs, rhs}
+         r = ~splice{*vars}
 
          mkif{x} =
-            ~if{x, ~value{false}, {.js_throw, ~value{"a condition failed"}}}
+            ~if{x, ~value{false}, ~js_throw{~value{"a condition failed"}}}
 
          clauses |>
             {clause} ->
                clause[clause.length - 1] |>
                   ~value{== true} ->
                      ? | [[vars.length == 1] and [clause.length == 3]] =>
-                         r := {.declare}.concat{clause[1].slice{1}}
+                         r := ~declare{*clause[1].slice{1}}
                        | else =>
                          r := r.concat{clause.slice{1, -1}}
                   other ->
@@ -1094,27 +1091,27 @@ stdenv.register_macro{"!!"} with {{context, env}, ~data{expr, matchers}} ->
    m = aslist{matchers} |>
       ms and {~send{"->", _}, *} ->
          ms.push with '[___exc -> throw ___exc]
-         '[^excv |> ^{.multi, ms*}]
+         '[^excv |> ^[~multi{*ms}]]
       x ->
          matchers
    f = '[{^excv} -> ^res := ^m]
-   {.multi
+   ~multi with
       ~declare{res, ~value{undefined}}
-      {.js_try, ~assign{res, expr}, f, null}
-      res}
+      ~js_try{~assign{res, expr}, f, null}
+      res
 
 
-stdenv.register_macro{"return"} with {{context, env}, expr} ->
-   {.js_return, expr}
+stdenv.register_macro{"return"} with {_, expr} ->
+   ~js_return{expr}
 
-stdenv.register_macro{"throw"} with {{context, env}, expr} ->
-   {.js_throw, expr}
+stdenv.register_macro{"throw"} with {_, expr} ->
+   ~js_throw{expr}
 
-stdenv.register_macro{"break"} with {{context, env}, expr} ->
-   {.js_break}
+stdenv.register_macro{"break"} with {_, expr} ->
+   ~js_break{}
 
-stdenv.register_macro{"continue"} with {{context, env}, expr} ->
-   {.js_continue}
+stdenv.register_macro{"continue"} with {_, expr} ->
+   ~js_continue{}
 
 
 
@@ -1658,7 +1655,7 @@ stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
       ~value{String? s} ->
           fetch{s, gensym{}}
 
-      {.multi or .data, subp*} ->
+      ~multi{subp*} or ~data{subp*} ->
           subp each p -> produce{p, fetch}
 
       ~send{"as", ~data{~value{pkg} or pkg, String? s}} ->
@@ -1677,8 +1674,8 @@ stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
 stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
    tag = ~value{"div"}
    id = ~value{null}
-   classes = {.data}
-   kv = {.data}
+   classes = ~data{}
+   kv = ~data{}
    parse{|>} =
       null? -> null
       String? s -> tag := ~value{s}
@@ -1692,11 +1689,11 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
          kv.push with ~data{~value{prop}, value}
       ~send{expr, rest} ->
          parse{expr}, parse{rest}
-      {.multi or .data, args*} ->
+      ~multi{*args} or ~data{*args} ->
          args.forEach{parse}
    parse{descr}
    contents := contents |>
-      null? -> {.data}
+      null? -> ~data{}
       ~multi{args*} -> ~data{args*}
       x -> x
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
@@ -1722,7 +1719,7 @@ stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
             '[[^temp] [^other]]
       other -> ;; throw {"invalid @ argument", other}
          '[^temp ^other]
-   stmts = {.multi}.concat with aslist{body} each x -> '[^temp := ^x]
+   stmts = ~multi{}.concat with aslist{body} each x -> '[^temp := ^x]
    v = ' | ^temp = ^expr
          | ^stmts
          | ^temp
@@ -1875,7 +1872,7 @@ translate{expr and |>, mode} =
         | else => translate.body{expr, mode}
 
    ~splice{args*} ->
-      translate{{.multi}.concat{args}, mode}
+      translate{~multi{*args}, mode}
 
    {.js_break} ->
       ? | [mode == "expr"] => throw "Invalid break in ctx"
@@ -2010,12 +2007,12 @@ translate.op := {op, a, b} ->
 
 
 generate_from_ast{ast} =
-   ex = expand{{.top, stdenv.fork{}}, ~multi{ast}}
+   ex = expand{~top{stdenv.fork{}}, ~multi{ast}}
    translate{ex, .stmt}
 
 generate{data, prelude} =
    p = parse{data}
-   ex = expand{{.top, stdenv.fork{}}, ~multi{p}}
+   ex = expand{~top{stdenv.fork{}}, ~multi{p}}
    [prelude or ""] + translate{ex, .stmt}
 
 exports.generate := generate
