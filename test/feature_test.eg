@@ -21,10 +21,9 @@ results = blocktest:
    "Conditionals" =>
       do:
          positivity{x} =
-            cond:
-               [x > 0] => .positive
-               [x < 0] => .negative
-               [x == 0] => .zero
+            ? | [x > 0] => .positive
+              | [x < 0] => .negative
+              | [x == 0] => .zero
 
       positivity{0} == .zero
       positivity{11} == .positive
@@ -59,6 +58,9 @@ results = blocktest:
       "Argument deconstruction" =>
          do: {{a, b}, c} = {{1, 2}, 3}
          [a + b + c] == 6
+         "Bounds checks" =>
+            [{a} = {11, 22}, false] !! true
+            [{a, b, c} = {11, 22}, false] !! true
 
       "Sub-clauses with |>" =>
          do:
@@ -73,8 +75,71 @@ results = blocktest:
          tr{x} == "a.b" where x = #send{"a", "b"}
          tr{x} == "a{b, 12}" where x = #send{"a", #data{"b", 12}}
 
+   "Testing for type" =>
+      "String" =>
+         String? "abc"
+         not [String? 123]
+      "Number" =>
+         Number? 123
+         Number? 7.23e-65
+         not [Number? "123"]
+      "Array" =>
+         Array? {1, 2, 3}
+      "#struct" =>
+         Struct? #data{.a, .b, .c}
+         not Struct? {.a, .b, .c}
+         #data? #data{.a, .b, .c}
+         not [#data? #dat{.a, .b, .c}]
 
+   "Coercion" =>
+      "String" =>
+         [String! 123] == "123"
+      "Number" =>
+         [Number! "123"] == 123
+         [Number! "123.5e3"] == 123.5e3
+      "Array" =>
+         [Array! .hello] |> {.hello} -> true
+         [Array! {.hello}] |> {.hello} -> true
+      "#struct" =>
+         [#data! {1, 2}] |> #data{{1, 2}} -> true
+         [#data! #data{1, 2}] |> #data{1, 2} -> true
+         [#data! 1] |> #data{1} -> true
+
+   "Exception handling" =>
+      true !! false
+      var_doesnt_exist !! true
+      var_doesnt_exist !! ReferenceError? -> true
+      null.x !! true
+      [throw .hello] !!
+         .hello -> true
+         other -> false
+      [throw .not_hello] !!
+         .hello -> false
+         other -> true
+
+   "Regular expressions" =>
+
+      do: re = R"ab*a"
+      [{...} each s -> re? s] with
+         "aa", "aba", "abba", "aadvark", "cabbage"
+      [{...} each s -> not re? s] with
+         "a", "bachi", "bouzouk"
+      "cabbage".replace{re, "arria"} == "carriage"
+
+      do: re = R'[start, +"a", {+"b"}, "a", end]
+      [{...} each re! {_, s} -> R"b+"? s] with
+         "abba", "abbbbbba", "aaaaaba"
+      [{...} each s -> not re? s] with
+         "cabbage", "labia"
+
+yay = 0
+nay = 0
 <> results each
-   #test_result{label, #success{value}} -> value
-   #test_result{label, other} -> {label.join{" / "}, other}
-   other -> other
+   #test_result{label, #success{value}} -> [yay++, true]
+   #test_result{label, other} ->
+      nay++
+      {label.join{" / "}, other}
+   other -> [nay++, other]
+
+<> {"Yay", yay}
+<> {"Nay", nay}
