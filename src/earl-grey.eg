@@ -957,10 +957,10 @@ stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
    ~lambda{newargs, body}
 
 
-build_each{source, patterns, aslist! prelude, aslist! tail} =
+build_each{source, patterns, aslist! prelude, aslist! tail, lvar} =
    temp = gensym{}
    len = gensym{}
-   lvar = gensym{}
+   lvar := lvar or gensym{}
    stmts = ~multi{*prelude} ++ {
       ' | ^temp = ^source
       ' | ^len = [^temp].length
@@ -1470,9 +1470,9 @@ parse_lhs{env, lhs, rhs, gen} =
    {vars, clauses}
 
 
-make_declarations{vars} =
+make_declarations{vars, val} =
    vars each name ->
-      ~declare{name, ~value{undefined}}
+      ~declare{name, ~value{val}}
 
 make_pattern_test{clauses} =
    ands = clauses.pop{}
@@ -1557,7 +1557,7 @@ stdenv.register_macro{"|>"} with {{context, env}, ~data{to_match, cl}} ->
    ;; for [i = 0, i < max, i++]: vars.push{gensym{}}
    vars := vars.concat with [1 .. max] each _ -> gensym{}
 
-   stmts := stmts ++ make_declarations{vars}
+   stmts := stmts ++ make_declarations{vars, false}
 
    shared_last = 0
    new_clauses = clauses.map with {{conditions, body}, i} ->
@@ -1720,27 +1720,52 @@ blocktest_wrap{label, expr, accumulator} =
      | [^accumulator].push with
         #test_result{^label, ^value}
 
-blocktest_mac{label, tests, stmts, acc} =
+
+
+blocktest_mac{label, tests, acc} =
    ok = gensym{}
+   stmts = {}
    stmts.push with ' | ^ok = true
    tests each
-      stmt and ~send{"do", ~data{aslist! body}} ->
-         ;; body := ~multi{*body, 'false}
+
+      stmt and ~send{"do", _} ->
          stmts.push with
             ' | ^stmt !! __err ->
                  [^acc].push with #error{^label, __err}
                  ^ok := false
+
       ~send{"=>", ~data{new_label, aslist! new_tests}} ->
          labv = gensym{}
          stmts.push with
             ' | ^labv = ^label ++ [Array! ^new_label]
-         blocktest_mac{labv, new_tests, stmts, acc}
+              | ^ ~multi{*blocktest_mac{labv, new_tests, acc}}
+
+      ~send{"each", ~data{sources, aslist! clauses}} ->
+         loopvar = gensym{}
+         clauses := clauses each clause ->
+            clause as ~send{"->", ~data{lhs, rhs}}
+            '[^lhs -> ^[~multi{*x}]] where x =
+               blocktest_mac with
+                  '[^label ++ {^loopvar}]
+                  aslist! rhs
+                  acc
+         clauses.push with
+            ' | __no ->
+                 [^acc].push with
+                    #error{^label, "No handler for test case", __no}
+         stmts.push with build_each with
+            sources
+            ~multi{*clauses}
+            ~multi{}
+            ~multi{}
+            loopvar
+
       expr ->
          stmts.push with
             ' ? | ^ok =>
                    ^blocktest_wrap{label, expr, acc}
                 | else =>
-                   [^acc].push with #aborted{' ^expr}
+                   [^acc].push with #aborted{^label, ' ^expr}
    stmts.push{acc}
    stmts
 
@@ -1751,10 +1776,10 @@ stdenv.register_macro{"blocktest"} with {{context, env}, ~data{*args}} ->
    rval = args |>
       {aslist! tests} ->
          stmts.push with '[^labv = {}]
-         blocktest_mac{labv, tests, stmts, acc}
+         stmts := stmts ++ blocktest_mac{labv, tests, acc}
       {labels, aslist! tests} ->
          stmts.push with '[^labv = [Array! ^labels]]
-         blocktest_mac{labv, tests, stmts, acc}
+         stmts := stmts ++ blocktest_mac{labv, tests, acc}
    rval
 
 
