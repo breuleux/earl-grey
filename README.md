@@ -392,14 +392,12 @@ or variable for the chaining (the square brackets are needed):
         /concat with {4, 5}
         /reverse{}
         {7, 6}.concat{/}
-        /pop{}
     ;; {7, 6, 5, 4, 3, 2}
 
     chain [{1, 2, 3} as x]:
         x.concat with {4, 5}
         x.reverse{}
         {7, 6}.concat{x}
-        x.pop{}
     ;; {7, 6, 5, 4, 3, 2}
 
 
@@ -479,6 +477,8 @@ The **class** macro declares a class.
 * The self can be accessed using `@`.
 * Subclassing is not supported yet.
 
+Example:
+
     class Person:
        constructor{String? name, Number! age} =
           @name := name
@@ -539,6 +539,7 @@ Earl Grey also provides a regular expression sub-language used like
 * `not in "..."` ==> `/[^...]/`
 * `[e1, e2, ...]` ==> `(?:e1e2...)` (non-capturing)
 * `{...}` ==> `(...)` (capturing)
+* `raw <regexp>` inserts a regular expression verbatim
 
 Examples:
 
