@@ -5,13 +5,13 @@
 ;; Void["::check"] := {x} -> null? x
 ;; qqvoid{} = ~value{null}
 
-Void{} = ~void{}
-Void["::check"] := {x} ->
-   x |>
-      ;; null? -> true
-      ~void{} -> true
-      other -> false
-qqvoid{} = qqstruct{.void, {}}
+;; Void{} = ~void{}
+;; Void["::check"] := {x} ->
+;;    x |>
+;;       ;; null? -> true
+;;       ~void{} -> true
+;;       other -> false
+;; qqvoid{} = qqstruct{.void, {}}
 
 Symbol{s} = ~symbol{s}
 Symbol["::check"] := {|>} ->
@@ -25,7 +25,7 @@ Symbol["::deconstruct"] := {|>} ->
 qqsym{s} = qqstruct{.symbol, {~value{s}}}
 
 xsym{|>} =
-   String? x -> x
+   ;; String? x -> x
    ~symbol{x} -> x
 
 
@@ -517,7 +517,7 @@ finalize{|>} =
    ~ID{value} -> Symbol{value}
    ~NUM{value} -> ~value{value}
    ~STR{value} -> ~value{value}
-   ~VOID{} -> Void{}
+   ~VOID{} -> ~void{}
 
    {ops, *args} ->
       ops := ops each o -> o[2]
@@ -544,7 +544,7 @@ finalize{|>} =
                       other -> {tr{other}}
 
             ? | not inserted => target |>
-                 Void? ->
+                 ~void{} ->
                     ~data{*body}
                  when target.fromop ->
                     ~send{target, ~data{*body}}
@@ -572,7 +572,9 @@ finalize{|>} =
          {{"[" or ",", *_}, _} ->
             ? | [op == "["] => args := args.slice{1, -1}
             args := args.filter{f} where
-               f{x} = [not Void? x]
+               f{|>} = | ~void{} -> false
+                       | other -> true
+               ;; f{x} = [not Void? x]
 
             result = args |>
                {} -> ~value{undefined}
@@ -583,13 +585,15 @@ finalize{|>} =
 
          {{"{", *_}, _} ->
             ~data{*args.slice{1, -1}.filter{f}} where
-               f{x} = [not Void? x]
+               f{|>} = | ~void{} -> false
+                       | other -> true
+               ;; f{x} = [not Void? x]
 
          {{.WHITE}, _} ->
             ~send{*args}
 
          {{_}, |>} ->
-            {Void?, Void?} -> Symbol{op}
+            {~void{}, ~void{}} -> Symbol{op}
             {a, b} ->
                rval = ~send{Symbol{op}, ~data{a, b}}
                rval.fromop := true
@@ -610,7 +614,7 @@ parse{text} =
 libf{f} =
    ;; ~send{"___lib", ~value{f}}
    ;; f          ;; ORIGINAL
-   {.symbol, f}  ;; TRANSITIONAL
+   ~symbol{f}  ;; TRANSITIONAL
 
 
 Env{parent} =
@@ -642,9 +646,8 @@ expand{{context, env}, expr} =
 
    expr |>
       Symbol? {s} -> expr
-      ;; {.symbol, s} -> s
 
-      Void? -> Void{}
+      ~void{} -> ~void{}
       undefined? -> throw ["undefined? why?"]
 
       ~send{f, arg} ->
@@ -753,10 +756,10 @@ expand.step := {{context, env}, expr and |>} ->
       {v, context} |>
          {undefined?, _} -> Symbol{s}
          {~macro{m}, .head} -> v
-         {~macro{m}, _} -> expand.step{{context, env}, m{{context, env}, Void{}}}
+         {~macro{m}, _} -> expand.step{{context, env}, m{{context, env}, ~void{}}}
          other -> v
 
-   Void? -> Void{}
+   ~void{} -> ~void{}
    undefined? -> throw ["undefined? why?"]
 
    ~macro{m} when [context == .head] ->
@@ -764,7 +767,7 @@ expand.step := {{context, env}, expr and |>} ->
 
    ;; TODO: fix the bug that forces "when true"
    ~macro{m} when true ->
-      expand.step{{context, env}, m{{context, env}, Void{}}}
+      expand.step{{context, env}, m{{context, env}, ~void{}}}
 
    ~send{f, arg} ->
       expand.step{{.head, env}, f} |>
@@ -780,7 +783,7 @@ expand.step := {{context, env}, expr and |>} ->
 
 
 aslist{|>} =
-   Void? -> {Void{}}
+   ~void{} -> {~void{}}
    undefined? -> {undefined}
    ~multi{*args} -> args
    other -> {other}
@@ -790,7 +793,7 @@ transform{expr, cb} =
    tr{x} = transform{x, cb}
    cb.call{tr, expr} !!
       expr |>
-         Void? -> Void{}
+         ~void{} -> ~void{}
          Symbol? s -> s
          ~value{v} -> expr
          {name, *args} ->
@@ -833,16 +836,16 @@ stdenv.register{"--", Symbol{"___minusminus"}}
 
 
 stdenv.register_macro{"++"} with {_, |>} ->
-   ~data{Void?, x} -> '[`___plusplus` ^x]
-   ~data{x, Void?} -> ~send{Symbol{"___plusplus"}, ~data{x, Void{}}}
+   ~data{~void{}, x} -> '[`___plusplus` ^x]
+   ~data{x, ~void{}} -> ~send{Symbol{"___plusplus"}, ~data{x, ~void{}}}
    ~data{x, y} -> '[^x].concat{^y}
-   Void? -> '[{x, y} -> x.concat{y}]
+   ~void{} -> '[{x, y} -> x.concat{y}]
 
 stdenv.register_macro{".."} with {_, |>} ->
-   ~data{Void?, x} -> 'range{1, ^x}
-   ~data{x, Void?} -> 'range{^x}
+   ~data{~void{}, x} -> 'range{1, ^x}
+   ~data{x, ~void{}} -> 'range{^x}
    ~data{x, y} -> 'range{^x, ^y}
-   Void? -> 'range
+   ~void{} -> 'range
 
 ;;stdenv.register_macro{"TEST"} with {{context, env}, expr} -> [
 ;;   ~splice{"a", "b"}
@@ -858,11 +861,11 @@ stdenv.register_macro{"**"} with {{context, env}, ~data{a, b}} ->
 stdenv.register_macro{"//"} with {{context, env}, ~data{a, b}} ->
    'Math.floor{^a / ^b}
 
-stdenv.register_macro{"<>"} with {{context, env}, ~data{Void?, x}} ->
+stdenv.register_macro{"<>"} with {{context, env}, ~data{~void{}, x}} ->
    'pr{^x}
 
 
-stdenv.register_macro{"#"} with {{context, env}, ~data{Void?, Symbol? {tag}}} ->
+stdenv.register_macro{"#"} with {{context, env}, ~data{~void{}, Symbol? {tag}}} ->
    tag := ~value{tag}
    ~macro with {{|>, env}, expr} ->
       .pattern ->
@@ -874,13 +877,13 @@ stdenv.register_macro{"#"} with {{context, env}, ~data{Void?, Symbol? {tag}}} ->
                    '{^=true, ^expr[1]}
                 ~check{checker_mac
                        ~project{deconstructor_mac, {.duck, 0, *subp}}}
-             Void? ->
+             ~void{} ->
                 ~check{checker_mac, ~ignore{}}
              other ->
                 ~check{checker_mac, expr}
       _ ->
           expr |>
-             Void? ->
+             ~void{} ->
                 'StructFactory{^tag}
              ~data{*args} ->
                 'Struct{^tag, ^*args}
@@ -888,7 +891,7 @@ stdenv.register_macro{"#"} with {{context, env}, ~data{Void?, Symbol? {tag}}} ->
                 '[StructFactory{^tag}][^other]
 
 
-stdenv.register_macro{"~"} with {{context, env}, ~data{Void?, Symbol? {tag}}} ->
+stdenv.register_macro{"~"} with {{context, env}, ~data{~void{}, Symbol? {tag}}} ->
    tag := ~value{tag}
    ~macro{f} where f{{|>, env}, expr} =
       .pattern ->
@@ -899,11 +902,11 @@ stdenv.register_macro{"~"} with {{context, env}, ~data{Void?, Symbol? {tag}}} ->
                 '[[^expr][0] == ^tag]
           expr |>
              ~data{*subp} -> '{^tag, ^*subp}
-             Void? -> ~check{checker_mac, ~ignore{}}
+             ~void{} -> ~check{checker_mac, ~ignore{}}
              other -> ~check{checker_mac, expr}
       _ ->
           expr |>
-             Void? ->
+             ~void{} ->
                 '{^tag}
              ~data{*args} ->
                 '{^tag, ^*args}
@@ -913,14 +916,14 @@ stdenv.register_macro{"~"} with {{context, env}, ~data{Void?, Symbol? {tag}}} ->
 
 
 stdenv.register_macro{"when"} with {{context, env}, ~data{|>, condition}} ->
-   Void? -> {.test, condition, ~ignore{}}
+   ~void{} -> {.test, condition, ~ignore{}}
    other -> {.test, condition, other}
 
 andf{{context, env}, expr} =
    {context, expr} |>
       {.pattern, ~data{a, b}} ->
          {.all, a, b}
-      {_, Void?} ->
+      {_, ~void{}} ->
          Symbol{"___and"}
       other ->
          ~send{Symbol{"___and"}, expr}
@@ -931,7 +934,7 @@ orf{{context, env}, expr} =
    {context, expr} |>
       {.pattern, ~data{a, b}} ->
          {.any, a, b}
-      {_, Void?} ->
+      {_, ~void{}} ->
          Symbol{"___or"}
       other ->
          ~send{Symbol{"___or"}, expr}
@@ -943,9 +946,9 @@ partial_pattern{operator} =
    operator := Symbol{operator}
    {{context, env}, expr} ->
       {context, expr} |>
-         {.pattern, ~data{Void?, val}} ->
+         {.pattern, ~data{~void{}, val}} ->
             ~check{~macro{make_checker{val, operator}}, ~ignore{}}
-         {_, Void?} ->
+         {_, ~void{}} ->
             operator
          other ->
             ~send{operator, expr}
@@ -960,20 +963,20 @@ stdenv.register_macro{">"} with partial_pattern{"___gt"}
 
 stdenv.register_macro{"*"} with {{context, env}, expr} ->
    {context, expr} |>
-      {.pattern, Void?} ->
+      {.pattern, ~void{}} ->
          ~dynsplice{~ignore{}}
-      ;; {.pattern or .data, ~data{val, Void?}} ->
+      ;; {.pattern or .data, ~data{val, ~void{}}} ->
       ;;    ~dynsplice{val}
-      {.pattern or .data, ~data{Void?, val}} ->
+      {.pattern or .data, ~data{~void{}, val}} ->
          ~dynsplice{val}
-      {_, Void?} ->
+      {_, ~void{}} ->
          Symbol{"___times"}
       other ->
          ~send{Symbol{"___times"}, expr}
 
 
 stdenv.register_macro{"."} with {{context, env}, |>} ->
-   ~data{Void?, Symbol? {s}} ->
+   ~data{~void{}, Symbol? {s}} ->
       ~value{s}
    other ->
       <> other
@@ -995,7 +998,6 @@ stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
    {placeholder, newargs} = find_arrow{args}
    newargs := newargs.slice{1} each
       Symbol? {s} -> Symbol{s}
-      ;; {.symbol, s} -> s
       other ->
          t = gensym{}
          body.push with '[^other = ^t]
@@ -1084,7 +1086,7 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
                r.push{mkif{ands}}
          r
 
-      {.data, Void?} ->
+      {.data, ~void{}} ->
          {.assoc}
 
       {.data, ~data{~send{f, args}, value}} ->
@@ -1168,7 +1170,7 @@ stdenv.register_macro{"!!"} with {{|>, env}, ~data{expr, matchers}} ->
             matchers
       f = '[{^excv} -> ^m]
       ~multi with
-         ~js_try{expr, f, Void{}}
+         ~js_try{expr, f, ~void{}}
 
    other ->
       excv = gensym{}
@@ -1182,7 +1184,7 @@ stdenv.register_macro{"!!"} with {{|>, env}, ~data{expr, matchers}} ->
       f = '[{^excv} -> ^res := ^m]
       ~multi with
          ~declare{res, ~value{undefined}}
-         ~js_try{~assign{res, expr}, f, Void{}}
+         ~js_try{~assign{res, expr}, f, ~void{}}
          res
 
 
@@ -1240,22 +1242,22 @@ rx_build2{|>} =
       "or" ->
          rx_wrap{rx_build2{a} + "|" + rx_build2{b}}
       "*" ->
-         Void? = a
+         ~void{} = a
          rx_wrap{rx_build2{b} + "*"}
       "+" ->
-         Void? = a
+         ~void{} = a
          rx_wrap{rx_build2{b} + "+"}
       "?" ->
-         Void? = a
+         ~void{} = a
          rx_wrap{rx_build2{b} + "?"}
       "in" ->
-         Void? = a
+         ~void{} = a
          ~value{v} = b
          ["[" + x + "]"] where
             x = rx_quote2{v}
       "not" ->
-         Void? = a
-         b as ~send{Symbol? {"in"}, ~data{Void?, ~value{v}}}
+         ~void{} = a
+         b as ~send{Symbol? {"in"}, ~data{~void{}, ~value{v}}}
          ["[^" + x + "]"] where
             x = rx_quote2{v}
 
@@ -1269,23 +1271,23 @@ rx_build2{|>} =
 stdenv.register_macro{"R", mac} where mac{{context, env}, expr, flags} =
    flags := flags or ""
    expr |>
-      ~send{Symbol? {"."}, ~data{Void?, Symbol? {flag}}} ->
+      ~send{Symbol? {"."}, ~data{~void{}, Symbol? {flag}}} ->
          ~macro{m} where m{ctx, x} = mac{ctx, x, flags + flag}
       ~value{String? v} -> 'RegExp{^=v, ^=flags}
-      ~send{Symbol? {"'"}, ~data{Void?, arg}} -> 'RegExp{^=rx_build2{arg}, ^=flags}
+      ~send{Symbol? {"'"}, ~data{~void{}, arg}} -> 'RegExp{^=rx_build2{arg}, ^=flags}
 
 
 stdenv.register_macro{"?"} with {{context, env}, |>} ->
 
-   ~data{Void?, expr} ->
+   ~data{~void{}, expr} ->
       ~send{Symbol{"cond"}, ~data{expr}}
 
-   ~data{expr, Void?} ->
+   ~data{expr, ~void{}} ->
       orig_expr = expr
 
       checker = expr |>
-         Void? -> throw "can't use ? on its own"
-         Symbol? {.String} -> ;; or .Symbol ->
+         ~void{} -> throw "can't use ? on its own"
+         Symbol? {.String} ->
             ~macro with {_, ~data{expr}} ->
                '[typeof{^expr} == "string"]
          Symbol? {.Number} ->
@@ -1304,7 +1306,7 @@ stdenv.register_macro{"?"} with {{context, env}, |>} ->
                projector = '___deconstructor{^orig_expr}
                ;; ~check{checker, ~project{projector, expr}}
                ~check{checker, ~project{projector, ~duck{0, *subp}}}
-            Void? ->
+            ~void{} ->
                ~check{checker, ~ignore{}}
             other ->
                ~check{checker, expr}
@@ -1313,9 +1315,9 @@ stdenv.register_macro{"?"} with {{context, env}, |>} ->
       ~macro{mac}
 
 
-stdenv.register_macro{"!"} with {{context, env}, ~data{expr, Void?}} ->
+stdenv.register_macro{"!"} with {{context, env}, ~data{expr, ~void{}}} ->
    projector = expr |>
-      Void? -> throw "can't use ! on its own"
+      ~void{} -> throw "can't use ! on its own"
       Symbol? {.String} ->
          ~macro with {_, ~data{expr}} -> '{true, String{^expr}}
       Symbol? {.Number} ->
@@ -1325,7 +1327,7 @@ stdenv.register_macro{"!"} with {{context, env}, ~data{expr, Void?}} ->
    mac{{|>, env}, expr} =
       .pattern ->
          expr |>
-            Void? -> ~project{projector, ~ignore{}}
+            ~void{} -> ~project{projector, ~ignore{}}
             other -> ~project{projector, expr}
       other -> '[^projector]{^expr}[1]
 
@@ -1432,7 +1434,7 @@ parse_lhs{env, lhs, rhs, gen} =
       ;; <> lhs
       lhs |>
 
-         Void? ->
+         ~void{} ->
             <> "AH!"
             helper_noexpand{x, curr} where
                x = ~check{~macro{make_checker{~value{null}, Symbol{"___eq"}}}, ~ignore{}}
@@ -1566,10 +1568,8 @@ find_arrow{|>} =
    Symbol? {"|>*"} ->
       placeholder = gensym{}
       {placeholder, '[*[^placeholder]]}
-   Symbol? x or Void? x ->
+   Symbol? x or [~void{} and x] ->
       {false, x}
-   ;; ~symbol{x} ->
-   ;;    {false, x}
    x and ~value{v} ->
       {false, x}
    {kind, *args} ->
@@ -1584,7 +1584,6 @@ find_arrow{|>} =
 
 same{a, b} = {a, b} |>
    {Symbol? {x}, Symbol? {y}} -> x == y
-   ;; {~symbol{x}, ~symbol{y}} -> x == y
    {~value{x}, ~value{y}} -> x == y
    {~macro{x}, ~macro{y}} -> x == y
    {~send{f, x}, ~send{g, y}} -> same{f, g} and same{x, y}
@@ -1661,19 +1660,19 @@ qqstruct{name, args} =
 
 qq{expr and |>} =
    Symbol? {s} -> qqsym{s}
-   Void? -> qqvoid{}
+   ~void{} -> qqstruct{.void, {}} ;; qqvoid{}
    ~value{v} ->
       qqstruct{.value, {expr}}
-   ~send{Symbol? {"^"}, ~data{Void?, insert}} ->
+   ~send{Symbol? {"^"}, ~data{~void{}, insert}} ->
       insert
-   ~send{Symbol? {"^="}, ~data{Void?, insert}} ->
+   ~send{Symbol? {"^="}, ~data{~void{}, insert}} ->
       qqstruct{.value, {insert}}
-   ~send{Symbol? {"^*"}, ~data{Void?, insert}} ->
+   ~send{Symbol? {"^*"}, ~data{~void{}, insert}} ->
       '[* ^insert]
    {name, *args} ->
       qqstruct{name, args each arg -> qq{arg}}
 
-stdenv.register_macro{"'"} with {{context, env}, ~data{Void?, expr}} ->
+stdenv.register_macro{"'"} with {{context, env}, ~data{~void{}, expr}} ->
    qq{expr}
 
 
@@ -1718,13 +1717,13 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
    classes = ~data{}
    kv = ~data{}
    parse{|>} =
-      Void? -> null
+      ~void{} -> null
       Symbol? {s} -> tag := ~value{s}
       ~value{x} ->
          classes.push with ~value{x}
-      ~send{Symbol? {"."}, ~data{Void?, Symbol? {x}}} ->
+      ~send{Symbol? {"."}, ~data{~void{}, Symbol? {x}}} ->
          classes.push with ~value{x}
-      ~send{Symbol? {"#"}, ~data{Void?, Symbol? {x}}} ->
+      ~send{Symbol? {"#"}, ~data{~void{}, Symbol? {x}}} ->
          id := ~value{x}
       ~send{Symbol? {"="}, ~data{Symbol? {prop}, value}} ->
          kv.push with ~data{~value{prop}, value}
@@ -1734,7 +1733,7 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
          args.forEach{parse}
    parse{descr}
    contents := contents |>
-      Void? -> ~data{}
+      ~void{} -> ~data{}
       ~multi{*args} -> ~data{*args}
       x -> x
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
@@ -1742,13 +1741,13 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
 
 var_operator{temp}{_, expr} =
    f{|>} =
-      Void? -> temp
-      ~data{Void?, |>} ->
+      ~void{} -> temp
+      ~data{~void{}, |>} ->
          Symbol? {s} ->
             '[[^temp] [^=s]]
          ~send{obj, msg} ->
             '[^x ^msg] where x =
-               f{~data{Void{}, obj}}
+               f{~data{~void{}, obj}}
          other ->
             '[[^temp] [^other]]
       other -> ;; throw {"invalid @ argument", other}
@@ -1962,7 +1961,7 @@ translate{expr and |>, mode} =
    Symbol? {s} ->
       translate.expr{translate.mangle{s}, mode}
 
-   Void? ->
+   ~void{} ->
       translate.expr{"null", mode}
 
    ~value{v} ->
@@ -2142,7 +2141,7 @@ translate{expr and |>, mode} =
                b = translate{y, .expr}
                c = translate{body, .stmt}
 
-   ~js_try{attempt, ~lambda{{Symbol? {v}}, body}, Void?} ->
+   ~js_try{attempt, ~lambda{{Symbol? {v}}, body}, ~void{}} ->
       mode |>
          .expr -> translate.body{expr, .expr}
          other ->
@@ -2206,8 +2205,8 @@ translate.expr := {x, |>} ->
 
 translate.op := {op, a, b} ->
    e = {a, b} |>
-          {Void?, _} -> op + translate{b, .expr}
-          {_, Void?} -> translate{a, .expr} + op
+          {~void{}, _} -> op + translate{b, .expr}
+          {_, ~void{}} -> translate{a, .expr} + op
           _ -> translate{a, .expr} + op + translate{b, .expr}
    "(" + e + ")"
 
