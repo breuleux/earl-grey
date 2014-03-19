@@ -382,7 +382,6 @@ is equivalent to
     _temp := _temp.concat with {4, 5}
     _temp := _temp.reverse{}
     _temp := {7, 6}.concat{_temp}
-    _temp := _temp.pop{}
     _temp
 
 If this is more practical for you, you can choose a different operator
