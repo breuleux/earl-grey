@@ -149,7 +149,7 @@ results = blocktest:
 
    "Classes" =>
       do:
-         Person = class:
+         class Person:
             constructor{String? name, Number! age} =
                @name := name
                @age := age

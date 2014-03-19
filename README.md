@@ -479,7 +479,7 @@ The **class** macro declares a class.
 * The self can be accessed using `@`.
 * Subclassing is not supported yet.
 
-    Person = class:
+    class Person:
        constructor{String? name, Number! age} =
           @name := name
           @age := age
@@ -497,7 +497,28 @@ declared with `class`:
     p2 = Person{.igor, "34"}     ;; valid
     Person? p2                   ;; yes
 
+Static methods can be declared with a **static** block in the body.
 
+One good use of static blocks is customizing the way your class
+behaves with respect to pattern matching.
+
+    class Person:
+       static:
+          ;; duck typing
+          "::check"{p} = p.name and p.age
+          ;; convert to Person
+          "::project"{p} = Person{p.name, p.age}
+          ;; used for deconstructing assignment/matching
+          "::deconstruct"{p} = {p.name, p.age}
+       constructor{name, age} =
+          @name := name
+          @age := age
+
+    Person? {name = .quentin, age = 91}   ;; yes
+    Person? Person{null, null}            ;; nope
+    Person! {name = .quentin, age = 91}   ;; creates a Person
+    Person? {a, b} = {name = .quentin, age = 91}
+    ;; a is "quentin", b is 91
 
 ## Regular expressions
 

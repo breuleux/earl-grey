@@ -690,7 +690,7 @@ expand{{context, env}, expr} =
          ~assign{expand{~decl{env}, lhs}
                  expand{~expr{env}, rhs}}
 
-      {type && [.js_while or .js_for or .js_break
+      {type && [.js_while or .js_for or .js_for_in or .js_break
                 \ or .js_continue or .js_return
                 \ or .js_throw or .js_try or .js_new
                 \ or .if], *args} ->
@@ -1035,15 +1035,18 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
                r.push{mkif{ands}}
          r
 
-      ~data{null?} ->
+      {.data, null?} ->
          {.assoc}
 
-      ~data{~data{~send{|>, ~data{*args}}, value}} ->
-         ~value{f} -> ~assoc{f, ~lambda{args, value}}
-         f -> ~assoc{~value{f}, ~lambda{args, value}}
+      {.data, ~data{~send{f, args}, value}} ->
+         f := f |> | ~value{_} -> f
+                   | z -> ~value{z}
+         ~assoc{f, '[^args -> ^value]}
 
-      ~data{~data{binding, value}} ->
-         ~assoc{~value{binding}, value}
+      {.data, ~data{b, value}} ->
+         b := b |> | ~value{_} -> b
+                   | z -> ~value{z}
+         ~assoc{b, value}
 
       other ->
          throw ["Illegal context for '=' (" + context + ")"]
@@ -1082,9 +1085,11 @@ stdenv.register_macro{"while"} with {{context, env}, expr} ->
    ~data{test, body} = expr
    {.js_while, test, body}
 
-stdenv.register_macro{"for"} with {{context, env}, expr} ->
-   ~data{~multi{a, b, c}, body} = expr
-   {.js_for, a, b, c, body}
+stdenv.register_macro{"for"} with {{context, env}, |>} ->
+   ~data{~multi{a, b, c}, body} ->
+      {.js_for, a, b, c, body}
+   ~data{~send{"in", ~data{a, b}}, body} ->
+      {.js_for_in, a, b, body}
 
 ;; stdenv.register_macro{"!!"} with {{context, env}, ~data{expr, matchers}} ->
 
@@ -1724,9 +1729,13 @@ partition{xs, predicate} =
       x -> f.push{x}
    {t, f}
 
-stdenv.register_macro{"class"} with {{context, env}, ~data{aslist! body}} ->
+stdenv.register_macro{"class"} with {{context, env}, arg} ->
 
-   {ctors, defns} = partition{body} with {|>} -> 
+   {clsvar, aslist! body} = arg |>
+      ~data{body} -> {gensym{}, body}
+      ~data{name, body} -> {name, body}
+
+   {ctors, clauses} = partition{body} with {|>} -> 
       ~send{"=", ~data{~send{.constructor, _}, _}} -> true
       otherwise -> false
 
@@ -1736,7 +1745,6 @@ stdenv.register_macro{"class"} with {{context, env}, ~data{aslist! body}} ->
          ~send{"=", ~data{~send{_, args}, aslist! body}} -> {args, body}
 
    selfvar = gensym{}
-   clsvar = gensym{}
 
    ctor_body := ~multi{prep, *ctor_body, ret} where
       prep = ' | ^selfvar = if{not [^clsvar]? this
@@ -1747,18 +1755,25 @@ stdenv.register_macro{"class"} with {{context, env}, ~data{aslist! body}} ->
    newenv = env.fork{}
    newenv.register_macro{"@"} with var_operator{selfvar}
 
-   defns := defns each
+   defns = {}
+   static_defns = {}
+   clauses each
+      ~send{"static", ~data{aslist! body}} ->
+         static_defns := static_defns ++ body
       ~send{"=", ~data{~send{name, args}, aslist! body}} ->
          name := name |> | ~value{_} -> name
                          | _ -> ~value{name}
-         ' | [^clsvar].prototype[^name] := ^args ->
-              ^selfvar = this
-              ^*body
+         defns.push with
+            ' | [^clsvar].prototype[^name] := ^args ->
+                 ^selfvar = this
+                 ^*body
 
    ~done{expand{{context, newenv}, ...}} with
       ' | ^clsvar = ^ctor_args -> ^ctor_body
+        | augment{^clsvar, {^*static_defns}}
         | ^*defns
         | ^clsvar
+
 
 
 stdenv.register_macro{"do"} with {{context, env}, ~data{aslist! body}} ->
@@ -2058,6 +2073,15 @@ translate{expr and |>, mode} =
                c = translate{z, .expr}
                d = translate{body, .stmt}
 
+   ~js_for_in{x, y, body} ->
+      mode |>
+         .expr -> translate.body{expr, .expr}
+         other ->
+            ["for("+a+" in "+b+"){"+c+"}"] where
+               a = translate{x, .expr}
+               b = translate{y, .expr}
+               c = translate{body, .stmt}
+
    ~js_try{attempt, ~lambda{{String? v}, body}, null?} ->
       mode |>
          .expr -> translate.body{expr, .expr}
@@ -2094,6 +2118,7 @@ translate.mangle := {name} ->
       ">" => "__gt__"
       "~" => "__tilde__"
       "." => "__dot__"
+      ":" => "__colon__"
    }
    r = {}
    for [i = 0, i < name.length, ++i]:

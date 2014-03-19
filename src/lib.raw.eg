@@ -1,4 +1,10 @@
 
+augment{dest, values} =
+   for [k in values]:
+      dest[k] := values[k]
+   dest
+
+
 escape_html{s} =
    repl = with
       "&" => "&amp;"
@@ -39,21 +45,26 @@ StructFactory{name} =
       r = Array.prototype.slice.call{arguments, 0}
       r["#"] := name
       r
-   make.___project := {value} ->
+   make[":::project"] := {value} ->
       ? | [value instanceof Array and value["#"] == name] =>
           {true, value}
         | else =>
           {true, make{value}}
-   make.___check := {value} ->
+   make["::check"] := {value} ->
       ? | [value instanceof Array and value["#"] == name] =>
           true
         | else =>
           false
-   make.___deconstruct := {value} ->
+   make[":::deconstruct"] := {value} ->
       ? | [value instanceof Array and value["#"] == name] =>
           {true, value.slice{0}}
         | else =>
           {false, false}
+
+   make.___check := make["::check"]
+   make.___project := make[":::project"]
+   make.___deconstruct := make[":::deconstruct"]
+
    make
 
 Struct{name} =
@@ -61,15 +72,17 @@ Struct{name} =
    r["#"] := name
    r
 
-Struct.___check := {value} ->
+Struct["::check"] := {value} ->
    ? | [value instanceof Array] => value["#"] != undefined
      | else => false
 
-Struct.___deconstruct := {value} ->
+Struct[":::deconstruct"] := {value} ->
    ? | [value instanceof Array and value["#"] != undefined] =>
         {true, {value["#"]}.concat{value.slice{0}}}
      | else => {false, null} ;; throw "cannot deconstruct"
 
+Struct.___check := Struct["::check"]
+Struct.___deconstruct := Struct[":::deconstruct"]
 
 pr{x} =
    r = repr{x}
@@ -103,38 +116,70 @@ Function.prototype.___send := {args} ->
 
 
 checker{type} =
-   type.___check |>
+   type["::check"] |>
       undefined? ->
          {value} -> value instanceof type
       f ->
          {value} -> f.call{type, value}
 
-
 projector{type} = {value} ->
-   type.___project |>
-      undefined? -> {true, type{value}}
+   type[":::project"] |>
+      undefined? ->
+         type["::project"] |>
+            undefined? ->
+               {true, type{value}}
+            f ->
+               {true, f{value}} !! {false, null}
       f -> f.call{type, value}
 
-
 deconstructor{type} = {value} ->
-   type.___deconstruct |>
+   type[":::deconstruct"] |>
       undefined? ->
-         ? | [value instanceof Array] => {true, value}
-           | else => {false, null}
+         type["::deconstruct"] |>
+            undefined? ->
+               ? | [value instanceof Array] => {true, value}
+                 | else => {false, null}
+            f ->
+               {true, f.call{this, value}} !! {false, null}
       f -> f.call{this, value}
 
 
+;; checker{type} =
+;;    type.___check |>
+;;       undefined? ->
+;;          {value} -> value instanceof type
+;;       f ->
+;;          {value} -> f.call{type, value}
 
-Array.___project := {value} -> value |>
+;; projector{type} = {value} ->
+;;    type.___project |>
+;;       undefined? -> {true, type{value}}
+;;       f -> f.call{type, value}
+
+;; deconstructor{type} = {value} ->
+;;    type.___deconstruct |>
+;;       undefined? ->
+;;          ? | [value instanceof Array] => {true, value}
+;;            | else => {false, null}
+;;       f -> f.call{this, value}
+
+
+
+Array[":::project"] := {value} -> value |>
    Array? -> {true, value}
    _ -> {true, {value}}
 
+Array.___project := Array[":::project"]
 
-RegExp.prototype.___check := {value} ->
+
+RegExp.prototype["::check"] := {value} ->
    value.match{this}
 
-RegExp.prototype.___project := {value} ->
+RegExp.prototype[":::project"] := {value} ->
    value.match{this} |>
       null? m -> {false, null}
       m -> {true, m}
+
+RegExp.prototype.___check := RegExp.prototype["::check"]
+RegExp.prototype.___project := RegExp.prototype[":::project"]
 
