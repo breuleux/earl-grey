@@ -1,45 +1,4 @@
 
-;; TEMP COMPATIBILITY LAYER
-
-;; Void{} = null
-;; Void["::check"] := {x} -> null? x
-;; qqvoid{} = ~value{null}
-
-;; Void{} = ~void{}
-;; Void["::check"] := {x} ->
-;;    x |>
-;;       ;; null? -> true
-;;       ~void{} -> true
-;;       other -> false
-;; qqvoid{} = qqstruct{.void, {}}
-
-;; Symbol{s} = ~symbol{s}
-;; Symbol["::check"] := {|>} ->
-;;    ;;String? x -> true
-;;    ~symbol{x} -> true
-;;    other -> false
-;; Symbol["::deconstruct"] := {|>} ->
-;;    ;;String? x -> {x}
-;;    ~symbol{x} -> {x}
-;; ;;qqsym{s} = ~value{s}
-;; qqsym{s} = qqstruct{.symbol, {~value{s}}}
-
-;; xsym{|>} =
-;;    ;; String? x -> x
-;;    ~symbol{x} -> x
-
-
-
-
-;; Symbol["::check"] := {|>} ->
-;;    String? x -> true
-;;    ~symbol{x} -> true
-;;    other -> false
-;; Symbol["::deconstruct"] := {|>} ->
-;;    String? x -> {x}
-;;    ~symbol{x} -> {x}
-
-
 special_ops = {
    "(" => .PFX
    "[" => .PFX
@@ -513,7 +472,6 @@ order{o1, o2} =
 
 
 finalize{|>} =
-   ;; ~ID{value} -> value
    ~ID{value} -> ~symbol{value}
    ~NUM{value} -> ~value{value}
    ~STR{value} -> ~value{value}
@@ -556,25 +514,11 @@ finalize{|>} =
                     ~send{target, ~data{*body}}
               | else => result
 
-         ;; {{"with"}, {target, aslist! body}} ->
-         ;;    target |>
-         ;;       null? ->
-         ;;          {.data}.concat{body}
-         ;;       when target.fromop ->
-         ;;          ~send{target, {.data}.concat{body}}
-         ;;       ~send{f, ~data{*args}} ->
-         ;;          ~send{f, {.data}.concat{args}.concat{body}}
-         ;;       ~data{*args} ->
-         ;;          target.concat{body}
-         ;;       other ->
-         ;;          ~send{target, {.data}.concat{body}}
-
          {{"[" or ",", *_}, _} ->
             ? | [op == "["] => args := args.slice{1, -1}
             args := args.filter{f} where
                f{|>} = | ~void{} -> false
                        | other -> true
-               ;; f{x} = [not Void? x]
 
             result = args |>
                {} -> ~value{undefined}
@@ -587,7 +531,6 @@ finalize{|>} =
             ~data{*args.slice{1, -1}.filter{f}} where
                f{|>} = | ~void{} -> false
                        | other -> true
-               ;; f{x} = [not Void? x]
 
          {{.WHITE}, _} ->
             ~send{*args}
@@ -612,9 +555,7 @@ parse{text} =
 
 
 libf{f} =
-   ;; ~send{"___lib", ~value{f}}
-   ;; f          ;; ORIGINAL
-   ~symbol{f}  ;; TRANSITIONAL
+   ~symbol{f}
 
 
 Env{parent} =
@@ -847,10 +788,6 @@ stdenv.register_macro{".."} with {_, |>} ->
    ~data{x, y} -> 'range{^x, ^y}
    ~void{} -> 'range
 
-;;stdenv.register_macro{"TEST"} with {{context, env}, expr} -> [
-;;   ~splice{"a", "b"}
-;;]
-
 make_checker{value, op} = {{context, env}, ~data{expr}} ->
    ~send{op, ~data{expr, value}}
 
@@ -965,8 +902,6 @@ stdenv.register_macro{"*"} with {{context, env}, expr} ->
    {context, expr} |>
       {.pattern, ~void{}} ->
          ~dynsplice{~ignore{}}
-      ;; {.pattern or .data, ~data{val, ~void{}}} ->
-      ;;    ~dynsplice{val}
       {.pattern or .data, ~data{~void{}, val}} ->
          ~dynsplice{val}
       {_, ~void{}} ->
@@ -1142,21 +1077,6 @@ stdenv.register_macro{"for"} with {{context, env}, |>} ->
    ~data{~send{~symbol{"in"}, ~data{a, b}}, body} ->
       {.js_for_in, a, b, body}
 
-;; stdenv.register_macro{"!!"} with {{context, env}, ~data{expr, matchers}} ->
-
-;;    excv = gensym{}
-;;    res = gensym{}
-;;    m = aslist{matchers} |>
-;;       ms and {~send{"->", _}, *} ->
-;;          ms.push with '[___exc -> throw ___exc]
-;;          '[^excv |> ^[~multi{*ms}]]
-;;       x ->
-;;          matchers
-;;    f = '[{^excv} -> ^res := ^m]
-;;    ~multi with
-;;       ~declare{res, ~value{undefined}}
-;;       ~js_try{~assign{res, expr}, f, null}
-;;       res
 
 stdenv.register_macro{"!!"} with {{|>, env}, ~data{expr, matchers}} ->
 
@@ -1295,7 +1215,6 @@ stdenv.register_macro{"?"} with {{context, env}, |>} ->
                '[typeof{^expr} == "number"]
          ~symbol{.true} -> ~macro{{_, ~data{expr}} -> expr}
          ~symbol{.false} -> ~macro{{_, ~data{expr}} -> '[not ^expr]}
-         ;;.null or .Void -> ~macro{make_checker{~value{null}, "___is"}}
          ~symbol{.null} -> ~macro{make_checker{~value{null}, ~symbol{"___is"}}}
          ~symbol{.undefined} -> ~macro{make_checker{~value{undefined}, ~symbol{"___is"}}}
          other -> '___checker{^expr}
@@ -1304,7 +1223,6 @@ stdenv.register_macro{"?"} with {{context, env}, |>} ->
          .pattern -> expr |>
             ~data{*subp} ->
                projector = '___deconstructor{^orig_expr}
-               ;; ~check{checker, ~project{projector, expr}}
                ~check{checker, ~project{projector, ~duck{0, *subp}}}
             ~void{} ->
                ~check{checker, ~ignore{}}
@@ -1431,11 +1349,9 @@ parse_lhs{env, lhs, rhs, gen} =
          [0 .. [bw - 1]] each j ->
             helper_noexpand{members[fw + j + 1], '[^temp][^len - ^=[bw - j]]}
 
-      ;; <> lhs
       lhs |>
 
          ~void{} ->
-            <> "AH!"
             helper_noexpand{x, curr} where
                x = ~check{~macro{make_checker{~value{null}, ~symbol{"___eq"}}}, ~ignore{}}
 
@@ -1659,8 +1575,8 @@ qqstruct{name, args} =
    ~data{~value{name}, *args}
 
 qq{expr and |>} =
-   ~symbol{s} -> qqstruct{.symbol, {~value{s}}} ;; qqsym{s}
-   ~void{} -> qqstruct{.void, {}} ;; qqvoid{}
+   ~symbol{s} -> qqstruct{.symbol, {~value{s}}}
+   ~void{} -> qqstruct{.void, {}}
    ~value{v} ->
       qqstruct{.value, {expr}}
    ~send{~symbol{"^"}, ~data{~void{}, insert}} ->
@@ -1750,7 +1666,7 @@ var_operator{temp}{_, expr} =
                f{~data{~void{}, obj}}
          other ->
             '[[^temp] [^other]]
-      other -> ;; throw {"invalid @ argument", other}
+      other ->
          '[^temp ^other]
    f{expr}
 
@@ -2006,7 +1922,6 @@ translate{expr and |>, mode} =
                trmsg = translate{msg, .expr}
 
    ~send{f, ~array{*args}} ->
-      ;; op = [typeof{f} == "string"] and js_op_table[f]
       op = f |> | ~symbol{x} -> js_op_table[x]
                 | _ -> null
       ? | op =>
