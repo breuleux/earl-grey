@@ -374,8 +374,7 @@ of evaluating each statement in the body:
         @concat with {4, 5}
         @reverse{}
         {7, 6}.concat{@}
-        @pop{}
-    ;; {7, 6, 5, 4, 3, 2}
+    ;; {7, 6, 5, 4, 3, 2, 1}
 
 is equivalent to
 
@@ -472,6 +471,34 @@ also act as a coercer:
     ;; args is {1, 2}
 
 
+## Classes
+
+The **class** macro declares a class.
+
+* The class constructor must be given by the `constructor` field.
+* The self can be accessed using `@`.
+* Subclassing is not supported yet.
+
+    Person = class:
+       constructor{String? name, Number! age} =
+          @name := name
+          @age := age
+       describe{} =
+          @name + ":" + [String! @age]
+       describe2{} =
+          @describe{}.replace{":", "~"}
+
+    p1 = new Person{.peter, 12}
+    p1.describe2{}               ;; "peter~12"
+
+The `new` keyword is optional when creating instances of classes
+declared with `class`:
+
+    p2 = Person{.igor, "34"}     ;; valid
+    Person? p2                   ;; yes
+
+
+
 ## Regular expressions
 
 `R"regexp"` specifies a regular expression using the same semantics as
@@ -512,4 +539,99 @@ that `|` does not mean "or".
 This domain specific language should be primarily used in situations
 where standard regular expression syntax becomes unwieldy (long
 regular expressions, or that require a lot of escaping).
+
+
+## Testing
+
+Earl Grey comes with a powerful testing sub-language,
+**blocktest**. That language is not yet complete and the format of the
+results is subject to change (it's lacking a lot of useful information
+for the time being).
+
+In its simplest form, you can simply write one condition per line:
+
+    test_results = blocktest "test":
+       1 + 2 == 3
+       .test == "test"
+       1 == 2           ;; surely not!
+
+`test_result` will contain a flat array of test results. Here I
+annotate a series of tests with what each test will produce. Note that
+`test_results` is *flat*: there is no nested structure, which makes
+writing reports more straightforward.
+
+    test_results = blocktest "test":
+
+       ;; simple tests
+       1 + 2 == 3       ;; #result{{"test"}, #success{true}}
+       1 == 2           ;; #result{{"test"}, #failure{false}}
+       bachi-bouzouk    ;; #result{{"test"}, #error{<ReferenceError: bachi>}}
+
+       ;; you can group and label tests
+       "more tests" =>
+          1 == 1        ;; #result{{"test", "more tests"}, #success{true}}
+
+       ;; preparation code
+       do:
+          ;; the statements are executed but produce no test results
+          x = 10 + 10
+
+       ;; test generation
+       {10, 20, 30} each x -> x == 20
+       ;; produces:
+       ;; #result{{"test", 0}, #failure{false}}
+       ;; #result{{"test", 1}, #success{true}}
+       ;; #result{{"test", 2}, #failure{false}}
+
+       "prep" =>
+          do:
+             bachi-bouzouk ;; #error{{"test", "prep"}, <ReferenceError: bachi>}
+          ;; Errors in preparation code aborts the rest of the tests
+          ;; in the group
+          1 == 1           ;; #aborted{{"test", "prep"}}
+
+       ;; Not affected by the failure in "prep"
+       true
+
+
+
+It is up to you to choose how to report the results. Here's a simple
+report:
+
+    yay and nay and errs and notrun = 0
+    test_results each
+       ;; note: a bug currently prevents |> from being used here
+       #test_result{path, |>} ->
+          ;; A test was run
+          #success{_} ->
+             ;; The test was a success :)
+             yay++
+          #failure{_} ->
+             ;; The test yielded a wrong result
+             nay++
+             console.log with "Test: " + path.join{"/"} + " failed."
+          #error{String! err} ->
+             ;; The test failed by throwing an exception
+             nay++
+             console.log with
+                "Test: " + path.join{"/"} + " raised an error " + err
+       #error{String! err} ->
+          ;; Non-test code (e.g. preparation code) raised an error
+          errs++
+          console.log with
+             "Code for: " + path.join{"/"} + " raised an error " + err
+       #aborted{_} ->
+          ;; Tests that depend on preparation code that failed are
+          ;; not run, but they produce #aborted tokens
+          notrun++
+          console.log with
+             "Test: " + path.join{"/"} + " could not be run"
+    console.log{"Succeeded: ", yay}
+    console.log{"Failed: ", yay + errs}
+    console.log{"Not run: ", notrun}
+
+
+
+     
+
 

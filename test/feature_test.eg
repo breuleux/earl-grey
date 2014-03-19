@@ -1,5 +1,4 @@
 
-
 results = blocktest:
 
    "Operator priority" =>
@@ -132,6 +131,49 @@ results = blocktest:
       [{...} each s -> not re? s] with
          "cabbage", "labia"
 
+   "Chaining" =>
+
+      "7654321" ==
+         chain {1, 2, 3}:
+             @concat with {4, 5}
+             @reverse{}
+             {7, 6}.concat{@}
+             @join{""}
+
+      "7654321" ==
+         chain [{1, 2, 3} as /]:
+             /concat with {4, 5}
+             /reverse{}
+             {7, 6}.concat{/}
+             /join{""}
+
+   "Classes" =>
+      do:
+         Person = class:
+            constructor{String? name, Number! age} =
+               @name := name
+               @age := age
+            describe{} =
+               @name + ":" + [String! @age]
+            describe2{} =
+               @describe{}.replace{":", "~"}
+
+      do: one = new Person{.peter, 12}
+      Person? one
+      one.name == .peter
+      one.age == 12
+      one.describe{} == "peter:12"
+
+      do: two = Person{.igor, "34"}
+      Person? two
+      two.name == .igor
+      two.age == 34
+      two.age != "34"
+      two.describe2{} == "igor~34"
+
+      Person{12, 12} and false !! true
+      not Person? {.peter, 12}
+
 yay = 0
 nay = 0
 <> results each
@@ -143,3 +185,6 @@ nay = 0
 
 <> {"Yay", yay}
 <> {"Nay", nay}
+
+
+

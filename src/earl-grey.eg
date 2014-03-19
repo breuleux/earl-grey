@@ -692,7 +692,7 @@ expand{{context, env}, expr} =
 
       {type && [.js_while or .js_for or .js_break
                 \ or .js_continue or .js_return
-                \ or .js_throw or .js_try
+                \ or .js_throw or .js_try or .js_new
                 \ or .if], *args} ->
          ctxs = js_contexts[type] or {}
          {type, *args.map{f}} where
@@ -1038,8 +1038,9 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
       ~data{null?} ->
          {.assoc}
 
-      ~data{~data{~send{f, ~data{*args}}, value}} ->
-         ~assoc{~value{f}, ~lambda{args, value}}
+      ~data{~data{~send{|>, ~data{*args}}, value}} ->
+         ~value{f} -> ~assoc{f, ~lambda{args, value}}
+         f -> ~assoc{~value{f}, ~lambda{args, value}}
 
       ~data{~data{binding, value}} ->
          ~assoc{~value{binding}, value}
@@ -1130,6 +1131,9 @@ stdenv.register_macro{"!!"} with {{|>, env}, ~data{expr, matchers}} ->
          ~js_try{~assign{res, expr}, f, null}
          res
 
+
+stdenv.register_macro{"new"} with {_, expr} ->
+   ~js_new{expr}
 
 stdenv.register_macro{"return"} with {_, expr} ->
    ~js_return{expr}
@@ -1667,6 +1671,21 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
 
+var_operator{temp}{_, expr} =
+   f{|>} =
+      null? -> temp
+      ~data{null?, |>} ->
+         String? s or {.symbol, s} ->
+            '[[^temp] [^=s]]
+         ~send{obj, msg} ->
+            '[^x ^msg] where x =
+               f{~data{null, obj}}
+         other ->
+            '[[^temp] [^other]]
+      other -> ;; throw {"invalid @ argument", other}
+         '[^temp ^other]
+   f{expr}
+
 stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
    newenv = env.fork{}
    temp = gensym{}
@@ -1675,23 +1694,71 @@ stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
       ~send{"as", ~data{x, y}} -> {y, x}
       other -> {"@", other}
 
-   newenv.register_macro{variable} with f where f{{context, env}, |>} =
-      null? -> temp
-      ~data{null?, |>} ->
-         String? s or {.symbol, s} ->
-            '[[^temp] [^=s]]
-         ~send{obj, msg} ->
-            '[^x ^msg] where x =
-               f{env, .head, ~data{null, obj}}
-         other ->
-            '[[^temp] [^other]]
-      other -> ;; throw {"invalid @ argument", other}
-         '[^temp ^other]
+   newenv.register_macro{variable} with var_operator{temp}
+
+   ;; newenv.register_macro{variable} with f where f{{context, env}, |>} =
+   ;;    null? -> temp
+   ;;    ~data{null?, |>} ->
+   ;;       String? s or {.symbol, s} ->
+   ;;          '[[^temp] [^=s]]
+   ;;       ~send{obj, msg} ->
+   ;;          '[^x ^msg] where x =
+   ;;             f{env, .head, ~data{null, obj}}
+   ;;       other ->
+   ;;          '[[^temp] [^other]]
+   ;;    other -> ;; throw {"invalid @ argument", other}
+   ;;       '[^temp ^other]
+
    stmts = ~multi{}.concat with aslist{body} each x -> '[^temp := ^x]
    v = ' | ^temp = ^expr
          | ^stmts
          | ^temp
    ~done{expand{{context, newenv}, v}}
+
+
+partition{xs, predicate} =
+   t = {}
+   f = {}
+   xs each
+      x when predicate{x} -> t.push{x}
+      x -> f.push{x}
+   {t, f}
+
+stdenv.register_macro{"class"} with {{context, env}, ~data{aslist! body}} ->
+
+   {ctors, defns} = partition{body} with {|>} -> 
+      ~send{"=", ~data{~send{.constructor, _}, _}} -> true
+      otherwise -> false
+
+   {ctor_args, ctor_body} = ctors |>
+      {} -> {'{}, {}}
+      {|>} ->
+         ~send{"=", ~data{~send{_, args}, aslist! body}} -> {args, body}
+
+   selfvar = gensym{}
+   clsvar = gensym{}
+
+   ctor_body := ~multi{prep, *ctor_body, ret} where
+      prep = ' | ^selfvar = if{not [^clsvar]? this
+                               Object.create{[^clsvar].prototype}
+                               this}
+      ret = ' | ^selfvar
+
+   newenv = env.fork{}
+   newenv.register_macro{"@"} with var_operator{selfvar}
+
+   defns := defns each
+      ~send{"=", ~data{~send{name, args}, aslist! body}} ->
+         name := name |> | ~value{_} -> name
+                         | _ -> ~value{name}
+         ' | [^clsvar].prototype[^name] := ^args ->
+              ^selfvar = this
+              ^*body
+
+   ~done{expand{{context, newenv}, ...}} with
+      ' | ^clsvar = ^ctor_args -> ^ctor_body
+        | ^*defns
+        | ^clsvar
 
 
 stdenv.register_macro{"do"} with {{context, env}, ~data{aslist! body}} ->
@@ -1850,6 +1917,54 @@ translate{expr and |>, mode} =
             "?!?[" + v + "]?!?"
       translate.expr{r, mode}
 
+   ~send{"___node", ~value{f}} ->
+      f
+
+   ~send{"___js_fetch", ~array{f, msg}} ->
+      translate.expr{trf + "[" + trmsg + "]", mode} where
+         trf = translate{f, .expr}
+         trmsg = translate{msg, .expr}
+
+   ~send{f, msg and ~value{s}} ->
+      cond:
+         [[typeof{s} == "string"]
+          \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
+            translate.expr{trf + "." + trmsg, mode} where
+               trf = translate{f, .expr}
+               trmsg = translate{s, .expr}
+         else =>
+            translate.expr{trf + "[" + trmsg + "]", mode} where
+               trf = translate{f, .expr}
+               trmsg = translate{msg, .expr}
+
+   ~send{f, ~array{*args}} ->
+      op = [typeof{f} == "string"] and js_op_table[f]
+      ? | op =>
+          translate.expr{translate.op{op, args[0], args[1]}, mode}
+        | else =>
+          translate.expr{trf+"("+trargs.join{","}+")", mode} where
+             trf = translate{f, .expr}
+             trargs = args each x ->
+                translate{x, .expr}
+
+   ~send{f, msg} ->
+      translate.expr{"send(" + trf + "," + trmsg + ")", mode} where
+         trf = translate{f, .expr}
+         trmsg = translate{msg, .expr}
+
+   ~array{*args} ->
+      r = ["[" + args.map{f}.join{","} + "]"] where
+         f{x} = translate{x, .expr}
+      translate.expr{r, mode}
+
+   ~object{*args} ->
+      r = ["({" + args.map{f}.join{","} + "})"] where
+         f{x} =
+            a = translate{x[1], .expr}
+            b = translate{x[2], .expr}
+            a + ":" + b
+      translate.expr{r, mode}
+
    ~lambda{bindings, body} ->
       translate.expr{"function("+a+"){"+b+"}", mode} where
          a = bindings.join{","}
@@ -1863,32 +1978,6 @@ translate{expr and |>, mode} =
                a = translate{test, .expr}
                b = translate{pos, mode}
                c = translate{neg, mode}
-
-   {.js_while, test, body} ->
-      mode |>
-         .expr -> translate.body{expr, .expr}
-         other ->
-            ["while(" + a + "){" + b + "}"] where
-               a = translate{test, .expr}
-               b = translate{body, .stmt}
-
-   {.js_for, x, y, z, body} ->
-      mode |>
-         .expr -> translate.body{expr, .expr}
-         other ->
-            ["for("+a+b+c+"){"+d+"}"] where
-               a = translate{x, .stmt}
-               b = translate{y, .stmt}
-               c = translate{z, .expr}
-               d = translate{body, .stmt}
-
-   {.js_try, attempt, ~lambda{{String? v}, body}, null?} ->
-      mode |>
-         .expr -> translate.body{expr, .expr}
-         other ->
-            "try{" + a + "}catch(" + v + "){" + b + "}" where
-               a = translate{attempt, .stmt}
-               b = translate{body, .stmt}
 
    ~declare{binding, ~value{undefined?}} ->
       mode |>
@@ -1930,71 +2019,52 @@ translate{expr and |>, mode} =
    ~splice{*args} ->
       translate{~multi{*args}, mode}
 
-   {.js_break} ->
+   ~js_new{value} ->
+      translate.expr{"(new " + translate{value, .expr} + ")", mode}
+
+   ~js_break{} ->
       ? | [mode == "expr"] => throw "Invalid break in ctx"
         | else => "break;"
 
-   {.js_continue} ->
+   ~js_continue{} ->
       ? | [mode == "expr"] => throw "Invalid continue in ctx"
         | else => "continue;"
 
-   {.js_return, value} ->
+   ~js_return{value} ->
       ? | [mode == "expr"] => throw "Invalid return in ctx"
         | else => "return " + translate{value, .expr} + ";"
 
-   {.js_throw, value} ->
+   ~js_throw{value} ->
       ? | [mode == "expr"] =>
           "function(){throw " + translate{value, .expr} + ";}()"
         | else =>
           "throw " + translate{value, .expr} + ";"
 
-   ~array{*args} ->
-      r = ["[" + args.map{f}.join{","} + "]"] where
-         f{x} = translate{x, .expr}
-      translate.expr{r, mode}
+   ~js_while{test, body} ->
+      mode |>
+         .expr -> translate.body{expr, .expr}
+         other ->
+            ["while(" + a + "){" + b + "}"] where
+               a = translate{test, .expr}
+               b = translate{body, .stmt}
 
-   ~object{*args} ->
-      r = ["({" + args.map{f}.join{","} + "})"] where
-         f{x} =
-            a = translate{x[1], .expr}
-            b = translate{x[2], .expr}
-            a + ":" + b
-      translate.expr{r, mode}
+   ~js_for{x, y, z, body} ->
+      mode |>
+         .expr -> translate.body{expr, .expr}
+         other ->
+            ["for("+a+b+c+"){"+d+"}"] where
+               a = translate{x, .stmt}
+               b = translate{y, .stmt}
+               c = translate{z, .expr}
+               d = translate{body, .stmt}
 
-   ~send{"___node", ~value{f}} ->
-      f
-
-   ~send{"___js_fetch", ~array{f, msg}} ->
-      translate.expr{trf + "[" + trmsg + "]", mode} where
-         trf = translate{f, .expr}
-         trmsg = translate{msg, .expr}
-
-   ~send{f, msg and ~value{s}} ->
-      cond:
-         [[typeof{s} == "string"]
-          \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
-            translate.expr{trf + "." + trmsg, mode} where
-               trf = translate{f, .expr}
-               trmsg = translate{s, .expr}
-         else =>
-            translate.expr{trf + "[" + trmsg + "]", mode} where
-               trf = translate{f, .expr}
-               trmsg = translate{msg, .expr}
-
-   ~send{f, ~array{*args}} ->
-      op = [typeof{f} == "string"] and js_op_table[f]
-      ? | op =>
-          translate.expr{translate.op{op, args[0], args[1]}, mode}
-        | else =>
-          translate.expr{trf+"("+trargs.join{","}+")", mode} where
-             trf = translate{f, .expr}
-             trargs = args each x ->
-                translate{x, .expr}
-
-   ~send{f, msg} ->
-      translate.expr{"send(" + trf + "," + trmsg + ")", mode} where
-         trf = translate{f, .expr}
-         trmsg = translate{msg, .expr}
+   ~js_try{attempt, ~lambda{{String? v}, body}, null?} ->
+      mode |>
+         .expr -> translate.body{expr, .expr}
+         other ->
+            "try{" + a + "}catch(" + v + "){" + b + "}" where
+               a = translate{attempt, .stmt}
+               b = translate{body, .stmt}
 
    ;; ~send{f, msg} ->
    ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
