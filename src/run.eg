@@ -1,5 +1,5 @@
 
-req:
+require:
    "./earl-grey" as eg
    fs, path, vm
 
@@ -23,7 +23,7 @@ libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 run{|>} =
 
    {} or {.i or "in" or .interactive} ->
-      req: repl
+      require: repl
       vm.runInThisContext{libdata, "stdin"}
       settings = {
          prompt = "<> "

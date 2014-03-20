@@ -677,7 +677,7 @@ expand{{context, env}, expr} =
                  expand{~expr{env}, rhs}}
 
       {type && [.js_while or .js_for or .js_for_in or .js_break
-                \ or .js_continue or .js_return
+                \ or .js_continue or .js_return or .js_delete
                 \ or .js_throw or .js_try or .js_new
                 \ or .if], *args} ->
          ctxs = js_contexts[type] or {}
@@ -1113,6 +1113,9 @@ stdenv.register_macro{"new"} with {_, expr} ->
 
 stdenv.register_macro{"return"} with {_, expr} ->
    ~js_return{expr}
+
+stdenv.register_macro{"delete"} with {_, expr} ->
+   ~js_delete{expr}
 
 stdenv.register_macro{"throw"} with {_, expr} ->
    ~js_throw{expr}
@@ -1592,8 +1595,8 @@ stdenv.register_macro{"'"} with {{context, env}, ~data{~void{}, expr}} ->
    qq{expr}
 
 
-stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
-   'require{^expr}
+;; stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
+;;    'require{^expr}
 
 stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
 
@@ -1626,33 +1629,60 @@ stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
    ~multi{*stmts}
 
 
-
 stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
-   tag = ~value{"div"}
-   id = ~value{null}
-   classes = ~data{}
-   kv = ~data{}
+   tags = ~data{}
+
    parse{|>} =
       ~void{} -> null
-      ~symbol{s} -> tag := ~value{s}
+      ~symbol{s} -> tags.push with ~value{"+" + s}
       ~value{x} ->
-         classes.push with ~value{x}
+         tags.push with ~value{"+" + x}
       ~send{~symbol{"."}, ~data{~void{}, ~symbol{x}}} ->
-         classes.push with ~value{x}
+         tags.push with ~value{x}
       ~send{~symbol{"#"}, ~data{~void{}, ~symbol{x}}} ->
-         id := ~value{x}
+         tags.push with ~value{"#" + x}
       ~send{~symbol{"="}, ~data{~symbol{prop}, value}} ->
-         kv.push with ~data{~value{prop}, value}
+         tags.push with '[#assoc{^=prop, ^value}]
       ~send{expr, rest} ->
          parse{expr}, parse{rest}
       ~multi{*args} or ~data{*args} ->
          args.forEach{parse}
+
    parse{descr}
    contents := contents |>
       ~void{} -> ~data{}
       ~multi{*args} -> ~data{*args}
       x -> x
-   '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
+
+   'Node{^tags, ^contents}
+
+
+;; stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
+;;    tag = ~value{"div"}
+;;    id = ~value{null}
+;;    classes = ~data{}
+;;    kv = ~data{}
+;;    parse{|>} =
+;;       ~void{} -> null
+;;       ~symbol{s} -> tag := ~value{s}
+;;       ~value{x} ->
+;;          classes.push with ~value{x}
+;;       ~send{~symbol{"."}, ~data{~void{}, ~symbol{x}}} ->
+;;          classes.push with ~value{x}
+;;       ~send{~symbol{"#"}, ~data{~void{}, ~symbol{x}}} ->
+;;          id := ~value{x}
+;;       ~send{~symbol{"="}, ~data{~symbol{prop}, value}} ->
+;;          kv.push with ~data{~value{prop}, value}
+;;       ~send{expr, rest} ->
+;;          parse{expr}, parse{rest}
+;;       ~multi{*args} or ~data{*args} ->
+;;          args.forEach{parse}
+;;    parse{descr}
+;;    contents := contents |>
+;;       ~void{} -> ~data{}
+;;       ~multi{*args} -> ~data{*args}
+;;       x -> x
+;;    '[create_node{^tag, ^id, ^classes, ^kv, ^contents}]
 
 
 var_operator{temp}{_, expr} =
@@ -1686,6 +1716,9 @@ stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
          | ^stmts
          | ^temp
    ~done{expand{{context, newenv}, v}}
+
+;; stdenv.register_macro{"mix"} with {_, ~data{}} ->
+;;    ...
 
 
 partition{xs, predicate} =
@@ -1833,11 +1866,11 @@ stdenv.register_macro{"blocktest"} with {{context, env}, ~data{*args}} ->
 
 
 stdenv.register_macro{"macro"} with {{context, env}, expr} ->
-   ~data{~send{name, args}, body} = expr
+   ~data{~send{name and ~symbol{sname}, args}, body} = expr
    fn = '[^args -> ^body]
    code = generate_from_ast{fn}
    efn = eval{"(" + code.slice{0, -1} + ")"}
-   env.register_macro{name, efn}
+   env.register_macro{sname, efn}
    ~value{undefined}
 
 
@@ -2023,6 +2056,10 @@ translate{expr and |>, mode} =
    ~js_return{value} ->
       ? | [mode == "expr"] => throw "Invalid return in ctx"
         | else => "return " + translate{value, .expr} + ";"
+
+   ~js_delete{value} ->
+      ? | [mode == "expr"] => throw "Invalid delete in ctx"
+        | else => "delete " + translate{value, .expr} + ";"
 
    ~js_throw{value} ->
       ? | [mode == "expr"] =>

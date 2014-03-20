@@ -1,32 +1,46 @@
 
+
+items{obj} =
+   results = {}
+   for [k in obj]:
+      results.push with {k, obj[k]}
+   results
+
+enumerate{arr} =
+   results = {}
+   l = arr.length
+   for [i = 0, i < l, i++]:
+      results.push with {i, arr[i]}
+   results
+
+
+send{obj, msg} =
+   msg |>
+      [String? or Number?] -> ___js_fetch{obj, msg}
+      other -> obj["::send"]{msg}
+
+Function.prototype["::send"] := {args} ->
+   this.apply{this, args}
+
+
 augment{dest, values} =
    for [k in values]:
       dest[k] := values[k]
    dest
 
 
-escape_html{s} =
-   repl = with
-      "&" => "&amp;"
-      "<" => "&lt;"
-      ">" => "&gt;"
-   s.replace{R.g"[&<>]", {x} -> repl[x]}
 
-quotify{s} =
-   s.replace{R.g"[\"\\\\]", {x} -> "\\" + x}
-
-
-create_node{tag, id, classes, kv, Array! contents} =
-   classes := classes each R'[+any]? x -> x
-   accum = {"<", tag}
-   ? | id => accum := accum.concat with
-          " id=\"", id, "\""
-   ? | classes.length => accum := accum.concat with
-          " class=\"", classes.join{" "}, "\""
-   ? | kv => kv each {k, v} ->
-          accum := accum.concat with {" ", k, "=\"", v, "\""}
-   accum.concat{x}.join{""} where x =
-      {">", *contents, "</", tag, ">"}
+;; create_node{tag, id, classes, kv, Array! contents} =
+;;    classes := classes each R'[+any]? x -> x
+;;    accum = {"<", tag}
+;;    ? | id => accum := accum.concat with
+;;           " id=\"", id, "\""
+;;    ? | classes.length => accum := accum.concat with
+;;           " class=\"", classes.join{" "}, "\""
+;;    ? | kv => kv each {k, v} ->
+;;           accum := accum.concat with {" ", k, "=\"", v, "\""}
+;;    accum.concat{x}.join{""} where x =
+;;       {">", *contents, "</", tag, ">"}
 
 patch_array{} =
    r = {}
@@ -79,34 +93,28 @@ Struct[":::deconstruct"] := {value} ->
 
 
 pr{x} =
-   r = repr{x}
+   r = produce_html{repr{x}, "span"}
    pre = String.fromCharCode{27} + "[?0;7y+h <div class=\"ug\">"
    post = "</div>" + String.fromCharCode{7}
    console.log with [pre + r + post]
 
 
 repr{x and |>} =
-   == true -> span.special.true % "true"
-   == false -> span.special.false % "false"
-   null? -> span.special.nil % "null"
-   undefined? -> span.special.nil % "undefined"
-   Number? -> span.num % String{x}
-   String? -> span.str % x
+   == true -> .special.true % "true"
+   == false -> .special.false % "false"
+   null? -> .special.nil % "null"
+   undefined? -> .special.nil % "undefined"
+   Number? -> .num % String{x}
+   String? -> .str % x
    Struct? {tag, *entries} ->
-      span.struct % {span.sym % tag, span.sequence % entries.map{repr}}
+      .struct % {.sym % tag, .sequence % [entries each x -> repr{x}]}
    Array? entries ->
-      span.sequence % entries.map{repr}
+      .sequence % [entries each x -> repr{x}]
+   when x["::repr"] ->
+      x["::repr"]{}
    other ->
-      span.unknown % other.toString{}
+      .unknown % other.toString{}
 
-
-send{obj, msg} =
-   msg |>
-      [String? or Number?] -> ___js_fetch{obj, msg}
-      other -> obj["::send"]{msg}
-
-Function.prototype["::send"] := {args} ->
-   this.apply{this, args}
 
 
 ___checker{type} =
@@ -136,8 +144,8 @@ ___deconstructor{type} = {value} ->
                ? | [value instanceof Array] => {true, value}
                  | else => {false, null}
             f ->
-               {true, f.call{this, value}} !! {false, null}
-      f -> f.call{this, value}
+               {true, f.call{type, value}} !! {false, null}
+      f -> f.call{type, value}
 deconstructor = ___deconstructor
 
 Array[":::project"] := {value} -> value |>
@@ -152,3 +160,71 @@ RegExp.prototype[":::project"] := {value} ->
    value.match{this} |>
       null? m -> {false, null}
       m -> {true, m}
+
+RegExp.prototype[":::deconstruct"] := {value} ->
+   value.match{this} |>
+      null? m -> {false, null}
+      m -> {true, m}
+
+
+class Node:
+
+   static:
+      "::deconstruct"{x} =
+         {x.classes, x.children}
+
+   constructor{Array! classes, Array! children} =
+      @classes := classes.sort{}
+      @children := children
+
+   "::check"{n} =
+      @classes each c when n.classes.indexOf{c} == -1 ->
+         return false
+      true
+
+
+escape_html{s} =
+   repl = with
+      "&" => "&amp;"
+      "<" => "&lt;"
+      ">" => "&gt;"
+   s.replace{R.g"[&<>]", {x} -> repl[x]}
+
+quotify{s} =
+   s.replace{R.g"[\"\\\\]", {x} -> "\\" + x}
+
+
+produce_html{|>, default_tag} =
+
+   String? s ->
+      escape_html{s}
+
+   Node? {tags, children} ->
+      tag = default_tag or "span"
+      classes = {}
+      id = null
+      kv = {}
+      sub = {}
+      tags each
+         #assoc{k, v} ->
+            kv.push with {k, v}
+         R'[start, "+", {*any}]? {_, m} ->
+            tag := m
+         R'[start, "#", {*any}]? {_, m} ->
+            id := m
+         String? s ->
+            classes.push with s
+
+      accum = {"<", tag}
+      ? | id => accum := accum.concat with
+             " id=\"", id, "\""
+      ? | classes.length => accum := accum.concat with
+             " class=\"", quotify{classes.join{" "}}, "\""
+      ? | kv => kv each {k, v} ->
+             accum := accum.concat with {" ", k, "=\"", quotify{v}, "\""}
+
+      accum.concat{x}.join{""} where x =
+         {">", *[children each c -> produce_html{c}], "</", tag, ">"}
+
+   other ->
+      produce_html{String! other}
