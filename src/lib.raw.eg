@@ -92,14 +92,20 @@ Struct[":::deconstruct"] := {value} ->
      | else => {false, null} ;; throw "cannot deconstruct"
 
 
-pr{x} =
-   r = produce_html{repr{x}, "span"}
+pr_terminus{node} =
+   r = produce_html{node, .span}
    pre = String.fromCharCode{27} + "[?0;7y+h <div class=\"ug\">"
    post = "</div>" + String.fromCharCode{7}
    console.log with [pre + r + post]
 
+pr{|>, r} =
+   Node? n ->
+      pr_terminus{n}
+   x ->
+      pr_terminus{[r or repr]{x}}
 
-repr{x and |>} =
+
+repr{x and |>, Function? recur or repr as recur} =
    == true -> .special.true % "true"
    == false -> .special.false % "false"
    null? -> .special.nil % "null"
@@ -107,11 +113,11 @@ repr{x and |>} =
    Number? -> .num % String{x}
    String? -> .str % x
    Struct? {tag, *entries} ->
-      .struct % {.sym % tag, .sequence % [entries each x -> repr{x}]}
+      .struct % {.sym % tag, .sequence % [entries each x -> recur{x, repr}]}
    Array? entries ->
-      .sequence % [entries each x -> repr{x}]
+      .sequence % [entries each x -> recur{x, repr}]
    when x["::repr"] ->
-      x["::repr"]{}
+      x["::repr"]{recur}
    other ->
       .unknown % other.toString{}
 

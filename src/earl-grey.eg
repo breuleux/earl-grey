@@ -993,8 +993,12 @@ stdenv.register_macro{"=>"} with {{context, env}, ~data{binding, value}} ->
         throw ["Illegal context for '=>' (" + context + ")"]
 
 
-stdenv.register_macro{"as"} with {_, ~data{expr, variable}} ->
-   '[^variable = ^expr]
+stdenv.register_macro{"as"} with {{context, env}, ~data{expr, variable}} ->
+   context |>
+      .pattern ->
+         ~constant{expr, variable}
+      _ ->
+         '[^variable = ^expr]
 
 stdenv.register_macro{"="} with {{context, env}, expr} ->
    {context, expr} |>
@@ -1377,6 +1381,9 @@ parse_lhs{env, lhs, rhs, gen} =
             current.push{condition}
             newclause{}
 
+         ~constant{c, pattern} ->
+            helper{pattern, c}
+
          ~all{*xs} ->
             temp = maybe_temp{curr}
             xs each x -> helper{x, temp}
@@ -1603,13 +1610,13 @@ stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
    stmts = {}
 
    topfetch{pkg, v} =
-      stmts.push with '[^[~symbol{v}] = ___node.require{^=pkg}]
+      stmts.push with '[^v = ___node.require{^=pkg}]
       v
 
    produce{|>, fetch} =
 
       ~symbol{s} ->
-          fetch{s, s}
+          fetch{s, ~symbol{s}}
 
       ~value{String? s} ->
           fetch{s, gensym{}}
@@ -1617,7 +1624,7 @@ stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
       ~multi{*subp} or ~data{*subp} ->
           subp each p -> produce{p, fetch}
 
-      ~send{~symbol{"as"}, ~data{~value{pkg} or pkg, ~symbol{s}}} ->
+      ~send{~symbol{"as"}, ~data{~value{pkg} or pkg, s}} ->
           fetch{pkg, s}
 
       ~send{~symbol{"->"}, ~data{pkg, subp}} ->
