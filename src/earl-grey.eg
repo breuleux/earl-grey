@@ -1057,8 +1057,17 @@ stdenv.register_macro{">>="} with make_assigner{">>"}
 stdenv.register_macro{">>>="} with make_assigner{">>>"}
 
 
-stdenv.register_macro{"if"} with {{context, env}, ~data{test, a, b}} ->
-   ~if{test, a, b}
+stdenv.register_macro{"if"} with {{context, env}, |>} ->
+   ~data{test, a, b} ->
+      ~if{test, a, b}
+   ~data{test, aslist! |>} ->
+      {'then{^*s1}, 'else{^*s2}} ->
+         ~if{test, ~multi{*s1}, ~multi{*s2}}
+      {*s1, 'else{^*s2}} ->
+         ~if{test, ~multi{*s1}, ~multi{*s2}}
+      other ->
+         ~if{test, ~multi{*other}, ~value{null}}
+
 
 stdenv.register_macro{"cond"} with {{context, env}, ~data{clauses}} ->
    handle{xs} =
@@ -1784,6 +1793,9 @@ stdenv.register_macro{"class"} with {{context, env}, arg} ->
 
 
 stdenv.register_macro{"do"} with {{context, env}, ~data{aslist! body}} ->
+   ~multi{*body}
+
+stdenv.register_macro{"then"} with {{context, env}, ~data{aslist! body}} ->
    ~multi{*body}
 
 
