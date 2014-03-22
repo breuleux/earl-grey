@@ -64,16 +64,38 @@ Or using "|":
     f{} = | this_is
           | a{block}.too
 
-**Conditionals**: there is no if/else; instead you have to use the `?`
-operator. The "|" form is recommended
+**Conditionals**: `if` statements:
 
-    ? | x > 0 => "x is positive"
-      | x < 0 => "x is negative"
-      | else  => "x is zero"
+    if [x > 0]:
+       console.log with "x is positive"
 
-You can also use `[]`, of course:
+If you need an `else` clause, you have to put it *in* the body of if,
+like this:
 
-    ?[x > 0 => "pos", x < 0 => "neg", else => "zero"]
+    if [x < 0]:
+       console.log with "x is positive"
+       else:
+          console.log with "x is non-positive"
+
+For symmetry you can encapsulate the positive branch with `then`:
+
+    if [x < 0]:
+       then:
+          console.log with "x is positive"
+       else:
+          console.log with "x is non-positive"
+
+If you need to write many conditions, you would better use the `match`
+construct instead:
+
+    match:
+       when x > 0 -> "x is positive"
+       when x < 0 -> "x is negative"
+       otherwise -> "x is zero"
+
+`if` can be written in expression form:
+
+    if{x > 0, "positive", "not positive"}
 
 
 **Data structures** are defined using braces
@@ -650,9 +672,4 @@ report:
     console.log{"Succeeded: ", yay}
     console.log{"Failed: ", yay + errs}
     console.log{"Not run: ", notrun}
-
-
-
-     
-
 

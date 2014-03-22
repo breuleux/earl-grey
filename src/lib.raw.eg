@@ -93,7 +93,7 @@ Struct[":::deconstruct"] := {value} ->
 
 
 pr_terminus{node} =
-   r = produce_html{node, .span}
+   r = HTML{node, .span}
    pre = String.fromCharCode{27} + "[?0;7y+h <div class=\"ug\">"
    post = "</div>" + String.fromCharCode{7}
    console.log with [pre + r + post]
@@ -189,21 +189,25 @@ class Node:
       true
 
 
-escape_html{s} =
+escape_html{String! s} =
    repl = with
       "&" => "&amp;"
       "<" => "&lt;"
       ">" => "&gt;"
    s.replace{R.g"[&<>]", {x} -> repl[x]}
 
-quotify{s} =
+quotify{String! s} =
    s.replace{R.g"[\"\\\\]", {x} -> "\\" + x}
 
 
-produce_html{|>, default_tag} =
+HTML{|>, default_tag} =
 
    String? s ->
       escape_html{s}
+
+   Array? children ->
+      [...].join{""} with
+         children each child -> HTML{child, default_tag}
 
    Node? {tags, children} ->
       tag = default_tag or "span"
@@ -214,6 +218,8 @@ produce_html{|>, default_tag} =
       tags each
          #assoc{k, v} ->
             kv.push with {k, v}
+         #assoc{k} ->
+            kv.push with {k, undefined}
          R'[start, "+", {*any}]? {_, m} ->
             tag := m
          R'[start, "#", {*any}]? {_, m} ->
@@ -221,16 +227,29 @@ produce_html{|>, default_tag} =
          String? s ->
             classes.push with s
 
-      accum = {"<", tag}
+      accum = if{tag == .raw, {}, {"<", tag}}
       ? | id => accum := accum.concat with
-             " id=\"", id, "\""
+           " id=\"", id, "\""
       ? | classes.length => accum := accum.concat with
-             " class=\"", quotify{classes.join{" "}}, "\""
+           " class=\"", quotify{classes.join{" "}}, "\""
       ? | kv => kv each {k, v} ->
-             accum := accum.concat with {" ", k, "=\"", quotify{v}, "\""}
+           accum := accum.concat with
+              if{v != null
+                 {" ", k, "=\"", quotify{v}, "\""}
+                 {" ", k}}
 
-      accum.concat{x}.join{""} where x =
-         {">", *[children each c -> produce_html{c}], "</", tag, ">"}
+      children := tag |>
+         .raw -> children each
+            String? s -> s
+            c -> HTML{c, default_tag}
+         other -> children each c -> HTML{c, default_tag}
+
+      tag |>
+         .raw ->
+            accum.concat{children}.join{""}
+         other ->
+            accum.concat{x}.join{""} where x =
+               {">", *children, "</", tag, ">"}
 
    other ->
-      produce_html{String! other}
+      HTML{String! other, default_tag}

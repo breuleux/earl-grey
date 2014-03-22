@@ -43,9 +43,9 @@ regexps = {
   numr_f = {m, wsb, wsa, last_op} ->
      {_, radix, int, frac} = m
      value := parseInt{int.replace{R.g"_", ""}, radix}
-     ? | frac =>
-          frac := frac.replace{R.g"_", ""}
-          value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
+     if frac:
+        frac := frac.replace{R.g"_", ""}
+        value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
      ~ID{.NUM, value}
 
 
@@ -96,36 +96,39 @@ regexps = {
 
   op_f = {m, wsb, wsa, last_op, column} ->
      op = m[1] or m[0]
-     ? | [op == "|"] =>
-          {.INDENT, column - 1}
 
-       | [op in special_ops] =>
-          fixity = special_ops[op]
-          width =
-             fixity |>
-                .IFX -> if{wsb or wsa, .wide, .short}
-                .SFX -> if{wsb, .wide, .short}
-                .PFX -> if{wsa, .wide, .short}
-                other -> throw "OopsA"
-          ~OP{fixity, width, op}
+     match:
+        when op == "|" ->
+           {.INDENT, column - 1}
 
-       | [wsa and wsb] =>
-          ~OP{if{last_op, .PFX, .IFX}, .wide, op}
+        when op in special_ops ->
+           fixity = special_ops[op]
+           width =
+              fixity |>
+                 .IFX -> if{wsb or wsa, .wide, .short}
+                 .SFX -> if{wsb, .wide, .short}
+                 .PFX -> if{wsa, .wide, .short}
+                 other -> throw "OopsA"
+           ~OP{fixity, width, op}
 
-       | [not wsa and not wsb] =>
-          ~OP{if{last_op, .PFX, .IFX}, .short, op}
+        when wsa and wsb ->
+           ~OP{if{last_op, .PFX, .IFX}, .wide, op}
 
-       | [wsa and last_op] =>
-          ~OP{.PFX, .wide, op}
+        when not wsa and not wsb ->
+           ~OP{if{last_op, .PFX, .IFX}, .short, op}
 
-       | wsa =>
-          ~OP{.SFX, .short, op}
+        when wsa and last_op  ->
+           ~OP{.PFX, .wide, op}
 
-       | wsb =>
-          ~OP{.PFX, .short, op}
+        when wsa ->
+           ~OP{.SFX, .short, op}
 
-       | else =>
-          ~OP{.PFX, .short, op}
+        when wsb ->
+           ~OP{.PFX, .short, op}
+
+        _ ->
+           ~OP{.PFX, .short, op}
+
 
   indent = R'
      start
@@ -209,30 +212,30 @@ process_token{token, last_op, wsa, wsb, pos, endpos, accum} =
          last_op
 
       .ID ->
-         ? | [not last_op] =>
-              w = {.IFX, if{wsb, .wide, .short}, .WHITE}
-              w.location := {pos, pos}
-              accum.push{w}
+         if [not last_op]:
+            w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+            w.location := {pos, pos}
+            accum.push{w}
          accum.push{result}
          false
 
       .OP ->
-         ? | last_op =>
-              v = {.VOID}
-              v.location := {pos, pos}
-              accum.push{v}
-         result[0] |>
+         if last_op:
+            v = {.VOID}
+            v.location := {pos, pos}
+            accum.push{v}
+         match result[0]:
             .IFX ->
                accum.push{result}
                true
             .PFX ->
-               ? | [not last_op] =>
-                    w = {.IFX, if{wsb, .wide, .short}, .WHITE}
-                    w.location := {pos, pos}
-                    v = {.VOID}
-                    v.location := {pos, pos}
-                    accum.push{w}
-                    accum.push{v}
+               if [not last_op]:
+                  w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+                  w.location := {pos, pos}
+                  v = {.VOID}
+                  v.location := {pos, pos}
+                  accum.push{w}
+                  accum.push{v}
                accum.push{result}
                true
             .SFX ->
@@ -259,33 +262,34 @@ tokenize{text} =
       for [i = 0, i < regexps.length, ++i]:
          {re, fn} = regexps[i]
          m = text.match{re}
-         ? | m =>
-             skip = m[0].length
-             endpos = pos + skip
-             column :=
-                splits = m[0].split{"\n"}
-                ? | [splits.length > 1] => splits[splits.length - 1].length
-                  | else => column + skip
-             text := text.slice{skip}
-             wsa = text.match{ws_re}[0].length
-             eol = text.match{eol_re} and true
-             bwsb = wsb > 0
-             bwsa = if{eol, bwsb, wsa > 0}
-             ;; bwsb = if{eol, true, wsb > 0}
-             ;; bwsa = if{eol, true, wsa > 0}
-             token = fn{m, bwsb, bwsa, last_op, column}
-             tokens = indent{token}
-             tokens each x ->
-                last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
-             text := text.slice{wsa}
-             column += wsa
-             wsb := wsa
-             pos := endpos + wsa
-             break
-   ? | last_op =>
-       v = {.VOID}
-       v.location := {pos, pos}
-       results.push{v}
+         if m:
+            skip = m[0].length
+            endpos = pos + skip
+            column :=
+               splits = m[0].split{"\n"}
+               if [splits.length > 1]:
+                  then: splits[splits.length - 1].length
+                  else: column + skip
+            text := text.slice{skip}
+            wsa = text.match{ws_re}[0].length
+            eol = text.match{eol_re} and true
+            bwsb = wsb > 0
+            bwsa = if{eol, bwsb, wsa > 0}
+            ;; bwsb = if{eol, true, wsb > 0}
+            ;; bwsa = if{eol, true, wsa > 0}
+            token = fn{m, bwsb, bwsa, last_op, column}
+            tokens = indent{token}
+            tokens each x ->
+               last_op := process_token{x, last_op, bwsa, bwsb, pos, endpos, results}
+            text := text.slice{wsa}
+            column += wsa
+            wsb := wsa
+            pos := endpos + wsa
+            break
+   if last_op:
+      v = {.VOID}
+      v.location := {pos, pos}
+      results.push{v}
    results
 
 
@@ -314,6 +318,8 @@ order_map = {
          "<<="   => {{2r1111, 11},  {2r1111, 10}}
          ">>="   => {{2r1111, 11},  {2r1111, 10}}
          ">>>="  => {{2r1111, 11},  {2r1111, 10}}
+         "++="   => {{2r1111, 11},  {2r1111, 10}}
+         "?="    => {{2r1111, 11},  {2r1111, 10}}
 
          ;; Misc
          "%"     => {{2r1111, 11}, {2r1111, 10}}
@@ -413,6 +419,7 @@ LEFT = 1
 RIGHT = 2
 BOTH = 3
 
+
 oparse{next, order, finalize} =
    between = finalize{next{}}
    right_op = next{}
@@ -420,13 +427,14 @@ oparse{next, order, finalize} =
    left_op = null
    current = null
    while true:
-      o = ? | [not left_op and not right_op] =>
-              DONE
-            | else =>
-              [not left_op and RIGHT]
-               \ or [not right_op and LEFT]
-               \ or order{left_op, right_op}
-      o |>
+      o =
+         if [not left_op and not right_op]:
+            then: DONE
+            else: [not left_op and RIGHT]
+                  \ or [not right_op and LEFT]
+                  \ or order{left_op, right_op}
+
+      match o:
          [== DONE] ->
             return between
 
@@ -465,10 +473,12 @@ consult{{fixity, width, op}} =
 order{o1, o2} =
    {code1, ord1} = consult{o1}[1]
    {code2, ord2} = consult{o2}[0]
-   ? | [[code1 & code2] == 0] => throw {"Cannot mix", o1, o2}
-     | [ord1 > ord2]  => LEFT
-     | [ord1 < ord2]  => RIGHT
-     | [ord1 == ord2] => BOTH
+   match:
+      when [[code1 & code2] == 0] ->
+         throw {"Cannot mix", o1, o2}
+      when [ord1 > ord2]  -> LEFT
+      when [ord1 < ord2]  -> RIGHT
+      when [ord1 == ord2] -> BOTH
 
 
 finalize{|>} =
@@ -501,21 +511,26 @@ finalize{|>} =
                       ~symbol{"..."} -> [inserted := true, body]
                       other -> {tr{other}}
 
-            ? | not inserted => target |>
-                 ~void{} ->
-                    ~data{*body}
-                 when target.fromop ->
-                    ~send{target, ~data{*body}}
-                 ~send{f, ~data{*args}} ->
-                    ~send{f, ~data{*args, *body}}
-                 ~data{*args} ->
-                    target ++ body
-                 other ->
-                    ~send{target, ~data{*body}}
-              | else => result
+            if [not inserted]:
+               then:
+                  match target:
+                     ~void{} ->
+                        ~data{*body}
+                     when target.fromop ->
+                        ~send{target, ~data{*body}}
+                     ~send{f, ~data{*args}} ->
+                        ~send{f, ~data{*args, *body}}
+                     ~data{*args} ->
+                        target ++ body
+                     other ->
+                        ~send{target, ~data{*body}}
+               else:
+                  result
 
          {{"[" or ",", *_}, _} ->
-            ? | [op == "["] => args := args.slice{1, -1}
+            if [op == "["]:
+               args := args.slice{1, -1}
+
             args := args.filter{f} where
                f{|>} = | ~void{} -> false
                        | other -> true
@@ -564,8 +579,9 @@ Env{parent} =
       {.bind_env, self, expr}
    self.resolve := {name} ->
       attempt = store[name]
-      ? | attempt => attempt
-        | else => self.parent.resolve{name}
+      if attempt:
+         then: attempt
+         else: self.parent.resolve{name}
    self.register := {name, value} ->
       store[name] := value
    self.register_macro := {name, m} ->
@@ -655,10 +671,12 @@ expand{{context, env}, expr} =
                obj
             {} -> {.array}
             {arr and ~array{*things}} ->
-               ? | is_obj => arr.push{obj}
+               if is_obj:
+                  arr.push{obj}
                arr
             other ->
-               ? | is_obj => parts.push{~array{obj}}
+               if is_obj:
+                  parts.push{~array{obj}}
                patch = libf{"patch_array"}
                ~send{patch, ~array{*parts}}
 
@@ -938,8 +956,9 @@ stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
          body.push with '[^other = ^t]
          t
    body.push with
-     ? | placeholder => '[^placeholder |> ^stmts]
-       | else => stmts
+      if placeholder:
+         then: '[^placeholder |> ^stmts]
+         else: stmts
    ~lambda{newargs, body}
 
 
@@ -986,11 +1005,11 @@ stdenv.register_macro{"each"} with {{|>, env}, ~data{arr, aslist! patterns}} ->
          res
 
 
-stdenv.register_macro{"=>"} with {{context, env}, ~data{binding, value}} ->
-   ? | [context == .data] =>
-        ~assoc{binding, value}
-     | else =>
-        throw ["Illegal context for '=>' (" + context + ")"]
+stdenv.register_macro{"=>"} with {{match, env}, ~data{binding, value}} ->
+   .data ->
+      ~assoc{binding, value}
+   _ ->
+      throw ["Illegal context for '=>' (" + context + ")"]
 
 
 stdenv.register_macro{"as"} with {{context, env}, ~data{expr, variable}} ->
@@ -1014,10 +1033,10 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
             {clause} ->
                clause[clause.length - 1] |>
                   ~value{== true} ->
-                     ? | [[vars.length == 1] and [clause.length == 3]] =>
-                         r := ~declare{*clause[1].slice{1}}
-                       | else =>
-                         r := r ++ clause.slice{1, -1}
+                     r :=
+                        if [[vars.length == 1] and [clause.length == 3]]:
+                           then: ~declare{*clause[1].slice{1}}
+                           else: r ++ clause.slice{1, -1}
                   other ->
                      r.push{mkif{clause}}
             _ ->
@@ -1055,18 +1074,23 @@ stdenv.register_macro{"/="} with make_assigner{"/"}
 stdenv.register_macro{"<<="} with make_assigner{"<<"}
 stdenv.register_macro{">>="} with make_assigner{">>"}
 stdenv.register_macro{">>>="} with make_assigner{">>>"}
+stdenv.register_macro{"++="} with make_assigner{"++"}
+stdenv.register_macro{"?="} with make_assigner{"match"}
 
 
 stdenv.register_macro{"if"} with {{context, env}, |>} ->
    ~data{test, a, b} ->
       ~if{test, a, b}
    ~data{test, aslist! |>} ->
-      {'then{^*s1}, 'else{^*s2}} ->
+      {'then{^[aslist! s1]}, 'else{^[aslist! s2]}} ->
          ~if{test, ~multi{*s1}, ~multi{*s2}}
-      {*s1, 'else{^*s2}} ->
+      {*s1, 'else{^[aslist! s2]}} ->
          ~if{test, ~multi{*s1}, ~multi{*s2}}
       other ->
          ~if{test, ~multi{*other}, ~value{null}}
+   other ->
+      <> other
+      raise Error{"error in if"}
 
 
 stdenv.register_macro{"cond"} with {{context, env}, ~data{clauses}} ->
@@ -1298,18 +1322,18 @@ parse_lhs{env, lhs, rhs, gen} =
       t
 
    newclause{} =
-      ? | [current.length > 1] =>
-          clauses.push{current}
+      if [current.length > 1]:
+         clauses.push{current}
       current := ~multi{}
 
    maybe_temp{x} =
-      ? | is_symbol{x, env} =>
-          x
-        | else =>
-          temp = mktemp{}
-          current.push with
-             ~assign{temp, x}
-          temp
+      if is_symbol{x, env}:
+         then: x
+         else:
+            temp = mktemp{}
+            current.push with
+               ~assign{temp, x}
+            temp
 
    helper{lhs, curr} =
       helper_noexpand{expand.step{~pattern{env}, lhs}, curr}
@@ -1330,8 +1354,9 @@ parse_lhs{env, lhs, rhs, gen} =
                     bw := bw + 1
             v
 
-         cmp = ? | [rest == undefined] => ~symbol{"___eq"}
-                 | else => ~symbol{"___gte"}
+         cmp = if [rest == undefined]:
+                  then: ~symbol{"___eq"}
+                  else: ~symbol{"___gte"}
 
          ;; Note: I am splitting length assignment into two parts
          ;; because it lets the crude optimizer reuse it across
@@ -1355,12 +1380,12 @@ parse_lhs{env, lhs, rhs, gen} =
          [0 .. [fw - 1]] each j ->
             helper_noexpand{members[j], '[^temp ^=[j + start]]}
 
-         ? | [rest != undefined] =>
-              slice = if{bw > 0, '{^=[fw + start], ^=[-bw]}, '{^=[fw + start]}}
-              helper_noexpand{
-                 members[fw][1]
-                 '[[^temp].slice ^slice]
-              }
+         if [rest != undefined]:
+            slice = if{bw > 0, '{^=[fw + start], ^=[-bw]}, '{^=[fw + start]}}
+            helper_noexpand{
+               members[fw][1]
+               '[[^temp].slice ^slice]
+            }
 
          [0 .. [bw - 1]] each j ->
             helper_noexpand{members[fw + j + 1], '[^temp][^len - ^=[bw - j]]}
@@ -1372,9 +1397,9 @@ parse_lhs{env, lhs, rhs, gen} =
                x = ~check{~macro{make_checker{~value{null}, ~symbol{"___eq"}}}, ~ignore{}}
 
          ["_" or ~ignore{}] ->
-            ? | [not is_symbol{curr, env}] =>
-                current.push{curr}
-                current.push{'true}
+            if [not is_symbol{curr, env}]:
+               current.push{curr}
+               current.push{'true}
 
          ~symbol{s} ->
             vars.push{~symbol{s}}
@@ -1408,16 +1433,17 @@ parse_lhs{env, lhs, rhs, gen} =
             clauses = {}
             xs each x ->
                p = parse_lhs{env, x, temp, gensym}
-               ? | [myvars == undefined] =>
-                    myvars := p[0]
-                 | [normalize{p[0]} != normalize{myvars}] =>
-                    throw with Error{
-                       "Must have the same set of variables in both branches!"
-                       "[" + String{myvars} + "]"
-                       "[" + String{p[0]} + "]"
-                    }
-                 | else =>
-                    vars := vars ++ p[0]
+               match:
+                  when myvars == undefined ->
+                     myvars := p[0]
+                  when normalize{p[0]} != normalize{myvars} ->
+                     throw with Error{
+                        "Must have the same set of variables in both branches!"
+                        "[" + String{myvars} + "]"
+                        "[" + String{p[0]} + "]"
+                     }
+                  _ ->
+                     vars := vars ++ p[0]
                clauses.push with make_pattern_test{p[1]}
             current.push with make_or_pattern{clauses}
             vars := vars ++ myvars
@@ -1475,7 +1501,8 @@ parse_lhs{env, lhs, rhs, gen} =
             throw {"OopsG", other}
 
    helper{lhs, rhs}
-   ? | [current.length > 1] => clauses.push{current}
+   if [current.length > 1]:
+      clauses.push{current}
    {vars, clauses}
 
 
@@ -1497,6 +1524,9 @@ make_or_pattern{clauses} =
 
 
 find_arrow{expr and |>} =
+   ~symbol{"match"} ->
+      placeholder = gensym{}
+      {placeholder, placeholder}
    ~symbol{"|>"} ->
       placeholder = gensym{}
       {placeholder, placeholder}
@@ -1511,7 +1541,7 @@ find_arrow{expr and |>} =
       placeholder = false
       new_args = args each arg ->
          {ph, new_arg} = find_arrow{arg}
-         ? | ph => placeholder := ph
+         if ph: placeholder := ph
          new_arg
       {placeholder, {kind, *new_args}}
 
@@ -1544,8 +1574,9 @@ stdenv.register_macro{"|>"} with {{context, env}, ~data{to_match, cl}} ->
       {decls, conditions} = parse_lhs{env, new_lhs, temp}
       stmts := stmts ++ make_declarations{decls}
       {conditions.map{f}, b} where
-         b = ? | placeholder => ~send{~symbol{"|>"}, ~data{placeholder, body}}
-               | else => body
+         b = if placeholder:
+                then: ~send{~symbol{"|>"}, ~data{placeholder, body}}
+                else: body
          f{x} = ~done{expand{{.expr, env}, x}}
 
    ;; BEGIN OPT
@@ -1653,11 +1684,11 @@ stdenv.register_macro{"%"} with {{context, env}, ~data{descr, contents}} ->
       ~symbol{s} -> tags.push with ~value{"+" + s}
       ~value{x} ->
          tags.push with ~value{"+" + x}
-      ~send{~symbol{"."}, ~data{~void{}, ~symbol{x}}} ->
+      ~send{~symbol{"."}, ~data{~void{}, ~symbol{x} or ~value{x}}} ->
          tags.push with ~value{x}
-      ~send{~symbol{"#"}, ~data{~void{}, ~symbol{x}}} ->
+      ~send{~symbol{"#"}, ~data{~void{}, ~symbol{x} or ~value{x}}} ->
          tags.push with ~value{"#" + x}
-      ~send{~symbol{"="}, ~data{~symbol{prop}, value}} ->
+      ~send{~symbol{"="}, ~data{~symbol{prop} or ~value{prop}, value}} ->
          tags.push with '[#assoc{^=prop, ^value}]
       ~send{expr, rest} ->
          parse{expr}, parse{rest}
@@ -1803,11 +1834,12 @@ group{xs, classifier} =
    groups = {}
    curr = {}
    newgroup{} =
-      ? | curr.length > 0 => groups.push with curr
+      if [curr.length > 0]:
+         groups.push with curr
       curr := {}
    xs each x ->
-      ? | classifier{x} =>
-           newgroup{}
+      if classifier{x}:
+         newgroup{}
       curr.push{x}
    newgroup{}
    groups
@@ -1863,10 +1895,9 @@ blocktest_mac{label, tests, acc} =
 
       expr ->
          stmts.push with
-            ' ? | ^ok =>
-                   ^blocktest_wrap{label, expr, acc}
-                | else =>
-                   [^acc].push with #aborted{^label, ' ^expr}
+            ' if [^ok]:
+                 then: ^blocktest_wrap{label, expr, acc}
+                 else: [^acc].push with #aborted{^label, ' ^expr}
    stmts.push{acc}
    stmts
 
@@ -1892,6 +1923,12 @@ stdenv.register_macro{"macro"} with {{context, env}, expr} ->
    env.register_macro{sname, efn}
    ~value{undefined}
 
+
+stdenv.register_macro{"match"} with {{context, env}, |>} ->
+   '{^obj, ^clauses} ->
+      '[^obj |> ^clauses]
+   '{^clauses} ->
+      '[^=null |> ^clauses]
 
 
 js_op_table = {
@@ -1976,13 +2013,13 @@ translate{expr and |>, mode} =
    ~send{f, ~array{*args}} ->
       op = f |> | ~symbol{x} -> js_op_table[x]
                 | _ -> null
-      ? | op =>
-          translate.expr{translate.op{op, args[0], args[1]}, mode}
-        | else =>
-          translate.expr{trf+"("+trargs.join{","}+")", mode} where
-             trf = translate{f, .expr}
-             trargs = args each x ->
-                translate{x, .expr}
+      if op:
+         then: translate.expr{translate.op{op, args[0], args[1]}, mode}
+         else:
+            translate.expr{trf+"("+trargs.join{","}+")", mode} where
+               trf = translate{f, .expr}
+               trargs = args each x ->
+                  translate{x, .expr}
 
    ;; ~send{f, msg} ->
    ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
@@ -2051,12 +2088,14 @@ translate{expr and |>, mode} =
       isdecl{|>} =
          ~declare{variable, value} -> true
          other -> false
-      ? | [args.length == 1] => translate{args[0], mode}
-        | [[mode == "expr"] and [not args.some{isdecl}]] =>
-          ["(" + xs.join{","} + ")"] where
-             xs = args each x ->
-                translate{x, .expr}
-        | else => translate.body{expr, mode}
+      match:
+         when args.length == 1 ->
+            translate{args[0], mode}
+         when [mode == "expr"] and [not args.some{isdecl}] ->
+            ["(" + xs.join{","} + ")"] where
+               xs = args each x ->
+                  translate{x, .expr}
+         _ -> translate.body{expr, mode}
 
    ~splice{*args} ->
       translate{~multi{*args}, mode}
@@ -2065,26 +2104,29 @@ translate{expr and |>, mode} =
       translate.expr{"(new " + translate{value, .expr} + ")", mode}
 
    ~js_break{} ->
-      ? | [mode == "expr"] => throw "Invalid break in ctx"
-        | else => "break;"
+      if [mode == "expr"]:
+         then: throw "Invalid break in ctx"
+         else: "break;"
 
    ~js_continue{} ->
-      ? | [mode == "expr"] => throw "Invalid continue in ctx"
-        | else => "continue;"
+      if [mode == "expr"]:
+         then: throw "Invalid continue in ctx"
+         else: "continue;"
 
    ~js_return{value} ->
-      ? | [mode == "expr"] => throw "Invalid return in ctx"
-        | else => "return " + translate{value, .expr} + ";"
+      if [mode == "expr"]:
+         then: throw "Invalid return in ctx"
+         else: "return " + translate{value, .expr} + ";"
 
    ~js_delete{value} ->
-      ? | [mode == "expr"] => throw "Invalid delete in ctx"
-        | else => "delete " + translate{value, .expr} + ";"
+      if [mode == "expr"]:
+         then: throw "Invalid delete in ctx"
+         else: "delete " + translate{value, .expr} + ";"
 
    ~js_throw{value} ->
-      ? | [mode == "expr"] =>
-          "function(){throw " + translate{value, .expr} + ";}()"
-        | else =>
-          "throw " + translate{value, .expr} + ";"
+      if [mode == "expr"]:
+         then: "function(){throw " + translate{value, .expr} + ";}()"
+         else: "throw " + translate{value, .expr} + ";"
 
    ~js_while{test, body} ->
       mode |>
