@@ -1096,6 +1096,9 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
                    | ~symbol{z} -> ~value{z}
          ~assoc{b, value}
 
+      {.pattern, ~data{patt, value}} ->
+         ~default{patt, value}
+
       other ->
          throw ["Illegal context for '=' (" + context + ")"]
 
@@ -1426,6 +1429,7 @@ parse_lhs{env, lhs, rhs, gen} =
 
          nfw = fw.length
          nbw = bw.length
+         ndflt = dflt.length
 
          extract_length = true
          check_length = true
@@ -1443,18 +1447,30 @@ parse_lhs{env, lhs, rhs, gen} =
             newclause{}
 
             if check_length:
-               cmp = if [rest == undefined]:
-                        then: ~symbol{"___eq"}
-                        else: ~symbol{"___gte"}
-
                ;; Part 2: check length
-               current.push with
-                  ;; Bounds check
-                  '[^cmp]{^len, ^=[nfw + nbw + start]}
+               lo = nfw + nbw + start
+               hi = lo + ndflt
+               if [rest == undefined]:
+                  then:
+                     if [lo == hi]:
+                        then:
+                           current.push with
+                              '[^len == ^=lo]
+                        else:
+                           current.push with
+                              '[^len >= ^=lo and ^len <= ^=hi]
+                  else:
+                     current.push with
+                        '[^len >= ^=lo]
                newclause{}
 
          enumerate{fw} each {j, m} ->
             helper_noexpand{m, '[^temp ^=[j + start]]}
+
+         enumerate{dflt} each {j, {patt, value}} ->
+            idx = j + nfw + start
+            helper_noexpand{patt} with
+               'if{^=idx >= ^len, ^value, [^temp] ^=idx}
 
          if [rest != undefined]:
             slice = if{nbw > 0, '{^=[nfw + start], ^=[-nbw]}, '{^=[nfw + start]}}
