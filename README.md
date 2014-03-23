@@ -276,11 +276,11 @@ variables.
 
 ## Pattern matching
 
-The `|>` operator feeds an input into a series of "clauses" and enters
-the body of the first matching clause. It is a switch statement on
-steroids:
+The `match` operator feeds an input into a series of "clauses" and
+enters the body of the first matching clause. It is a switch statement
+on steroids:
 
-    command |>
+    match command:
        {"move", Number! dx, Number! dy} ->
           ;; Isn't this nicer than calling parseFloat manually?
           this.x += dx
@@ -298,7 +298,7 @@ steroids:
 The **when** operator lets you write arbitrary conditions for a
 clause.
 
-    command |>
+    match command:
         {"move", dx, dy} when [dx*dx + dy*dy] > threshold ->
             running{}
         {"move", dx, dy}
@@ -307,7 +307,7 @@ clause.
 
 **or** will try to match one of a series of patterns
 
-    x |>
+    match x:
        ;; match 0, or 1
        0 or 1 -> ...
 
@@ -322,7 +322,7 @@ Note that **all sub-patterns must contain the same variables**.
 **and** will try to match every pattern. That may not be obvious at
 first, but this is very useful to create aliases!
 
-    {1, {2, 3}} |>
+    match {1, {2, 3}}:
        {a, {b, c} and d} ->
           ;; a is 1, b is 2, c is 3, d is {2, 3}
           ;; Note how we aliased d to the whole list while also
@@ -332,7 +332,7 @@ first, but this is very useful to create aliases!
 implicitly filled in by the value we are matching against.
 
     compare{value, threshold} =
-       value |>
+       match value:
           > threshold -> "above"
           < threshold -> "below"
           == threshold -> "equal"
@@ -340,27 +340,33 @@ implicitly filled in by the value we are matching against.
 The above idiom of creating a function and matching one argument is
 useful enough to have a **shorthand**:
 
-    compare{|>, threshold} =
+    compare{match, threshold} =
        > threshold -> "above"
        < threshold -> "below"
        == threshold -> "equal"
 
-Using `|>` in *any* pattern will cause the body associated to the
-pattern to become a list of clauses, matching in `|>`'s place. To
-illustrate:
+Using the word `match` in *any* pattern will cause the body associated
+to the pattern to become a list of clauses, matching in `match`'s
+place. To illustrate:
 
-    expr |> {x, {y, {z}}} -> ...
+    match expr: {x, {y, {z}}} -> ...
 
 can also be written:
 
-    expr |> {x, |>} -> {y, |>} -> {z} -> ...
+    match expr: {x, match} -> {y, match} -> {z} -> ...
 
 Here's naive fibonacci using the shorthand:
 
-    fib{|>} =
+    fib{match} =
        0 -> 0
        1 -> 1
        n -> fib{n - 1} + fib{n - 2}
+
+The feature also works for rest arguments:
+
+     concat{*match} =
+        {String? a, String? b} -> a + b
+        {Array? a, Array? b} -> a ++ b
 
 
 ## Exception handling
@@ -464,7 +470,7 @@ addition in other code will not be affected.
 `#name{args*}` creates an *ad hoc* named struct, which doesn't need to
 be declared. They are matchable, so you can write code such as this:
 
-    calc{|>} =
+    calc{match} =
         Number? n -> n
         #add{m, n} -> calc{m} + calc{n}
         #sub{m, n} -> calc{m} - calc{n}
@@ -643,8 +649,8 @@ report:
 
     yay and nay and errs and notrun = 0
     test_results each
-       ;; note: a bug currently prevents |> from being used here
-       #test_result{path, |>} ->
+       ;; note: a bug currently prevents match from being used here
+       #test_result{path, match} ->
           ;; A test was run
           #success{_} ->
              ;; The test was a success :)
