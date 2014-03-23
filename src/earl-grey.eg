@@ -946,20 +946,57 @@ stdenv.register_macro{"let"} with {{context, env}, ~data{a, b}} ->
    ~multi{*bindings, *body}
 
 
+;; stdenv.register_macro{"->"} with {{context, env}, ~data{|>, stmts}} ->
+;;    ~data{*args} ->
+;;       {fw, bw, keys, dflt, rest} =
+;;          lhs_parse_specs{env, args}
+;;       if [false and [rest or dflt.length or keys.length]]:
+;;          then:
+;;             ~lambda{{}, body} where
+;;                body = ' | Array.prototype.slice.call{arguments, 0} |>
+;;                            {^*args} -> ^stmts
+;;          else:
+;;             body = ~multi{}
+;;             {placeholder, newargs} = find_arrow{~data{*args}}
+;;             newargs := newargs.slice{1} each
+;;                ~symbol{s} -> ~symbol{s}
+;;                other ->
+;;                   t = gensym{}
+;;                   body.push with '[^other = ^t]
+;;                   t
+;;             body.push with
+;;                if placeholder:
+;;                   then: '[^placeholder |> ^stmts]
+;;                   else: stmts
+;;             ~lambda{newargs, body}
+;;    other ->
+;;       <> other
+;;       raise Error{"some error in ->"}
+
+
 stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
-   body = ~multi{}
-   {placeholder, newargs} = find_arrow{args}
-   newargs := newargs.slice{1} each
-      ~symbol{s} -> ~symbol{s}
-      other ->
-         t = gensym{}
-         body.push with '[^other = ^t]
-         t
-   body.push with
-      if placeholder:
-         then: '[^placeholder |> ^stmts]
-         else: stmts
-   ~lambda{newargs, body}
+   {placeholder, ~data{*newargs}} = find_arrow{args}
+   {fw, bw, keys, dflt, rest} = 
+      lhs_parse_specs{env, newargs}
+
+   if [rest or dflt.length or keys.length]:
+      then:
+         ~lambda{{}, body} where
+            body = ' | Array.prototype.slice.call{arguments, 0} |>
+                        ^args -> ^stmts
+      else:
+         body = ~multi{}
+         newargs := newargs each
+            ~symbol{s} -> ~symbol{s}
+            other ->
+               t = gensym{}
+               body.push with '[^other = ^t]
+               t
+         body.push with
+            if placeholder:
+               then: '[^placeholder |> ^stmts]
+               else: stmts
+         ~lambda{newargs, body}
 
 
 build_each{source, patterns, aslist! prelude, aslist! tail, lvar} =
@@ -1006,9 +1043,11 @@ stdenv.register_macro{"each"} with {{|>, env}, ~data{arr, aslist! patterns}} ->
 
 
 stdenv.register_macro{"=>"} with {{match, env}, ~data{binding, value}} ->
-   .data ->
-      ~assoc{binding, value}
-   _ ->
+   .data or .pattern ->
+      match binding:
+         ~void{} -> ~assoc{value}
+         _ -> ~assoc{binding, value}
+   context ->
       throw ["Illegal context for '=>' (" + context + ")"]
 
 
@@ -1309,6 +1348,43 @@ is_symbol{|>, env} =
       _ -> true
    _ -> false
 
+
+
+
+lhs_parse_specs{env, specs} =
+   fw = {}
+   bw = {}
+   keys = {}
+   defaults = {}
+   rest = undefined
+
+   specs := specs.slice{0}
+   while specs.length:
+      x = specs.shift{}
+      v = expand.step{{.pattern, env}, x}
+      match v:
+         ~dynsplice{variable} ->
+            rest := variable
+         ~assoc{key} ->
+            keys.push with {key, key}
+         ~assoc{key, value} ->
+            keys.push with {key, value}
+         ~default{variable, value} and match ->
+            when rest ->
+               throw Error{"no defaults after rest arg"}
+            otherwise ->
+               defaults.push with {variable, value}
+         when rest == undefined ->
+            fw.push with v
+         otherwise ->
+            bw.push with v
+
+   {fw, bw, keys, defaults, rest}
+
+
+
+
+
 parse_lhs{env, lhs, rhs, gen} =
    gen := gen or gensym_factory{"p"}
 
@@ -1340,55 +1416,53 @@ parse_lhs{env, lhs, rhs, gen} =
 
    helper_noexpand{lhs, curr} =
 
-      helper_data{temp, specs, start} =
-         fw = 0
-         bw = 0
-         rest = undefined
-         members = specs each x ->
-            v = expand.step{{.pattern, env}, x}
-            v |> | ~dynsplice{variable} ->
-                    rest := variable
-                 | when rest == undefined ->
-                    fw := fw + 1
-                 | other ->
-                    bw := bw + 1
-            v
+      helper_keys{temp, keys} =
+         keys each {~symbol{k} or ~value{k}, v} ->
+            helper_noexpand{v, '[^temp ^=k]}
 
-         cmp = if [rest == undefined]:
-                  then: ~symbol{"___eq"}
-                  else: ~symbol{"___gte"}
+      helper_array{temp, specs, start} =
+
+         {fw, bw, keys, dflt, rest} = specs
+
+         nfw = fw.length
+         nbw = bw.length
+
+         extract_length = true
+         check_length = true
 
          ;; Note: I am splitting length assignment into two parts
          ;; because it lets the crude optimizer reuse it across
          ;; different clauses
+         if extract_length:
 
-         ;; Part 1: temp <- length
-         len = mktemp{}
-         current.push with
-            ;; {.assign, len, ~send{temp, ~value{"length"}}}
-            ;; ~value{true}
-            '[^len := [^temp].length]
-            'true
-         newclause{}
+            ;; Part 1: temp <- length
+            len = mktemp{}
+            current.push with
+               '[^len := [^temp].length]
+               'true
+            newclause{}
 
-         ;; Part 2: check length
-         current.push with
-            ;; Bounds check
-            '[^cmp]{^len, ^=[fw + bw + start]}
-         newclause{}
+            if check_length:
+               cmp = if [rest == undefined]:
+                        then: ~symbol{"___eq"}
+                        else: ~symbol{"___gte"}
 
-         [0 .. [fw - 1]] each j ->
-            helper_noexpand{members[j], '[^temp ^=[j + start]]}
+               ;; Part 2: check length
+               current.push with
+                  ;; Bounds check
+                  '[^cmp]{^len, ^=[nfw + nbw + start]}
+               newclause{}
+
+         enumerate{fw} each {j, m} ->
+            helper_noexpand{m, '[^temp ^=[j + start]]}
 
          if [rest != undefined]:
-            slice = if{bw > 0, '{^=[fw + start], ^=[-bw]}, '{^=[fw + start]}}
-            helper_noexpand{
-               members[fw][1]
-               '[[^temp].slice ^slice]
-            }
+            slice = if{nbw > 0, '{^=[nfw + start], ^=[-nbw]}, '{^=[nfw + start]}}
+            helper_noexpand{rest, '[[^temp].slice ^slice]}
 
-         [0 .. [bw - 1]] each j ->
-            helper_noexpand{members[fw + j + 1], '[^temp][^len - ^=[bw - j]]}
+         enumerate{bw} each {j, m} ->
+            helper_noexpand{m, '[^temp][^len - ^=[nbw - j]]}
+
 
       lhs |>
 
@@ -1476,24 +1550,37 @@ parse_lhs{env, lhs, rhs, gen} =
          ~send{fname, spec} ->
             helper{fname, '[^spec -> ^curr]}
 
-         ~duck{i, *specs} ->
+         ~duck{i, *args} ->
             temp = maybe_temp{curr}
             current.push with
                ~value{true}
-            helper_data{temp, specs, i}
 
-         ~data{*specs} ->
+            specs and {fw, bw, keys, dflt, rest} = lhs_parse_specs{env, args}
+            if keys.length:
+               helper_keys{temp, keys}
+
+            if [keys.length == 0 or fw.length or bw.length or dflt.length or rest]:
+               helper_array{temp, specs, i}
+
+         ~data{*args} ->
 
             temp = maybe_temp{curr}
-            current.push with
-               '[^temp instanceof Array]
-            newclause{}
+            specs and {fw, bw, keys, dflt, rest} = lhs_parse_specs{env, args}
 
-            current.push with
-               '[[^temp]"#" == undefined]
-            newclause{}
+            if keys.length:
+               helper_keys{temp, keys}
 
-            helper_data{temp, specs, 0}
+            if [keys.length == 0 or fw.length or bw.length or dflt.length or rest]:
+
+               current.push with
+                  '[^temp instanceof Array]
+               newclause{}
+
+               current.push with
+                  '[[^temp]"#" == undefined]
+               newclause{}
+
+               helper_array{temp, specs, 0}
 
          other ->
             <> other
