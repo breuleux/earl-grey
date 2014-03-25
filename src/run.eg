@@ -129,9 +129,19 @@ run{match} =
          eg.parse{eg.Source{s, null}}
 
    {.runs, data} ->
-      code = eg.generate{data, libdata}
-      ;; vm.runInThisContext{code, file}
-      eval{code}
+      code = eg.generate{data, libdata} !!
+         e and E.syntax? {args} ->
+            <> div %
+                  .error_type % e.name
+                  .error_message % e.message
+            hls = {.hl1, .hl2, .hl3, .hl4}
+            locs = enumerate{items{args}} each
+               {i, {key, arg}} when arg.location ->
+                  {arg.location, hls[i mod 4]}
+            <> args
+            <> eg.highlight_locations{locs}
+            null
+      code and [<> eval{code}]
 
    other ->
       console.log with usage

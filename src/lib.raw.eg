@@ -54,6 +54,8 @@ range{from, to} =
       rval.push{i}
    rval
 
+
+
 StructFactory{name} =
    make{} =
       r = Array.prototype.slice.call{arguments, 0}
@@ -118,6 +120,12 @@ repr{x and |>, Function? recur or repr as recur} =
       .sequence % [entries each x -> recur{x, repr}]
    when x["::repr"] ->
       x["::repr"]{recur}
+   when Object.getPrototypeOf{x} == Object.prototype ->
+      .table %
+         items{x} each {k, v} ->
+            .pairing %
+               recur{k, repr}
+               recur{v, repr}
    other ->
       .unknown % other.toString{}
 
@@ -202,7 +210,7 @@ quotify{String! s} =
    s.replace{R.g"[\"\\\\]", {x} -> "\\" + x}
 
 
-HTML{|>, default_tag} =
+HTML{match, default_tag} =
 
    String? s ->
       escape_html{s}
@@ -255,3 +263,28 @@ HTML{|>, default_tag} =
 
    other ->
       HTML{String! other, default_tag}
+
+
+class ErrorFactory:
+
+   constructor{tags} =
+      @tags := tags
+
+   create{message = "", *args} =
+      e = Error{message}
+      e["::tags"] := @tags
+      e.args := args
+      e.name := [{.E} ++ @tags].join{"."}
+      e
+
+   "::check"{e} =
+      if [not e or not Error? e]:
+         return false
+      tags = e["::tags"] or {}
+      @tags each tag when tags.indexOf{tag} == -1 ->
+         return false
+      true
+
+   "::deconstruct"{e} =
+      e.args
+

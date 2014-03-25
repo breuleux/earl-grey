@@ -663,7 +663,9 @@ order{o1, o2} =
    {code2, ord2} = consult{o2}[0]
    match:
       when [[code1 & code2] == 0] ->
-         throw {"Cannot mix", o1, o2}
+         throw E.syntax.order{...} with
+            "Cannot mix operators in the given order"
+            {left = o1, right = o2}
       when [ord1 > ord2]  -> LEFT
       when [ord1 < ord2]  -> RIGHT
       when [ord1 == ord2] -> BOTH
@@ -1021,6 +1023,17 @@ stdenv.register_macro{"//"} with {{context, env}, ~data{a, b}} ->
 
 stdenv.register_macro{"<>"} with {{context, env}, ~data{~void{}, x}} ->
    'pr{^x}
+
+
+errf_macro{tags} = {{context, env}, match} ->
+   ~void{} ->
+      'ErrorFactory{{^*tags}}
+   ~data{*args} ->
+      'ErrorFactory{{^*tags}}.create{^*args}
+   other ->
+      ~macro with errf_macro{tags ++ {other}}
+      
+stdenv.register_macro{"E"} with errf_macro{{}}
 
 
 stdenv.register_macro{"#"} with {{context, env}, ~data{~void{}, ~symbol{tag}}} ->
@@ -1684,7 +1697,8 @@ parse_lhs{env, lhs, rhs, gen} =
                'if{^=idx >= ^len, ^value, [^temp] ^=idx}
 
          if [rest != undefined]:
-            slice = if{nbw > 0, '{^=[nfw + start], ^=[-nbw]}, '{^=[nfw + start]}}
+            pos = nfw + ndflt + start
+            slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}}
             ;; helper_noexpand{rest, '[[^temp].slice ^slice]}
             helper{rest, '[[^temp].slice ^slice]}
 
@@ -2580,6 +2594,7 @@ generate{data, prelude} =
 
 exports.Source := Source
 exports.Location := Location
+exports.highlight_locations := highlight_locations
 
 exports.tokenize := tokenize
 exports.parse := parse
