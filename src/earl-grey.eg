@@ -12,13 +12,18 @@ binsearch{xs, x} =
          [> x] ->
             hi := mid - 1
          [_] ->
-            return mid
+            return [mid + 1]
    lo
 
 
 x <<: y =
-   x.location := y.location
+   x.location := if{not y or Location? y, y, y.location}
    x
+
+x ++: y =
+   x := if{not x or Location? x, x, x.location}
+   y := if{not y or Location? y, y, y.location}
+   [merge_locations with {x, y}] !! undefined
 
 class Source:
 
@@ -90,7 +95,6 @@ highlight{text, spans, offset = 0} =
 highlight_lines{text, linelocs, {l1, l2}, spans} =
    span %
       l1..l2 each lineno ->
-         <> lineno
          start = linelocs[lineno]
          end = linelocs[lineno + 1]
          span %
@@ -388,6 +392,7 @@ indent_tracker{} =
 
 process_token{src, token, last_op, wsa, wsb, pos, endpos, accum} =
    {type, *result} = token
+   result <<: token
    match type:
       .IGNORE ->
          last_op
@@ -663,52 +668,63 @@ order{o1, o2} =
       when [ord1 < ord2]  -> RIGHT
       when [ord1 == ord2] -> BOTH
 
+finalize{token} =
+   finaliz{token}
 
-finalize{token and match} =
+finaliz{token and match} =
    ~ID{value} -> ~symbol{value} <<: token
    ~NUM{value} -> ~value{value} <<: token
    ~STR{value} -> ~value{value} <<: token
    ~VOID{} -> ~void{} <<: token
 
    {ops, *args} ->
+      sumloc = ops[0].location
+      ops.slice{1} each op ->
+         sumloc := sumloc ++: op
+      args each arg ->
+         sumloc := sumloc ++: arg
+
+      orig_ops = ops
       ops := ops each o -> o[2]
       op = ops[0]
+
       match {ops, args}:
 
          {{"WHITE", ":"}, {f, arg, body}} ->
-            ~send{f, ~data{arg, body}}
+            ~send{f, ~data{arg, body} <<: [arg ++: body]} <<: sumloc
 
          {{":"}, {f, body}} ->
-            ~send{f, ~data{body}}
+            ~send{f, ~data{body} <<: body} <<: sumloc
 
-         {{"with"}, {target, aslist! body}} ->
+         {{"with"}, {target, _b and aslist! body}} ->
 
             inserted = false
-            result = transform{target} with {match} ->
-               ~symbol{"..."} -> [inserted := true, ~multi{*body}]
+            result = transform{target} with {expr and match} ->
+               ~symbol{"..."} -> [inserted := true, ~multi{*body} <<: _b]
                [x when x.fromop] and ~send{f, ~data{a, b}} ->
-                   ~send{this{f}, ~data{this{a}, this{b}}}
+                   ~send{this{f}, ~data{this{a}, this{b}} <<: [a ++: b]}
                ~data{*args} ->
                    tr := this
-                   ~data{}.concat with patch_array.apply{null} with args each
+                   res = ~data{}.concat with patch_array.apply{null} with args each
                       ~symbol{"..."} -> [inserted := true, body]
-                      other -> {tr{other}}
+                      other -> {tr{other} <<: other}
+                   res <<: expr
 
             if [not inserted]:
                then:
                   match target:
                      ~void{} ->
-                        ~data{*body}
+                        ~data{*body} <<: sumloc
                      when target.fromop ->
-                        ~send{target, ~data{*body}}
-                     ~send{f, ~data{*args}} ->
-                        ~send{f, ~data{*args, *body}}
+                        ~send{target, ~data{*body} <<: _b} <<: sumloc
+                     ~send{f, orig_args and ~data{*args}} ->
+                        ~send{f, ~data{*args, *body} <<: [orig_args ++: _b]} <<: sumloc
                      ~data{*args} ->
-                        target ++ body
+                        [target ++ body] <<: sumloc
                      other ->
-                        ~send{target, ~data{*body}}
+                        ~send{target, ~data{*body} <<: _b} <<: sumloc
                else:
-                  result
+                  result <<: sumloc
 
          {{"[" or ",", *_}, _} ->
             if [op == "["]:
@@ -723,20 +739,24 @@ finalize{token and match} =
                ;; throw ["At least one expression must be enclosed in []"]
                {x} -> x
                other -> ~multi{*args}
-            result
+            result <<: sumloc
 
          {{"{", *_}, _} ->
-            ~data{*args.slice{1, -1}.filter{f}} where
+            ~data{*args.slice{1, -1}.filter{f}} <<: sumloc where
                f{match} = | ~void{} -> false
                           | other -> true
 
          {{.WHITE}, _} ->
-            ~send{*args}
+            ~send{*args} <<: sumloc
 
          {{_}, match} ->
-            {~void{}, ~void{}} -> ~symbol{op}
+            {~void{}, ~void{}} -> ~symbol{op} <<: orig_ops[0]
             {a, b} ->
-               rval = ~send{~symbol{op}, ~data{a, b}}
+               oloc = orig_ops[0].location
+               abloc = [a ++: b]
+               oabloc = [orig_ops[0] ++: abloc]
+               rval = ~send{~symbol{op} <<: oloc
+                            ~data{a, b} <<: abloc} <<: [oloc ++: abloc]
                rval.fromop := true
                rval
 
@@ -933,14 +953,14 @@ aslist{match} =
 
 transform{expr, cb} =
    tr{x} = transform{x, cb}
-   cb.call{tr, expr} !!
+   result = cb.call{tr, expr} !!
       match expr:
          ~void{} -> ~void{}
          ~symbol{s} -> expr
          ~value{v} -> expr
          {name, *args} ->
             {name, *args.map{tr}}
-
+   result <<: expr
 
 nullenv = {resolve{x} = undefined}
 
@@ -2557,4 +2577,12 @@ generate{data, prelude} =
    ex = expand{~top{stdenv.fork{}}, ~multi{p}}
    [prelude or ""] + translate{ex, .stmt}
 
+
+exports.Source := Source
+exports.Location := Location
+
+exports.tokenize := tokenize
+exports.parse := parse
 exports.generate := generate
+
+

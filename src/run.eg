@@ -105,6 +105,34 @@ run{match} =
            data = fs.readFileSync{file, .utf8}
            console.log with eg.generate{data, ""} ;; libdata}
 
+
+   {.tok, s} ->
+      eg.tokenize{eg.Source{s, null}} each token ->
+         <> token
+         <> token.location.ref{}
+         <> token.location.highlight{}
+
+   {.pa, s} ->
+      walkloc{node and match} =
+         ~symbol{x} ->
+            <> node
+            <> node.location and node.location.highlight{}
+         ~value{x} ->
+            <> node
+            <> node.location and node.location.highlight{}
+         {type, *args} ->
+            <> node
+            <> node.location and node.location.highlight{}
+            args each arg -> walkloc{arg}
+
+      walkloc with
+         eg.parse{eg.Source{s, null}}
+
+   {.runs, data} ->
+      code = eg.generate{data, libdata}
+      ;; vm.runInThisContext{code, file}
+      eval{code}
+
    other ->
       console.log with usage
 

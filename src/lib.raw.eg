@@ -176,6 +176,8 @@ RegExp.prototype[":::deconstruct"] := {value} ->
 class Node:
 
    static:
+      "::check"{x} =
+         x and x.classes and x.children
       "::deconstruct"{x} =
          {x.classes, x.children}
 
