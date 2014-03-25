@@ -1716,6 +1716,7 @@ parse_lhs{env, lhs, rhs, gen} =
             normalize{vars} =
                [...].sort{}.join{","} with
                   vars each ~symbol{v} when v[0] != "τ" -> v
+                  ;; vars each ~symbol{v} when v.slice{0, 3} != "__t" -> v
 
             temp = maybe_temp{curr}
             myvars = undefined
@@ -2053,6 +2054,7 @@ var_operator{temp}{_, expr} =
          '[^temp ^other]
    f{expr}
 
+
 stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
    newenv = env.fork{}
    temp = gensym{}
@@ -2070,8 +2072,21 @@ stdenv.register_macro{"chain"} with {{context, env}, ~data{defn, body}} ->
          | ^temp
    ~done{expand{{context, newenv}, v}}
 
-;; stdenv.register_macro{"mix"} with {_, ~data{}} ->
-;;    ...
+
+stdenv.register_macro{"using"} with {{context, env}, ~data{defn, body}} ->
+   newenv = env.fork{}
+   temp = gensym{}
+
+   {variable, expr} = match defn:
+      ~send{~symbol{"as"}, ~data{x, y}} -> {y, x}
+      other -> {~symbol{"@"}, other}
+
+   ~symbol{var_str} = variable
+   newenv.register_macro{var_str} with var_operator{temp}
+
+   v = ' | ^temp = ^expr
+         | ^body
+   ~done{expand{{context, newenv}, v}}
 
 
 partition{xs, predicate} =

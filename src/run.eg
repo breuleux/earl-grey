@@ -18,9 +18,37 @@ earl run [file] [arguments...]
   Run the specified file as a script.
 "
 
+walk{dir, partial, f} =
+   stats = fs.statSync{dir}
+   if stats.isDirectory{}:
+      then:
+         f{.dir, partial}
+         fs.readdirSync{dir} each file ->
+            walk{newdir, newpartial, f} where
+               newdir = path.join{dir, file}
+               newpartial = path.join{partial, file}
+      else:
+         f{.file, partial}
+
+copy{src, dest} =
+   data = fs.readFileSync{src, .binary}
+   fs.writeFileSync{dest, data, .binary}
+
+
 libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 
-run{|>} =
+run{match} =
+
+   {.quack, src, dest} ->
+      walk{src, "/"} with {*match} ->
+         {.dir, d} ->
+            from = path.join{src, d}
+            to = path.join{dest, d}
+            fs.mkdirSync{to} !! "ignore error"
+         {.file, f} ->
+            from = path.join{src, f}
+            to = path.join{dest, f}
+            copy{from, to}
 
    {} or {.i or "in" or .interactive} ->
       require: repl
@@ -50,15 +78,23 @@ run{|>} =
       stats = fs.statSync{file}
 
       ? | stats.isDirectory{} =>
-          fs.mkdirSync{out} !! "ignore error"
-          d = fs.readdirSync{file}
-          d each
-             R'[start, {*any}, ".eg", end]! {x, name} ->
-                data = fs.readFileSync{path.join{file, x}, .utf8}
-                outfile = path.join{out, name + ".js"}
-                fs.writeFileSync{outfile} with
-                   [eg.generate{data, ...} + "\n"] with
-                      if{R'[".raw.eg", end]? x, "", libdata}
+           walk{file, "/"} with {*match} ->
+              {.dir, d} ->
+                 from = path.join{file, d}
+                 to = path.join{out, d}
+                 fs.mkdirSync{to} !! "ignore error"
+              {.file, match} ->
+                 R'[start, {*any}, ".eg", end]! {x, name} ->
+                    from = path.join{file, x}
+                    to = path.join{out, name + ".js"}
+                    data = fs.readFileSync{from, .utf8}
+                    fs.writeFileSync{to} with
+                       [eg.generate{data, ...} + "\n"] with
+                          if{R'[".raw.eg", end]? x, "", libdata}
+                 f ->
+                    from = path.join{file, f}
+                    to = path.join{out, f}
+                    copy{from, to}
 
         | out =>
            data = fs.readFileSync{file, .utf8}
