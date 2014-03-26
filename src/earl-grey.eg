@@ -853,6 +853,8 @@ expand{{context, env}, expr} =
             match expand.step{{type, env}, args.shift{}}:
                ~splice{*stmts} ->
                   args := stmts ++ args
+               ~sink{stmt} ->
+                  args.push{stmt}
                other ->
                   arr.push{{other, type}}
          ~multi{} ++
@@ -1995,6 +1997,18 @@ stdenv.register_macro{"'"} with {{context, env}, ~data{~void{}, expr}} ->
 ;; stdenv.register_macro{"req"} with {{context, env}, ~data{expr}} ->
 ;;    'require{^expr}
 
+stdenv.register_macro{"provide"} with {{context, env}, ~data{aslist! expr}} ->
+   ~sink with
+      ~multi.concat with
+         expr each
+            s and ~symbol{name} ->
+               '[exports[^=name] := ^s]
+            '[^s as ^[~symbol{name} or ~value{name}]] ->
+               '[exports[^=name] := ^s]
+            other ->
+               throw E.syntax.provide{"Each clause of provide must be 'sym' or 'sym as name'"}
+
+
 stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
 
    stmts = {}
@@ -2014,7 +2028,7 @@ stdenv.register_macro{"require"} with {{context, env}, ~data{expr}} ->
       ~multi{*subp} or ~data{*subp} ->
           subp each p -> produce{p, fetch}
 
-      ~send{~symbol{"as"}, ~data{~value{pkg} or pkg, s}} ->
+      ~send{~symbol{"as"}, ~data{~value{pkg} or ~symbol{pkg}, s}} ->
           fetch{pkg, s}
 
       ~send{~symbol{"->"}, ~data{pkg, subp}} ->
