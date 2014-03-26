@@ -391,6 +391,40 @@ You can have multiple catch clauses to catch multiple kinds of error
        TypeError? e -> ...
        ReferenceError? e -> ...
 
+### Ad hoc exceptions
+
+Earl Grey offers a facility by which you can construct error objects
+on the spot that are perfectly tailored to your situation. The syntax
+is `E.tag1.tag2.[...]{message, *arguments}`
+
+    never_happy{match} =
+       String? ->
+          throw E.string{"I don't want a string!"}
+       Number? ->
+          throw E.number{"I hate math"}
+       {} ->
+          throw E.array[0]{"Why is there nothing in this array?"}
+       {_} ->
+          throw E.array[1]{"Only one thing?"}
+       {_, _} ->
+          throw E.array[2]{"The number two is my least favorite."}
+       {_, _, _} ->
+          throw E.array[3]{"What am I going to do with all this stuff?"}
+       some_other_nonsense ->
+          throw E["?!?"]{"WHAT IS THIS"}
+
+    never_happy{"take this"} !!
+       E.string? e ->
+          console.log with e.message
+
+To match an error type, an error needs to contain all the required
+tags, but it can contain more. For instance, `E.array?` will match
+`E.array{...}`, but also `E.array[2]{...}` and even
+`E.bah.humbug.array{...}`.
+
+Ideally, every single exception thrown by your code should have a
+unique set of tags.
+
 
 ## Chaining
 
