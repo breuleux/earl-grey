@@ -226,8 +226,8 @@ regexps = {
      ?[".", {+ in "A-Za-z0-9_"}]
 
   numr_f = {m, wsb, wsa, last_op} ->
-     {_, radix, int, frac} = m
-     value := parseInt{int.replace{R.g"_", ""}, radix}
+     {_, radix, intp, frac} = m
+     value := parseInt{intp.replace{R.g"_", ""}, radix}
      if frac:
         frac := frac.replace{R.g"_", ""}
         value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
@@ -293,7 +293,7 @@ regexps = {
                  .IFX -> if{wsb or wsa, .wide, .short}
                  .SFX -> if{wsb, .wide, .short}
                  .PFX -> if{wsa, .wide, .short}
-                 other -> throw "OopsA"
+                 other -> throw E.should_never_happen{"unknown fixity"}
            ~OP{fixity, width, op}
 
         when wsa and wsb ->
@@ -336,7 +336,8 @@ regexps = {
      start
      any
 
-  unkn_f = {m, wsb, wsa, last_op} -> throw ["unknown character: " + m[0]]
+  unkn_f = {m, wsb, wsa, last_op} ->
+     ~ILLEGAL{m[0]}
 
 
 
@@ -431,7 +432,12 @@ process_token{src, token, last_op, wsa, wsb, pos, endpos, accum} =
                accum.push{v}
                false
 
-      other -> throw "OopsB"
+      .ILLEGAL ->
+         throw E.syntax.illegal{"unknown character", {chr = token}}
+
+
+      other ->
+         throw E.should_never_happen{"unknown token type", {token = token}}
 
 
 tokenize{src} =
@@ -545,12 +551,12 @@ order_map = {
          "**"  => {{2r0001, 571}, {2r0001, 570}}
 
          ;; Others
-         default = {{2r1000, 900}, {2r0100, 901}}
+         DEFAULT = {{2r1000, 900}, {2r0100, 901}}
          WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
          ":"    => {{2r1111, 1001}, {2r1111, 2}}
       }
       short = {
-         default = {{2r1111, 1800}, {2r1111, 1801}}
+         DEFAULT = {{2r1111, 1800}, {2r1111, 1801}}
          WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
          ","    => {{2r1111, 1},    {2r1111, 1}}
          ":"    => {{2r1111, 1001}, {2r1111, 2}}
@@ -559,7 +565,7 @@ order_map = {
 
    PFX = {
       wide = {
-         default = {{2r1111, MAX}, {2r1111, 900}}
+         DEFAULT = {{2r1111, MAX}, {2r1111, 900}}
          "when" => {{2r1111, MAX}, {2r1111, 101}}
          "not"  => {{2r1111, MAX}, {2r1111, 131}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
@@ -572,7 +578,7 @@ order_map = {
          "{" => {{2r1111, MAX}, {2r1111, 1}}
       }
       short = {
-         default = {{2r1111, MAX}, {2r1111, 1901}}
+         DEFAULT = {{2r1111, MAX}, {2r1111, 1901}}
          "." => {{2r1111, MAX}, {2r1111, 3000}}
          "#" => {{2r1111, MAX}, {2r1111, 3000}}
          "~" => {{2r1111, MAX}, {2r1111, 3000}}
@@ -585,13 +591,13 @@ order_map = {
 
    SFX = {
       wide = {
-         default = {{2r1111, 901}, {2r1111, MAX}}
+         DEFAULT = {{2r1111, 901}, {2r1111, MAX}}
          ")" => {{2r1111, 1}, {2r1111, MAX}}
          "]" => {{2r1111, 1}, {2r1111, MAX}}
          "}" => {{2r1111, 1}, {2r1111, MAX}}
       }
       short = {
-         default = {{2r1111, 1900}, {2r1111, MAX}}
+         DEFAULT = {{2r1111, 1900}, {2r1111, MAX}}
          ")" => {{2r1111, 1}, {2r1111, MAX}}
          "]" => {{2r1111, 1}, {2r1111, MAX}}
          "}" => {{2r1111, 1}, {2r1111, MAX}}
@@ -647,15 +653,19 @@ oparse{next, order, finalize} =
             between := finalize{next{}}
             right_op := next{}
 
-         [== NONE] ->
-            throw ["Undefined priority between " + left_op + " and " + right_op]
+         ;; [== NONE] ->
+         ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
 
-         other -> throw "OopsC"
+         other ->
+            throw E.should_never_happen{
+               "undefined priority"
+               {left = left_op, right = right_op}
+            }
 
 
 consult{{fixity, width, op}} =
    map = order_map[fixity][width]
-   map[op] or map.default
+   map[op] or map.DEFAULT
 
 
 order{o1, o2} =
@@ -674,6 +684,7 @@ finalize{token} =
    finaliz{token}
 
 finaliz{token and match} =
+
    ~ID{value} -> ~symbol{value} <<: token
    ~NUM{value} -> ~value{value} <<: token
    ~STR{value} -> ~value{value} <<: token
@@ -763,9 +774,16 @@ finaliz{token and match} =
                rval
 
          other ->
-            throw {"Unknown node", ops, args}
+            throw E.should_never_happen{
+               "unknown node"
+               {node = token}
+            }
 
-   other -> throw "OopsE"
+   other ->
+      throw E.should_never_happen{
+         "unknown node (B)"
+         {node = token}
+      }
 
 
 parse{src} =
@@ -810,7 +828,6 @@ expand{{context, env}, expr} =
       ~symbol{s} -> expr
 
       ~void{} -> ~void{}
-      undefined? -> throw ["undefined? why?"]
 
       ~send{f, arg} ->
          f := expand{{.head, env}, f}
@@ -910,7 +927,11 @@ expand{{context, env}, expr} =
       ~done{expr} ->
          expr
 
-      other -> throw {"Oops", expr, context}
+      other ->
+         throw E.syntax.illegal_node{
+            "An illegal node was found in expand"
+            {node = other}
+         }
 
 
 
@@ -924,7 +945,6 @@ expand.step := {{context, env}, expr and match} ->
          other -> v
 
    ~void{} -> ~void{}
-   undefined? -> throw ["undefined? why?"]
 
    ~macro{m} when [context == .head] ->
       expr
@@ -942,8 +962,10 @@ expand.step := {{context, env}, expr and match} ->
       expr
 
    other ->
-      <> expr
-      throw {"Oops2", expr}
+      throw E.syntax.illegal_node{
+         "An illegal node was found in expand.step"
+         {node = other}
+      }
 
 
 aslist{match} =
@@ -1032,7 +1054,7 @@ errf_macro{tags} = {{context, env}, match} ->
       'ErrorFactory{{^*tags}}.create{^*args}
    other ->
       ~macro with errf_macro{tags ++ {other}}
-      
+
 stdenv.register_macro{"E"} with errf_macro{{}}
 
 
@@ -1148,46 +1170,32 @@ stdenv.register_macro{"."} with {{context, env}, match} ->
    ~data{~void{}, ~symbol{s}} ->
       ~value{s}
    other ->
-      <> other
-      throw Error{"Invalid argument for .", other}
+      throw E.syntax.dot{
+         "'.' macro was given an illegal argument"
+         {arg = other}
+      }
 
 
-stdenv.register_macro{"where"} with {{context, env}, ~data{a, b}} ->
-   ~send{~symbol{.let}, ~data{b, a}}
+stdenv.register_macro{"where"} with {{context, env}, match} ->
+   ~data{a, b} ->
+      ~send{~symbol{.let}, ~data{b, a}}
+   other ->
+      throw E.syntax"where"{
+         "'where' macro was given an illegal argument"
+         {arg = other}
+      }
 
 
-stdenv.register_macro{"let"} with {{context, env}, ~data{a, b}} ->
-   bindings = aslist{a}
-   body = aslist{b}
-   ~multi{*bindings, *body}
-
-
-;; stdenv.register_macro{"->"} with {{context, env}, ~data{match, stmts}} ->
-;;    ~data{*args} ->
-;;       {fw, bw, keys, dflt, rest} =
-;;          lhs_parse_specs{env, args}
-;;       if [false and [rest or dflt.length or keys.length]]:
-;;          then:
-;;             ~lambda{{}, body} where
-;;                body = ' | match Array.prototype.slice.call{arguments, 0}:
-;;                            {^*args} -> ^stmts
-;;          else:
-;;             body = ~multi{}
-;;             {placeholder, newargs} = find_arrow{~data{*args}}
-;;             newargs := newargs.slice{1} each
-;;                ~symbol{s} -> ~symbol{s}
-;;                other ->
-;;                   t = gensym{}
-;;                   body.push with '[^other = ^t]
-;;                   t
-;;             body.push with
-;;                if placeholder:
-;;                   then: '[match ^placeholder: ^stmts]
-;;                   else: stmts
-;;             ~lambda{newargs, body}
-;;    other ->
-;;       <> other
-;;       raise Error{"some error in ->"}
+stdenv.register_macro{"let"} with {{context, env}, match} ->
+   ~data{a, b} ->
+      bindings = aslist{a}
+      body = aslist{b}
+      ~multi{*bindings, *body}
+   other ->
+      throw E.syntax.let{
+         "'let' macro was given an illegal argument"
+         {arg = other}
+      }
 
 
 stdenv.register_macro{"->"} with {{context, env}, ~data{args, stmts}} ->
@@ -1282,7 +1290,7 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
          r = ~splice{*vars}
 
          mkif{x} =
-            ~if{x, ~value{false}, ~js_throw{~value{"a condition failed"}}}
+            ~if{x, ~value{undefined}, ~js_throw{~value{"a condition failed"}}}
 
          match clauses:
             {clause} ->
@@ -1552,7 +1560,8 @@ stdenv.register_macro{"!"} with {{context, env}, ~data{expr, ~void{}}} ->
 
 
 gensym_factory{prefix} =
-   prefix := "τ" + prefix
+   ;; prefix := "τ" + prefix
+   prefix := "__t" + prefix
    id = 0
    {} ->
       name = prefix + String{id}
@@ -1749,8 +1758,8 @@ parse_lhs{env, lhs, rhs, gen} =
          ~any{*xs} ->
             normalize{vars} =
                [...].sort{}.join{","} with
-                  vars each ~symbol{v} when v[0] != "τ" -> v
-                  ;; vars each ~symbol{v} when v.slice{0, 3} != "__t" -> v
+                  ;; vars each ~symbol{v} when v[0] != "τ" -> v
+                  vars each ~symbol{v} when v.slice{0, 3} != "__t" -> v
 
             temp = maybe_temp{curr}
             myvars = undefined
