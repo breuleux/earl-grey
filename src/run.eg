@@ -3,6 +3,9 @@ require:
    "./earl-grey" as eg
    fs, path, vm
 
+provide:
+   run
+
 
 usage = "
 usage:
@@ -38,17 +41,6 @@ copy{src, dest} =
 libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 
 run{match} =
-
-   {.quack, src, dest} ->
-      walk{src, "/"} with {*match} ->
-         {.dir, d} ->
-            from = path.join{src, d}
-            to = path.join{dest, d}
-            fs.mkdirSync{to} !! "ignore error"
-         {.file, f} ->
-            from = path.join{src, f}
-            to = path.join{dest, f}
-            copy{from, to}
 
    {} or {.i or "in" or .interactive} ->
       require: repl
@@ -126,7 +118,8 @@ run{match} =
             args each arg -> walkloc{arg}
 
       walkloc with
-         eg.parse{eg.Source{s, null}}
+         eg.parse{tokens} where
+            tokens = eg.tokenize{eg.Source{s, null}}
 
    {.runs, data} ->
       code = eg.generate{data, libdata} !!
@@ -145,7 +138,4 @@ run{match} =
 
    other ->
       console.log with usage
-
-
-exports.run := run
 
