@@ -3,7 +3,7 @@ require:
    "./helpers" -> aslist
 
 provide:
-   translate
+   Translator, translate
 
 
 js_op_table = {
@@ -37,265 +37,276 @@ js_op_table = {
 }
 
 
-translate{expr and match, mode} =
+class Translator:
 
-   #symbol{s} ->
-      translate.expr{translate.mangle{s}, mode}
+   constructor{} =
+      @store := {=}
 
-   #void{} ->
-      translate.expr{"null", mode}
+   mangle{name} =
+      tr = {
+         "+" => "__plus__"
+         "-" => "__minus__"
+         "*" => "__asterisk__"
+         "/" => "__slash__"
+         "%" => "__percent__"
+         "^" => "__caret__"
+         "#" => "__hash__"
+         "&" => "__amp__"
+         "|" => "__pipe__"
+         "@" => "__at__"
+         "!" => "__bang__"
+         "?" => "__qmark__"
+         "=" => "__equal__"
+         "<" => "__lt__"
+         ">" => "__gt__"
+         "~" => "__tilde__"
+         "." => "__dot__"
+         ":" => "__colon__"
+      }
+      r = {}
+      for [i = 0, i < name.length, ++i]:
+         c = name[i]
+         r.push{tr[c] or c}
+      r.join{""}
 
-   #value{v} ->
-      r = match v:
-         String? ->
-            repl = {
-               "\"" => "\\\""
-               "\n" => "\\n"
-               "\\" => "\\\\"
-            }
-            v := v.replace{R.g'{"\"" or "\\" or "\n"}, {m} -> repl[m]}
-            "\"" + v + "\""
-         undefined? ->
-            "(void 0)"
-         [Number? or [== true] or [== false] or null?] ->
-            String{v}
-         other ->
-            <> v
-            throw Error{"Unknown value"}
-            "?!?[" + v + "]?!?"
-      translate.expr{r, mode}
-
-   #send{#symbol{"___node"}, #value{f}} ->
-      f
-
-   #send{#symbol{"___js_fetch"}, #array{f, msg}} ->
-      translate.expr{trf + "[" + trmsg + "]", mode} where
-         trf = translate{f, .expr}
-         trmsg = translate{msg, .expr}
-
-   #send{f, msg and #value{s}} ->
-      cond:
-         [[typeof{s} == "string"]
-          \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
-            translate.expr{trf + "." + trmsg, mode} where
-               trf = translate{f, .expr}
-               trmsg = translate{#symbol{s}, .expr}
-         else =>
-            translate.expr{trf + "[" + trmsg + "]", mode} where
-               trf = translate{f, .expr}
-               trmsg = translate{msg, .expr}
-
-   #send{f, #array{*args}} ->
-      op = match f: | #symbol{x} -> js_op_table[x]
-                    | _ -> null
-      if op:
-         then: translate.expr{translate.op{op, args[0], args[1]}, mode}
-         else:
-            translate.expr{trf+"("+trargs.join{","}+")", mode} where
-               trf = translate{f, .expr}
-               trargs = args each x ->
-                  translate{x, .expr}
-
-   ;; #send{f, msg} ->
-   ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
-   ;;       trf = translate{f, .expr}
-   ;;       trmsg = translate{msg, .expr}
-
-   #send{f, msg} ->
-      translate.expr{"send(" + trf + "," + trmsg + ")", mode} where
-         trf = translate{f, .expr}
-         trmsg = translate{msg, .expr}
-
-   #array{*args} ->
-      r = ["[" + args.map{f}.join{","} + "]"] where
-         f{x} = translate{x, .expr}
-      translate.expr{r, mode}
-
-   #object{*args} ->
-      r = ["({" + args.map{f}.join{","} + "})"] where
-         f{#array{x, y}} =
-            a = translate{x, .expr}
-            b = translate{y, .expr}
-            a + ":" + b
-      translate.expr{r, mode}
-
-   #lambda{bindings, body} ->
-      translate.expr{"function("+a+"){"+b+"}", mode} where
-         a = [bindings each x -> translate{x, .expr}].join{","}
-         b = translate.body{body, .return}
-
-   #if{test, pos, neg} ->
+   body{b, mode} =
+      orig := b
+      b := aslist{b}
+      trst{stmt} = translate{stmt, .stmt}
       match mode:
-         .expr -> translate.body{expr, .expr}
-         other ->
-            ["if(" + a + "){" + b + "}else{" + c + "}"] where
-               a = translate{test, .expr}
-               b = translate{pos, mode}
-               c = translate{neg, mode}
+         .expr ->
+            translate{x, mode} where
+               x = #send{#lambda{{}, orig}, {.array}}
+         .return ->
+            stmts = b.slice{0, -1}
+            ret = b[b.length - 1]
+            stmts.map{trst}.join{""} + translate{ret, .return}
+         .stmt ->
+            b.map{trst}.join{""}
+         other -> throw "OopsH"
 
-   #declare{binding, #value{undefined?}} ->
+   expr{x, mode} =
       match mode:
-         [.expr or .return] -> throw "Invalid in expr ctx"
+         .expr -> x
+         .stmt -> x + ";"
+         .return -> "return " + x + ";"
+         other -> throw "OopsI"
+
+   op{op, a, b} =
+      e = match {a, b}:
+             {#void{}, _} -> op + translate{b, .expr}
+             {_, #void{}} -> translate{a, .expr} + op
+             _ -> translate{a, .expr} + op + translate{b, .expr}
+      "(" + e + ")"
+
+   translate{expr, mode} =
+      match expr:
+
+         #symbol{s} ->
+            @expr{@mangle{s}, mode}
+
+         #void{} ->
+            @expr{"null", mode}
+
+         #value{v} ->
+            r = match v:
+               String? ->
+                  repl = {
+                     "\"" => "\\\""
+                     "\n" => "\\n"
+                     "\\" => "\\\\"
+                  }
+                  v := v.replace{R.g'{"\"" or "\\" or "\n"}, {m} -> repl[m]}
+                  "\"" + v + "\""
+               undefined? ->
+                  "(void 0)"
+               [Number? or [== true] or [== false] or null?] ->
+                  String{v}
+               other ->
+                  <> v
+                  throw Error{"Unknown value"}
+                  "?!?[" + v + "]?!?"
+            @expr{r, mode}
+
+
+         #send{#symbol{"___node"}, #value{f}} ->
+            f
+
+         #send{#symbol{"___js_fetch"}, #array{f, msg}} ->
+            @expr{trf + "[" + trmsg + "]", mode} where
+               trf = @translate{f, .expr}
+               trmsg = @translate{msg, .expr}
+
+         #send{f, msg and #value{s}} ->
+            cond:
+               [[typeof{s} == "string"]
+                \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
+                  @expr{trf + "." + trmsg, mode} where
+                     trf = @translate{f, .expr}
+                     trmsg = @translate{#symbol{s}, .expr}
+               else =>
+                  @expr{trf + "[" + trmsg + "]", mode} where
+                     trf = @translate{f, .expr}
+                     trmsg = @translate{msg, .expr}
+
+         #send{f, #array{*args}} ->
+            op = match f: | #symbol{x} -> js_op_table[x]
+                          | _ -> null
+            if op:
+               then: @expr{@op{op, args[0], args[1]}, mode}
+               else:
+                  @expr{trf+"("+trargs.join{","}+")", mode} where
+                     trf = @translate{f, .expr}
+                     trargs = args each x ->
+                        @translate{x, .expr}
+
+         ;; #send{f, msg} ->
+         ;;    @expr{trf + "[" + trmsg + "]", mode} where
+         ;;       trf = @translate{f, .expr}
+         ;;       trmsg = @translate{msg, .expr}
+
+         #send{f, msg} ->
+            @expr{"send(" + trf + "," + trmsg + ")", mode} where
+               trf = @translate{f, .expr}
+               trmsg = @translate{msg, .expr}
+
+         #array{*args} ->
+            r = ["[" + args.map{f}.join{","} + "]"] where
+               f{x} = @translate{x, .expr}
+            @expr{r, mode}
+
+         #object{*args} ->
+            r = ["({" + args.map{f}.join{","} + "})"] where
+               f{#array{x, y}} =
+                  a = @translate{x, .expr}
+                  b = @translate{y, .expr}
+                  a + ":" + b
+            @expr{r, mode}
+
+         #lambda{bindings, body} ->
+            @expr{"function("+a+"){"+b+"}", mode} where
+               a = [bindings each x -> @translate{x, .expr}].join{","}
+               b = @body{body, .return}
+
+         #if{test, pos, neg} ->
+            match mode:
+               .expr -> @body{expr, .expr}
+               other ->
+                  ["if(" + a + "){" + b + "}else{" + c + "}"] where
+                     a = @translate{test, .expr}
+                     b = @translate{pos, mode}
+                     c = @translate{neg, mode}
+
+
+         #declare{binding, #value{undefined?}} ->
+            match mode:
+               [.expr or .return] -> throw "Invalid in expr ctx"
+               other ->
+                  ["var " + a + ";"] where
+                     a = @translate{binding, .expr}
+
+         #declare{binding, value} ->
+            match mode:
+               [.expr or .return] -> throw "Invalid in expr ctx"
+               other ->
+                  ["var " + a + "=" + b + ";"] where
+                     a = @translate{binding, .expr}
+                     b = @translate{value, .expr}
+
+         #assign{#send{obj, msg}, rhs} ->
+            @expr{"(" + a + "[" + b + "]=" + c + ")", mode} where
+               a = @translate{obj, .expr}
+               b = @translate{msg, .expr}
+               c = @translate{rhs, .expr}
+
+         #assign{lhs, rhs} ->
+            @expr{"(" + a + "=" + b + ")", mode} where
+               a = @translate{lhs, .expr}
+               b = @translate{rhs, .expr}
+
+         #multi{*args} ->
+            isdecl{match} =
+               #declare{variable, value} -> true
+               other -> false
+            match:
+               when args.length == 1 ->
+                  @translate{args[0], mode}
+               when [mode == "expr"] and [not args.some{isdecl}] ->
+                  ["(" + xs.join{","} + ")"] where
+                     xs = args each x ->
+                        @translate{x, .expr}
+               _ -> @body{expr, mode}
+
+         #splice{*args} ->
+            @translate{#multi{*args}, mode}
+
+         #js_new{value} ->
+            @expr{"(new " + @translate{value, .expr} + ")", mode}
+
+         #js_break{} ->
+            if [mode == "expr"]:
+               then: throw "Invalid break in ctx"
+               else: "break;"
+
+         #js_continue{} ->
+            if [mode == "expr"]:
+               then: throw "Invalid continue in ctx"
+               else: "continue;"
+
+         #js_return{value} ->
+            if [mode == "expr"]:
+               then: throw "Invalid return in ctx"
+               else: "return " + @translate{value, .expr} + ";"
+
+         #js_delete{value} ->
+            if [mode == "expr"]:
+               then: throw "Invalid delete in ctx"
+               else: "delete " + @translate{value, .expr} + ";"
+
+         #js_throw{value} ->
+            if [mode == "expr"]:
+               then: "function(){throw " + @translate{value, .expr} + ";}()"
+               else: "throw " + @translate{value, .expr} + ";"
+
+         #js_while{test, body} ->
+            match mode:
+               .expr -> @body{expr, .expr}
+               other ->
+                  ["while(" + a + "){" + b + "}"] where
+                     a = @translate{test, .expr}
+                     b = @translate{body, .stmt}
+
+         #js_for{x, y, z, body} ->
+            match mode:
+               .expr -> @body{expr, .expr}
+               other ->
+                  ["for("+a+b+c+"){"+d+"}"] where
+                     a = @translate{x, .stmt}
+                     b = @translate{y, .stmt}
+                     c = @translate{z, .expr}
+                     d = @translate{body, .stmt}
+
+         #js_for_in{x, y, body} ->
+            match mode:
+               .expr -> @body{expr, .expr}
+               other ->
+                  ["for("+a+" in "+b+"){"+c+"}"] where
+                     a = @translate{x, .expr}
+                     b = @translate{y, .expr}
+                     c = @translate{body, .stmt}
+
+         #js_try{attempt, #lambda{{#symbol{v}}, body}, #void{}} ->
+            match mode:
+               .expr -> @body{expr, .expr}
+               other ->
+                  "try{" + a + "}catch(" + v + "){" + b + "}" where
+                     a = @translate{attempt, .stmt}
+                     b = @translate{body, .stmt}
+
          other ->
-            ["var " + a + ";"] where
-               a = translate{binding, .expr}
-
-   #declare{binding, value} ->
-      match mode:
-         [.expr or .return] -> throw "Invalid in expr ctx"
-         other ->
-            ["var " + a + "=" + b + ";"] where
-               a = translate{binding, .expr}
-               b = translate{value, .expr}
-
-   #assign{#send{obj, msg}, rhs} ->
-      translate.expr{"(" + a + "[" + b + "]=" + c + ")", mode} where
-         a = translate{obj, .expr}
-         b = translate{msg, .expr}
-         c = translate{rhs, .expr}
-
-   #assign{lhs, rhs} ->
-      translate.expr{"(" + a + "=" + b + ")", mode} where
-         a = translate{lhs, .expr}
-         b = translate{rhs, .expr}
-
-   #multi{*args} ->
-      isdecl{match} =
-         #declare{variable, value} -> true
-         other -> false
-      match:
-         when args.length == 1 ->
-            translate{args[0], mode}
-         when [mode == "expr"] and [not args.some{isdecl}] ->
-            ["(" + xs.join{","} + ")"] where
-               xs = args each x ->
-                  translate{x, .expr}
-         _ -> translate.body{expr, mode}
-
-   #splice{*args} ->
-      translate{#multi{*args}, mode}
-
-   #js_new{value} ->
-      translate.expr{"(new " + translate{value, .expr} + ")", mode}
-
-   #js_break{} ->
-      if [mode == "expr"]:
-         then: throw "Invalid break in ctx"
-         else: "break;"
-
-   #js_continue{} ->
-      if [mode == "expr"]:
-         then: throw "Invalid continue in ctx"
-         else: "continue;"
-
-   #js_return{value} ->
-      if [mode == "expr"]:
-         then: throw "Invalid return in ctx"
-         else: "return " + translate{value, .expr} + ";"
-
-   #js_delete{value} ->
-      if [mode == "expr"]:
-         then: throw "Invalid delete in ctx"
-         else: "delete " + translate{value, .expr} + ";"
-
-   #js_throw{value} ->
-      if [mode == "expr"]:
-         then: "function(){throw " + translate{value, .expr} + ";}()"
-         else: "throw " + translate{value, .expr} + ";"
-
-   #js_while{test, body} ->
-      match mode:
-         .expr -> translate.body{expr, .expr}
-         other ->
-            ["while(" + a + "){" + b + "}"] where
-               a = translate{test, .expr}
-               b = translate{body, .stmt}
-
-   #js_for{x, y, z, body} ->
-      match mode:
-         .expr -> translate.body{expr, .expr}
-         other ->
-            ["for("+a+b+c+"){"+d+"}"] where
-               a = translate{x, .stmt}
-               b = translate{y, .stmt}
-               c = translate{z, .expr}
-               d = translate{body, .stmt}
-
-   #js_for_in{x, y, body} ->
-      match mode:
-         .expr -> translate.body{expr, .expr}
-         other ->
-            ["for("+a+" in "+b+"){"+c+"}"] where
-               a = translate{x, .expr}
-               b = translate{y, .expr}
-               c = translate{body, .stmt}
-
-   #js_try{attempt, #lambda{{#symbol{v}}, body}, #void{}} ->
-      match mode:
-         .expr -> translate.body{expr, .expr}
-         other ->
-            "try{" + a + "}catch(" + v + "){" + b + "}" where
-               a = translate{attempt, .stmt}
-               b = translate{body, .stmt}
-
-   other ->
-      throw other
+            throw other
 
 
-translate.mangle := {name} ->
-   tr = {
-      "+" => "__plus__"
-      "-" => "__minus__"
-      "*" => "__asterisk__"
-      "/" => "__slash__"
-      "%" => "__percent__"
-      "^" => "__caret__"
-      "#" => "__hash__"
-      "&" => "__amp__"
-      "|" => "__pipe__"
-      "@" => "__at__"
-      "!" => "__bang__"
-      "?" => "__qmark__"
-      "=" => "__equal__"
-      "<" => "__lt__"
-      ">" => "__gt__"
-      "~" => "__tilde__"
-      "." => "__dot__"
-      ":" => "__colon__"
-   }
-   r = {}
-   for [i = 0, i < name.length, ++i]:
-      c = name[i]
-      r.push{tr[c] or c}
-   r.join{""}
-
-
-translate.body := {b, mode} ->
-   orig := b
-   b := aslist{b}
-   trst{stmt} = translate{stmt, .stmt}
-   match mode:
-      .expr ->
-         translate{x, mode} where
-            x = #send{#lambda{{}, orig}, {.array}}
-      .return ->
-         stmts = b.slice{0, -1}
-         ret = b[b.length - 1]
-         stmts.map{trst}.join{""} + translate{ret, .return}
-      .stmt ->
-         b.map{trst}.join{""}
-      other -> throw "OopsH"
-
-translate.expr := {x, match} ->
-   .expr -> x
-   .stmt -> x + ";"
-   .return -> "return " + x + ";"
-   other -> throw "OopsI"
-
-translate.op := {op, a, b} ->
-   e = match {a, b}:
-          {#void{}, _} -> op + translate{b, .expr}
-          {_, #void{}} -> translate{a, .expr} + op
-          _ -> translate{a, .expr} + op + translate{b, .expr}
-   "(" + e + ")"
+translate{expr, mode} =
+   Translator{}.translate{expr, mode}
 
