@@ -1,7 +1,7 @@
 
 require:
    "./helpers" ->
-      aslist, transform
+      transform
    "./location" ->
       <<:, ++:
 
@@ -227,7 +227,7 @@ finalize{token and match} =
          {{":"}, {f, body}} ->
             #send{f, #data{body} <<: body} <<: sumloc
 
-         {{"with"}, {target, _b and aslist! body}} ->
+         {{"with"}, {target, _b and #multi! {*body}}} ->
 
             inserted = false
             result = transform{target} with {expr and match} ->

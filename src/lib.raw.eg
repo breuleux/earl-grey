@@ -89,7 +89,7 @@ Array.prototype[":::project"] := {value} ->
          {true, rval}
 
 Array.prototype[":::deconstruct"] := {value} ->
-   return value.slice{this.length}
+   {true, value.slice{this.length}}
 
 
 RegExp.prototype["::check"] := {value} ->

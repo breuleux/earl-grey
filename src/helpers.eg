@@ -7,8 +7,8 @@ provide:
    aslist, transform
 
 aslist{match} =
-   #void{} -> {#void{}}
-   undefined? -> {undefined}
+   ;; #void{} -> {#void{}}
+   ;; undefined? -> {undefined}
    #multi{*args} -> args
    other -> {other}
 

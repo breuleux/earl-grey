@@ -585,6 +585,8 @@ stdenv.register_macro{"?"} with {{context, env}, match} ->
 
 
 stdenv.register_macro{"!"} with {{context, env}, #data{expr, #void{}}} ->
+   orig_expr = expr
+
    projector = match expr:
       #void{} -> throw "can't use ! on its own"
       #symbol{.String} ->
@@ -596,8 +598,17 @@ stdenv.register_macro{"!"} with {{context, env}, #data{expr, #void{}}} ->
    mac{{match, env}, expr} =
       .pattern ->
          match expr:
-            #void{} -> #project{projector, #ignore{}}
-            other -> #project{projector, expr}
+            #data{*subp} ->
+               dctor = '___deconstructor{^orig_expr}
+               #project{projector, #project{dctor, #duck{0, *subp}}}
+            #void{} ->
+               #project{projector, #ignore{}}
+            other ->
+               #project{projector, expr}
+      ;; .pattern ->
+      ;;    match expr:
+      ;;       #void{} -> #project{projector, #ignore{}}
+      ;;       other -> #project{projector, expr}
       other -> '[^projector]{^expr}[1]
 
    #macro{mac}

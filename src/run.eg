@@ -51,9 +51,13 @@ run{match} =
          prompt = "<> "
          ignoreUndefined = true
          eval{input, context, filename, callback} =
-            text = eg.generate{input.slice{1, -1}}
-            result = vm.runInThisContext{text, "stdin"} !!
-               e -> console.log{e.stack}
+            result = [execute{} !! e -> handle{e}] where
+               execute{} =
+                  text = eg.generate{input.slice{1, -1}}
+                  vm.runInThisContext{text, "stdin"}
+               handle{e} =
+                  console.log{e.stack or e}
+                  undefined
             callback{null, result}
       }
       run = repl.start with settings
@@ -71,33 +75,34 @@ run{match} =
 
       stats = fs.statSync{file}
 
-      ? | stats.isDirectory{} =>
-           walk{file, "/"} with {*match} ->
-              {.dir, d} ->
-                 from = path.join{file, d}
-                 to = path.join{out, d}
-                 fs.mkdirSync{to} !! "ignore error"
-              {.file, match} ->
-                 R'[start, {*any}, ".eg", end]! {x, name} ->
-                    from = path.join{file, x}
-                    to = path.join{out, name + ".js"}
-                    data = fs.readFileSync{from, .utf8}
-                    fs.writeFileSync{to} with
-                       [eg.generate{data, ...} + "\n"] with
-                          if{R'[".raw.eg", end]? x, "", libdata}
-                 f ->
-                    from = path.join{file, f}
-                    to = path.join{out, f}
-                    copy{from, to}
+      match:
+         when stats.isDirectory{} ->
+            walk{file, "/"} with {*match} ->
+               {.dir, d} ->
+                  from = path.join{file, d}
+                  to = path.join{out, d}
+                  fs.mkdirSync{to} !! "ignore error"
+               {.file, match} ->
+                  R'[start, {*any}, ".eg", end]? {x, name} ->
+                     from = path.join{file, x}
+                     to = path.join{out, name + ".js"}
+                     data = fs.readFileSync{from, .utf8}
+                     fs.writeFileSync{to} with
+                        [eg.generate{data, ...} + "\n"] with
+                           if{R'[".raw.eg", end]? x, "", libdata}
+                  f ->
+                     from = path.join{file, f}
+                     to = path.join{out, f}
+                     copy{from, to}
 
-        | out =>
-           data = fs.readFileSync{file, .utf8}
-           fs.writeFileSync{out} with
-              eg.generate{data, libdata} + "\n"
+         when out ->
+            data = fs.readFileSync{file, .utf8}
+            fs.writeFileSync{out} with
+               eg.generate{data, libdata} + "\n"
 
-        | else =>
-           data = fs.readFileSync{file, .utf8}
-           console.log with eg.generate{data, ""} ;; libdata}
+         otherwise ->
+            data = fs.readFileSync{file, .utf8}
+            console.log with eg.generate{data, ""} ;; libdata}
 
    {.tok, s} ->
       eg.tokenize{eg.Source{s, null}} each token ->
