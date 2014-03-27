@@ -203,10 +203,10 @@ order{o1, o2} =
 
 finalize{token and match} =
 
-   ~ID{value} -> ~symbol{value} <<: token
-   ~NUM{value} -> ~value{value} <<: token
-   ~STR{value} -> ~value{value} <<: token
-   ~VOID{} -> ~void{} <<: token
+   #ID{value} -> #symbol{value} <<: token
+   #NUM{value} -> #value{value} <<: token
+   #STR{value} -> #value{value} <<: token
+   #VOID{} -> #void{} <<: token
 
    {ops, *args} ->
       sumloc = ops[0].location
@@ -222,38 +222,38 @@ finalize{token and match} =
       match {ops, args}:
 
          {{"WHITE", ":"}, {f, arg, body}} ->
-            ~send{f, ~data{arg, body} <<: [arg ++: body]} <<: sumloc
+            #send{f, #data{arg, body} <<: [arg ++: body]} <<: sumloc
 
          {{":"}, {f, body}} ->
-            ~send{f, ~data{body} <<: body} <<: sumloc
+            #send{f, #data{body} <<: body} <<: sumloc
 
          {{"with"}, {target, _b and aslist! body}} ->
 
             inserted = false
             result = transform{target} with {expr and match} ->
-               ~symbol{"..."} -> [inserted := true, ~multi{*body} <<: _b]
-               [x when x.fromop] and ~send{f, ~data{a, b}} ->
-                   ~send{this{f}, ~data{this{a}, this{b}} <<: [a ++: b]}
-               ~data{*args} ->
+               #symbol{"..."} -> [inserted := true, #multi{*body} <<: _b]
+               [x when x.fromop] and #send{f, #data{a, b}} ->
+                   #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
+               #data{*args} ->
                    tr := this
-                   res = ~data{}.concat with patch_array.apply{null} with args each
-                      ~symbol{"..."} -> [inserted := true, body]
+                   res = #data{}.concat with patch_array.apply{null} with args each
+                      #symbol{"..."} -> [inserted := true, body]
                       other -> {tr{other} <<: other}
                    res <<: expr
 
             if [not inserted]:
                then:
                   match target:
-                     ~void{} ->
-                        ~data{*body} <<: sumloc
+                     #void{} ->
+                        #data{*body} <<: sumloc
                      when target.fromop ->
-                        ~send{target, ~data{*body} <<: _b} <<: sumloc
-                     ~send{f, orig_args and ~data{*args}} ->
-                        ~send{f, ~data{*args, *body} <<: [orig_args ++: _b]} <<: sumloc
-                     ~data{*args} ->
+                        #send{target, #data{*body} <<: _b} <<: sumloc
+                     #send{f, orig_args and #data{*args}} ->
+                        #send{f, #data{*args, *body} <<: [orig_args ++: _b]} <<: sumloc
+                     #data{*args} ->
                         [target ++ body] <<: sumloc
                      other ->
-                        ~send{target, ~data{*body} <<: _b} <<: sumloc
+                        #send{target, #data{*body} <<: _b} <<: sumloc
                else:
                   result <<: sumloc
 
@@ -262,32 +262,32 @@ finalize{token and match} =
                args := args.slice{1, -1}
 
             args := args.filter{f} where
-               f{match} = | ~void{} -> false
+               f{match} = | #void{} -> false
                           | other -> true
 
             result = match args:
-               {} -> ~value{undefined}
+               {} -> #value{undefined}
                ;; throw ["At least one expression must be enclosed in []"]
                {x} -> x
-               other -> ~multi{*args}
+               other -> #multi{*args}
             result <<: sumloc
 
          {{"{", *_}, _} ->
-            ~data{*args.slice{1, -1}.filter{f}} <<: sumloc where
-               f{match} = | ~void{} -> false
+            #data{*args.slice{1, -1}.filter{f}} <<: sumloc where
+               f{match} = | #void{} -> false
                           | other -> true
 
          {{.WHITE}, _} ->
-            ~send{*args} <<: sumloc
+            #send{*args} <<: sumloc
 
          {{_}, match} ->
-            {~void{}, ~void{}} -> ~symbol{op} <<: orig_ops[0]
+            {#void{}, #void{}} -> #symbol{op} <<: orig_ops[0]
             {a, b} ->
                oloc = orig_ops[0].location
                abloc = [a ++: b]
                oabloc = [orig_ops[0] ++: abloc]
-               rval = ~send{~symbol{op} <<: oloc
-                            ~data{a, b} <<: abloc} <<: [oloc ++: abloc]
+               rval = #send{#symbol{op} <<: oloc
+                            #data{a, b} <<: abloc} <<: [oloc ++: abloc]
                rval.fromop := true
                rval
 

@@ -21,12 +21,12 @@ provide:
 
 
 generate_from_ast{ast} =
-   ex = expand{~top{stdenv.fork{}}, ~multi{ast}}
+   ex = expand{#top{stdenv.fork{}}, #multi{ast}}
    translate{ex, .stmt}
 
 generate{data, prelude} =
    t = tokenize{Source{data, null}}
    p = parse{t}
-   ex = expand{~top{stdenv.fork{}}, ~multi{p}}
+   ex = expand{#top{stdenv.fork{}}, #multi{p}}
    [prelude or ""] + translate{ex, .stmt}
 

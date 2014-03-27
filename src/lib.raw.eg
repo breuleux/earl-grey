@@ -3,7 +3,8 @@
 
 augment{dest, values} =
    for [k in values]:
-      dest[k] := values[k]
+      if values.hasOwnProperty{k}:
+         dest[k] := values[k]
    dest
 
 send{obj, msg and match} =
@@ -60,6 +61,37 @@ Array[":::project"] := {value and match} ->
    Array? -> {true, value}
    _ -> {true, {value}}
 
+Array.prototype["boink"] := {} ->
+   this
+
+Array.prototype["::check"] := {value} ->
+   if [value instanceof Array]:
+      then:
+         for [i = 0, i < this.length, i++]:
+            if [this[i] != value[i]]:
+               return false
+         true
+      else:
+         false
+
+Array.prototype[":::project"] := {value} ->
+   if [value instanceof Array]:
+      then:
+         for [i = 0, i < this.length, i++]:
+            if [this[i] != value[i]]:
+               rval = this.slice{0}
+               rval.push{value}
+               return {true, rval}
+         {true, value}
+      else:
+         rval = this.slice{0}
+         rval.push{value}
+         {true, rval}
+
+Array.prototype[":::deconstruct"] := {value} ->
+   return value.slice{this.length}
+
+
 RegExp.prototype["::check"] := {value} ->
    value.match{this}
 
@@ -104,41 +136,41 @@ class ErrorFactory:
 
 
 
-;; Struct-related code
+;; ;; Struct-related code
 
-StructFactory{name} =
-   make{} =
-      r = Array.prototype.slice.call{arguments, 0}
-      r["#"] := name
-      r
-   make[":::project"] := {value} ->
-      ? | [value instanceof Array and value["#"] == name] =>
-          {true, value}
-        | else =>
-          {true, make{value}}
-   make["::check"] := {value} ->
-      ? | [value instanceof Array and value["#"] == name] =>
-          true
-        | else =>
-          false
-   make[":::deconstruct"] := {value} ->
-      ? | [value instanceof Array and value["#"] == name] =>
-          {true, value.slice{0}}
-        | else =>
-          {false, false}
+;; StructFactory{name} =
+;;    make{} =
+;;       r = Array.prototype.slice.call{arguments, 0}
+;;       r["#"] := name
+;;       r
+;;    make[":::project"] := {value} ->
+;;       ? | [value instanceof Array and value["#"] == name] =>
+;;           {true, value}
+;;         | else =>
+;;           {true, make{value}}
+;;    make["::check"] := {value} ->
+;;       ? | [value instanceof Array and value["#"] == name] =>
+;;           true
+;;         | else =>
+;;           false
+;;    make[":::deconstruct"] := {value} ->
+;;       ? | [value instanceof Array and value["#"] == name] =>
+;;           {true, value.slice{0}}
+;;         | else =>
+;;           {false, false}
 
-   make
+;;    make
 
-Struct{name} =
-   r = Array.prototype.slice.call{arguments, 1}
-   r["#"] := name
-   r
+;; Struct{name} =
+;;    r = Array.prototype.slice.call{arguments, 1}
+;;    r["#"] := name
+;;    r
 
-Struct["::check"] := {value} ->
-   ? | [value instanceof Array] => value["#"] != undefined
-     | else => false
+;; Struct["::check"] := {value} ->
+;;    ? | [value instanceof Array] => value["#"] != undefined
+;;      | else => false
 
-Struct[":::deconstruct"] := {value} ->
-   ? | [value instanceof Array and value["#"] != undefined] =>
-        {true, {value["#"]}.concat{value.slice{0}}}
-     | else => {false, null} ;; throw "cannot deconstruct"
+;; Struct[":::deconstruct"] := {value} ->
+;;    ? | [value instanceof Array and value["#"] != undefined] =>
+;;         {true, {value["#"]}.concat{value.slice{0}}}
+;;      | else => {false, null} ;; throw "cannot deconstruct"

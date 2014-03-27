@@ -3,7 +3,6 @@ Earl Grey
 =========
 
 
-
 Basics
 ------
 
@@ -499,10 +498,11 @@ This change won't leak outside of the scope of the declaration, so
 addition in other code will not be affected.
 
 
-## Ad hoc structs
+## "Structs"
 
-`#name{args*}` creates an *ad hoc* named struct, which doesn't need to
-be declared. They are matchable, so you can write code such as this:
+`#name{*args}` is equivalent to `{"name", *args}`, and `#name` is
+equivalent to `{"name"}`. These can act like ad hoc "structs" of
+sorts. Here's an example use:
 
     calc{match} =
         Number? n -> n
@@ -512,22 +512,13 @@ be declared. They are matchable, so you can write code such as this:
         #div{m, n} -> calc{m} / calc{n}
         #sub{n} -> -calc{n}
 
-    calc with #div{#add{1, 13}, #sub{2}} ;; -7
+    calc with #div{#add{1, 13}, #sub{2}}       ;; -7
+    calc with {.div, {.add, 1, 13}, {.sub, 2}} ;; -7, same thing
 
-There is no need for a question mark in that case. A struct label can
-also act as a coercer:
+A struct label can also act as a coercer:
 
     #foo! #foo{1, 2}   ;; #foo{1, 2}
     #foo! 1            ;; #foo{1}
-
-`Struct` can be used to create or check for structs in a general way:
-
-    a = Struct{"add", 1, 2} ;; ==> #add{1, 2}
-    Struct? a               ;; true
-
-    Struct? {name, args*} = a
-    ;; name is "add"
-    ;; args is {1, 2}
 
 
 ## Classes

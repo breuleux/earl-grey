@@ -7,18 +7,18 @@ provide:
    aslist, transform
 
 aslist{match} =
-   ~void{} -> {~void{}}
+   #void{} -> {#void{}}
    undefined? -> {undefined}
-   ~multi{*args} -> args
+   #multi{*args} -> args
    other -> {other}
 
 transform{expr, cb} =
    tr{x} = transform{x, cb}
    result = cb.call{tr, expr} !!
       match expr:
-         ~void{} -> ~void{}
-         ~symbol{s} -> expr
-         ~value{v} -> expr
+         #void{} -> #void{}
+         #symbol{s} -> expr
+         #value{v} -> expr
          {name, *args} ->
             {name, *args.map{tr}}
    result <<: expr

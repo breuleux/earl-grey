@@ -39,13 +39,13 @@ js_op_table = {
 
 translate{expr and match, mode} =
 
-   ~symbol{s} ->
+   #symbol{s} ->
       translate.expr{translate.mangle{s}, mode}
 
-   ~void{} ->
+   #void{} ->
       translate.expr{"null", mode}
 
-   ~value{v} ->
+   #value{v} ->
       r = match v:
          String? ->
             repl = {
@@ -65,28 +65,28 @@ translate{expr and match, mode} =
             "?!?[" + v + "]?!?"
       translate.expr{r, mode}
 
-   ~send{~symbol{"___node"}, ~value{f}} ->
+   #send{#symbol{"___node"}, #value{f}} ->
       f
 
-   ~send{~symbol{"___js_fetch"}, ~array{f, msg}} ->
+   #send{#symbol{"___js_fetch"}, #array{f, msg}} ->
       translate.expr{trf + "[" + trmsg + "]", mode} where
          trf = translate{f, .expr}
          trmsg = translate{msg, .expr}
 
-   ~send{f, msg and ~value{s}} ->
+   #send{f, msg and #value{s}} ->
       cond:
          [[typeof{s} == "string"]
           \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
             translate.expr{trf + "." + trmsg, mode} where
                trf = translate{f, .expr}
-               trmsg = translate{~symbol{s}, .expr}
+               trmsg = translate{#symbol{s}, .expr}
          else =>
             translate.expr{trf + "[" + trmsg + "]", mode} where
                trf = translate{f, .expr}
                trmsg = translate{msg, .expr}
 
-   ~send{f, ~array{*args}} ->
-      op = match f: | ~symbol{x} -> js_op_table[x]
+   #send{f, #array{*args}} ->
+      op = match f: | #symbol{x} -> js_op_table[x]
                     | _ -> null
       if op:
          then: translate.expr{translate.op{op, args[0], args[1]}, mode}
@@ -96,35 +96,35 @@ translate{expr and match, mode} =
                trargs = args each x ->
                   translate{x, .expr}
 
-   ;; ~send{f, msg} ->
+   ;; #send{f, msg} ->
    ;;    translate.expr{trf + "[" + trmsg + "]", mode} where
    ;;       trf = translate{f, .expr}
    ;;       trmsg = translate{msg, .expr}
 
-   ~send{f, msg} ->
+   #send{f, msg} ->
       translate.expr{"send(" + trf + "," + trmsg + ")", mode} where
          trf = translate{f, .expr}
          trmsg = translate{msg, .expr}
 
-   ~array{*args} ->
+   #array{*args} ->
       r = ["[" + args.map{f}.join{","} + "]"] where
          f{x} = translate{x, .expr}
       translate.expr{r, mode}
 
-   ~object{*args} ->
+   #object{*args} ->
       r = ["({" + args.map{f}.join{","} + "})"] where
-         f{~array{x, y}} =
+         f{#array{x, y}} =
             a = translate{x, .expr}
             b = translate{y, .expr}
             a + ":" + b
       translate.expr{r, mode}
 
-   ~lambda{bindings, body} ->
+   #lambda{bindings, body} ->
       translate.expr{"function("+a+"){"+b+"}", mode} where
          a = [bindings each x -> translate{x, .expr}].join{","}
          b = translate.body{body, .return}
 
-   ~if{test, pos, neg} ->
+   #if{test, pos, neg} ->
       match mode:
          .expr -> translate.body{expr, .expr}
          other ->
@@ -133,14 +133,14 @@ translate{expr and match, mode} =
                b = translate{pos, mode}
                c = translate{neg, mode}
 
-   ~declare{binding, ~value{undefined?}} ->
+   #declare{binding, #value{undefined?}} ->
       match mode:
          [.expr or .return] -> throw "Invalid in expr ctx"
          other ->
             ["var " + a + ";"] where
                a = translate{binding, .expr}
 
-   ~declare{binding, value} ->
+   #declare{binding, value} ->
       match mode:
          [.expr or .return] -> throw "Invalid in expr ctx"
          other ->
@@ -148,20 +148,20 @@ translate{expr and match, mode} =
                a = translate{binding, .expr}
                b = translate{value, .expr}
 
-   ~assign{~send{obj, msg}, rhs} ->
+   #assign{#send{obj, msg}, rhs} ->
       translate.expr{"(" + a + "[" + b + "]=" + c + ")", mode} where
          a = translate{obj, .expr}
          b = translate{msg, .expr}
          c = translate{rhs, .expr}
 
-   ~assign{lhs, rhs} ->
+   #assign{lhs, rhs} ->
       translate.expr{"(" + a + "=" + b + ")", mode} where
          a = translate{lhs, .expr}
          b = translate{rhs, .expr}
 
-   ~multi{*args} ->
+   #multi{*args} ->
       isdecl{match} =
-         ~declare{variable, value} -> true
+         #declare{variable, value} -> true
          other -> false
       match:
          when args.length == 1 ->
@@ -172,38 +172,38 @@ translate{expr and match, mode} =
                   translate{x, .expr}
          _ -> translate.body{expr, mode}
 
-   ~splice{*args} ->
-      translate{~multi{*args}, mode}
+   #splice{*args} ->
+      translate{#multi{*args}, mode}
 
-   ~js_new{value} ->
+   #js_new{value} ->
       translate.expr{"(new " + translate{value, .expr} + ")", mode}
 
-   ~js_break{} ->
+   #js_break{} ->
       if [mode == "expr"]:
          then: throw "Invalid break in ctx"
          else: "break;"
 
-   ~js_continue{} ->
+   #js_continue{} ->
       if [mode == "expr"]:
          then: throw "Invalid continue in ctx"
          else: "continue;"
 
-   ~js_return{value} ->
+   #js_return{value} ->
       if [mode == "expr"]:
          then: throw "Invalid return in ctx"
          else: "return " + translate{value, .expr} + ";"
 
-   ~js_delete{value} ->
+   #js_delete{value} ->
       if [mode == "expr"]:
          then: throw "Invalid delete in ctx"
          else: "delete " + translate{value, .expr} + ";"
 
-   ~js_throw{value} ->
+   #js_throw{value} ->
       if [mode == "expr"]:
          then: "function(){throw " + translate{value, .expr} + ";}()"
          else: "throw " + translate{value, .expr} + ";"
 
-   ~js_while{test, body} ->
+   #js_while{test, body} ->
       match mode:
          .expr -> translate.body{expr, .expr}
          other ->
@@ -211,7 +211,7 @@ translate{expr and match, mode} =
                a = translate{test, .expr}
                b = translate{body, .stmt}
 
-   ~js_for{x, y, z, body} ->
+   #js_for{x, y, z, body} ->
       match mode:
          .expr -> translate.body{expr, .expr}
          other ->
@@ -221,7 +221,7 @@ translate{expr and match, mode} =
                c = translate{z, .expr}
                d = translate{body, .stmt}
 
-   ~js_for_in{x, y, body} ->
+   #js_for_in{x, y, body} ->
       match mode:
          .expr -> translate.body{expr, .expr}
          other ->
@@ -230,7 +230,7 @@ translate{expr and match, mode} =
                b = translate{y, .expr}
                c = translate{body, .stmt}
 
-   ~js_try{attempt, ~lambda{{~symbol{v}}, body}, ~void{}} ->
+   #js_try{attempt, #lambda{{#symbol{v}}, body}, #void{}} ->
       match mode:
          .expr -> translate.body{expr, .expr}
          other ->
@@ -277,7 +277,7 @@ translate.body := {b, mode} ->
    match mode:
       .expr ->
          translate{x, mode} where
-            x = ~send{~lambda{{}, orig}, {.array}}
+            x = #send{#lambda{{}, orig}, {.array}}
       .return ->
          stmts = b.slice{0, -1}
          ret = b[b.length - 1]
@@ -294,8 +294,8 @@ translate.expr := {x, match} ->
 
 translate.op := {op, a, b} ->
    e = match {a, b}:
-          {~void{}, _} -> op + translate{b, .expr}
-          {_, ~void{}} -> translate{a, .expr} + op
+          {#void{}, _} -> op + translate{b, .expr}
+          {_, #void{}} -> translate{a, .expr} + op
           _ -> translate{a, .expr} + op + translate{b, .expr}
    "(" + e + ")"
 

@@ -49,8 +49,8 @@ repr{x and match, Function? recur or repr as recur} =
    undefined? -> .special.nil % "undefined"
    Number? -> .num % String{x}
    String? -> .str % x
-   Struct? {tag, *entries} ->
-      .struct % {.sym % tag, .sequence % [entries each x -> recur{x, repr}]}
+   ;; Struct? {tag, *entries} ->
+   ;;    .struct % {.sym % tag, .sequence % [entries each x -> recur{x, repr}]}
    Array? entries ->
       .sequence % [entries each x -> recur{x, repr}]
    when x["::repr"] ->
@@ -104,23 +104,26 @@ HTML{match, default_tag} =
             classes.push with s
 
       accum = if{tag == .raw, {}, {"<", tag}}
-      ? | id => accum := accum.concat with
-           " id=\"", id, "\""
-      ? | classes.length => accum := accum.concat with
-           " class=\"", quotify{classes.join{" "}}, "\""
-      ? | kv => kv each {k, v} ->
-           accum := accum.concat with
-              if{v != null
-                 {" ", k, "=\"", quotify{v}, "\""}
-                 {" ", k}}
+      if id:
+         accum := accum.concat with
+            " id=\"", id, "\""
+      if classes.length:
+         accum := accum.concat with
+            " class=\"", quotify{classes.join{" "}}, "\""
+      if kv:
+         kv each {k, v} ->
+            accum := accum.concat with
+               if [v != null]:
+                  then: {" ", k, "=\"", quotify{v}, "\""}
+                  else: {" ", k}
 
-      children := tag |>
+      children := match tag:
          .raw -> children each
             String? s -> s
             c -> HTML{c, default_tag}
          other -> children each c -> HTML{c, default_tag}
 
-      tag |>
+      match tag:
          .raw ->
             accum.concat{children}.join{""}
          other ->

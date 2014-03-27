@@ -99,7 +99,6 @@ run{match} =
            data = fs.readFileSync{file, .utf8}
            console.log with eg.generate{data, ""} ;; libdata}
 
-
    {.tok, s} ->
       eg.tokenize{eg.Source{s, null}} each token ->
          <> token
@@ -108,10 +107,10 @@ run{match} =
 
    {.pa, s} ->
       walkloc{node and match} =
-         ~symbol{x} ->
+         #symbol{x} ->
             <> node
             <> node.location and node.location.highlight{}
-         ~value{x} ->
+         #value{x} ->
             <> node
             <> node.location and node.location.highlight{}
          {type, *args} ->

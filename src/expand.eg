@@ -17,7 +17,7 @@ Env{parent} =
    self.register := {name, value} ->
       store[name] := value
    self.register_macro := {name, m} ->
-      store[name] := ~macro{m}
+      store[name] := #macro{m}
    self.fork := {} ->
       Env{self}
    self.parent := parent
@@ -36,64 +36,64 @@ expand{{context, env}, expr} =
    expr := expand.step{{context, env}, expr}
 
    match expr:
-      ~symbol{s} -> expr
+      #symbol{s} -> expr
 
-      ~void{} -> ~void{}
+      #void{} -> #void{}
 
-      ~send{f, arg} ->
+      #send{f, arg} ->
          f := expand{{.head, env}, f}
-         ~send{f, expand{{.tail, env}, arg}}
+         #send{f, expand{{.tail, env}, arg}}
 
-      ~value{v} -> expr
+      #value{v} -> expr
 
       {type and [.array or .object], *args} -> ;; or .splice
          arr = {}
          while [args.length > 0]:
             match expand.step{{type, env}, args.shift{}}:
-               ~splice{*stmts} ->
+               #splice{*stmts} ->
                   args := stmts ++ args
                other ->
                   arr.push{other}
          {type} ++
             arr each x -> expand{{type, env}, x}
 
-      ~multi{*args} ->
+      #multi{*args} ->
          arr = {}
          while [args.length > 0]:
             type = if{args.length == 1, .expr, .multi}
             match expand.step{{type, env}, args.shift{}}:
-               ~splice{*stmts} ->
+               #splice{*stmts} ->
                   args := stmts ++ args
-               ~sink{stmt} ->
+               #sink{stmt} ->
                   args.push{stmt}
                other ->
                   arr.push{{other, type}}
-         ~multi{} ++
+         #multi{} ++
             arr each {x, type} -> expand{{type, env}, x}
 
-      ~data{*args} ->
+      #data{*args} ->
 
          is_obj = false
-         obj = ~object{}
-         arr = ~array{}
+         obj = #object{}
+         arr = #array{}
          parts = {}
 
          newpart{} =
             match arr:
-               ~array{} -> false
+               #array{} -> false
                other ->
                   parts.push{arr}
-                  arr := ~array{}
+                  arr := #array{}
 
          while [args.length > 0]:
             match expand.step{{type, env}, args.shift{}}:
-               ~assoc{} -> is_obj := true
-               ~assoc{k, v} ->
+               #assoc{} -> is_obj := true
+               #assoc{k, v} ->
                   is_obj := true
-                  obj.push with ~array{k, v}
-               ~splice{*exprs} ->
+                  obj.push with #array{k, v}
+               #splice{*exprs} ->
                   args := exprs ++ args
-               ~dynsplice{expr} ->
+               #dynsplice{expr} ->
                   newpart{}
                   parts.push{expr}
                other ->
@@ -105,29 +105,29 @@ expand{{context, env}, expr} =
             {} when is_obj ->
                obj
             {} -> {.array}
-            {arr and ~array{*things}} ->
+            {arr and #array{*things}} ->
                if is_obj:
                   arr.push{obj}
                arr
             other ->
                if is_obj:
-                  parts.push{~array{obj}}
-               patch = ~symbol{"patch_array"}
-               ~send{patch, ~array{*parts}}
+                  parts.push{#array{obj}}
+               patch = #symbol{"patch_array"}
+               #send{patch, #array{*parts}}
 
          expand{{context, env}, r}
 
-      ~lambda{bindings, body} ->
-         ~lambda{bindings each x -> expand{~decl{env}, x}
-                   expand{~expr{env}, body}}
+      #lambda{bindings, body} ->
+         #lambda{bindings each x -> expand{#decl{env}, x}
+                   expand{#expr{env}, body}}
 
-      ~declare{binding, value} ->
-         ~declare{expand{~decl{env}, binding}
-                  expand{~expr{env}, value}}
+      #declare{binding, value} ->
+         #declare{expand{#decl{env}, binding}
+                  expand{#expr{env}, value}}
 
-      ~assign{lhs, rhs} ->
-         ~assign{expand{~decl{env}, lhs}
-                 expand{~expr{env}, rhs}}
+      #assign{lhs, rhs} ->
+         #assign{expand{#decl{env}, lhs}
+                 expand{#expr{env}, rhs}}
 
       {type && [.js_while or .js_for or .js_for_in or .js_break
                 \ or .js_continue or .js_return or .js_delete
@@ -137,7 +137,7 @@ expand{{context, env}, expr} =
          {type, *args.map{f}} where
             f{x, i} = expand{{ctxs[i] or .expr, env}, x}
 
-      ~done{expr} ->
+      #done{expr} ->
          expr
 
       other ->
@@ -149,26 +149,26 @@ expand{{context, env}, expr} =
 
 
 expand.step := {{context, env}, expr and match} ->
-   ~symbol{s} ->
+   #symbol{s} ->
       v = env.resolve{s}
       match {v, context}:
-         {undefined?, _} -> ~symbol{s}
-         {~macro{m}, .head} -> v
-         {~macro{m}, _} -> expand.step{{context, env}, m{{context, env}, ~void{}}}
+         {undefined?, _} -> #symbol{s}
+         {#macro{m}, .head} -> v
+         {#macro{m}, _} -> expand.step{{context, env}, m{{context, env}, #void{}}}
          other -> v
 
-   ~void{} -> ~void{}
+   #void{} -> #void{}
 
-   ~macro{m} when [context == .head] ->
+   #macro{m} when [context == .head] ->
       expr
 
    ;; TODO: fix the bug that forces "when true"
-   ~macro{m} when true ->
-      expand.step{{context, env}, m{{context, env}, ~void{}}}
+   #macro{m} when true ->
+      expand.step{{context, env}, m{{context, env}, #void{}}}
 
-   ~send{f, arg} ->
+   #send{f, arg} ->
       match expand.step{{.head, env}, f}:
-         ~macro{m} -> expand.step{{context, env}, m{{context, env}, arg}}
+         #macro{m} -> expand.step{{context, env}, m{{context, env}, arg}}
          other -> expr
 
    {type, *args} ->

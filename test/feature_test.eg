@@ -1,4 +1,9 @@
 
+require:
+   "../lib/pp" ->
+      <>
+
+
 results = blocktest:
 
    "Operator priority" =>
@@ -85,8 +90,8 @@ results = blocktest:
       "Array" =>
          Array? {1, 2, 3}
       "#struct" =>
-         Struct? #data{.a, .b, .c}
-         not Struct? {.a, .b, .c}
+         ;; Struct? #data{.a, .b, .c}
+         ;; not Struct? {.a, .b, .c}
          #data? #data{.a, .b, .c}
          not [#data? #dat{.a, .b, .c}]
 

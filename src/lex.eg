@@ -39,7 +39,7 @@ regexps = {
      in "a-zA-Z$_"
      * in "a-zA-Z$_0-9"
 
-  id_f = {m, wsb, wsa, last_op} -> ~ID{.ID, m[0]}
+  id_f = {m, wsb, wsa, last_op} -> #ID{.ID, m[0]}
 
 
   numr = R'
@@ -54,7 +54,7 @@ regexps = {
      if frac:
         frac := frac.replace{R.g"_", ""}
         value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
-     ~ID{.NUM, value}
+     #ID{.NUM, value}
 
 
   num = R'
@@ -64,7 +64,7 @@ regexps = {
      ?[in "eE", {? in "+-", + in "0-9_"}]
 
   num_f = {m, wsb, wsa, last_op} ->
-     ~ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
+     #ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
 
 
   str = R'
@@ -80,7 +80,7 @@ regexps = {
         "\\n" => "\n"
      }
      r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
-     ~ID{.STR, r}
+     #ID{.STR, r}
 
   op = R'
      start
@@ -117,25 +117,25 @@ regexps = {
                  .SFX -> if{wsb, .wide, .short}
                  .PFX -> if{wsa, .wide, .short}
                  other -> throw E.should_never_happen{"unknown fixity"}
-           ~OP{fixity, width, op}
+           #OP{fixity, width, op}
 
         when wsa and wsb ->
-           ~OP{if{last_op, .PFX, .IFX}, .wide, op}
+           #OP{if{last_op, .PFX, .IFX}, .wide, op}
 
         when not wsa and not wsb ->
-           ~OP{if{last_op, .PFX, .IFX}, .short, op}
+           #OP{if{last_op, .PFX, .IFX}, .short, op}
 
         when wsa and last_op  ->
-           ~OP{.PFX, .wide, op}
+           #OP{.PFX, .wide, op}
 
         when wsa ->
-           ~OP{.SFX, .short, op}
+           #OP{.SFX, .short, op}
 
         when wsb ->
-           ~OP{.PFX, .short, op}
+           #OP{.PFX, .short, op}
 
         _ ->
-           ~OP{.PFX, .short, op}
+           #OP{.PFX, .short, op}
 
 
   indent = R'
@@ -144,7 +144,7 @@ regexps = {
 
   indent_f = {m, wsb, wsa, last_op} ->
      ilen = m[1].length
-     ~INDENT{ilen}
+     #INDENT{ilen}
 
 
   cmnt = R'
@@ -152,7 +152,7 @@ regexps = {
      ";"
      * not in "\n"
 
-  cmnt_f = {m, wsb, wsa, last_op} -> ~IGNORE{}
+  cmnt_f = {m, wsb, wsa, last_op} -> #IGNORE{}
 
 
   unkn = R'
@@ -160,7 +160,7 @@ regexps = {
      any
 
   unkn_f = {m, wsb, wsa, last_op} ->
-     ~ILLEGAL{m[0]}
+     #ILLEGAL{m[0]}
 
 
 
@@ -174,38 +174,38 @@ indent_tracker{} =
    stacks = {stack}
    {token and match} ->
 
-      ~INDENT{new_indent and match} ->
+      #INDENT{new_indent and match} ->
          when [curr == false] ->
             curr := new_indent
-            {~OP{.IFX, .wide, ","}}
+            {#OP{.IFX, .wide, ","}}
 
          [> curr] ->
             stack.push{curr}
              curr := new_indent
-            {~OP{.PFX, .wide, "["}}
+            {#OP{.PFX, .wide, "["}}
 
          [== curr] ->
-            {~OP{.IFX, .wide, ","}}
+            {#OP{.IFX, .wide, ","}}
 
          [< curr] ->
             rval = {}
             while [[stack.length > 0] and [new_indent < curr]]:
                curr := stack.pop{}
-               rval.push{~OP{.SFX, .wide, "]"}}
-            rval.push{~OP{.IFX, .wide, ","}}
+               rval.push{#OP{.SFX, .wide, "]"}}
+            rval.push{#OP{.IFX, .wide, ","}}
             rval
 
-      ~ID{*stuff} -> {token}
+      #ID{*stuff} -> {token}
 
-      ~OP{fixity, width, "[" or "{"} ->
+      #OP{fixity, width, "[" or "{"} ->
          stack.push{curr}
          stacks.push{stack}
          stack := {}
          curr := false
          {token}
 
-      ~OP{fixity, width, "]" or "}"} ->
-         rval = stack each _ -> ~OP{.SFX, .short, "]"}
+      #OP{fixity, width, "]" or "}"} ->
+         rval = stack each _ -> #OP{.SFX, .short, "]"}
          stack := stacks.pop{}
          curr := stack.pop{}
          rval.push{token}
