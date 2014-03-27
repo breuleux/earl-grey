@@ -1,0 +1,311 @@
+
+require:
+   "./helpers" ->
+      aslist, transform
+   "./location" ->
+      <<:, ++:
+
+provide:
+   parse
+
+
+MAX = 1/0
+
+order_map = {
+
+   IFX = {
+      wide = {
+         ","     => {{2r1111, 1}, {2r1111, 1}}
+
+         "with"  => {{2r1111, 999}, {2r1111, 10}}
+         "each"  => {{2r1111, 11},  {2r1111, 10}}
+         "where" => {{2r1111, 11},  {2r1111, 10}}
+         "!!"    => {{2r1111, 11},  {2r1111, 10}}
+         "|>"    => {{2r1111, 11},  {2r1111, 10}}
+         "->"    => {{2r1111, 11},  {2r1111, 10}}
+         "=>"    => {{2r1111, 11},  {2r1111, 10}}
+         "="     => {{2r1111, 11},  {2r1111, 10}}
+         ":="    => {{2r1111, 11},  {2r1111, 10}}
+         "+="    => {{2r1111, 11},  {2r1111, 10}}
+         "-="    => {{2r1111, 11},  {2r1111, 10}}
+         "*="    => {{2r1111, 11},  {2r1111, 10}}
+         "/="    => {{2r1111, 11},  {2r1111, 10}}
+         "<<="   => {{2r1111, 11},  {2r1111, 10}}
+         ">>="   => {{2r1111, 11},  {2r1111, 10}}
+         ">>>="  => {{2r1111, 11},  {2r1111, 10}}
+         "++="   => {{2r1111, 11},  {2r1111, 10}}
+         "?="    => {{2r1111, 11},  {2r1111, 10}}
+
+         ;; Misc
+         "%"     => {{2r1111, 11}, {2r1111, 10}}
+
+         ;; Logical
+         "when" => {{2r1111, 100}, {2r1111, 101}}
+         "||"   => {{2r1111, 110}, {2r1111, 111}}
+         "&&"   => {{2r1111, 120}, {2r1111, 121}}
+         "or"   => {{2r1111, 110}, {2r1111, 111}}
+         "and"  => {{2r1111, 120}, {2r1111, 121}}
+         "not"  => {{2r1111, 130}, {2r1111, 131}}
+
+         ;; Comparison
+         "==" => {{2r1111, 200}, {2r1111, 201}}
+         "!=" => {{2r1111, 200}, {2r1111, 201}}
+         ">=" => {{2r1111, 200}, {2r1111, 201}}
+         "<=" => {{2r1111, 200}, {2r1111, 201}}
+         ">"  => {{2r1111, 200}, {2r1111, 201}}
+         "<"  => {{2r1111, 200}, {2r1111, 201}}
+
+         ;; Binary
+         "^." => {{2r1111, 400}, {2r1111, 401}}
+         "|." => {{2r1111, 410}, {2r1111, 411}}
+         "&." => {{2r1111, 420}, {2r1111, 421}}
+
+         ;; Arithmetic
+         "<<"  => {{2r0001, 500}, {2r0001, 501}}
+         ">>"  => {{2r0001, 500}, {2r0001, 501}}
+         ">>>" => {{2r0001, 500}, {2r0001, 501}}
+         "+"   => {{2r0001, 550}, {2r0001, 551}}
+         "-"   => {{2r0001, 550}, {2r0001, 551}}
+         "*"   => {{2r0001, 560}, {2r0001, 561}}
+         "/"   => {{2r0001, 560}, {2r0001, 561}}
+         "mod" => {{2r0001, 560}, {2r0001, 561}}
+         "**"  => {{2r0001, 571}, {2r0001, 570}}
+
+         ;; Others
+         DEFAULT = {{2r1000, 900}, {2r0100, 901}}
+         WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
+         ":"    => {{2r1111, 1001}, {2r1111, 2}}
+      }
+      short = {
+         DEFAULT = {{2r1111, 1800}, {2r1111, 1801}}
+         WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
+         ","    => {{2r1111, 1},    {2r1111, 1}}
+         ":"    => {{2r1111, 1001}, {2r1111, 2}}
+      }
+   }
+
+   PFX = {
+      wide = {
+         DEFAULT = {{2r1111, MAX}, {2r1111, 900}}
+         "when" => {{2r1111, MAX}, {2r1111, 101}}
+         "not"  => {{2r1111, MAX}, {2r1111, 131}}
+         "." => {{2r1111, MAX}, {2r1111, 3000}}
+         "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "~" => {{2r1111, MAX}, {2r1111, 3000}}
+         "@" => {{2r1111, MAX}, {2r1111, 3000}}
+         "<>" => {{2r1111, MAX}, {2r1111, 5}}
+         "(" => {{2r1111, MAX}, {2r1111, 1}}
+         "[" => {{2r1111, MAX}, {2r1111, 1}}
+         "{" => {{2r1111, MAX}, {2r1111, 1}}
+      }
+      short = {
+         DEFAULT = {{2r1111, MAX}, {2r1111, 1901}}
+         "." => {{2r1111, MAX}, {2r1111, 3000}}
+         "#" => {{2r1111, MAX}, {2r1111, 3000}}
+         "~" => {{2r1111, MAX}, {2r1111, 3000}}
+         "@" => {{2r1111, MAX}, {2r1111, 3000}}
+         "(" => {{2r1111, MAX}, {2r1111, 1}}
+         "[" => {{2r1111, MAX}, {2r1111, 1}}
+         "{" => {{2r1111, MAX}, {2r1111, 1}}
+      }
+   }
+
+   SFX = {
+      wide = {
+         DEFAULT = {{2r1111, 901}, {2r1111, MAX}}
+         ")" => {{2r1111, 1}, {2r1111, MAX}}
+         "]" => {{2r1111, 1}, {2r1111, MAX}}
+         "}" => {{2r1111, 1}, {2r1111, MAX}}
+      }
+      short = {
+         DEFAULT = {{2r1111, 1900}, {2r1111, MAX}}
+         ")" => {{2r1111, 1}, {2r1111, MAX}}
+         "]" => {{2r1111, 1}, {2r1111, MAX}}
+         "}" => {{2r1111, 1}, {2r1111, MAX}}
+      }
+   }
+}
+
+
+
+DONE = -1
+NONE = 0
+LEFT = 1
+RIGHT = 2
+BOTH = 3
+
+
+oparse{next, order, finalize} =
+   between = finalize{next{}}
+   right_op = next{}
+   stack = {}
+   left_op = null
+   current = null
+   while true:
+      o =
+         if [not left_op and not right_op]:
+            then: DONE
+            else: [not left_op and RIGHT]
+                  \ or [not right_op and LEFT]
+                  \ or order{left_op, right_op}
+
+      match o:
+         [== DONE] ->
+            return between
+
+         [== LEFT] ->
+            current.push{between}
+            between := finalize{current}
+            v = stack.pop{}
+            left_op := v 0
+            current := v 1
+
+         [== RIGHT] ->
+            stack.push{{left_op, current}}
+            left_op := right_op
+            current := {{right_op}, between}
+            between := finalize{next{}}
+            right_op := next{}
+
+         [== BOTH] ->
+            current[0].push{right_op}
+            current.push{between}
+            left_op := right_op
+            between := finalize{next{}}
+            right_op := next{}
+
+         ;; [== NONE] ->
+         ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
+
+         other ->
+            throw E.should_never_happen{
+               "undefined priority"
+               {left = left_op, right = right_op}
+            }
+
+
+consult{{fixity, width, op}} =
+   map = order_map[fixity][width]
+   map[op] or map.DEFAULT
+
+
+order{o1, o2} =
+   {code1, ord1} = consult{o1}[1]
+   {code2, ord2} = consult{o2}[0]
+   match:
+      when [[code1 & code2] == 0] ->
+         throw E.syntax.order{...} with
+            "Cannot mix operators in the given order"
+            {left = o1, right = o2}
+      when [ord1 > ord2]  -> LEFT
+      when [ord1 < ord2]  -> RIGHT
+      when [ord1 == ord2] -> BOTH
+
+finalize{token and match} =
+
+   ~ID{value} -> ~symbol{value} <<: token
+   ~NUM{value} -> ~value{value} <<: token
+   ~STR{value} -> ~value{value} <<: token
+   ~VOID{} -> ~void{} <<: token
+
+   {ops, *args} ->
+      sumloc = ops[0].location
+      ops.slice{1} each op ->
+         sumloc := sumloc ++: op
+      args each arg ->
+         sumloc := sumloc ++: arg
+
+      orig_ops = ops
+      ops := ops each o -> o[2]
+      op = ops[0]
+
+      match {ops, args}:
+
+         {{"WHITE", ":"}, {f, arg, body}} ->
+            ~send{f, ~data{arg, body} <<: [arg ++: body]} <<: sumloc
+
+         {{":"}, {f, body}} ->
+            ~send{f, ~data{body} <<: body} <<: sumloc
+
+         {{"with"}, {target, _b and aslist! body}} ->
+
+            inserted = false
+            result = transform{target} with {expr and match} ->
+               ~symbol{"..."} -> [inserted := true, ~multi{*body} <<: _b]
+               [x when x.fromop] and ~send{f, ~data{a, b}} ->
+                   ~send{this{f}, ~data{this{a}, this{b}} <<: [a ++: b]}
+               ~data{*args} ->
+                   tr := this
+                   res = ~data{}.concat with patch_array.apply{null} with args each
+                      ~symbol{"..."} -> [inserted := true, body]
+                      other -> {tr{other} <<: other}
+                   res <<: expr
+
+            if [not inserted]:
+               then:
+                  match target:
+                     ~void{} ->
+                        ~data{*body} <<: sumloc
+                     when target.fromop ->
+                        ~send{target, ~data{*body} <<: _b} <<: sumloc
+                     ~send{f, orig_args and ~data{*args}} ->
+                        ~send{f, ~data{*args, *body} <<: [orig_args ++: _b]} <<: sumloc
+                     ~data{*args} ->
+                        [target ++ body] <<: sumloc
+                     other ->
+                        ~send{target, ~data{*body} <<: _b} <<: sumloc
+               else:
+                  result <<: sumloc
+
+         {{"[" or ",", *_}, _} ->
+            if [op == "["]:
+               args := args.slice{1, -1}
+
+            args := args.filter{f} where
+               f{match} = | ~void{} -> false
+                          | other -> true
+
+            result = match args:
+               {} -> ~value{undefined}
+               ;; throw ["At least one expression must be enclosed in []"]
+               {x} -> x
+               other -> ~multi{*args}
+            result <<: sumloc
+
+         {{"{", *_}, _} ->
+            ~data{*args.slice{1, -1}.filter{f}} <<: sumloc where
+               f{match} = | ~void{} -> false
+                          | other -> true
+
+         {{.WHITE}, _} ->
+            ~send{*args} <<: sumloc
+
+         {{_}, match} ->
+            {~void{}, ~void{}} -> ~symbol{op} <<: orig_ops[0]
+            {a, b} ->
+               oloc = orig_ops[0].location
+               abloc = [a ++: b]
+               oabloc = [orig_ops[0] ++: abloc]
+               rval = ~send{~symbol{op} <<: oloc
+                            ~data{a, b} <<: abloc} <<: [oloc ++: abloc]
+               rval.fromop := true
+               rval
+
+         other ->
+            throw E.should_never_happen{
+               "unknown node"
+               {node = token}
+            }
+
+   other ->
+      throw E.should_never_happen{
+         "unknown node (B)"
+         {node = token}
+      }
+
+
+parse{tokens} =
+   next{} = tokens.shift{}
+   oparse{next, order, finalize}
+
+

@@ -1,0 +1,177 @@
+
+provide:
+   Source, Location
+   highlight, highlight_locations
+   merge_locations
+   <<:, ++:
+
+class Source:
+
+   constructor{text, url = false} =
+      @text := text
+      @url := url
+      @counts := {}
+      curr = 0
+      text.split{"\n"} each line ->
+         @counts.push with curr
+         curr += line.length + 1
+      @counts.push with curr
+      @nlines := @counts.length - 1
+
+   linecol{pos} =
+      line = binsearch{@counts, pos}
+      col = pos - @counts[line - 1]
+      {line, col}
+
+   highlight_lines{l1, l2, spans} =
+      highlight_lines{@text, @counts, {l1 - 1, l2 - 1}, spans}
+
+class Location:
+
+   constructor{source, start, end} =
+      @source := source or Source{"", null}
+      @start := start
+      @end := end
+
+   text{} =
+      @source.text.slice{@start, @end}
+
+   linerange{} =
+      match @linecol{}:
+         {{l1, _}, match} ->
+            null? -> {l1, l1}
+            {l2, _} -> {l1, l2}
+
+   linecol{} =
+      {start, end} where
+         start = @source.linecol{@start}
+         end = if [@start == @end]:
+                  then: null
+                  else: @source.linecol{@end - 1}
+   ref{} =
+      match @linecol{}:
+         {{String! l1, String! c1}, match} ->
+            null? ->
+               l1 + ":" + c1
+            {String! l2, String! c2} ->
+               match:
+                  when l1 == l2 and c1 == c2 ->
+                     l1 + ":" + c1
+                  when l1 == l2 ->
+                     l1 + ":" + c1 + "-" + c2
+                  otherwise ->
+                     l1 + ":" + c1 + "-" + l1 + ":" + c2
+
+   highlight{cls = .hl1, context = 0} =
+      highlight_locations{{{@, cls}}, context}
+
+
+
+highlight{text, spans, offset = 0} =
+   % | morsel{spans} each {start, end, attributes} ->
+        xstart = Math.max{start - offset, 0}
+        xend = Math.min{end - offset, text.length}
+        Node{attributes, {text.slice{xstart, xend}}}
+
+highlight_lines{text, linelocs, {l1, l2}, spans} =
+   span %
+      l1..l2 each lineno ->
+         start = linelocs[lineno]
+         end = linelocs[lineno + 1]
+         span %
+            .lineno % [lineno + 1]
+            .source %
+               highlight{text, {{start, end, {}}, *clamp{spans, start, end}}}
+
+clamp{spans, bot, top} =
+   spans each {start, end, attr} when [end >= bot and start <= top] ->
+      {Math.max{start, bot}, Math.min{end, top}, attr}
+
+
+morsel{spans} =
+
+   ;; Note: this is adapted from a different implementation I wrote a
+   ;; year ago. I am not entirely sure how it works anymore, but I don't
+   ;; really care, as long as it does. (At least I documented what it is
+   ;; supposed to do)
+
+   ;; spans == Array of span
+   ;; span == {Integer start, Integer end, Array of attribute}
+   ;; attribute == any
+
+   ;; Morsels the sequence of spans so that none of the spans in the
+   ;; sequence overlap. Ranges covered by more than one span are
+   ;; given the union of the attributes of all the spans covering it.
+
+   ;; Example:
+   ;; morsel with {{0, 10, {1}}, {2, 5, {2}}, {4, 7, {3}}, {40, 50, {4}}}
+   ;; => {{0, 2, {1}}, {2, 4, {1, 2}}, {4, 5, {1, 2, 3}}, {5, 7, {1, 3}},
+   ;;     {7, 10, {1}}, {10, 40, {}}, {40, 50, {4}}}
+
+   jump{active, bot, top} =
+      e = Math.min{top, * ...} with
+         active each {_, x, _} -> x
+      attributes = patch_array [active each {_, _, X} -> X]
+      {e, {bot, e, attributes}}
+
+   jumptill{active, bot, top} =
+      ? | bot == top =>
+           {{}, active}
+        | else =>
+           {newbot, span} = jump{active, bot, top}
+           newactive = active each
+              x and {_, e, attr} when e > newbot -> x
+           {spans, remainder} = jumptill{newactive, newbot, top}
+           {{span} ++ spans, remainder}
+
+   process{start, active, rem} = {start, active, rem} |>
+      {_, {}, {}} ->
+         {}
+      {start, active, {}} ->
+         top = Math.max[active each {_, e, _} -> e]
+         bot = Math.min{start, top}
+         {spans, _} = jumptill{active, start, top}
+         spans
+      {start, active, {next and {target, end, attr}, *rest}} ->
+         {spans, newactive} = jumptill{active, start, target}
+         spans ++ process{target, {next} ++ newactive, rest}
+
+   thespans = spans.sort with
+      {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 - e2, s1 - s2}
+      ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 < e2, s1 > s2}
+
+   process{thespans[0][0], {}, thespans}
+
+
+highlight_locations{locations, context = 0} =
+   loc = merge_locations{locations each {x, cls} -> x}
+   src = loc.source
+   {l1, l2} = loc.linerange{}
+   first = Math.max{1, l1 - context}
+   last = Math.min{src.nlines, l2 + context}
+   src.highlight_lines with
+      first, last
+      locations each {loc, cls} -> {loc.start, loc.end, {cls}}
+
+merge_locations{match} =
+   {} ->
+      Location{null, 0, 0}
+   {loc} ->
+      loc
+   {*locs} ->
+      Location{locs[0].source, start, end} where
+         start = Math.min | locs each loc -> loc.start
+         end = Math.max | locs each loc -> loc.end
+
+
+
+x <<: y =
+   x.location := if{not y or Location? y, y, y.location}
+   x
+
+x ++: y =
+   x := if{not x or Location? x, x, x.location}
+   y := if{not y or Location? y, y, y.location}
+   [merge_locations with {x, y}] !! undefined
+
+

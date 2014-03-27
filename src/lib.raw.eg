@@ -1,17 +1,17 @@
 
+;; items{obj} =
+;;    results = {}
+;;    for [k in obj]:
+;;       results.push with {k, obj[k]}
+;;    results
 
-items{obj} =
-   results = {}
-   for [k in obj]:
-      results.push with {k, obj[k]}
-   results
+;; enumerate{arr} =
+;;    results = {}
+;;    l = arr.length
+;;    for [i = 0, i < l, i++]:
+;;       results.push with {i, arr[i]}
+;;    results
 
-enumerate{arr} =
-   results = {}
-   l = arr.length
-   for [i = 0, i < l, i++]:
-      results.push with {i, arr[i]}
-   results
 
 
 send{obj, msg} =

@@ -1,0 +1,312 @@
+
+require:
+   "./location" ->
+      Location, [<<:]
+
+provide:
+   tokenize
+
+
+special_ops = {
+   "(" => .PFX
+   "[" => .PFX
+   "{" => .PFX
+   ")" => .SFX
+   "]" => .SFX
+   "}" => .SFX
+   "," => .IFX
+   ":" => .IFX
+   "." => .PFX
+   "'" => .PFX
+}
+
+regexps = {
+   {op3,    op_f}
+   {id,     id_f}
+   {numr,   numr_f}
+   {num,    num_f}
+   {str,    str_f}
+   {op,     op_f}
+   {op2,    op_f}
+   {op4,    op_f}
+   {indent, indent_f}
+   {cmnt,   cmnt_f}
+   {unkn,   unkn_f}
+} where
+
+  id = R'
+     start
+     in "a-zA-Z$_"
+     * in "a-zA-Z$_0-9"
+
+  id_f = {m, wsb, wsa, last_op} -> ~ID{.ID, m[0]}
+
+
+  numr = R'
+     start
+     {+d}, in "rR"
+     {+ in"A-Za-z0-9_"}
+     ?[".", {+ in "A-Za-z0-9_"}]
+
+  numr_f = {m, wsb, wsa, last_op} ->
+     {_, radix, intp, frac} = m
+     value := parseInt{intp.replace{R.g"_", ""}, radix}
+     if frac:
+        frac := frac.replace{R.g"_", ""}
+        value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
+     ~ID{.NUM, value}
+
+
+  num = R'
+     start
+     {+ in "0-9_"}
+     ?[".", {+d}]
+     ?[in "eE", {? in "+-", + in "0-9_"}]
+
+  num_f = {m, wsb, wsa, last_op} ->
+     ~ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
+
+
+  str = R'
+     start
+     "\""
+     {*["\\\\" or "\\\"" or [not in "\""]]}
+     "\""
+
+  str_f = {m, wsb, wsa, last_op} ->
+     repl = {
+        "\\\"" => "\""
+        "\\\\" => "\\"
+        "\\n" => "\n"
+     }
+     r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
+     ~ID{.STR, r}
+
+  op = R'
+     start
+     + in "+\\-*/~^<>=%&|?!@#.:'"
+
+  op2 = R'
+     start
+     in "[{}],"
+
+  op3 = R'
+     start
+     "with" or "where" or "when"
+       \ or "and" or "not" or "or"
+       \ or "in" or "instanceof" or "mod"
+       \ or "each" or "as"
+     boundary
+
+  op4 = R'
+     start
+     "`", {+ in "A-Za-z0-9_"}, "`"
+
+  op_f = {m, wsb, wsa, last_op, column} ->
+     op = m[1] or m[0]
+
+     match:
+        when op == "|" ->
+           {.INDENT, column - 1}
+
+        when op in special_ops ->
+           fixity = special_ops[op]
+           width =
+              match fixity:
+                 .IFX -> if{wsb or wsa, .wide, .short}
+                 .SFX -> if{wsb, .wide, .short}
+                 .PFX -> if{wsa, .wide, .short}
+                 other -> throw E.should_never_happen{"unknown fixity"}
+           ~OP{fixity, width, op}
+
+        when wsa and wsb ->
+           ~OP{if{last_op, .PFX, .IFX}, .wide, op}
+
+        when not wsa and not wsb ->
+           ~OP{if{last_op, .PFX, .IFX}, .short, op}
+
+        when wsa and last_op  ->
+           ~OP{.PFX, .wide, op}
+
+        when wsa ->
+           ~OP{.SFX, .short, op}
+
+        when wsb ->
+           ~OP{.PFX, .short, op}
+
+        _ ->
+           ~OP{.PFX, .short, op}
+
+
+  indent = R'
+     start
+     +["\n", {*" "}]
+
+  indent_f = {m, wsb, wsa, last_op} ->
+     ilen = m[1].length
+     ~INDENT{ilen}
+
+
+  cmnt = R'
+     start
+     ";"
+     * not in "\n"
+
+  cmnt_f = {m, wsb, wsa, last_op} -> ~IGNORE{}
+
+
+  unkn = R'
+     start
+     any
+
+  unkn_f = {m, wsb, wsa, last_op} ->
+     ~ILLEGAL{m[0]}
+
+
+
+;; TODO: ignore blank lines before continuation
+ws_re = R'[start, *" ", *["\n", *" ", "\\", *" "]]
+eol_re = R'[start, *" ", "\n" or end]
+
+indent_tracker{} =
+   curr = false
+   stack = {}
+   stacks = {stack}
+   {token and match} ->
+
+      ~INDENT{new_indent and match} ->
+         when [curr == false] ->
+            curr := new_indent
+            {~OP{.IFX, .wide, ","}}
+
+         [> curr] ->
+            stack.push{curr}
+             curr := new_indent
+            {~OP{.PFX, .wide, "["}}
+
+         [== curr] ->
+            {~OP{.IFX, .wide, ","}}
+
+         [< curr] ->
+            rval = {}
+            while [[stack.length > 0] and [new_indent < curr]]:
+               curr := stack.pop{}
+               rval.push{~OP{.SFX, .wide, "]"}}
+            rval.push{~OP{.IFX, .wide, ","}}
+            rval
+
+      ~ID{*stuff} -> {token}
+
+      ~OP{fixity, width, "[" or "{"} ->
+         stack.push{curr}
+         stacks.push{stack}
+         stack := {}
+         curr := false
+         {token}
+
+      ~OP{fixity, width, "]" or "}"} ->
+         rval = stack each _ -> ~OP{.SFX, .short, "]"}
+         stack := stacks.pop{}
+         curr := stack.pop{}
+         rval.push{token}
+         rval
+
+      other -> {token}
+
+
+process_token{src, token, last_op, wsa, wsb, pos, endpos, accum} =
+   {type, *result} = token
+   result <<: token
+   match type:
+      .IGNORE ->
+         last_op
+
+      .ID ->
+         if [not last_op]:
+            w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+            w.location := Location{src, pos, pos}
+            accum.push{w}
+         accum.push{result}
+         false
+
+      .OP ->
+         if last_op:
+            v = {.VOID}
+            v.location := Location{src, pos, pos}
+            accum.push{v}
+         match result[0]:
+            .IFX ->
+               accum.push{result}
+               true
+            .PFX ->
+               if [not last_op]:
+                  w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+                  w.location := Location{src, pos, pos}
+                  v = {.VOID}
+                  v.location := Location{src, pos, pos}
+                  accum.push{w}
+                  accum.push{v}
+               accum.push{result}
+               true
+            .SFX ->
+               accum.push{result}
+               v = {.VOID}
+               v.location := Location{src, endpos, endpos}
+               accum.push{v}
+               false
+
+      .ILLEGAL ->
+         throw E.syntax.illegal{"unknown character", {chr = token}}
+
+
+      other ->
+         throw E.should_never_happen{"unknown token type", {token = token}}
+
+
+tokenize{src} =
+   text = src.text
+   last_op = true
+   results = {}
+   wsb = text.match{ws_re}[0].length
+   text := text.slice{wsb}
+   pos := wsb
+   column := 0
+   indent = indent_tracker{}
+
+   while text:
+      ;; regexps each {re, fn} ->
+      for [i = 0, i < regexps.length, ++i]:
+         {re, fn} = regexps[i]
+         m = text.match{re}
+         if m:
+            skip = m[0].length
+            endpos = pos + skip
+            column :=
+               splits = m[0].split{"\n"}
+               if [splits.length > 1]:
+                  then: splits[splits.length - 1].length
+                  else: column + skip
+            text := text.slice{skip}
+            wsa = text.match{ws_re}[0].length
+            eol = text.match{eol_re} and true
+            bwsb = wsb > 0
+            bwsa = if{eol, bwsb, wsa > 0}
+            ;; bwsb = if{eol, true, wsb > 0}
+            ;; bwsa = if{eol, true, wsa > 0}
+            token = fn{m, bwsb, bwsa, last_op, column}
+            tokens = indent{token}
+            tokens each x ->
+               x.location := Location{src, pos, endpos}
+               last_op := process_token{src, x, last_op, bwsa, bwsb, pos, endpos, results}
+            text := text.slice{wsa}
+            column += wsa
+            wsb := wsa
+            pos := endpos + wsa
+            break
+   if last_op:
+      v = {.VOID}
+      v.location := {pos, pos}
+      results.push{v}
+   results
+
+

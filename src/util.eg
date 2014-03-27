@@ -1,0 +1,33 @@
+
+provide:
+   items, enumerate
+   binsearch
+
+
+items{obj} =
+   results = {}
+   for [k in obj]:
+      results.push with {k, obj[k]}
+   results
+
+enumerate{arr} =
+   results = {}
+   l = arr.length
+   for [i = 0, i < l, i++]:
+      results.push with {i, arr[i]}
+   results
+
+binsearch{xs, x} =
+   lo = 0
+   hi = xs.length - 1
+   while [lo <= hi]:
+      mid = lo + [[hi - lo] >> 1]
+      v = xs[mid]
+      match xs[mid]:
+         [< x] ->
+            lo := mid + 1
+         [> x] ->
+            hi := mid - 1
+         [_] ->
+            return [mid + 1]
+   lo

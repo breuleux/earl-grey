@@ -1,795 +1,790 @@
 
-
-binsearch{xs, x} =
-   lo = 0
-   hi = xs.length - 1
-   while [lo <= hi]:
-      mid = lo + [[hi - lo] >> 1]
-      v = xs[mid]
-      match xs[mid]:
-         [< x] ->
-            lo := mid + 1
-         [> x] ->
-            hi := mid - 1
-         [_] ->
-            return [mid + 1]
-   lo
-
-
-x <<: y =
-   x.location := if{not y or Location? y, y, y.location}
-   x
-
-x ++: y =
-   x := if{not x or Location? x, x, x.location}
-   y := if{not y or Location? y, y, y.location}
-   [merge_locations with {x, y}] !! undefined
-
-class Source:
-
-   constructor{text, url = false} =
-      @text := text
-      @url := url
-      @counts := {}
-      curr = 0
-      text.split{"\n"} each line ->
-         @counts.push with curr
-         curr += line.length + 1
-      @counts.push with curr
-      @nlines := @counts.length - 1
-
-   linecol{pos} =
-      line = binsearch{@counts, pos}
-      col = pos - @counts[line - 1]
-      {line, col}
-
-   highlight_lines{l1, l2, spans} =
-      highlight_lines{@text, @counts, {l1 - 1, l2 - 1}, spans}
-
-class Location:
-
-   constructor{source, start, end} =
-      @source := source or Source{"", null}
-      @start := start
-      @end := end
-
-   text{} =
-      @source.text.slice{@start, @end}
-
-   linerange{} =
-      match @linecol{}:
-         {{l1, _}, match} ->
-            null? -> {l1, l1}
-            {l2, _} -> {l1, l2}
-
-   linecol{} =
-      {start, end} where
-         start = @source.linecol{@start}
-         end = if [@start == @end]:
-                  then: null
-                  else: @source.linecol{@end - 1}
-   ref{} =
-      match @linecol{}:
-         {{String! l1, String! c1}, match} ->
-            null? ->
-               l1 + ":" + c1
-            {String! l2, String! c2} ->
-               match:
-                  when l1 == l2 and c1 == c2 ->
-                     l1 + ":" + c1
-                  when l1 == l2 ->
-                     l1 + ":" + c1 + "-" + c2
-                  otherwise ->
-                     l1 + ":" + c1 + "-" + l1 + ":" + c2
-
-   highlight{cls = .hl1, context = 0} =
-      highlight_locations{{{@, cls}}, context}
-
-
-highlight{text, spans, offset = 0} =
-   % | morsel{spans} each {start, end, attributes} ->
-        xstart = Math.max{start - offset, 0}
-        xend = Math.min{end - offset, text.length}
-        Node{attributes, {text.slice{xstart, xend}}}
-
-highlight_lines{text, linelocs, {l1, l2}, spans} =
-   span %
-      l1..l2 each lineno ->
-         start = linelocs[lineno]
-         end = linelocs[lineno + 1]
-         span %
-            .lineno % [lineno + 1]
-            .source %
-               highlight{text, {{start, end, {}}, *clamp{spans, start, end}}}
-
-clamp{spans, bot, top} =
-   spans each {start, end, attr} when [end >= bot and start <= top] ->
-      {Math.max{start, bot}, Math.min{end, top}, attr}
-
-
-morsel{spans} =
-
-   ;; Note: this is adapted from a different implementation I wrote a
-   ;; year ago. I am not entirely sure how it works anymore, but I don't
-   ;; really care, as long as it does. (At least I documented what it is
-   ;; supposed to do)
-
-   ;; spans == Array of span
-   ;; span == {Integer start, Integer end, Array of attribute}
-   ;; attribute == any
-
-   ;; Morsels the sequence of spans so that none of the spans in the
-   ;; sequence overlap. Ranges covered by more than one span are
-   ;; given the union of the attributes of all the spans covering it.
-
-   ;; Example:
-   ;; morsel with {{0, 10, {1}}, {2, 5, {2}}, {4, 7, {3}}, {40, 50, {4}}}
-   ;; => {{0, 2, {1}}, {2, 4, {1, 2}}, {4, 5, {1, 2, 3}}, {5, 7, {1, 3}},
-   ;;     {7, 10, {1}}, {10, 40, {}}, {40, 50, {4}}}
-
-   jump{active, bot, top} =
-      e = Math.min{top, * ...} with
-         active each {_, x, _} -> x
-      attributes = patch_array [active each {_, _, X} -> X]
-      {e, {bot, e, attributes}}
-
-   jumptill{active, bot, top} =
-      ? | bot == top =>
-           {{}, active}
-        | else =>
-           {newbot, span} = jump{active, bot, top}
-           newactive = active each
-              x and {_, e, attr} when e > newbot -> x
-           {spans, remainder} = jumptill{newactive, newbot, top}
-           {{span} ++ spans, remainder}
-
-   process{start, active, rem} = {start, active, rem} |>
-      {_, {}, {}} ->
-         {}
-      {start, active, {}} ->
-         top = Math.max[active each {_, e, _} -> e]
-         bot = Math.min{start, top}
-         {spans, _} = jumptill{active, start, top}
-         spans
-      {start, active, {next and {target, end, attr}, *rest}} ->
-         {spans, newactive} = jumptill{active, start, target}
-         spans ++ process{target, {next} ++ newactive, rest}
-
-   thespans = spans.sort with
-      {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 - e2, s1 - s2}
-      ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 < e2, s1 > s2}
-
-   process{thespans[0][0], {}, thespans}
-
-
-highlight_locations{locations, context = 0} =
-   loc = merge_locations{locations each {x, cls} -> x}
-   src = loc.source
-   {l1, l2} = loc.linerange{}
-   first = Math.max{1, l1 - context}
-   last = Math.min{src.nlines, l2 + context}
-   src.highlight_lines with
-      first, last
-      locations each {loc, cls} -> {loc.start, loc.end, {cls}}
-
-merge_locations{match} =
-   {} ->
-      Location{null, 0, 0}
-   {loc} ->
-      loc
-   {*locs} ->
-      Location{locs[0].source, start, end} where
-         start = Math.min | locs each loc -> loc.start
-         end = Math.max | locs each loc -> loc.end
-
-
-
-special_ops = {
-   "(" => .PFX
-   "[" => .PFX
-   "{" => .PFX
-   ")" => .SFX
-   "]" => .SFX
-   "}" => .SFX
-   "," => .IFX
-   ":" => .IFX
-   "." => .PFX
-   "'" => .PFX
-}
-
-regexps = {
-   {op3,    op_f}
-   {id,     id_f}
-   {numr,   numr_f}
-   {num,    num_f}
-   {str,    str_f}
-   {op,     op_f}
-   {op2,    op_f}
-   {op4,    op_f}
-   {indent, indent_f}
-   {cmnt,   cmnt_f}
-   {unkn,   unkn_f}
-} where
-
-  id = R'
-     start
-     in "a-zA-Z$_"
-     * in "a-zA-Z$_0-9"
-
-  id_f = {m, wsb, wsa, last_op} -> ~ID{.ID, m[0]}
-
-
-  numr = R'
-     start
-     {+d}, in "rR"
-     {+ in"A-Za-z0-9_"}
-     ?[".", {+ in "A-Za-z0-9_"}]
-
-  numr_f = {m, wsb, wsa, last_op} ->
-     {_, radix, intp, frac} = m
-     value := parseInt{intp.replace{R.g"_", ""}, radix}
-     if frac:
-        frac := frac.replace{R.g"_", ""}
-        value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
-     ~ID{.NUM, value}
-
-
-  num = R'
-     start
-     {+ in "0-9_"}
-     ?[".", {+d}]
-     ?[in "eE", {? in "+-", + in "0-9_"}]
-
-  num_f = {m, wsb, wsa, last_op} ->
-     ~ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
-
-
-  str = R'
-     start
-     "\""
-     {*["\\\\" or "\\\"" or [not in "\""]]}
-     "\""
-
-  str_f = {m, wsb, wsa, last_op} ->
-     repl = {
-        "\\\"" => "\""
-        "\\\\" => "\\"
-        "\\n" => "\n"
-     }
-     r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
-     ~ID{.STR, r}
-
-  op = R'
-     start
-     + in "+\\-*/~^<>=%&|?!@#.:'"
-
-  op2 = R'
-     start
-     in "[{}],"
-
-  op3 = R'
-     start
-     "with" or "where" or "when"
-       \ or "and" or "not" or "or"
-       \ or "in" or "instanceof" or "mod"
-       \ or "each" or "as"
-     boundary
-
-  op4 = R'
-     start
-     "`", {+ in "A-Za-z0-9_"}, "`"
-
-  op_f = {m, wsb, wsa, last_op, column} ->
-     op = m[1] or m[0]
-
-     match:
-        when op == "|" ->
-           {.INDENT, column - 1}
-
-        when op in special_ops ->
-           fixity = special_ops[op]
-           width =
-              match fixity:
-                 .IFX -> if{wsb or wsa, .wide, .short}
-                 .SFX -> if{wsb, .wide, .short}
-                 .PFX -> if{wsa, .wide, .short}
-                 other -> throw E.should_never_happen{"unknown fixity"}
-           ~OP{fixity, width, op}
-
-        when wsa and wsb ->
-           ~OP{if{last_op, .PFX, .IFX}, .wide, op}
-
-        when not wsa and not wsb ->
-           ~OP{if{last_op, .PFX, .IFX}, .short, op}
-
-        when wsa and last_op  ->
-           ~OP{.PFX, .wide, op}
-
-        when wsa ->
-           ~OP{.SFX, .short, op}
-
-        when wsb ->
-           ~OP{.PFX, .short, op}
-
-        _ ->
-           ~OP{.PFX, .short, op}
-
-
-  indent = R'
-     start
-     +["\n", {*" "}]
-
-  indent_f = {m, wsb, wsa, last_op} ->
-     ilen = m[1].length
-     ~INDENT{ilen}
-
-
-  cmnt = R'
-     start
-     ";"
-     * not in "\n"
-
-  cmnt_f = {m, wsb, wsa, last_op} -> ~IGNORE{}
-
-
-  unkn = R'
-     start
-     any
-
-  unkn_f = {m, wsb, wsa, last_op} ->
-     ~ILLEGAL{m[0]}
-
-
-
-;; TODO: ignore blank lines before continuation
-ws_re = R'[start, *" ", *["\n", *" ", "\\", *" "]]
-eol_re = R'[start, *" ", "\n" or end]
-
-indent_tracker{} =
-   curr = false
-   stack = {}
-   stacks = {stack}
-   {token and match} ->
-
-      ~INDENT{new_indent and match} ->
-         when [curr == false] ->
-            curr := new_indent
-            {~OP{.IFX, .wide, ","}}
-
-         [> curr] ->
-            stack.push{curr}
-             curr := new_indent
-            {~OP{.PFX, .wide, "["}}
-
-         [== curr] ->
-            {~OP{.IFX, .wide, ","}}
-
-         [< curr] ->
-            rval = {}
-            while [[stack.length > 0] and [new_indent < curr]]:
-               curr := stack.pop{}
-               rval.push{~OP{.SFX, .wide, "]"}}
-            rval.push{~OP{.IFX, .wide, ","}}
-            rval
-
-      ~ID{*stuff} -> {token}
-
-      ~OP{fixity, width, "[" or "{"} ->
-         stack.push{curr}
-         stacks.push{stack}
-         stack := {}
-         curr := false
-         {token}
-
-      ~OP{fixity, width, "]" or "}"} ->
-         rval = stack each _ -> ~OP{.SFX, .short, "]"}
-         stack := stacks.pop{}
-         curr := stack.pop{}
-         rval.push{token}
-         rval
-
-      other -> {token}
-
-
-process_token{src, token, last_op, wsa, wsb, pos, endpos, accum} =
-   {type, *result} = token
-   result <<: token
-   match type:
-      .IGNORE ->
-         last_op
-
-      .ID ->
-         if [not last_op]:
-            w = {.IFX, if{wsb, .wide, .short}, .WHITE}
-            w.location := Location{src, pos, pos}
-            accum.push{w}
-         accum.push{result}
-         false
-
-      .OP ->
-         if last_op:
-            v = {.VOID}
-            v.location := Location{src, pos, pos}
-            accum.push{v}
-         match result[0]:
-            .IFX ->
-               accum.push{result}
-               true
-            .PFX ->
-               if [not last_op]:
-                  w = {.IFX, if{wsb, .wide, .short}, .WHITE}
-                  w.location := Location{src, pos, pos}
-                  v = {.VOID}
-                  v.location := Location{src, pos, pos}
-                  accum.push{w}
-                  accum.push{v}
-               accum.push{result}
-               true
-            .SFX ->
-               accum.push{result}
-               v = {.VOID}
-               v.location := Location{src, endpos, endpos}
-               accum.push{v}
-               false
-
-      .ILLEGAL ->
-         throw E.syntax.illegal{"unknown character", {chr = token}}
-
-
-      other ->
-         throw E.should_never_happen{"unknown token type", {token = token}}
-
-
-tokenize{src} =
-   text = src.text
-   last_op = true
-   results = {}
-   wsb = text.match{ws_re}[0].length
-   text := text.slice{wsb}
-   pos := wsb
-   column := 0
-   indent = indent_tracker{}
-
-   while text:
-      ;; regexps each {re, fn} ->
-      for [i = 0, i < regexps.length, ++i]:
-         {re, fn} = regexps[i]
-         m = text.match{re}
-         if m:
-            skip = m[0].length
-            endpos = pos + skip
-            column :=
-               splits = m[0].split{"\n"}
-               if [splits.length > 1]:
-                  then: splits[splits.length - 1].length
-                  else: column + skip
-            text := text.slice{skip}
-            wsa = text.match{ws_re}[0].length
-            eol = text.match{eol_re} and true
-            bwsb = wsb > 0
-            bwsa = if{eol, bwsb, wsa > 0}
-            ;; bwsb = if{eol, true, wsb > 0}
-            ;; bwsa = if{eol, true, wsa > 0}
-            token = fn{m, bwsb, bwsa, last_op, column}
-            tokens = indent{token}
-            tokens each x ->
-               x.location := Location{src, pos, endpos}
-               last_op := process_token{src, x, last_op, bwsa, bwsb, pos, endpos, results}
-            text := text.slice{wsa}
-            column += wsa
-            wsb := wsa
-            pos := endpos + wsa
-            break
-   if last_op:
-      v = {.VOID}
-      v.location := {pos, pos}
-      results.push{v}
-   results
-
-
-
-MAX = 1/0
-
-order_map = {
-
-   IFX = {
-      wide = {
-         ","     => {{2r1111, 1}, {2r1111, 1}}
-
-         "with"  => {{2r1111, 999}, {2r1111, 10}}
-         "each"  => {{2r1111, 11},  {2r1111, 10}}
-         "where" => {{2r1111, 11},  {2r1111, 10}}
-         "!!"    => {{2r1111, 11},  {2r1111, 10}}
-         "|>"    => {{2r1111, 11},  {2r1111, 10}}
-         "->"    => {{2r1111, 11},  {2r1111, 10}}
-         "=>"    => {{2r1111, 11},  {2r1111, 10}}
-         "="     => {{2r1111, 11},  {2r1111, 10}}
-         ":="    => {{2r1111, 11},  {2r1111, 10}}
-         "+="    => {{2r1111, 11},  {2r1111, 10}}
-         "-="    => {{2r1111, 11},  {2r1111, 10}}
-         "*="    => {{2r1111, 11},  {2r1111, 10}}
-         "/="    => {{2r1111, 11},  {2r1111, 10}}
-         "<<="   => {{2r1111, 11},  {2r1111, 10}}
-         ">>="   => {{2r1111, 11},  {2r1111, 10}}
-         ">>>="  => {{2r1111, 11},  {2r1111, 10}}
-         "++="   => {{2r1111, 11},  {2r1111, 10}}
-         "?="    => {{2r1111, 11},  {2r1111, 10}}
-
-         ;; Misc
-         "%"     => {{2r1111, 11}, {2r1111, 10}}
-
-         ;; Logical
-         "when" => {{2r1111, 100}, {2r1111, 101}}
-         "||"   => {{2r1111, 110}, {2r1111, 111}}
-         "&&"   => {{2r1111, 120}, {2r1111, 121}}
-         "or"   => {{2r1111, 110}, {2r1111, 111}}
-         "and"  => {{2r1111, 120}, {2r1111, 121}}
-         "not"  => {{2r1111, 130}, {2r1111, 131}}
-
-         ;; Comparison
-         "==" => {{2r1111, 200}, {2r1111, 201}}
-         "!=" => {{2r1111, 200}, {2r1111, 201}}
-         ">=" => {{2r1111, 200}, {2r1111, 201}}
-         "<=" => {{2r1111, 200}, {2r1111, 201}}
-         ">"  => {{2r1111, 200}, {2r1111, 201}}
-         "<"  => {{2r1111, 200}, {2r1111, 201}}
-
-         ;; Binary
-         "^." => {{2r1111, 400}, {2r1111, 401}}
-         "|." => {{2r1111, 410}, {2r1111, 411}}
-         "&." => {{2r1111, 420}, {2r1111, 421}}
-
-         ;; Arithmetic
-         "<<"  => {{2r0001, 500}, {2r0001, 501}}
-         ">>"  => {{2r0001, 500}, {2r0001, 501}}
-         ">>>" => {{2r0001, 500}, {2r0001, 501}}
-         "+"   => {{2r0001, 550}, {2r0001, 551}}
-         "-"   => {{2r0001, 550}, {2r0001, 551}}
-         "*"   => {{2r0001, 560}, {2r0001, 561}}
-         "/"   => {{2r0001, 560}, {2r0001, 561}}
-         "mod" => {{2r0001, 560}, {2r0001, 561}}
-         "**"  => {{2r0001, 571}, {2r0001, 570}}
-
-         ;; Others
-         DEFAULT = {{2r1000, 900}, {2r0100, 901}}
-         WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
-         ":"    => {{2r1111, 1001}, {2r1111, 2}}
-      }
-      short = {
-         DEFAULT = {{2r1111, 1800}, {2r1111, 1801}}
-         WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
-         ","    => {{2r1111, 1},    {2r1111, 1}}
-         ":"    => {{2r1111, 1001}, {2r1111, 2}}
-      }
-   }
-
-   PFX = {
-      wide = {
-         DEFAULT = {{2r1111, MAX}, {2r1111, 900}}
-         "when" => {{2r1111, MAX}, {2r1111, 101}}
-         "not"  => {{2r1111, MAX}, {2r1111, 131}}
-         "." => {{2r1111, MAX}, {2r1111, 3000}}
-         "#" => {{2r1111, MAX}, {2r1111, 3000}}
-         "~" => {{2r1111, MAX}, {2r1111, 3000}}
-         "@" => {{2r1111, MAX}, {2r1111, 3000}}
-         "<>" => {{2r1111, MAX}, {2r1111, 5}}
-         "(" => {{2r1111, MAX}, {2r1111, 1}}
-         "[" => {{2r1111, MAX}, {2r1111, 1}}
-         "{" => {{2r1111, MAX}, {2r1111, 1}}
-      }
-      short = {
-         DEFAULT = {{2r1111, MAX}, {2r1111, 1901}}
-         "." => {{2r1111, MAX}, {2r1111, 3000}}
-         "#" => {{2r1111, MAX}, {2r1111, 3000}}
-         "~" => {{2r1111, MAX}, {2r1111, 3000}}
-         "@" => {{2r1111, MAX}, {2r1111, 3000}}
-         "(" => {{2r1111, MAX}, {2r1111, 1}}
-         "[" => {{2r1111, MAX}, {2r1111, 1}}
-         "{" => {{2r1111, MAX}, {2r1111, 1}}
-      }
-   }
-
-   SFX = {
-      wide = {
-         DEFAULT = {{2r1111, 901}, {2r1111, MAX}}
-         ")" => {{2r1111, 1}, {2r1111, MAX}}
-         "]" => {{2r1111, 1}, {2r1111, MAX}}
-         "}" => {{2r1111, 1}, {2r1111, MAX}}
-      }
-      short = {
-         DEFAULT = {{2r1111, 1900}, {2r1111, MAX}}
-         ")" => {{2r1111, 1}, {2r1111, MAX}}
-         "]" => {{2r1111, 1}, {2r1111, MAX}}
-         "}" => {{2r1111, 1}, {2r1111, MAX}}
-      }
-   }
-}
-
-
-
-DONE = -1
-NONE = 0
-LEFT = 1
-RIGHT = 2
-BOTH = 3
-
-
-oparse{next, order, finalize} =
-   between = finalize{next{}}
-   right_op = next{}
-   stack = {}
-   left_op = null
-   current = null
-   while true:
-      o =
-         if [not left_op and not right_op]:
-            then: DONE
-            else: [not left_op and RIGHT]
-                  \ or [not right_op and LEFT]
-                  \ or order{left_op, right_op}
-
-      match o:
-         [== DONE] ->
-            return between
-
-         [== LEFT] ->
-            current.push{between}
-            between := finalize{current}
-            v = stack.pop{}
-            left_op := v 0
-            current := v 1
-
-         [== RIGHT] ->
-            stack.push{{left_op, current}}
-            left_op := right_op
-            current := {{right_op}, between}
-            between := finalize{next{}}
-            right_op := next{}
-
-         [== BOTH] ->
-            current[0].push{right_op}
-            current.push{between}
-            left_op := right_op
-            between := finalize{next{}}
-            right_op := next{}
-
-         ;; [== NONE] ->
-         ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
-
-         other ->
-            throw E.should_never_happen{
-               "undefined priority"
-               {left = left_op, right = right_op}
-            }
-
-
-consult{{fixity, width, op}} =
-   map = order_map[fixity][width]
-   map[op] or map.DEFAULT
-
-
-order{o1, o2} =
-   {code1, ord1} = consult{o1}[1]
-   {code2, ord2} = consult{o2}[0]
-   match:
-      when [[code1 & code2] == 0] ->
-         throw E.syntax.order{...} with
-            "Cannot mix operators in the given order"
-            {left = o1, right = o2}
-      when [ord1 > ord2]  -> LEFT
-      when [ord1 < ord2]  -> RIGHT
-      when [ord1 == ord2] -> BOTH
-
-finalize{token} =
-   finaliz{token}
-
-finaliz{token and match} =
-
-   ~ID{value} -> ~symbol{value} <<: token
-   ~NUM{value} -> ~value{value} <<: token
-   ~STR{value} -> ~value{value} <<: token
-   ~VOID{} -> ~void{} <<: token
-
-   {ops, *args} ->
-      sumloc = ops[0].location
-      ops.slice{1} each op ->
-         sumloc := sumloc ++: op
-      args each arg ->
-         sumloc := sumloc ++: arg
-
-      orig_ops = ops
-      ops := ops each o -> o[2]
-      op = ops[0]
-
-      match {ops, args}:
-
-         {{"WHITE", ":"}, {f, arg, body}} ->
-            ~send{f, ~data{arg, body} <<: [arg ++: body]} <<: sumloc
-
-         {{":"}, {f, body}} ->
-            ~send{f, ~data{body} <<: body} <<: sumloc
-
-         {{"with"}, {target, _b and aslist! body}} ->
-
-            inserted = false
-            result = transform{target} with {expr and match} ->
-               ~symbol{"..."} -> [inserted := true, ~multi{*body} <<: _b]
-               [x when x.fromop] and ~send{f, ~data{a, b}} ->
-                   ~send{this{f}, ~data{this{a}, this{b}} <<: [a ++: b]}
-               ~data{*args} ->
-                   tr := this
-                   res = ~data{}.concat with patch_array.apply{null} with args each
-                      ~symbol{"..."} -> [inserted := true, body]
-                      other -> {tr{other} <<: other}
-                   res <<: expr
-
-            if [not inserted]:
-               then:
-                  match target:
-                     ~void{} ->
-                        ~data{*body} <<: sumloc
-                     when target.fromop ->
-                        ~send{target, ~data{*body} <<: _b} <<: sumloc
-                     ~send{f, orig_args and ~data{*args}} ->
-                        ~send{f, ~data{*args, *body} <<: [orig_args ++: _b]} <<: sumloc
-                     ~data{*args} ->
-                        [target ++ body] <<: sumloc
-                     other ->
-                        ~send{target, ~data{*body} <<: _b} <<: sumloc
-               else:
-                  result <<: sumloc
-
-         {{"[" or ",", *_}, _} ->
-            if [op == "["]:
-               args := args.slice{1, -1}
-
-            args := args.filter{f} where
-               f{match} = | ~void{} -> false
-                          | other -> true
-
-            result = match args:
-               {} -> ~value{undefined}
-               ;; throw ["At least one expression must be enclosed in []"]
-               {x} -> x
-               other -> ~multi{*args}
-            result <<: sumloc
-
-         {{"{", *_}, _} ->
-            ~data{*args.slice{1, -1}.filter{f}} <<: sumloc where
-               f{match} = | ~void{} -> false
-                          | other -> true
-
-         {{.WHITE}, _} ->
-            ~send{*args} <<: sumloc
-
-         {{_}, match} ->
-            {~void{}, ~void{}} -> ~symbol{op} <<: orig_ops[0]
-            {a, b} ->
-               oloc = orig_ops[0].location
-               abloc = [a ++: b]
-               oabloc = [orig_ops[0] ++: abloc]
-               rval = ~send{~symbol{op} <<: oloc
-                            ~data{a, b} <<: abloc} <<: [oloc ++: abloc]
-               rval.fromop := true
-               rval
-
-         other ->
-            throw E.should_never_happen{
-               "unknown node"
-               {node = token}
-            }
-
-   other ->
-      throw E.should_never_happen{
-         "unknown node (B)"
-         {node = token}
-      }
-
+require:
+   "./helpers" ->
+      aslist, transform
+   "./util" ->
+      enumerate, items
+      binsearch
+   "./location" ->
+      Source, Location
+      highlight, highlight_locations
+      merge_locations
+      <<:, ++:
+   "./lexer" ->
+      tokenize
+   "./parser" ->
+      parse as __parse
 
 parse{src} =
-   results = tokenize{src}
-   next{} = results.shift{}
-   oparse{next, order, finalize}
+   tokens = tokenize{src}
+   __parse{tokens}
+
+
+;; class Source:
+
+;;    constructor{text, url = false} =
+;;       @text := text
+;;       @url := url
+;;       @counts := {}
+;;       curr = 0
+;;       text.split{"\n"} each line ->
+;;          @counts.push with curr
+;;          curr += line.length + 1
+;;       @counts.push with curr
+;;       @nlines := @counts.length - 1
+
+;;    linecol{pos} =
+;;       line = binsearch{@counts, pos}
+;;       col = pos - @counts[line - 1]
+;;       {line, col}
+
+;;    highlight_lines{l1, l2, spans} =
+;;       highlight_lines{@text, @counts, {l1 - 1, l2 - 1}, spans}
+
+;; class Location:
+
+;;    constructor{source, start, end} =
+;;       @source := source or Source{"", null}
+;;       @start := start
+;;       @end := end
+
+;;    text{} =
+;;       @source.text.slice{@start, @end}
+
+;;    linerange{} =
+;;       match @linecol{}:
+;;          {{l1, _}, match} ->
+;;             null? -> {l1, l1}
+;;             {l2, _} -> {l1, l2}
+
+;;    linecol{} =
+;;       {start, end} where
+;;          start = @source.linecol{@start}
+;;          end = if [@start == @end]:
+;;                   then: null
+;;                   else: @source.linecol{@end - 1}
+;;    ref{} =
+;;       match @linecol{}:
+;;          {{String! l1, String! c1}, match} ->
+;;             null? ->
+;;                l1 + ":" + c1
+;;             {String! l2, String! c2} ->
+;;                match:
+;;                   when l1 == l2 and c1 == c2 ->
+;;                      l1 + ":" + c1
+;;                   when l1 == l2 ->
+;;                      l1 + ":" + c1 + "-" + c2
+;;                   otherwise ->
+;;                      l1 + ":" + c1 + "-" + l1 + ":" + c2
+
+;;    highlight{cls = .hl1, context = 0} =
+;;       highlight_locations{{{@, cls}}, context}
+
+
+;; highlight{text, spans, offset = 0} =
+;;    % | morsel{spans} each {start, end, attributes} ->
+;;         xstart = Math.max{start - offset, 0}
+;;         xend = Math.min{end - offset, text.length}
+;;         Node{attributes, {text.slice{xstart, xend}}}
+
+;; highlight_lines{text, linelocs, {l1, l2}, spans} =
+;;    span %
+;;       l1..l2 each lineno ->
+;;          start = linelocs[lineno]
+;;          end = linelocs[lineno + 1]
+;;          span %
+;;             .lineno % [lineno + 1]
+;;             .source %
+;;                highlight{text, {{start, end, {}}, *clamp{spans, start, end}}}
+
+;; clamp{spans, bot, top} =
+;;    spans each {start, end, attr} when [end >= bot and start <= top] ->
+;;       {Math.max{start, bot}, Math.min{end, top}, attr}
+
+
+;; morsel{spans} =
+
+;;    ;; Note: this is adapted from a different implementation I wrote a
+;;    ;; year ago. I am not entirely sure how it works anymore, but I don't
+;;    ;; really care, as long as it does. (At least I documented what it is
+;;    ;; supposed to do)
+
+;;    ;; spans == Array of span
+;;    ;; span == {Integer start, Integer end, Array of attribute}
+;;    ;; attribute == any
+
+;;    ;; Morsels the sequence of spans so that none of the spans in the
+;;    ;; sequence overlap. Ranges covered by more than one span are
+;;    ;; given the union of the attributes of all the spans covering it.
+
+;;    ;; Example:
+;;    ;; morsel with {{0, 10, {1}}, {2, 5, {2}}, {4, 7, {3}}, {40, 50, {4}}}
+;;    ;; => {{0, 2, {1}}, {2, 4, {1, 2}}, {4, 5, {1, 2, 3}}, {5, 7, {1, 3}},
+;;    ;;     {7, 10, {1}}, {10, 40, {}}, {40, 50, {4}}}
+
+;;    jump{active, bot, top} =
+;;       e = Math.min{top, * ...} with
+;;          active each {_, x, _} -> x
+;;       attributes = patch_array [active each {_, _, X} -> X]
+;;       {e, {bot, e, attributes}}
+
+;;    jumptill{active, bot, top} =
+;;       ? | bot == top =>
+;;            {{}, active}
+;;         | else =>
+;;            {newbot, span} = jump{active, bot, top}
+;;            newactive = active each
+;;               x and {_, e, attr} when e > newbot -> x
+;;            {spans, remainder} = jumptill{newactive, newbot, top}
+;;            {{span} ++ spans, remainder}
+
+;;    process{start, active, rem} = {start, active, rem} |>
+;;       {_, {}, {}} ->
+;;          {}
+;;       {start, active, {}} ->
+;;          top = Math.max[active each {_, e, _} -> e]
+;;          bot = Math.min{start, top}
+;;          {spans, _} = jumptill{active, start, top}
+;;          spans
+;;       {start, active, {next and {target, end, attr}, *rest}} ->
+;;          {spans, newactive} = jumptill{active, start, target}
+;;          spans ++ process{target, {next} ++ newactive, rest}
+
+;;    thespans = spans.sort with
+;;       {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 - e2, s1 - s2}
+;;       ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 < e2, s1 > s2}
+
+;;    process{thespans[0][0], {}, thespans}
+
+
+;; highlight_locations{locations, context = 0} =
+;;    loc = merge_locations{locations each {x, cls} -> x}
+;;    src = loc.source
+;;    {l1, l2} = loc.linerange{}
+;;    first = Math.max{1, l1 - context}
+;;    last = Math.min{src.nlines, l2 + context}
+;;    src.highlight_lines with
+;;       first, last
+;;       locations each {loc, cls} -> {loc.start, loc.end, {cls}}
+
+;; merge_locations{match} =
+;;    {} ->
+;;       Location{null, 0, 0}
+;;    {loc} ->
+;;       loc
+;;    {*locs} ->
+;;       Location{locs[0].source, start, end} where
+;;          start = Math.min | locs each loc -> loc.start
+;;          end = Math.max | locs each loc -> loc.end
+
+
+
+;; special_ops = {
+;;    "(" => .PFX
+;;    "[" => .PFX
+;;    "{" => .PFX
+;;    ")" => .SFX
+;;    "]" => .SFX
+;;    "}" => .SFX
+;;    "," => .IFX
+;;    ":" => .IFX
+;;    "." => .PFX
+;;    "'" => .PFX
+;; }
+
+;; regexps = {
+;;    {op3,    op_f}
+;;    {id,     id_f}
+;;    {numr,   numr_f}
+;;    {num,    num_f}
+;;    {str,    str_f}
+;;    {op,     op_f}
+;;    {op2,    op_f}
+;;    {op4,    op_f}
+;;    {indent, indent_f}
+;;    {cmnt,   cmnt_f}
+;;    {unkn,   unkn_f}
+;; } where
+
+;;   id = R'
+;;      start
+;;      in "a-zA-Z$_"
+;;      * in "a-zA-Z$_0-9"
+
+;;   id_f = {m, wsb, wsa, last_op} -> ~ID{.ID, m[0]}
+
+
+;;   numr = R'
+;;      start
+;;      {+d}, in "rR"
+;;      {+ in"A-Za-z0-9_"}
+;;      ?[".", {+ in "A-Za-z0-9_"}]
+
+;;   numr_f = {m, wsb, wsa, last_op} ->
+;;      {_, radix, intp, frac} = m
+;;      value := parseInt{intp.replace{R.g"_", ""}, radix}
+;;      if frac:
+;;         frac := frac.replace{R.g"_", ""}
+;;         value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
+;;      ~ID{.NUM, value}
+
+
+;;   num = R'
+;;      start
+;;      {+ in "0-9_"}
+;;      ?[".", {+d}]
+;;      ?[in "eE", {? in "+-", + in "0-9_"}]
+
+;;   num_f = {m, wsb, wsa, last_op} ->
+;;      ~ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
+
+
+;;   str = R'
+;;      start
+;;      "\""
+;;      {*["\\\\" or "\\\"" or [not in "\""]]}
+;;      "\""
+
+;;   str_f = {m, wsb, wsa, last_op} ->
+;;      repl = {
+;;         "\\\"" => "\""
+;;         "\\\\" => "\\"
+;;         "\\n" => "\n"
+;;      }
+;;      r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
+;;      ~ID{.STR, r}
+
+;;   op = R'
+;;      start
+;;      + in "+\\-*/~^<>=%&|?!@#.:'"
+
+;;   op2 = R'
+;;      start
+;;      in "[{}],"
+
+;;   op3 = R'
+;;      start
+;;      "with" or "where" or "when"
+;;        \ or "and" or "not" or "or"
+;;        \ or "in" or "instanceof" or "mod"
+;;        \ or "each" or "as"
+;;      boundary
+
+;;   op4 = R'
+;;      start
+;;      "`", {+ in "A-Za-z0-9_"}, "`"
+
+;;   op_f = {m, wsb, wsa, last_op, column} ->
+;;      op = m[1] or m[0]
+
+;;      match:
+;;         when op == "|" ->
+;;            {.INDENT, column - 1}
+
+;;         when op in special_ops ->
+;;            fixity = special_ops[op]
+;;            width =
+;;               match fixity:
+;;                  .IFX -> if{wsb or wsa, .wide, .short}
+;;                  .SFX -> if{wsb, .wide, .short}
+;;                  .PFX -> if{wsa, .wide, .short}
+;;                  other -> throw E.should_never_happen{"unknown fixity"}
+;;            ~OP{fixity, width, op}
+
+;;         when wsa and wsb ->
+;;            ~OP{if{last_op, .PFX, .IFX}, .wide, op}
+
+;;         when not wsa and not wsb ->
+;;            ~OP{if{last_op, .PFX, .IFX}, .short, op}
+
+;;         when wsa and last_op  ->
+;;            ~OP{.PFX, .wide, op}
+
+;;         when wsa ->
+;;            ~OP{.SFX, .short, op}
+
+;;         when wsb ->
+;;            ~OP{.PFX, .short, op}
+
+;;         _ ->
+;;            ~OP{.PFX, .short, op}
+
+
+;;   indent = R'
+;;      start
+;;      +["\n", {*" "}]
+
+;;   indent_f = {m, wsb, wsa, last_op} ->
+;;      ilen = m[1].length
+;;      ~INDENT{ilen}
+
+
+;;   cmnt = R'
+;;      start
+;;      ";"
+;;      * not in "\n"
+
+;;   cmnt_f = {m, wsb, wsa, last_op} -> ~IGNORE{}
+
+
+;;   unkn = R'
+;;      start
+;;      any
+
+;;   unkn_f = {m, wsb, wsa, last_op} ->
+;;      ~ILLEGAL{m[0]}
+
+
+
+;; ;; TODO: ignore blank lines before continuation
+;; ws_re = R'[start, *" ", *["\n", *" ", "\\", *" "]]
+;; eol_re = R'[start, *" ", "\n" or end]
+
+;; indent_tracker{} =
+;;    curr = false
+;;    stack = {}
+;;    stacks = {stack}
+;;    {token and match} ->
+
+;;       ~INDENT{new_indent and match} ->
+;;          when [curr == false] ->
+;;             curr := new_indent
+;;             {~OP{.IFX, .wide, ","}}
+
+;;          [> curr] ->
+;;             stack.push{curr}
+;;              curr := new_indent
+;;             {~OP{.PFX, .wide, "["}}
+
+;;          [== curr] ->
+;;             {~OP{.IFX, .wide, ","}}
+
+;;          [< curr] ->
+;;             rval = {}
+;;             while [[stack.length > 0] and [new_indent < curr]]:
+;;                curr := stack.pop{}
+;;                rval.push{~OP{.SFX, .wide, "]"}}
+;;             rval.push{~OP{.IFX, .wide, ","}}
+;;             rval
+
+;;       ~ID{*stuff} -> {token}
+
+;;       ~OP{fixity, width, "[" or "{"} ->
+;;          stack.push{curr}
+;;          stacks.push{stack}
+;;          stack := {}
+;;          curr := false
+;;          {token}
+
+;;       ~OP{fixity, width, "]" or "}"} ->
+;;          rval = stack each _ -> ~OP{.SFX, .short, "]"}
+;;          stack := stacks.pop{}
+;;          curr := stack.pop{}
+;;          rval.push{token}
+;;          rval
+
+;;       other -> {token}
+
+
+;; process_token{src, token, last_op, wsa, wsb, pos, endpos, accum} =
+;;    {type, *result} = token
+;;    result <<: token
+;;    match type:
+;;       .IGNORE ->
+;;          last_op
+
+;;       .ID ->
+;;          if [not last_op]:
+;;             w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+;;             w.location := Location{src, pos, pos}
+;;             accum.push{w}
+;;          accum.push{result}
+;;          false
+
+;;       .OP ->
+;;          if last_op:
+;;             v = {.VOID}
+;;             v.location := Location{src, pos, pos}
+;;             accum.push{v}
+;;          match result[0]:
+;;             .IFX ->
+;;                accum.push{result}
+;;                true
+;;             .PFX ->
+;;                if [not last_op]:
+;;                   w = {.IFX, if{wsb, .wide, .short}, .WHITE}
+;;                   w.location := Location{src, pos, pos}
+;;                   v = {.VOID}
+;;                   v.location := Location{src, pos, pos}
+;;                   accum.push{w}
+;;                   accum.push{v}
+;;                accum.push{result}
+;;                true
+;;             .SFX ->
+;;                accum.push{result}
+;;                v = {.VOID}
+;;                v.location := Location{src, endpos, endpos}
+;;                accum.push{v}
+;;                false
+
+;;       .ILLEGAL ->
+;;          throw E.syntax.illegal{"unknown character", {chr = token}}
+
+
+;;       other ->
+;;          throw E.should_never_happen{"unknown token type", {token = token}}
+
+
+;; tokenize{src} =
+;;    text = src.text
+;;    last_op = true
+;;    results = {}
+;;    wsb = text.match{ws_re}[0].length
+;;    text := text.slice{wsb}
+;;    pos := wsb
+;;    column := 0
+;;    indent = indent_tracker{}
+
+;;    while text:
+;;       ;; regexps each {re, fn} ->
+;;       for [i = 0, i < regexps.length, ++i]:
+;;          {re, fn} = regexps[i]
+;;          m = text.match{re}
+;;          if m:
+;;             skip = m[0].length
+;;             endpos = pos + skip
+;;             column :=
+;;                splits = m[0].split{"\n"}
+;;                if [splits.length > 1]:
+;;                   then: splits[splits.length - 1].length
+;;                   else: column + skip
+;;             text := text.slice{skip}
+;;             wsa = text.match{ws_re}[0].length
+;;             eol = text.match{eol_re} and true
+;;             bwsb = wsb > 0
+;;             bwsa = if{eol, bwsb, wsa > 0}
+;;             ;; bwsb = if{eol, true, wsb > 0}
+;;             ;; bwsa = if{eol, true, wsa > 0}
+;;             token = fn{m, bwsb, bwsa, last_op, column}
+;;             tokens = indent{token}
+;;             tokens each x ->
+;;                x.location := Location{src, pos, endpos}
+;;                last_op := process_token{src, x, last_op, bwsa, bwsb, pos, endpos, results}
+;;             text := text.slice{wsa}
+;;             column += wsa
+;;             wsb := wsa
+;;             pos := endpos + wsa
+;;             break
+;;    if last_op:
+;;       v = {.VOID}
+;;       v.location := {pos, pos}
+;;       results.push{v}
+;;    results
+
+
+
+;; MAX = 1/0
+
+;; order_map = {
+
+;;    IFX = {
+;;       wide = {
+;;          ","     => {{2r1111, 1}, {2r1111, 1}}
+
+;;          "with"  => {{2r1111, 999}, {2r1111, 10}}
+;;          "each"  => {{2r1111, 11},  {2r1111, 10}}
+;;          "where" => {{2r1111, 11},  {2r1111, 10}}
+;;          "!!"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "|>"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "->"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "=>"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "="     => {{2r1111, 11},  {2r1111, 10}}
+;;          ":="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "+="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "-="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "*="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "/="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "<<="   => {{2r1111, 11},  {2r1111, 10}}
+;;          ">>="   => {{2r1111, 11},  {2r1111, 10}}
+;;          ">>>="  => {{2r1111, 11},  {2r1111, 10}}
+;;          "++="   => {{2r1111, 11},  {2r1111, 10}}
+;;          "?="    => {{2r1111, 11},  {2r1111, 10}}
+
+;;          ;; Misc
+;;          "%"     => {{2r1111, 11}, {2r1111, 10}}
+
+;;          ;; Logical
+;;          "when" => {{2r1111, 100}, {2r1111, 101}}
+;;          "||"   => {{2r1111, 110}, {2r1111, 111}}
+;;          "&&"   => {{2r1111, 120}, {2r1111, 121}}
+;;          "or"   => {{2r1111, 110}, {2r1111, 111}}
+;;          "and"  => {{2r1111, 120}, {2r1111, 121}}
+;;          "not"  => {{2r1111, 130}, {2r1111, 131}}
+
+;;          ;; Comparison
+;;          "==" => {{2r1111, 200}, {2r1111, 201}}
+;;          "!=" => {{2r1111, 200}, {2r1111, 201}}
+;;          ">=" => {{2r1111, 200}, {2r1111, 201}}
+;;          "<=" => {{2r1111, 200}, {2r1111, 201}}
+;;          ">"  => {{2r1111, 200}, {2r1111, 201}}
+;;          "<"  => {{2r1111, 200}, {2r1111, 201}}
+
+;;          ;; Binary
+;;          "^." => {{2r1111, 400}, {2r1111, 401}}
+;;          "|." => {{2r1111, 410}, {2r1111, 411}}
+;;          "&." => {{2r1111, 420}, {2r1111, 421}}
+
+;;          ;; Arithmetic
+;;          "<<"  => {{2r0001, 500}, {2r0001, 501}}
+;;          ">>"  => {{2r0001, 500}, {2r0001, 501}}
+;;          ">>>" => {{2r0001, 500}, {2r0001, 501}}
+;;          "+"   => {{2r0001, 550}, {2r0001, 551}}
+;;          "-"   => {{2r0001, 550}, {2r0001, 551}}
+;;          "*"   => {{2r0001, 560}, {2r0001, 561}}
+;;          "/"   => {{2r0001, 560}, {2r0001, 561}}
+;;          "mod" => {{2r0001, 560}, {2r0001, 561}}
+;;          "**"  => {{2r0001, 571}, {2r0001, 570}}
+
+;;          ;; Others
+;;          DEFAULT = {{2r1000, 900}, {2r0100, 901}}
+;;          WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
+;;          ":"    => {{2r1111, 1001}, {2r1111, 2}}
+;;       }
+;;       short = {
+;;          DEFAULT = {{2r1111, 1800}, {2r1111, 1801}}
+;;          WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
+;;          ","    => {{2r1111, 1},    {2r1111, 1}}
+;;          ":"    => {{2r1111, 1001}, {2r1111, 2}}
+;;       }
+;;    }
+
+;;    PFX = {
+;;       wide = {
+;;          DEFAULT = {{2r1111, MAX}, {2r1111, 900}}
+;;          "when" => {{2r1111, MAX}, {2r1111, 101}}
+;;          "not"  => {{2r1111, MAX}, {2r1111, 131}}
+;;          "." => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "~" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "@" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "<>" => {{2r1111, MAX}, {2r1111, 5}}
+;;          "(" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "[" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "{" => {{2r1111, MAX}, {2r1111, 1}}
+;;       }
+;;       short = {
+;;          DEFAULT = {{2r1111, MAX}, {2r1111, 1901}}
+;;          "." => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "~" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "@" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "(" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "[" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "{" => {{2r1111, MAX}, {2r1111, 1}}
+;;       }
+;;    }
+
+;;    SFX = {
+;;       wide = {
+;;          DEFAULT = {{2r1111, 901}, {2r1111, MAX}}
+;;          ")" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "]" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "}" => {{2r1111, 1}, {2r1111, MAX}}
+;;       }
+;;       short = {
+;;          DEFAULT = {{2r1111, 1900}, {2r1111, MAX}}
+;;          ")" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "]" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "}" => {{2r1111, 1}, {2r1111, MAX}}
+;;       }
+;;    }
+;; }
+
+
+
+;; DONE = -1
+;; NONE = 0
+;; LEFT = 1
+;; RIGHT = 2
+;; BOTH = 3
+
+
+;; oparse{next, order, finalize} =
+;;    between = finalize{next{}}
+;;    right_op = next{}
+;;    stack = {}
+;;    left_op = null
+;;    current = null
+;;    while true:
+;;       o =
+;;          if [not left_op and not right_op]:
+;;             then: DONE
+;;             else: [not left_op and RIGHT]
+;;                   \ or [not right_op and LEFT]
+;;                   \ or order{left_op, right_op}
+
+;;       match o:
+;;          [== DONE] ->
+;;             return between
+
+;;          [== LEFT] ->
+;;             current.push{between}
+;;             between := finalize{current}
+;;             v = stack.pop{}
+;;             left_op := v 0
+;;             current := v 1
+
+;;          [== RIGHT] ->
+;;             stack.push{{left_op, current}}
+;;             left_op := right_op
+;;             current := {{right_op}, between}
+;;             between := finalize{next{}}
+;;             right_op := next{}
+
+;;          [== BOTH] ->
+;;             current[0].push{right_op}
+;;             current.push{between}
+;;             left_op := right_op
+;;             between := finalize{next{}}
+;;             right_op := next{}
+
+;;          ;; [== NONE] ->
+;;          ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
+
+;;          other ->
+;;             throw E.should_never_happen{
+;;                "undefined priority"
+;;                {left = left_op, right = right_op}
+;;             }
+
+
+;; consult{{fixity, width, op}} =
+;;    map = order_map[fixity][width]
+;;    map[op] or map.DEFAULT
+
+
+;; order{o1, o2} =
+;;    {code1, ord1} = consult{o1}[1]
+;;    {code2, ord2} = consult{o2}[0]
+;;    match:
+;;       when [[code1 & code2] == 0] ->
+;;          throw E.syntax.order{...} with
+;;             "Cannot mix operators in the given order"
+;;             {left = o1, right = o2}
+;;       when [ord1 > ord2]  -> LEFT
+;;       when [ord1 < ord2]  -> RIGHT
+;;       when [ord1 == ord2] -> BOTH
+
+;; finalize{token} =
+;;    finaliz{token}
+
+;; finaliz{token and match} =
+
+;;    ~ID{value} -> ~symbol{value} <<: token
+;;    ~NUM{value} -> ~value{value} <<: token
+;;    ~STR{value} -> ~value{value} <<: token
+;;    ~VOID{} -> ~void{} <<: token
+
+;;    {ops, *args} ->
+;;       sumloc = ops[0].location
+;;       ops.slice{1} each op ->
+;;          sumloc := sumloc ++: op
+;;       args each arg ->
+;;          sumloc := sumloc ++: arg
+
+;;       orig_ops = ops
+;;       ops := ops each o -> o[2]
+;;       op = ops[0]
+
+;;       match {ops, args}:
+
+;;          {{"WHITE", ":"}, {f, arg, body}} ->
+;;             ~send{f, ~data{arg, body} <<: [arg ++: body]} <<: sumloc
+
+;;          {{":"}, {f, body}} ->
+;;             ~send{f, ~data{body} <<: body} <<: sumloc
+
+;;          {{"with"}, {target, _b and aslist! body}} ->
+
+;;             inserted = false
+;;             result = transform{target} with {expr and match} ->
+;;                ~symbol{"..."} -> [inserted := true, ~multi{*body} <<: _b]
+;;                [x when x.fromop] and ~send{f, ~data{a, b}} ->
+;;                    ~send{this{f}, ~data{this{a}, this{b}} <<: [a ++: b]}
+;;                ~data{*args} ->
+;;                    tr := this
+;;                    res = ~data{}.concat with patch_array.apply{null} with args each
+;;                       ~symbol{"..."} -> [inserted := true, body]
+;;                       other -> {tr{other} <<: other}
+;;                    res <<: expr
+
+;;             if [not inserted]:
+;;                then:
+;;                   match target:
+;;                      ~void{} ->
+;;                         ~data{*body} <<: sumloc
+;;                      when target.fromop ->
+;;                         ~send{target, ~data{*body} <<: _b} <<: sumloc
+;;                      ~send{f, orig_args and ~data{*args}} ->
+;;                         ~send{f, ~data{*args, *body} <<: [orig_args ++: _b]} <<: sumloc
+;;                      ~data{*args} ->
+;;                         [target ++ body] <<: sumloc
+;;                      other ->
+;;                         ~send{target, ~data{*body} <<: _b} <<: sumloc
+;;                else:
+;;                   result <<: sumloc
+
+;;          {{"[" or ",", *_}, _} ->
+;;             if [op == "["]:
+;;                args := args.slice{1, -1}
+
+;;             args := args.filter{f} where
+;;                f{match} = | ~void{} -> false
+;;                           | other -> true
+
+;;             result = match args:
+;;                {} -> ~value{undefined}
+;;                ;; throw ["At least one expression must be enclosed in []"]
+;;                {x} -> x
+;;                other -> ~multi{*args}
+;;             result <<: sumloc
+
+;;          {{"{", *_}, _} ->
+;;             ~data{*args.slice{1, -1}.filter{f}} <<: sumloc where
+;;                f{match} = | ~void{} -> false
+;;                           | other -> true
+
+;;          {{.WHITE}, _} ->
+;;             ~send{*args} <<: sumloc
+
+;;          {{_}, match} ->
+;;             {~void{}, ~void{}} -> ~symbol{op} <<: orig_ops[0]
+;;             {a, b} ->
+;;                oloc = orig_ops[0].location
+;;                abloc = [a ++: b]
+;;                oabloc = [orig_ops[0] ++: abloc]
+;;                rval = ~send{~symbol{op} <<: oloc
+;;                             ~data{a, b} <<: abloc} <<: [oloc ++: abloc]
+;;                rval.fromop := true
+;;                rval
+
+;;          other ->
+;;             throw E.should_never_happen{
+;;                "unknown node"
+;;                {node = token}
+;;             }
+
+;;    other ->
+;;       throw E.should_never_happen{
+;;          "unknown node (B)"
+;;          {node = token}
+;;       }
+
+
+;; parse{src} =
+;;    results = tokenize{src}
+;;    next{} = results.shift{}
+;;    oparse{next, order, finalize}
 
 
 libf{f} =
@@ -970,23 +965,23 @@ expand.step := {{context, env}, expr and match} ->
       }
 
 
-aslist{match} =
-   ~void{} -> {~void{}}
-   undefined? -> {undefined}
-   ~multi{*args} -> args
-   other -> {other}
+;; aslist{match} =
+;;    ~void{} -> {~void{}}
+;;    undefined? -> {undefined}
+;;    ~multi{*args} -> args
+;;    other -> {other}
 
 
-transform{expr, cb} =
-   tr{x} = transform{x, cb}
-   result = cb.call{tr, expr} !!
-      match expr:
-         ~void{} -> ~void{}
-         ~symbol{s} -> expr
-         ~value{v} -> expr
-         {name, *args} ->
-            {name, *args.map{tr}}
-   result <<: expr
+;; transform{expr, cb} =
+;;    tr{x} = transform{x, cb}
+;;    result = cb.call{tr, expr} !!
+;;       match expr:
+;;          ~void{} -> ~void{}
+;;          ~symbol{s} -> expr
+;;          ~value{v} -> expr
+;;          {name, *args} ->
+;;             {name, *args.map{tr}}
+;;    result <<: expr
 
 nullenv = {resolve{x} = undefined}
 
