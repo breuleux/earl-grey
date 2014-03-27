@@ -1,0 +1,133 @@
+
+require:
+   "./util" ->
+      items
+
+provide:
+   pr_terminus
+   pr, <>
+   repr
+   Node
+
+
+class Node:
+
+   static:
+      "::check"{x} =
+         x and x.classes and x.children
+      "::deconstruct"{x} =
+         {x.classes, x.children}
+
+   constructor{Array! classes, Array! children} =
+      @classes := classes.sort{}
+      @children := children
+
+   "::check"{n} =
+      @classes each c when n.classes.indexOf{c} == -1 ->
+         return false
+      true
+
+
+pr_terminus{node} =
+   r = HTML{node, .span}
+   pre = String.fromCharCode{27} + "[?0;7y+h <div class=\"ug\">"
+   post = "</div>" + String.fromCharCode{7}
+   console.log with [pre + r + post]
+
+pr{match, r} =
+   Node? n ->
+      pr_terminus{n}
+   x ->
+      pr_terminus{[r or repr]{x}}
+
+[<> x] = pr{x}
+
+repr{x and match, Function? recur or repr as recur} =
+   == true -> .special.true % "true"
+   == false -> .special.false % "false"
+   null? -> .special.nil % "null"
+   undefined? -> .special.nil % "undefined"
+   Number? -> .num % String{x}
+   String? -> .str % x
+   Struct? {tag, *entries} ->
+      .struct % {.sym % tag, .sequence % [entries each x -> recur{x, repr}]}
+   Array? entries ->
+      .sequence % [entries each x -> recur{x, repr}]
+   when x["::repr"] ->
+      x["::repr"]{recur}
+   when Object.getPrototypeOf{x} == Object.prototype ->
+      .table %
+         items{x} each {k, v} ->
+            .pairing %
+               recur{k, repr}
+               recur{v, repr}
+   other ->
+      .unknown % other.toString{}
+
+
+escape_html{String! s} =
+   repl = with
+      "&" => "&amp;"
+      "<" => "&lt;"
+      ">" => "&gt;"
+   s.replace{R.g"[&<>]", {x} -> repl[x]}
+
+quotify{String! s} =
+   s.replace{R.g"[\"\\\\]", {x} -> "\\" + x}
+
+
+HTML{match, default_tag} =
+
+   String? s ->
+      escape_html{s}
+
+   Array? children ->
+      [...].join{""} with
+         children each child -> HTML{child, default_tag}
+
+   Node? {tags, children} ->
+      tag = default_tag or "span"
+      classes = {}
+      id = null
+      kv = {}
+      sub = {}
+      tags each
+         #assoc{k, v} ->
+            kv.push with {k, v}
+         #assoc{k} ->
+            kv.push with {k, undefined}
+         R'[start, "+", {*any}]? {_, m} ->
+            tag := m
+         R'[start, "#", {*any}]? {_, m} ->
+            id := m
+         String? s ->
+            classes.push with s
+
+      accum = if{tag == .raw, {}, {"<", tag}}
+      ? | id => accum := accum.concat with
+           " id=\"", id, "\""
+      ? | classes.length => accum := accum.concat with
+           " class=\"", quotify{classes.join{" "}}, "\""
+      ? | kv => kv each {k, v} ->
+           accum := accum.concat with
+              if{v != null
+                 {" ", k, "=\"", quotify{v}, "\""}
+                 {" ", k}}
+
+      children := tag |>
+         .raw -> children each
+            String? s -> s
+            c -> HTML{c, default_tag}
+         other -> children each c -> HTML{c, default_tag}
+
+      tag |>
+         .raw ->
+            accum.concat{children}.join{""}
+         other ->
+            accum.concat{x}.join{""} where x =
+               {">", *children, "</", tag, ">"}
+
+   other ->
+      HTML{String! other, default_tag}
+
+

@@ -1,4 +1,8 @@
 
+require:
+   "./util" -> binsearch
+   "./pp" -> Node
+
 provide:
    Source, Location
    highlight, highlight_locations

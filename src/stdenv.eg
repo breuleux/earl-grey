@@ -66,9 +66,6 @@ stdenv.register_macro{"**"} with {{context, env}, ~data{a, b}} ->
 stdenv.register_macro{"//"} with {{context, env}, ~data{a, b}} ->
    'Math.floor{^a / ^b}
 
-stdenv.register_macro{"<>"} with {{context, env}, ~data{~void{}, x}} ->
-   'pr{^x}
-
 
 errf_macro{tags} = {{context, env}, match} ->
    ~void{} ->

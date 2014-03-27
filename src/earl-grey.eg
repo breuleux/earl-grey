@@ -1,21 +1,14 @@
 
 require:
-   "./helpers" ->
-      aslist, transform
-   "./util" ->
-      enumerate, items
-      binsearch
    "./location" ->
       Source, Location
-      highlight, highlight_locations
-      merge_locations
-      <<:, ++:
+      highlight_locations
    "./lex" ->
       tokenize
    "./parse" ->
       parse
    "./expand" ->
-      expand, Env
+      expand
    "./stdenv" ->
       stdenv
    "./translate-js" ->

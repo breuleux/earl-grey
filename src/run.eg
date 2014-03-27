@@ -1,6 +1,8 @@
 
 require:
    "./earl-grey" as eg
+   "./pp" -> [<>, Node]
+   "./util" -> [enumerate, items]
    fs, path, vm
 
 provide:
