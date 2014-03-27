@@ -1,0 +1,182 @@
+
+
+
+provide:
+   expand, Env, nullenv
+
+
+Env{parent} =
+   store = Object{}
+   self{expr} =
+      {.bind_env, self, expr}
+   self.resolve := {name} ->
+      attempt = store[name]
+      if attempt:
+         then: attempt
+         else: self.parent.resolve{name}
+   self.register := {name, value} ->
+      store[name] := value
+   self.register_macro := {name, m} ->
+      store[name] := ~macro{m}
+   self.fork := {} ->
+      Env{self}
+   self.parent := parent
+   self.store := store
+   self
+
+nullenv = {resolve{x} = undefined}
+
+
+js_contexts = {
+   js_for = {.multi, .multi, .multi, .multi}
+}
+
+
+expand{{context, env}, expr} =
+   expr := expand.step{{context, env}, expr}
+
+   match expr:
+      ~symbol{s} -> expr
+
+      ~void{} -> ~void{}
+
+      ~send{f, arg} ->
+         f := expand{{.head, env}, f}
+         ~send{f, expand{{.tail, env}, arg}}
+
+      ~value{v} -> expr
+
+      {type and [.array or .object], *args} -> ;; or .splice
+         arr = {}
+         while [args.length > 0]:
+            match expand.step{{type, env}, args.shift{}}:
+               ~splice{*stmts} ->
+                  args := stmts ++ args
+               other ->
+                  arr.push{other}
+         {type} ++
+            arr each x -> expand{{type, env}, x}
+
+      ~multi{*args} ->
+         arr = {}
+         while [args.length > 0]:
+            type = if{args.length == 1, .expr, .multi}
+            match expand.step{{type, env}, args.shift{}}:
+               ~splice{*stmts} ->
+                  args := stmts ++ args
+               ~sink{stmt} ->
+                  args.push{stmt}
+               other ->
+                  arr.push{{other, type}}
+         ~multi{} ++
+            arr each {x, type} -> expand{{type, env}, x}
+
+      ~data{*args} ->
+
+         is_obj = false
+         obj = ~object{}
+         arr = ~array{}
+         parts = {}
+
+         newpart{} =
+            match arr:
+               ~array{} -> false
+               other ->
+                  parts.push{arr}
+                  arr := ~array{}
+
+         while [args.length > 0]:
+            match expand.step{{type, env}, args.shift{}}:
+               ~assoc{} -> is_obj := true
+               ~assoc{k, v} ->
+                  is_obj := true
+                  obj.push with ~array{k, v}
+               ~splice{*exprs} ->
+                  args := exprs ++ args
+               ~dynsplice{expr} ->
+                  newpart{}
+                  parts.push{expr}
+               other ->
+                  arr.push{other}
+
+         newpart{}
+
+         r = match parts:
+            {} when is_obj ->
+               obj
+            {} -> {.array}
+            {arr and ~array{*things}} ->
+               if is_obj:
+                  arr.push{obj}
+               arr
+            other ->
+               if is_obj:
+                  parts.push{~array{obj}}
+               patch = ~symbol{"patch_array"}
+               ~send{patch, ~array{*parts}}
+
+         expand{{context, env}, r}
+
+      ~lambda{bindings, body} ->
+         ~lambda{bindings each x -> expand{~decl{env}, x}
+                   expand{~expr{env}, body}}
+
+      ~declare{binding, value} ->
+         ~declare{expand{~decl{env}, binding}
+                  expand{~expr{env}, value}}
+
+      ~assign{lhs, rhs} ->
+         ~assign{expand{~decl{env}, lhs}
+                 expand{~expr{env}, rhs}}
+
+      {type && [.js_while or .js_for or .js_for_in or .js_break
+                \ or .js_continue or .js_return or .js_delete
+                \ or .js_throw or .js_try or .js_new
+                \ or .if], *args} ->
+         ctxs = js_contexts[type] or {}
+         {type, *args.map{f}} where
+            f{x, i} = expand{{ctxs[i] or .expr, env}, x}
+
+      ~done{expr} ->
+         expr
+
+      other ->
+         throw E.syntax.illegal_node{
+            "An illegal node was found in expand"
+            {node = other}
+         }
+
+
+
+expand.step := {{context, env}, expr and match} ->
+   ~symbol{s} ->
+      v = env.resolve{s}
+      match {v, context}:
+         {undefined?, _} -> ~symbol{s}
+         {~macro{m}, .head} -> v
+         {~macro{m}, _} -> expand.step{{context, env}, m{{context, env}, ~void{}}}
+         other -> v
+
+   ~void{} -> ~void{}
+
+   ~macro{m} when [context == .head] ->
+      expr
+
+   ;; TODO: fix the bug that forces "when true"
+   ~macro{m} when true ->
+      expand.step{{context, env}, m{{context, env}, ~void{}}}
+
+   ~send{f, arg} ->
+      match expand.step{{.head, env}, f}:
+         ~macro{m} -> expand.step{{context, env}, m{{context, env}, arg}}
+         other -> expr
+
+   {type, *args} ->
+      expr
+
+   other ->
+      throw E.syntax.illegal_node{
+         "An illegal node was found in expand.step"
+         {node = other}
+      }
+
