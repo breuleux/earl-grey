@@ -1,6 +1,11 @@
 
 require:
-   "./helpers" -> aslist
+   "./util" ->
+      items
+   "./helpers" ->
+      aslist, gensym
+   "./pp" ->
+      <>
 
 provide:
    Translator, translate
@@ -37,10 +42,38 @@ js_op_table = {
 }
 
 
+
 class Translator:
 
    constructor{} =
-      @store := {=}
+      @cache := {=}
+      @prepend := {}
+
+   register_value{v, id} =
+      match @cache[id]:
+         ;; when @locked ->
+         ;;    throw E.translation.locked{msg} where
+         ;;       msg = "While serializing a value, we can't attempt to serialize another."
+         undefined? ->
+            temp = gensym{}
+            @cache[id] := name ;; {temp, ___serialize_ast{v}}
+            @prepend.push{@translate{..., .stmt}} with
+               #declare{temp, ___serialize_ast{v}}
+            temp
+         name ->
+            name
+
+   dump_store{} =
+      ;; decls = items{@store} each {id, {name, serial}} ->
+      ;;    #declare{name, serial}
+      ;; @store := {=}
+      ;; @locked := true
+      ;; v = @translate{#multi{*decls}, .stmt}
+      ;; @locked := false
+      ;; v
+      rval = @prepend.join{"\n"}
+      @prepend := {}
+      rval
 
    mangle{name} =
       tr = {
@@ -72,15 +105,15 @@ class Translator:
    body{b, mode} =
       orig := b
       b := aslist{b}
-      trst{stmt} = translate{stmt, .stmt}
+      trst{stmt} = @translate{stmt, .stmt}
       match mode:
          .expr ->
-            translate{x, mode} where
+            @translate{x, mode} where
                x = #send{#lambda{{}, orig}, {.array}}
          .return ->
             stmts = b.slice{0, -1}
             ret = b[b.length - 1]
-            stmts.map{trst}.join{""} + translate{ret, .return}
+            stmts.map{trst}.join{""} + @translate{ret, .return}
          .stmt ->
             b.map{trst}.join{""}
          other -> throw "OopsH"
@@ -94,9 +127,9 @@ class Translator:
 
    op{op, a, b} =
       e = match {a, b}:
-             {#void{}, _} -> op + translate{b, .expr}
-             {_, #void{}} -> translate{a, .expr} + op
-             _ -> translate{a, .expr} + op + translate{b, .expr}
+             {#void{}, _} -> op + @translate{b, .expr}
+             {_, #void{}} -> @translate{a, .expr} + op
+             _ -> @translate{a, .expr} + op + @translate{b, .expr}
       "(" + e + ")"
 
    translate{expr, mode} =
@@ -122,10 +155,14 @@ class Translator:
                   "(void 0)"
                [Number? or [== true] or [== false] or null?] ->
                   String{v}
+               {"::id" => id} when id ->
+                  @translate{..., mode} with
+                     @register_value{v, id}
                other ->
-                  <> v
-                  throw Error{"Unknown value"}
-                  "?!?[" + v + "]?!?"
+                  throw E.cannot_serialize{
+                     "Cannot serialize value"
+                     {value = v}
+                  }
             @expr{r, mode}
 
 
@@ -308,5 +345,7 @@ class Translator:
 
 
 translate{expr, mode} =
-   Translator{}.translate{expr, mode}
+   tr = Translator{}
+   t = tr.translate{expr, mode}
+   tr.dump_store{} + t
 

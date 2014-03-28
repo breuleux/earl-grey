@@ -5,6 +5,7 @@ require:
 
 provide:
    aslist, transform
+   gensym, gensym_factory
 
 aslist{match} =
    ;; #void{} -> {#void{}}
@@ -23,3 +24,14 @@ transform{expr, cb} =
             {name, *args.map{tr}}
    result <<: expr
 
+
+gensym_factory{prefix} =
+   prefix := "τ" + prefix
+   ;; prefix := "__t" + prefix
+   id = 0
+   {} ->
+      name = prefix + String{id}
+      id := id + 1
+      #symbol{name}
+
+gensym = gensym_factory{""}
