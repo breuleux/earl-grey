@@ -1,8 +1,12 @@
 
 require:
    "./earl-grey" as eg
-   "./pp" -> [<>, Node]
+   "./pp" ->
+      <>, Node
    "./util" -> [enumerate, items]
+   "./location" ->
+      Source
+      display_error
    fs, path, vm
 
 provide:
@@ -42,21 +46,37 @@ copy{src, dest} =
 
 libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
 
-run{match} =
+
+gen{text, file, prelude = null} =
+   eg.generate{Source{text, path.resolve{file}}, prelude}
+
+gen2{text, file} =
+   g = eg.Generator{}
+   g.generate{Source{text, path.resolve{file}}}
+
+
+run{cmd} =
+   _run{cmd} !!
+      e ->
+         display_error{e}
+
+_run{match} =
 
    {} or {.i or "in" or .interactive} ->
       require: repl
-      vm.runInThisContext{libdata, "stdin"}
+      ;; vm.runInThisContext{libdata, "stdin"}
       settings = {
          prompt = "<> "
          ignoreUndefined = true
          eval{input, context, filename, callback} =
+            g = eg.Generator{}
             result = [execute{} !! e -> handle{e}] where
                execute{} =
-                  text = eg.generate{input.slice{1, -1}}
+                  text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
                   vm.runInThisContext{text, "stdin"}
                handle{e} =
-                  console.log{e.stack or e}
+                  display_error{e}
+                  ;; console.log{e.stack or e}
                   undefined
             callback{null, result}
       }
@@ -65,9 +85,7 @@ run{match} =
 
    {.run, file} ->
       data = fs.readFileSync{file, .utf8}
-      code = eg.generate{data, libdata}
-      ;; vm.runInThisContext{code, file}
-      eval{code}
+      eval with gen2{data, file, libdata}
 
    {.tr or .translate, file, *args} ->
 
@@ -87,9 +105,9 @@ run{match} =
                      from = path.join{file, x}
                      to = path.join{out, name + ".js"}
                      data = fs.readFileSync{from, .utf8}
+                     prelude = if{R'[".raw.eg", end]? x, "", libdata}
                      fs.writeFileSync{to} with
-                        [eg.generate{data, ...} + "\n"] with
-                           if{R'[".raw.eg", end]? x, "", libdata}
+                        gen2{data, from, prelude} + "\n"
                   f ->
                      from = path.join{file, f}
                      to = path.join{out, f}
@@ -98,14 +116,30 @@ run{match} =
          when out ->
             data = fs.readFileSync{file, .utf8}
             fs.writeFileSync{out} with
-               eg.generate{data, libdata} + "\n"
+               gen2{data, file, libdata} + "\n"
 
          otherwise ->
             data = fs.readFileSync{file, .utf8}
-            console.log with eg.generate{data, ""} ;; libdata}
+            console.log with gen2{data, file, ""} ;; libdata}
+
+   ;; {.tr2, file, *args} ->
+
+   ;;    out = args[0]
+
+   ;;    stats = fs.statSync{file}
+
+   ;;    match:
+   ;;       when out ->
+   ;;          data = fs.readFileSync{file, .utf8}
+   ;;          fs.writeFileSync{out} with
+   ;;             gen2{data, file, libdata} + "\n"
+
+   ;;       otherwise ->
+   ;;          data = fs.readFileSync{file, .utf8}
+   ;;          console.log with gen2{data, file, ""} ;; libdata}
 
    {.tok, s} ->
-      eg.tokenize{eg.Source{s, null}} each token ->
+      eg.tokenize{Source{s, null}} each token ->
          <> token
          <> token.location.ref{}
          <> token.location.highlight{}
@@ -125,22 +159,10 @@ run{match} =
 
       walkloc with
          eg.parse{tokens} where
-            tokens = eg.tokenize{eg.Source{s, null}}
+            tokens = eg.tokenize{Source{s, null}}
 
    {.runs, data} ->
-      code = eg.generate{data, libdata} !!
-         e and E.syntax? {args} ->
-            <> div %
-                  .error_type % e.name
-                  .error_message % e.message
-            hls = {.hl1, .hl2, .hl3, .hl4}
-            locs = enumerate{items{args}} each
-               {i, {key, arg}} when arg.location ->
-                  {arg.location, hls[i mod 4]}
-            <> args
-            <> eg.highlight_locations{locs}
-            null
-      code and [<> eval{code}]
+      <> eval{gen2{data, "<command>", libdata}}
 
    other ->
       console.log with usage

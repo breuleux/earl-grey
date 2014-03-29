@@ -10,23 +10,35 @@ require:
    "./expand" ->
       expand
    "./stdenv" ->
-      stdenv
+      stdenv, stdprelude
    "./translate-js" ->
-      translate
+      translate, Translator
 
 provide:
    Source, Location, highlight_locations
    tokenize, parse
    generate_from_ast, generate
+   Generator
 
 
 generate_from_ast{ast} =
    ex = expand{#top{stdenv.fork{}}, #multi{ast}}
    translate{ex, .stmt}
 
-generate{data, prelude} =
-   t = tokenize{Source{data, null}}
+generate{source, prelude} =
+   t = tokenize{source}
    p = parse{t}
    ex = expand{#top{stdenv.fork{}}, #multi{p}}
    [prelude or ""] + translate{ex, .stmt}
+
+
+class Generator:
+   constructor{} =
+      @tr := Translator{stdprelude}
+   generate{source} =
+      t = tokenize{source}
+      p = parse{t}
+      ex = expand{#top{stdenv.fork{}}, #multi{p}}
+      rval = @tr.translate{ex, .stmt}
+      @tr.dump_store{} + rval
 

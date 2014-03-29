@@ -1,13 +1,17 @@
 
 require:
-   "./util" -> binsearch
-   "./pp" -> Node
+   "./util" ->
+      binsearch, items, enumerate
+   "./pp" ->
+      Node, <>, repr
+   fs
 
 provide:
    Source, Location
    highlight, highlight_locations
    merge_locations
    <<:, ++:
+   format_error, display_error
 
 class Source:
 
@@ -146,16 +150,30 @@ morsel{spans} =
 
    process{thespans[0][0], {}, thespans}
 
-
 highlight_locations{locations, context = 0} =
+   srcs = {=}
+   locations each {loc, cls} ->
+      key = String{loc.source and loc.source.url}
+      if [not srcs[key]]:
+         srcs[key] := {}
+      srcs[key].push with {loc, cls}
+   div %
+      items{srcs} each {_, locs} ->
+         highlight_locations_same_source{locs, context}
+
+highlight_locations_same_source{locations, context = 0} =
    loc = merge_locations{locations each {x, cls} -> x}
    src = loc.source
    {l1, l2} = loc.linerange{}
    first = Math.max{1, l1 - context}
    last = Math.min{src.nlines, l2 + context}
-   src.highlight_lines with
-      first, last
-      locations each {loc, cls} -> {loc.start, loc.end, {cls}}
+   div.location %
+      div.source %
+         .sourcefile % src.url or "???"
+         locations each {loc, cls} -> Node{{cls, .sourcepos}, loc.ref{}}
+      src.highlight_lines with
+         first, last
+         locations each {loc, cls} -> {loc.start, loc.end, {cls}}
 
 merge_locations{match} =
    {} ->
@@ -178,4 +196,41 @@ x ++: y =
    y := if{not y or Location? y, y, y.location}
    [merge_locations with {x, y}] !! undefined
 
+
+
+format_error{e and match} =
+
+   E.syntax? {args} ->
+      hls = {.hl1, .hl2, .hl3, .hl4}
+      locs = enumerate{items{args}} each
+         {i, {key, arg}} when arg.location ->
+            {arg.location, hls[i mod 4]}
+      div %
+         div %
+            .error_type % e.name
+            .error_message % e.message
+         repr{args}
+         highlight_locations{locs}
+
+   {location => #location{url, start, end}} ->
+      data = fs.readFileSync{url, .utf8} !! null
+      if data:
+         then:
+            loc = Location{Source{data, url}, start, end}
+            div %
+               div %
+                  .error_type % e.name
+                  .error_message % e.message
+               highlight_locations{{{loc, .hl1}}}
+         else:
+            div %
+               .traceback %
+                  e.stack or e
+
+   other ->
+      .traceback %
+         e.stack or e
+
+display_error{e} =
+   <> format_error{e}
 

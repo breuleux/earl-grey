@@ -8,7 +8,7 @@ require:
       enumerate, items
 
 provide:
-   stdenv
+   stdenv, stdprelude
 
 
 uuid{} =
@@ -59,6 +59,14 @@ stdenv = Env{nullenv}
    ;; "!" => "___not"
    ;; "++" => "___plusplus"
 
+
+stdenv.register{"___hasprop", #value{...}} with
+   Embedded with '
+      {match, key} ->
+         null? or undefined? -> false
+         String? x -> key in String.prototype
+         Number? x -> key in Number.prototype
+         x -> key in x
 
 stdenv.register{"___projector", #value{...}} with
    Embedded with '
@@ -145,7 +153,7 @@ stdenv.register{"range", #value{...}} with
             rval.push{i}
          rval
 
-stdenv.register{"augment", #value{...}} with 
+stdenv.register{"&:", #value{...}} with 
    Embedded with '
       {dest, values} ->
          for [k in values]:
@@ -158,7 +166,6 @@ stdenv.register{"augment", #value{...}} with
 ;;       {obj, msg and match} ->
 ;;          [String? or Number?] -> ___js_fetch{obj, msg}
 ;;          other -> obj["::send"]{msg}
-
 
 
 stdenv.register_macro{"++"} with {_, match} ->
@@ -445,11 +452,18 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
    match {context, expr}:
 
       {.multi or .expr, #data{lhs, rhs}} ->
+         _src = lhs.location and lhs.location.source and lhs.location.source.url
+         _start = lhs.location and lhs.location.start
+         _end = lhs.location and lhs.location.end
+
          {make_declarations! vars, clauses, ph} = parse_lhs{env, lhs, rhs}
          r = #splice{*vars}
 
          mkif{x} =
-            #if{x, #value{undefined}, #js_throw{#value{"a condition failed"}}}
+            ;; #if{x, #value{undefined}, #js_throw{#value{"a condition failed"}}}
+            #if{x, 'undefined} with
+               'throw[E.match{"The value failed to match"}
+                      \ &: {location = #location{^=_src, ^=_start, ^=_end}}]
 
          match clauses:
             {clause} ->
@@ -514,7 +528,7 @@ stdenv.register_macro{"if"} with {{context, env}, match} ->
       other ->
          #if{test, #multi{*other}, #value{null}}
    other ->
-      <> other
+      ;; <> other
       raise Error{"error in if"}
 
 
@@ -809,7 +823,9 @@ parse_lhs{env, lhs, rhs, gen} =
 
       helper_keys{temp, keys} =
          keys each {#symbol{k} or #value{k}, v} ->
-            ;; helper_noexpand{v, '[^temp ^=k]}
+            current.push with
+               '___hasprop{^temp, ^=k}
+            newclause{}
             helper{v, '[^temp ^=k]}
 
       helper_array{temp, specs, start} =
@@ -1000,8 +1016,8 @@ parse_lhs{env, lhs, rhs, gen} =
                helper_array{temp, specs, 0}
 
          other ->
-            <> other
-            <> Error{}.stack
+            ;;<> other
+            ;;<> Error{}.stack
             throw {"OopsG", other}
 
    helper{lhs, rhs}
@@ -1352,7 +1368,7 @@ stdenv.register_macro{"class"} with {{context, env}, arg} ->
 
    #done{expand{{context, newenv}, ...}} with
       ' | ^clsvar = ^ctor_args -> ^ctor_body
-        | augment{^clsvar, {^*static_defns}}
+        | [^clsvar] &: [^*static_defns]
         | ^*defns
         | ^clsvar
 
@@ -1465,5 +1481,64 @@ stdenv.register_macro{"match"} with {{context, env}, match} ->
       '[^obj |> ^clauses]
    '{^clauses} ->
       '[^=null |> ^clauses]
+
+
+stdprelude = Embedded with '
+
+   send{obj, msg and match} =
+      [String? or Number?] -> ___js_fetch{obj, msg}
+      other -> obj["::send"]{msg}
+
+   Array[":::project"] := {value and match} ->
+      Array? -> {true, value}
+      _ -> {true, {value}}
+
+   Array.prototype["::check"] := {value} ->
+      if [value instanceof Array]:
+         then:
+            for [i = 0, i < this.length, i++]:
+               if [this[i] != value[i]]:
+                  return false
+            true
+         else:
+            false
+
+   Array.prototype[":::project"] := {value} ->
+      if [value instanceof Array]:
+         then:
+            for [i = 0, i < this.length, i++]:
+               if [this[i] != value[i]]:
+                  rval = this.slice{0}
+                  rval.push{value}
+                  return {true, rval}
+            {true, value}
+         else:
+            rval = this.slice{0}
+            rval.push{value}
+            {true, rval}
+
+   Array.prototype[":::deconstruct"] := {value} ->
+      {true, value.slice{this.length}}
+
+   Array.prototype["::serialize_ast"] := {} ->
+      #array{*this.map{___serialize_ast}}
+
+   RegExp.prototype["::check"] := {value} ->
+      value.match{this}
+
+   RegExp.prototype[":::project"] := {value} ->
+      match value.match{this}:
+         null? m -> {false, null}
+         m -> {true, m}
+
+   RegExp.prototype[":::deconstruct"] := {value} ->
+      match value.match{this}:
+         null? m -> {false, null}
+         m -> {true, m}
+
+   Function.prototype["::send"] := {args} ->
+      this.apply{this, args}
+
+
 
 

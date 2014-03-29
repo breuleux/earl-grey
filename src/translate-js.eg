@@ -45,9 +45,12 @@ js_op_table = {
 
 class Translator:
 
-   constructor{} =
+   constructor{prelude = null} =
       @cache := {=}
       @prepend := {}
+      if prelude:
+         @prepend.push with
+            @translate{___serialize_ast{prelude}, .stmt}
 
    register_value{v, id} =
       match @cache[id]:

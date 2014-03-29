@@ -1,64 +1,9 @@
 
 ;; Macros generate uses of these
 
-;; augment{dest, values} =
-;;    for [k in values]:
-;;       if values.hasOwnProperty{k}:
-;;          dest[k] := values[k]
-;;    dest
-
 send{obj, msg and match} =
    [String? or Number?] -> ___js_fetch{obj, msg}
    other -> obj["::send"]{msg}
-
-;; patch_array{} =
-;;    r = {}
-;;    for [i = 0, i < arguments.length, i++]:
-;;       r := r.concat{___js_fetch{arguments, i}}
-;;    r
-
-;; range{from, to} =
-;;    rval = {}
-;;    for [i = from, i <= to, i++]:
-;;       rval.push{i}
-;;    rval
-
-
-;; Implementation of check, project and deconstruct
-
-;; ___checker{type} =
-;;    match type["::check"]:
-;;       undefined? ->
-;;          {value} -> value instanceof type
-;;       f ->
-;;          {value} -> f.call{type, value}
-
-;; ___projector{type} = {value} ->
-;;    match type[":::project"]:
-;;       undefined? ->
-;;          match type["::project"]:
-;;             undefined? ->
-;;                {true, type{value}}
-;;             f ->
-;;                {true, f{value}} !! {false, null}
-;;       f -> f.call{type, value}
-
-;; ___deconstructor{type} = {value} ->
-;;    match type[":::deconstruct"]:
-;;       undefined? ->
-;;          match type["::deconstruct"]:
-;;             undefined? ->
-;;                ? | [value instanceof Array] => {true, value}
-;;                  | else => {false, null}
-;;             f ->
-;;                {true, f.call{type, value}} !! {false, null}
-;;       f -> f.call{type, value}
-
-;; ___serialize_ast{match} =
-;;    String? x or Number? x ->
-;;       #value{x}
-;;    other ->
-;;       other["::serialize_ast"]{}
 
 
 ;; Integrate with builtins
@@ -97,7 +42,6 @@ Array.prototype[":::deconstruct"] := {value} ->
 Array.prototype["::serialize_ast"] := {} ->
    #array{*this.map{___serialize_ast}}
 
-
 RegExp.prototype["::check"] := {value} ->
    value.match{this}
 
@@ -113,70 +57,3 @@ RegExp.prototype[":::deconstruct"] := {value} ->
 
 Function.prototype["::send"] := {args} ->
    this.apply{this, args}
-
-
-;; Errors
-
-;; class ErrorFactory:
-
-;;    constructor{tags} =
-;;       @tags := tags
-
-;;    create{message = "", *args} =
-;;       e = Error{message}
-;;       e["::tags"] := @tags
-;;       e.args := args
-;;       e.name := [{.E} ++ @tags].join{"."}
-;;       e
-
-;;    "::check"{e} =
-;;       if [not e or not Error? e]:
-;;          return false
-;;       tags = e["::tags"] or {}
-;;       @tags each tag when tags.indexOf{tag} == -1 ->
-;;          return false
-;;       true
-
-;;    "::deconstruct"{e} =
-;;       e.args
-
-
-
-;; ;; Struct-related code
-
-;; StructFactory{name} =
-;;    make{} =
-;;       r = Array.prototype.slice.call{arguments, 0}
-;;       r["#"] := name
-;;       r
-;;    make[":::project"] := {value} ->
-;;       ? | [value instanceof Array and value["#"] == name] =>
-;;           {true, value}
-;;         | else =>
-;;           {true, make{value}}
-;;    make["::check"] := {value} ->
-;;       ? | [value instanceof Array and value["#"] == name] =>
-;;           true
-;;         | else =>
-;;           false
-;;    make[":::deconstruct"] := {value} ->
-;;       ? | [value instanceof Array and value["#"] == name] =>
-;;           {true, value.slice{0}}
-;;         | else =>
-;;           {false, false}
-
-;;    make
-
-;; Struct{name} =
-;;    r = Array.prototype.slice.call{arguments, 1}
-;;    r["#"] := name
-;;    r
-
-;; Struct["::check"] := {value} ->
-;;    ? | [value instanceof Array] => value["#"] != undefined
-;;      | else => false
-
-;; Struct[":::deconstruct"] := {value} ->
-;;    ? | [value instanceof Array and value["#"] != undefined] =>
-;;         {true, {value["#"]}.concat{value.slice{0}}}
-;;      | else => {false, null} ;; throw "cannot deconstruct"
