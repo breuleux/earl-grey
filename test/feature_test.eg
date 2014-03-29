@@ -131,7 +131,7 @@ results = blocktest:
       "cabbage".replace{re, "arria"} == "carriage"
 
       do: re = R'[start, +"a", {+"b"}, "a", end]
-      [{...} each re! {_, s} -> R"b+"? s] with
+      [{...} each re? {_, s} -> R"b+"? s] with
          "abba", "abbbbbba", "aaaaaba"
       [{...} each s -> not re? s] with
          "cabbage", "labia"

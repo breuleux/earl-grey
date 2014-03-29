@@ -44,13 +44,7 @@ copy{src, dest} =
    fs.writeFileSync{dest, data, .binary}
 
 
-libdata = fs.readFileSync{path.join{__dirname, "lib.raw.js"}}
-
-
-gen{text, file, prelude = null} =
-   eg.generate{Source{text, path.resolve{file}}, prelude}
-
-gen2{text, file} =
+gen{text, file} =
    g = eg.Generator{}
    g.generate{Source{text, path.resolve{file}}}
 
@@ -85,7 +79,7 @@ _run{match} =
 
    {.run, file} ->
       data = fs.readFileSync{file, .utf8}
-      eval with gen2{data, file, libdata}
+      eval with gen{data, file}
 
    {.tr or .translate, file, *args} ->
 
@@ -105,9 +99,8 @@ _run{match} =
                      from = path.join{file, x}
                      to = path.join{out, name + ".js"}
                      data = fs.readFileSync{from, .utf8}
-                     prelude = if{R'[".raw.eg", end]? x, "", libdata}
                      fs.writeFileSync{to} with
-                        gen2{data, from, prelude} + "\n"
+                        gen{data, from} + "\n"
                   f ->
                      from = path.join{file, f}
                      to = path.join{out, f}
@@ -116,27 +109,11 @@ _run{match} =
          when out ->
             data = fs.readFileSync{file, .utf8}
             fs.writeFileSync{out} with
-               gen2{data, file, libdata} + "\n"
+               gen{data, file} + "\n"
 
          otherwise ->
             data = fs.readFileSync{file, .utf8}
-            console.log with gen2{data, file, ""} ;; libdata}
-
-   ;; {.tr2, file, *args} ->
-
-   ;;    out = args[0]
-
-   ;;    stats = fs.statSync{file}
-
-   ;;    match:
-   ;;       when out ->
-   ;;          data = fs.readFileSync{file, .utf8}
-   ;;          fs.writeFileSync{out} with
-   ;;             gen2{data, file, libdata} + "\n"
-
-   ;;       otherwise ->
-   ;;          data = fs.readFileSync{file, .utf8}
-   ;;          console.log with gen2{data, file, ""} ;; libdata}
+            console.log with gen{data, file}
 
    {.tok, s} ->
       eg.tokenize{Source{s, null}} each token ->
@@ -162,7 +139,7 @@ _run{match} =
             tokens = eg.tokenize{Source{s, null}}
 
    {.runs, data} ->
-      <> eval{gen2{data, "<command>", libdata}}
+      <> eval{gen{data, "<command>"}}
 
    other ->
       console.log with usage

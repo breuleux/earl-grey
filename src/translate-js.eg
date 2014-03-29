@@ -59,7 +59,7 @@ class Translator:
          ;;       msg = "While serializing a value, we can't attempt to serialize another."
          undefined? ->
             temp = gensym{}
-            @cache[id] := name ;; {temp, ___serialize_ast{v}}
+            @cache[id] := temp ;; {temp, ___serialize_ast{v}}
             @prepend.push{@translate{..., .stmt}} with
                #declare{temp, ___serialize_ast{v}}
             temp
