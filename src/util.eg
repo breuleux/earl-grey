@@ -2,6 +2,7 @@
 provide:
    items, enumerate
    binsearch
+   classify
 
 
 items{obj} =
@@ -31,3 +32,16 @@ binsearch{xs, x} =
          [_] ->
             return [mid + 1]
    lo
+
+classify{xs} =
+   results = {=}
+   while xs.length:
+      match xs.shift{}:
+         #splice{newxs} ->
+            xs := newxs ++ xs
+         {cls, x} ->
+            if [not results[cls]]:
+               results[cls] := {}
+            results[cls].push with x
+   results
+

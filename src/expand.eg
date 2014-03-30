@@ -162,8 +162,7 @@ expand.step := {{context, env}, expr and match} ->
    #macro{m} when [context == .head] ->
       expr
 
-   ;; TODO: fix the bug that forces "when true"
-   #macro{m} when true ->
+   #macro{m} ->
       expand.step{{context, env}, m{{context, env}, #void{}}}
 
    #send{f, arg} ->
@@ -179,4 +178,24 @@ expand.step := {{context, env}, expr and match} ->
          "An illegal node was found in expand.step"
          {node = other}
       }
+
+
+
+expand.step_all := {context, {*stmts}} ->
+   pre = {}
+   bulk = {}
+   post = {}
+   while stmts.length:
+      match expand.step{context, stmts.shift{}}:
+         #splice{*prepend} ->
+            stmts := prepend ++ stmts
+         #float{stmt} ->
+            pre ++= expand.step_all{context, {stmt}}
+         #sink{stmt} ->
+            post ++= expand.step_all{context, {stmt}}
+         #multimacro{m} ->
+            stmts := m{context, stmts}
+         x ->
+            bulk.push with x
+   [pre ++ bulk] ++ post
 

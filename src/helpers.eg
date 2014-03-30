@@ -35,3 +35,4 @@ gensym_factory{prefix} =
       #symbol{name}
 
 gensym = gensym_factory{""}
+

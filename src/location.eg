@@ -188,7 +188,8 @@ merge_locations{match} =
 
 
 x <<: y =
-   x.location := if{not y or Location? y, y, y.location}
+   if [not x.location]:
+      x.location := if{not y or Location? y, y, y.location}
    x
 
 x ++: y =

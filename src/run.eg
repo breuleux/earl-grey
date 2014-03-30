@@ -53,6 +53,7 @@ run{cmd} =
    _run{cmd} !!
       e ->
          display_error{e}
+         process.exit{1}
 
 _run{match} =
 

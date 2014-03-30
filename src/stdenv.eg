@@ -530,7 +530,7 @@ stdenv.register_macro{"if"} with {{context, env}, match} ->
          #if{test, #multi{*other}, #value{null}}
    other ->
       ;; <> other
-      raise Error{"error in if"}
+      throw Error{"error in if"}
 
 
 stdenv.register_macro{"cond"} with {{context, env}, #data{clauses}} ->
