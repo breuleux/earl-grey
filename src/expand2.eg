@@ -1,0 +1,446 @@
+
+require:
+   "./pp" ->
+      <>
+   "./location" ->
+      <<:
+   "./util" ->
+      classify, items, enumerate
+
+provide:
+   Env, nullenv, stdenv
+   Scope, topscope
+   track_location
+   expand, step, step_all
+   GenSym, gensym
+   bind_ast
+
+
+GenSym{prefix} =
+   id = 0
+   {pfx = null} ->
+      r = #variable{[pfx or prefix] + [String! id]}
+      id++
+      r
+
+gensym = GenSym{"___t"}
+
+
+class Scope:
+
+   constructor{parent = null} =
+      #variable{name} = gensym{"scope"}
+      @name := name
+      @parent := parent
+
+   toString{} =
+      "Scope{" + @name + "}"
+
+
+class Env:
+
+   constructor{} =
+      @scopes := {=}
+
+   resolve{scope, name} =
+      if [scope == null]:
+         return undefined
+      scope_data = @scopes[scope.name]
+      if [scope_data and scope_data[name]]:
+         then: scope_data[name]
+         else: @resolve{scope.parent, name}
+
+   bind{scope, name, value} =
+      if [not @scopes[scope.name]]:
+         @scopes[scope.name] := {=}
+      @scopes[scope.name][name] := value
+
+   fork{} =
+      e = Env{}
+      items{@scopes} each {scope, bindings} ->
+         items{bindings} each {k, v} ->
+            if [not e.scopes[scope]]:
+               e.scopes[scope] := {=}
+            e.scopes[scope][k] := v
+      e
+
+   toString{} =
+      "Env{...}"
+
+
+nullenv = Env{}
+
+
+bind_ast{expr and match, env} =
+   {env => e} ->
+      expr
+   #symbol or #value or #variable or #macro or #void ->
+      expr &: {env = env}
+   {type, *args} ->
+      args each arg -> bind_ast{arg, env}
+      expr &: {env = env}
+   other ->
+      expr &: {env = env}
+
+
+track_location{f} = 
+   f2{context, scope, expr} =
+      rval = f{context, scope, expr} !!
+         e ->
+            e <<: expr
+            throw e
+      match rval:
+         #bounce{v} ->
+            f2{context, scope, v <<: expr}
+         other ->
+            other <<: expr
+   f2
+
+
+run_macro{m, context, scope, form, arg} =
+   rval = m{context, scope, form, arg}
+   bind_ast{rval, stdenv.fork{}}
+   rval
+
+
+
+;; Perform one step of expansion.
+
+;; Essentially, if the given expression is a macro call, it will be
+;; expanded. If it is a plain macro, it will also be expanded, with
+;; #void{} as its argument. Nothing else is expanded, and step does
+;; not keep going recursively.
+
+;; step is appropriate for use in macros that process specific node
+;; types. For instance, pattern matching recognizes the #check{...}
+;; node. expand will refuse that node, because it doesn't recognize
+;; it, but step will let macros produce #check nodes and will leave
+;; them untouched, so that the pattern matching macro can do something
+;; with it and produce legal nodes.
+
+;; context: the context in which the expression is evaluated (#expr,
+;; #pattern, #blocktest, etc.)
+
+;; scope: the scope in which we are located
+
+;; expr: the expression to expand (one step)
+
+step = track_location{...} with
+
+   {context, scope, expr and match} ->
+
+      #symbol{s} ->
+         {=> env} = expr
+         match env.resolve{scope, s}:
+            #macro{m} ->
+               match context:
+                  #expr{.head} ->
+                     #macro{m}
+                  other ->
+                     #bounce with run_macro{m, context, scope, expr, #void{}}
+            other ->
+               expr
+
+      #macro{m} ->
+         match context:
+            #expr{.head} ->
+               expr
+            other ->
+               #bounce with run_macro{m, context, scope, expr, #void{}}
+
+      #send{f, arg} ->
+         match step{#expr{.head}, scope, f}:
+            #macro{m} ->
+               #bounce with run_macro{m, context, scope, expr, arg}
+            other ->
+               expr
+
+      other ->
+         expr
+
+
+;; Equivalent of step for a list of expressions. It recognizes
+;; additional instructions:
+
+;; #splice{...} -> splice expressions into the stream, expand them
+
+;; #float{expr} -> float the expression to the top. If multiple floats
+;;    are found, the first occurrences will be higher
+
+;; #sink{expr} -> sinks the expression to the bottom. If multiple sinks
+;;    are found, the first occurrences will be higher up
+
+;; #multimacro{m} -> m is a macro that should take the remaining
+;;    expressions in the list (those that come after itself), and
+;;    return a new list of expressions.
+
+step_all{context, scope, {*stmts}} =
+   pre = {}
+   bulk = {}
+   post = {}
+   while stmts.length:
+      current = stmts.shift{}
+      match step{context, scope, current}:
+         #splice{*prepend} ->
+            stmts := prepend ++ stmts
+         #float{stmt} ->
+            pre ++= step_all{context, scope, {stmt}}
+         #sink{stmt} ->
+            post ++= step_all{context, scope, {stmt}}
+         #multimacro{m} ->
+            stmts := m{context, scope, current, stmts}
+         x ->
+            bulk.push with x
+   [pre ++ bulk] ++ post
+
+
+;; Compute the full expansion of the provided expression. expand is,
+;; more or less, the handler for the #expr context.
+
+generic_nodes = {
+   .if
+   .js_while, .js_for, .js_for_in
+   .js_break, .js_continue, .js_return
+   .js_delete, .js_throw, .js_try, .js_new
+}
+
+expand = track_location{...} with
+
+   {context, scope, expr} ->
+
+      expr := step{context, scope, expr}
+
+      match expr:
+
+         #symbol{s} ->
+            {=> env} = expr
+            match env.resolve{scope, s}:
+               undefined? ->
+                  throw E.syntax.undeclared{"Undeclared variable: " + s, {node = expr}}
+               other ->
+                  #bounce{other}
+
+         #value{_} ->
+            expr
+
+         #variable{_} ->
+            expr
+
+         #void{} ->
+            expr
+
+         #send{f, arg} ->
+            #send with 
+               expand{#expr{.head}, scope, f}
+               expand{#expr{.tail}, scope, arg}
+
+         {type and [.array or .object], *args} ->
+            newargs = step_all{#expr{type}, scope, args} each arg ->
+               expand{#expr{.expr}, scope, arg}
+            {type, *newargs}
+
+         #multi{*args} ->
+            newscope = Scope{scope}
+            {=> newargs, => vars} = classify{.newargs, .vars} with
+               step_all{#expr{.multi}, scope, args} each
+                  #declare{variable and #symbol{s}, value = null} ->
+                     {=> env} = variable
+                     v = gensym{s} <<: variable
+                     env.bind{newscope, s} with v
+                     if value:
+                        then:
+                           #splice with
+                              #newargs{#assign{v, value}}
+                              #vars{v}
+                        else:
+                           #vars{variable}
+                  other ->
+                     #newargs{other}
+            if vars.length:
+               then:
+                  #scope{vars, #multi{* ...}} with
+                     newargs each arg -> expand{#expr{.expr}, newscope, arg}
+               else:
+                  #multi{* ...} with
+                     newargs each arg -> expand{#expr{.expr}, scope, arg}
+
+         #data{*args} ->
+
+            is_obj = false
+            obj = #object{}
+            arr = #array{}
+            parts = {}
+
+            newpart{} =
+               match arr:
+                  #array{} -> false
+                  other ->
+                     parts.push{arr}
+                     arr := #array{}
+
+            step_all{#expr{.data}, scope, args} each
+               #assoc{} ->
+                  is_obj := true
+               #assoc{k, v} ->
+                  is_obj := true
+                  obj.push with {k, v}
+               #dynsplice{expr} ->
+                  newpart{}
+                  parts.push{expr}
+               other ->
+                  arr.push{other}
+
+            newpart{}
+
+            r = match parts:
+               {} when is_obj ->
+                  obj
+               {} ->
+                  #array{}
+               {arr and #array{*things}} ->
+                  if is_obj:
+                     arr.push{obj}
+                  arr
+               other ->
+                  if is_obj:
+                     parts.push{#array{obj}}
+                  patch = #variable{"++"}
+                  #send{patch, #array{*parts}}
+
+            expand{context, scope, r}
+
+         #assign{target, value} ->
+            #assign with
+               expand{#expr, scope, target}
+               expand{#expr, scope, value}
+
+         #lambda{bindings, body} ->
+            newscope = Scope{scope}
+            #lambda with
+               bindings each
+                  #symbol{b} and {=> env} ->
+                     [env.bind{newscope, b, v}, v] where
+                        v = gensym{b}
+                  other ->
+                     throw E.syntax.binding{"Not a valid binding.", {node = other}}
+               expand{#expr{.expr}, newscope, body}
+
+         {type, *args} when [generic_nodes.indexOf{type} != -1] ->
+            {type} ++
+               args each arg ->
+                  expand{#expr{.expr}, scope, arg}
+
+         other ->
+            throw E.syntax.illegal_node{"An illegal node was found.", {node = other}}
+
+
+
+topscope = Scope{null}
+
+stdenv = nullenv.fork{}
+
+[{...} each k -> stdenv.bind{topscope, k, #variable{k}}] with
+   "+", "-", "*", "/", "mod"
+   ".&", ".|", ".^"
+   "and", "or", "not"
+   "==", "!=", "===", "!=="
+   "<", ">", "<=", ">="
+   "<<", ">>", ">>>"
+   "in", "instanceof", "--"
+   "++"
+
+[items{{...}} each {k, v} -> stdenv.bind{topscope, k, #macro{v}}] with
+
+   "="{match, scope, form, #data{lhs, rhs}} =
+      #expr{.multi} ->
+         #declare{lhs, rhs}
+      other ->
+         E.syntax.declare{"A variable cannot be declared at that location"}
+
+   ":="{context, scope, form, #data{lhs, rhs}} =
+      #assign{lhs, rhs}
+
+   if{context, scope, form, match} =
+      #data{test, a, b} ->
+         #if{test, a, b}
+      #data{test, #multi! {*match}} ->
+         {'then{^a}, 'else{^b}} ->
+            #if{test, a, b}
+         {*s1, 'else{^b}} ->
+            #if{test, #multi{*s1}, b}
+         other ->
+            #if{test, #multi{*other}, #value{null}}
+
+   let{context, scope, form, #data{#multi! {*bindings}, #multi! {*body}}} =
+      #multi{*bindings, #multi{*body}}
+
+   [where]{context, scope, form, #data{body, bindings}} =
+      'let{^bindings, ^body}
+
+
+
+   "<==>"{context, scope, form, #data{a, b}} =
+      ' | temp = ^a
+        | ^a := ^b
+        | ^b := temp
+
+   numbers{context, scope, form, #data{body, => env}} =
+      nums = "zero one two three four five six seven eight nine ten".split{" "}
+      syms = nums each n ->
+         #symbol{n} &: {env = env}
+      rval = #multi ++
+         enumerate{syms} each {i, sym} -> #declare{sym, #value{i}}
+      rval.push with body
+      rval
+
+   right{context, env, form, expr} =
+      #value{"yes"}
+
+   wrong{context, env, form, #value{0}} =
+      #wrong{123}
+
+
+
+
+class PatternParser:
+
+   constructor{assign, wraptest} =
+      @assign := assign
+      @wraptest := wraptest
+      @vars := {}
+      @placeholder := null
+
+   parse{scope, pattern, rhs, toplevel = false} =
+      rval = match step{#pattern, scope, pattern}:
+         #void ->
+            '[^rhs === null]
+         #ignore ->
+            '[^rhs || true]
+         #symbol and expr ->
+            {v, code} = @assign{expr, rhs}
+            @vars.push with v
+            code
+         #value{v} ->
+            '[^rhs == ^=v]
+         #test{condition, subp} ->
+            '[^condition && ^[@parse{scope, subp, rhs}]]
+         #project{projector, subp} ->
+            ' | res = [^projector]{^rhs}
+              | res[0] && ^[@parse{scope, subp, 'res[1]}]
+
+         ;; #check{#macro and mac, subp} ->
+         ;;    @parse{scope, ...} with
+
+
+         ;;    '[^mac ^subp]
+
+         ;; #check{checker, subp} ->
+         ;;    ' | let [temp = ^rhs]:
+         ;;         [^checker]{temp} && ^[@parse{scope, subp, temp}]
+
+      @wraptest{rval <<: pattern}
+
+
+
+
+
