@@ -204,7 +204,7 @@ class Translator:
          #send{#symbol{"___node"}, #value{f}} ->
             f
 
-         #send{#symbol{"___js_fetch"}, #array{f, msg}} ->
+         #send{#symbol{"___js_fetch"} or #variable{"___js_fetch"}, #array{f, msg}} ->
             @expr{trf + "[" + trmsg + "]", mode} where
                trf = @translate{f, .expr}
                trmsg = @translate{msg, .expr}

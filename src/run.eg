@@ -140,7 +140,9 @@ _run{match} =
             tokens = eg.tokenize{Source{s, null}}
 
    {.test, s} ->
-      console.log with eg.generate2{Source{s, "<test>"}}
+      code = eg.generate2{Source{s, "<test>"}}
+      console.log with code
+      <> eval{code}
 
    {.runs, data} ->
       <> eval{gen{data, "<command>"}}

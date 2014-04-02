@@ -447,8 +447,8 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
             ;; #if{x, #value{undefined}, #js_throw{#value{"a condition failed"}}}
 
             #if{x, 'undefined} with
-               'throw[E.match{"The value failed to match"}
-                      \ &: {location = #location{^=_src, ^=_start, ^=_end}}]
+               'throw[E.match{"The value failed to match"}]
+               ;;       \ &: {location = #location{^=_src, ^=_start, ^=_end}}]
 
             ;; #if{x, 'undefined} with
             ;;    'throw[E.match{"The value failed to match"}]

@@ -3,6 +3,7 @@ provide:
    items, enumerate
    binsearch
    classify
+   neighbours
 
 
 items{obj} =
@@ -60,4 +61,11 @@ classify{*classes, xs} =
          other ->
             results.rest.push with other
    results
+
+
+neighbours{match} =
+   {} -> {}
+   {x} -> {}
+   {x, y, *rest} ->
+      {{x, y}} ++ neighbours{{y} ++ rest}
 

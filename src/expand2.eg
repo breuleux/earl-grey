@@ -5,7 +5,7 @@ require:
    "./location" ->
       <<:
    "./util" ->
-      classify, items, enumerate
+      classify, items, enumerate, neighbours
 
 provide:
    Env, nullenv, stdenv
@@ -25,6 +25,10 @@ GenSym{prefix} =
 
 gensym = GenSym{"___t"}
 
+uuid{} =
+   #variable{s} = gensym{}
+   s
+
 
 class Scope:
 
@@ -32,6 +36,19 @@ class Scope:
       #variable{name} = gensym{"scope"}
       @name := name
       @parent := parent
+      @options := {=}
+
+   getopt{opt} =
+      match:
+         when opt in @options ->
+            @options[opt]
+         when @parent == null ->
+            undefined
+         otherwise ->
+            @parent.getopt{opt}
+
+   setopt{opt, value} =
+      @options[opt] := value
 
    toString{} =
       "Scope{" + @name + "}"
@@ -250,8 +267,13 @@ expand = track_location{...} with
 
          #multi{*args} ->
             newscope = Scope{scope}
+            stepscope =
+               if{expr.nonrecursive, scope, newscope}
             {=> newargs, => vars} = classify{.newargs, .vars} with
-               step_all{#expr{.multi}, scope, args} each
+               step_all{#expr{.multi}, stepscope, args} each
+                  #option{opt, value} ->
+                     newscope.setopt{opt, value}
+                     #ignore
                   #declare{variable and #symbol{s}, value = null} ->
                      {=> env} = variable
                      v = gensym{s} <<: variable
@@ -338,8 +360,11 @@ expand = track_location{...} with
                      [env.bind{newscope, b, v}, v] where
                         v = gensym{b}
                   other ->
-                     throw E.syntax.binding{"Not a valid binding.", {node = other}}
+                     throw E.syntax.lambda.binding{"Not a valid binding.", {node = other}}
                expand{#expr{.expr}, newscope, body}
+
+         #use{newscope, x} ->
+            expand{context, newscope, x}
 
          {type, *args} when [generic_nodes.indexOf{type} != -1] ->
             {type} ++
@@ -349,9 +374,6 @@ expand = track_location{...} with
          other ->
             throw E.syntax.illegal_node{"An illegal node was found.", {node = other}}
 
-uuid{} =
-   #variable{s} = gensym{}
-   s
 
 class Embedded:
    constructor{code} =
@@ -385,7 +407,7 @@ stdenv = nullenv.fork{}
    .___js_fetch
 
 
-overridable{f}{match, scope, form, arg} =
+overridable{f}{match and context, scope, form, arg} =
    #pattern ->
       #nostep{form}
    other ->
@@ -420,6 +442,21 @@ protected_value{name, value}{match, scope, form, arg} =
          other ->
             #send{#variable{"*"}, expr}
 
+   "_"{#pattern, scope, form, #void{}} =
+      #ignore{}
+
+   "and"{match, scope, form, #data{lhs, rhs} and arg} =
+      #pattern ->
+         #all{lhs, rhs}
+      other ->
+         #send{#variable{"and"}, arg}
+
+   "or"{match, scope, form, #data{lhs, rhs} and arg} =
+      #pattern ->
+         #any{lhs, rhs}
+      other ->
+         #send{#variable{"or"}, arg}
+
    "."{context, scope, form, match} =
       #data{#void{}, #symbol{s}} ->
          #value{s}
@@ -429,11 +466,18 @@ protected_value{name, value}{match, scope, form, arg} =
    "="{match, scope, form, #data{lhs, rhs}} =
       #expr{.multi} ->
          pp = PatternParser{scope, lhs}
-         exec = pp.process{rhs} with {
+         exec = pp.process{#use{scope, rhs}} with {
             assign{v, value} =
                #multi with
-                  #assign{v, value}
+                  #assign{v, value} <<: v
                   #value{true}
+            wrap{pattern, result} =
+               ;; ;; <> "-------------"
+               ;; ;; <> pattern
+               ;; if result.location:
+               ;;    then: <> result.location.highlight{}
+               ;;    else: <> "NO LOCATION"
+               result
          }
          match {pp.vars, exec}:
             {{v}, #multi{#assign{_, value}, #value{== true}}} ->
@@ -441,12 +485,22 @@ protected_value{name, value}{match, scope, form, arg} =
             other ->
                #splice{*decls, test} where
                   decls = pp.vars each v -> #declare{v, #value{undefined}}
-                  test = 'if{^exec, true, false}
+                  test = 'if{^exec, true, throw Error{"mismatch"}}
       #expr{.data} ->
          #symbol{s} or #value{s} = lhs
          #assoc{#value{s}, rhs}
+      #pattern ->
+         #default{lhs, rhs}
       other ->
          throw E.syntax.declare{"A variable cannot be declared at that location"}
+
+   "=>"{match, scope, form, #data{lhs, rhs, => env}} =
+      #pattern ->
+         match {lhs, rhs}:
+            {#void, #symbol{k} or #value{k}} ->
+               #assoc{#value{k}, #symbol{k} &: {env = env}}
+            {#symbol{k} or #value{k}, rhs} ->
+               #assoc{#value{k}, rhs}
 
    ":="{context, scope, form, #data{lhs, rhs}} =
       #assign{lhs, rhs}
@@ -468,8 +522,26 @@ protected_value{name, value}{match, scope, form, arg} =
          other ->
             #if{test, #multi{*other}, #value{null}}
 
-   let{context, scope, form, #data{#multi! {*bindings}, #multi! {*body}}} =
-      #multi{*bindings, #multi{*body}}
+   while{context, scope, form, #data{test, body}} =
+      {.js_while, test, body}
+
+   for{context, scope, form, #data{match, body}} =
+      #multi{a, b, c} ->
+         #multi with
+            a
+            #js_for{#value{null}, b, c, body}
+      '[^a in ^b] ->
+         #multi with
+            #declare{a, #value{null}} ;; this is to show the symbol as resolved
+            #js_for_in{a, b, body}
+
+   let{context, scope, form, #data{#multi! {*bindings}, body}} =
+      construct{match} =
+         {} -> body
+         {x, *xs} ->
+            #multi{x, construct{xs}} &: {nonrecursive = true}
+      construct{bindings}
+      ;; #multi{*bindings, body} &: {nonrecursive = true}
 
    [where]{context, scope, form, #data{body, bindings}} =
       'let{^bindings, ^body}
@@ -477,6 +549,10 @@ protected_value{name, value}{match, scope, form, arg} =
    "break" => overridable with
       {context, scope, form, #void{}} ->
          #js_break{}
+
+   "throw" => overridable with
+      {context, scope, form, arg} ->
+         #js_throw{arg}
 
    "?"{context, scope, form, #data{expr, #void{}}} =
       checker = match expr:
@@ -496,6 +572,21 @@ protected_value{name, value}{match, scope, form, arg} =
                other ->
                   #check{checker, expr}
          other -> '[^checker]{^expr}
+
+   "!"{context, scope, form, #data{expr, #void{}}} =
+      projector = match expr:
+         'String -> mac1 with {x} -> '{true, String{^x}}
+         'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+         other -> '___projector{^expr}
+
+      #macro{...} with {match, env, form, expr} ->
+         #pattern ->
+            match expr:
+               #void{} ->
+                  #project{projector, #ignore{}}
+               other ->
+                  #project{projector, expr}
+         other -> '[^projector]{^expr}[1]
 
    "<==>"{context, scope, form, #data{a, b}} =
       ' | temp = ^a
@@ -529,36 +620,35 @@ class PatternParser:
       @vars := {}
       @pattern := @expand{scope, pattern, true}
 
-   ;; parse_specs{scope, specs} =
-   ;;    rest = undefined
-   ;;    rval = classify{.fw, .bw, .keys, .defaults} with
-   ;;       step_all{scope, specs} each
-   ;;          #dynsplice{variable} ->
-   ;;             rest := variable
-   ;;             #ignore
-   ;;          #assoc{key} ->
-   ;;             #keys with {key, key}
-   ;;          #assoc{key, value} ->
-   ;;             #keys with {key, value}
-   ;;          #default{variable, value} and match ->
-   ;;             when rest ->
-   ;;                throw E.syntax{"No default arguments after rest arg."}
-   ;;             otherwise ->
-   ;;                #defaults with {variable, value}
-   ;;          v when rest == undefined ->
-   ;;             #fw{v}
-   ;;          v ->
-   ;;             #bw{v}
-   ;;    rval.rest := rest
-   ;;    rval
+   parse_specs{scope, specs} =
+      rest = undefined
+      rval = classify{.fw, .bw, .keys, .defaults} with
+         step_all{#pattern, scope, specs} each
+            #dynsplice{variable} ->
+               rest := @expand{scope, variable}
+               #ignore
+            #assoc{key} ->
+               #keys with {key, @expand{scope, key}}
+            #assoc{key, subp} ->
+               #keys with {key, @expand{scope, subp}}
+            #default{variable, value} ->
+               if rest:
+                  then: throw E.syntax.pattern{"No default arguments after rest arg."}
+                  else: #defaults with {@expand{scope, variable}, value}
+            v when rest == undefined ->
+               #fw with @expand{scope, v}
+            v ->
+               #bw with @expand{scope, v}
+      rval.rest := rest
+      rval
 
-   expand{scope, pattern, toplevel = false} =
+   expand{scope, pattern, toplevel = false, checked = false} =
       expr = step{#pattern, scope, pattern}
       rval = match expr:
          #void ->
             #check{mac1{{x} -> '[^x == ^=null]}, #ignore}
          #ignore or #special ->
-            newpattern
+            expr
          #symbol or #variable ->
             @vars.push with expr
             #assign{expr}
@@ -566,22 +656,58 @@ class PatternParser:
             #check{mac1{{x} -> '[^x == ^=v]}, #ignore}
 
          #test{condition, subp} ->
-            #test{condition, @expand{scope, subp, toplevel}}
+            #test{condition, @expand{scope, subp, toplevel, false}}
          #project{projector, subp} ->
-            #project{projector, @expand{scope, subp, toplevel}}
+            #project{projector, @expand{scope, subp, toplevel, true}}
          #check{checker, subp} ->
-            #check{checker, @expand{scope, subp, toplevel}}
+            #check{checker, @expand{scope, subp, toplevel, true}}
 
          #send{f, arg} when not toplevel ->
             throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
                msg = "Function arguments can only be declared as a top level pattern."
          #send{f, #data and arguments} ->
             @arguments := arguments
-            @expand{scope, f, false}
+            @expand{scope, f, false, false}
          #send{f, arg} ->
             throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
                msg = {"Function must be declared with an array of arguments"
                       "(did you mean to use ':='?)"}.join{" "}
+
+         #all{*xs} ->
+            #all ++ [xs each x -> @expand{scope, x}]
+
+         #any{*xs} ->
+            normalize{vars} =
+               [...].sort{}.join{","} with
+                  vars each #symbol{v} -> v
+            pps = xs each x ->
+               PatternParser{scope, x}
+            neighbours{pps} each {pp1, pp2} ->
+               pps each pp -> normalize{pp.vars}
+               if [normalize{pp1.vars} != normalize{pp2.vars}]:
+                  throw E.syntax.pattern{
+                     "Both branches of 'or' must contain the same variables"
+                     {vars1 = pp1.vars.sort{} <<: pp1.pattern
+                      vars2 = pp2.vars.sort{} <<: pp2.pattern}
+                  }
+            {{=> vars}, *} = pps
+            @vars ++= vars
+            #any{*patts} where patts = pps each pp -> pp.pattern
+
+         #data{*args} ->
+            specs = @parse_specs{scope, args}
+            match specs:
+               {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
+                  #object_pattern{*keys}
+                  ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
+               {keys => {}, => fw, => bw, => defaults, => rest} ->
+                  patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
+                  if checked:
+                     then: patt
+                     else: #check{mac1{{x} -> '[^x instanceof Array]}, patt}
+               other ->
+                  throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
+                     msg = "Pattern must be an array or an object."
 
          other ->
             throw E.syntax.pattern{"Illegal pattern", {node = other}}
@@ -594,10 +720,22 @@ class PatternParser:
             then: '[^[@arguments] -> ^rhs]
             else: rhs
 
+   construct_conj{all} =
+      match all:
+         {} -> 'true
+         {x} -> x
+         {x, *xs} -> '[^x and ^[@construct_conj{xs}]]
+
+   construct_disj{all} =
+      match all:
+         {} -> 'true
+         {x} -> x
+         {x, *xs} -> '[^x or ^[@construct_disj{xs}]]
+
    process_helper{pattern, rhs, fns} =
       rval = match pattern:
          #ignore ->
-            '[^rhs || true]
+            '[^rhs or true]
          #assign{sym} ->
             fns.assign{sym, rhs}
          #test{condition, subp} ->
@@ -607,42 +745,83 @@ class PatternParser:
                  [^checker]{temp} and ^[@process_helper{subp, 'temp, fns}]
          #project{projector, subp} ->
             ' | let [res = [^projector]{^rhs}]:
-                 res[0] && ^[@process_helper{subp, 'res[1], fns}]
-      rval
+                 res[0] and ^[@process_helper{subp, 'res[1], fns}]
 
-   ;; parse{scope, pattern, rhs, toplevel = false} =
-   ;;    rval = match step{#pattern, scope, pattern}:
-   ;;       #void ->
-   ;;          '[^rhs === null]
-   ;;       #ignore ->
-   ;;          '[^rhs || true]
-   ;;       #symbol and expr ->
-   ;;          {v, code} = @assign{expr, rhs}
-   ;;          @vars.push with v
-   ;;          code
-   ;;       #value{v} ->
-   ;;          '[^rhs == ^=v]
-   ;;       #test{condition, subp} ->
-   ;;          '[^condition && ^[@parse{scope, subp, rhs}]]
-   ;;       #project{projector, subp} ->
-   ;;          ' | res = [^projector]{^rhs}
-   ;;            | res[0] && ^[@parse{scope, subp, 'res[1]}]
+         #all{*xs} ->
+            '[let [temp = ^rhs]: ^ @construct_conj{...}] with
+               xs each x -> @process_helper{x, 'temp, fns}
 
-   ;;       ;; #check{#macro and mac, subp} ->
-   ;;       ;;    @parse{scope, ...} with
+         #any{*xs} ->
+            '[let [temp = ^rhs]: ^ @construct_disj{...}] with
+               xs each x -> @process_helper{x, 'temp, fns}
+
+         #object_pattern{*subp} ->
+            '[let [temp = ^rhs]: ^ @construct_conj{...}] with
+               subp each {#value{k}, v} ->
+                  @process_helper{v, 'temp[^=k], fns}
+
+         #array_pattern{fw, bw, dflt, rest} ->
+            ;; {a, b, c = 123, *rest, d, e}
+            ;;  ^^^^  ^^^^^^^  ^^^^^  ^^^^
+            ;;  fw    dflt     rest   bw
+
+            nfw = fw.length
+            nbw = bw.length
+            ndflt = dflt.length
+
+            extract_length = true
+            check_length = true
+
+            lo = nfw + nbw
+            hi = lo + ndflt
+
+            parts = patch_array with
+               enumerate{fw} each {i, m} ->
+                  @process_helper{m, 'temp[^=i], fns}
+               enumerate{dflt} each {i, {patt, value}} ->
+                  idx = i + nfw
+                  @process_helper{patt, 'if{^=idx >= len, ^value, temp[^=idx]}, fns}
+               if [rest != undefined]:
+                  then:
+                     slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
+                        pos = nfw + ndflt
+                     {@process_helper{rest, '[temp.slice ^slice], fns}}
+                  else: {}
+               enumerate{bw} each {i, m} ->
+                  @process_helper{m, '___js_fetch{temp, len - ^=[nbw - i]}, fns}
+
+            test_length =
+               match rest:
+                  true? ->
+                     '[len >= ^=lo]
+                  when lo == hi ->
+                     '[len == ^=lo]
+                  otherwise ->
+                     '[len >= ^=lo and len <= ^=hi]
+
+            ' let [temp = ^rhs, len = temp.length]:
+               ^test_length and ^[@construct_conj{parts}]
+
+      fns.wrap{pattern, rval <<: pattern}
 
 
-   ;;       ;;    '[^mac ^subp]
+[items{{...}} each {k, v} -> stdenv.bind{topscope, k, #value{v}}] with
 
-   ;;       ;; #check{checker, subp} ->
-   ;;       ;;    ' | let [temp = ^rhs]:
-   ;;       ;;         [^checker]{temp} && ^[@parse{scope, subp, temp}]
+   "&:" => Embedded with '
+      {dest, values} ->
+         for [k in values]:
+            if values.hasOwnProperty{k}:
+               dest[k] := ___js_fetch{values, k}
+         dest
 
-   ;;    @wraptest{rval <<: pattern}
+   "___checker" => Embedded with '
+      {type} ->
+         f = type["::check"]
+         if [f == undefined]:
+            then: {value} -> value instanceof type
+            else: {value} -> f.call{type, value}
 
 
-
-embedded = {
    ;; "patch" =>
    ;;    Embedded with '
    ;;       {} ->
@@ -650,9 +829,12 @@ embedded = {
    ;;          for [i = 0, i < arguments.length, i++]:
    ;;             r := r.concat{___js_fetch{arguments, i}}
    ;;          r
-   "___checker" =>
-      Embedded with '[1 + 2 + 3]
-}
+
+   ;; "___checker" =>
+   ;;    Embedded with '[1 + 2 + 3]
+
+
+
 
    ;; "patch"{context, scope, form, match} =
    ;;    #array{*args} ->
