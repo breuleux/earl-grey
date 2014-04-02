@@ -204,7 +204,7 @@ format_error{e and match} =
    E.syntax? {args} ->
       hls = {.hl1, .hl2, .hl3, .hl4}
       locs = enumerate{items{args}} each
-         {i, {key, arg}} when arg.location ->
+         {i, {key, arg}} when arg and arg.location ->
             {arg.location, hls[i mod 4]}
       div %
          div %
@@ -212,6 +212,15 @@ format_error{e and match} =
             .error_message % e.message
          repr{args}
          highlight_locations{locs}
+
+   {location => Location? loc} ->
+      div %
+         div %
+            .error_type % e.name
+            .error_message % e.message
+         if{e.args, repr{e.args}, ""}
+         highlight_locations{{{loc, .hl1}}}
+         .traceback % e.stack or ""
 
    {location => #location{url, start, end}} ->
       data = fs.readFileSync{url, .utf8} !! null
@@ -222,7 +231,9 @@ format_error{e and match} =
                div %
                   .error_type % e.name
                   .error_message % e.message
+               if{e.args, repr{e.args}, ""}
                highlight_locations{{{loc, .hl1}}}
+               .traceback % e.stack or ""
          else:
             div %
                .traceback %

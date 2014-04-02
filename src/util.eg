@@ -33,7 +33,7 @@ binsearch{xs, x} =
             return [mid + 1]
    lo
 
-classify{xs} =
+__classify{xs} =
    results = {=}
    while xs.length:
       match xs.shift{}:
@@ -43,5 +43,21 @@ classify{xs} =
             if [not results[cls]]:
                results[cls] := {}
             results[cls].push with x
+   results
+
+classify{*classes, xs} =
+   results = {rest = {}}
+   classes each cls ->
+      results[cls] := {}
+   while xs.length:
+      match xs.shift{}:
+         #splice{*newxs} ->
+            xs := newxs ++ xs
+         #ignore ->
+            null
+         {cls, x} when results[cls] ->
+            results[cls].push with x
+         other ->
+            results.rest.push with other
    results
 

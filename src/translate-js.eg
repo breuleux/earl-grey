@@ -11,6 +11,37 @@ provide:
    Translator, translate
 
 
+js_op_table2 = {
+   "+" => "+"
+   "-" => "-"
+   "*" => "*"
+   "/" => "/"
+   "mod" => "%"
+   ".&" => "&"
+   ".|" => "|"
+   ".^" => "^"
+   "~" => "~"
+   "and" => "&&"
+   "or" => "||"
+   "not" => "!"
+   "==" => "==="
+   "!=" => "!=="
+   "===" => "==="
+   "!==" => "!=="
+   "<" => "<"
+   ">" => ">"
+   "<=" => "<="
+   ">=" => ">="
+   "<<" => "<<"
+   ">>" => ">>"
+   ">>>" => ">>>"
+   "in" => " in "
+   "instanceof" => " instanceof "
+   "++" => "++"
+   "--" => "--"
+}
+
+
 js_op_table = {
    ___plus = "+"
    ___minus = "-"
@@ -119,7 +150,8 @@ class Translator:
             stmts.map{trst}.join{""} + @translate{ret, .return}
          .stmt ->
             b.map{trst}.join{""}
-         other -> throw "OopsH"
+         other ->
+            throw E.syntax.mode{"Unknown mode", {mode = mode}}
 
    expr{x, mode} =
       match mode:
@@ -191,6 +223,7 @@ class Translator:
 
          #send{f, #array{*args}} ->
             op = match f: | #symbol{x} -> js_op_table[x]
+                          | #variable{x} -> js_op_table2[x]
                           | _ -> null
             if op:
                then: @expr{@op{op, args[0], args[1]}, mode}
@@ -279,6 +312,21 @@ class Translator:
 
          #splice{*args} ->
             @translate{#multi{*args}, mode}
+
+         #variable{s} ->
+            @expr{@mangle{s}, mode}
+
+         #scope{vars, body} ->
+            @translate{#multi{*decls, body}, mode} where
+               decls = vars each v -> #declare{v, #value{undefined}}
+
+         #object2{*args} ->
+            r = ["({" + args.map{f}.join{","} + "})"] where
+               f{{x, y}} =
+                  a = @translate{x, .expr}
+                  b = @translate{y, .expr}
+                  a + ":" + b
+            @expr{r, mode}
 
          #js_new{value} ->
             @expr{"(new " + @translate{value, .expr} + ")", mode}

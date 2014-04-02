@@ -139,6 +139,9 @@ _run{match} =
          eg.parse{tokens} where
             tokens = eg.tokenize{Source{s, null}}
 
+   {.test, s} ->
+      console.log with eg.generate2{Source{s, "<test>"}}
+
    {.runs, data} ->
       <> eval{gen{data, "<command>"}}
 

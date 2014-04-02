@@ -13,12 +13,14 @@ require:
       stdenv, stdprelude
    "./translate-js" ->
       translate, Translator
+   "./expand2" as e2
 
 provide:
    Source, Location, highlight_locations
    tokenize, parse
    generate_from_ast, generate
    Generator
+   generate2
 
 
 generate_from_ast{ast} =
@@ -30,6 +32,14 @@ generate{source, prelude} =
    p = parse{t}
    ex = expand{#top{stdenv.fork{}}, #multi{p}}
    [prelude or ""] + translate{ex, .stmt}
+
+generate2{source} =
+   t = tokenize{source}
+   p = parse{t}
+   ex = e2.expand{#top, e2.topscope, e2.bind_ast{#multi! p, e2.stdenv.fork{}}}
+   tr = Translator{}
+   rval = tr.translate{ex, .stmt}
+   tr.dump_store{} + rval
 
 
 class Generator:

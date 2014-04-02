@@ -119,7 +119,7 @@ expand{{context, env}, expr} =
 
       #lambda{bindings, body} ->
          #lambda{bindings each x -> expand{#decl{env}, x}
-                   expand{#expr{env}, body}}
+                 expand{#expr{env}, body}}
 
       #declare{binding, value} ->
          #declare{expand{#decl{env}, binding}

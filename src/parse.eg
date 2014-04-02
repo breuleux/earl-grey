@@ -236,7 +236,7 @@ finalize{token and match} =
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
                #data{*args} ->
                    tr := this
-                   res = #data{}.concat with patch_array.apply{null} with args each
+                   res = #data ++ patch_array.apply{null} with args each
                       #symbol{"..."} -> [inserted := true, body]
                       other -> {tr{other} <<: other}
                    res <<: expr

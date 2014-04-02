@@ -155,6 +155,9 @@ step = track_location{...} with
             other ->
                expr
 
+      #nostep{x} ->
+         x
+
       other ->
          expr
 
@@ -234,10 +237,16 @@ expand = track_location{...} with
                expand{#expr{.head}, scope, f}
                expand{#expr{.tail}, scope, arg}
 
-         {type and [.array or .object], *args} ->
-            newargs = step_all{#expr{type}, scope, args} each arg ->
+         #array{*args} ->
+            newargs = step_all{#expr{.array}, scope, args} each arg ->
                expand{#expr{.expr}, scope, arg}
-            {type, *newargs}
+            #array{*newargs}
+
+         #object2{*args} ->
+            newargs = step_all{#expr{.object}, scope, args} each {k, v} ->
+               {expand{#expr{.expr}, scope, k}
+                expand{#expr{.expr}, scope, v}}
+            #object2{*newargs}
 
          #multi{*args} ->
             newscope = Scope{scope}
@@ -267,7 +276,7 @@ expand = track_location{...} with
          #data{*args} ->
 
             is_obj = false
-            obj = #object{}
+            obj = #object2{}
             arr = #array{}
             parts = {}
 
@@ -299,13 +308,20 @@ expand = track_location{...} with
                   #array{}
                {arr and #array{*things}} ->
                   if is_obj:
-                     arr.push{obj}
+                     throw E.syntax.array.object{"Cannot mix array and object notations."}
+                     ;; arr.push{obj}
                   arr
                other ->
                   if is_obj:
-                     parts.push{#array{obj}}
-                  patch = #variable{"++"}
-                  #send{patch, #array{*parts}}
+                     throw E.syntax.array.object{"Cannot mix array and object notations."}
+                     ;; parts.push{#array{obj}}
+
+                  bind_ast{construct{parts}, stdenv} where
+                     construct{match} =
+                        {} -> #array{}
+                        {arg} -> arg
+                        {*rest, arg} ->
+                           '[^construct{rest}].concat{^arg}
 
             expand{context, scope, r}
 
@@ -333,6 +349,16 @@ expand = track_location{...} with
          other ->
             throw E.syntax.illegal_node{"An illegal node was found.", {node = other}}
 
+uuid{} =
+   #variable{s} = gensym{}
+   s
+
+class Embedded:
+   constructor{code} =
+      @code := bind_ast{code, stdenv.fork{}}
+      @"::id" := uuid{}
+   "::serialize_ast"{} =
+      expand{#top, topscope, @code}
 
 
 topscope = Scope{null}
@@ -349,16 +375,87 @@ stdenv = nullenv.fork{}
    "in", "instanceof", "--"
    "++"
 
+   .true, .false, .null, .undefined
+
+   .typeof, .String, .Array, .Number
+   .parseInt
+   .Error, .TypeError, .ReferenceError
+   .console
+
+   .___js_fetch
+
+
+overridable{f}{match, scope, form, arg} =
+   #pattern ->
+      #nostep{form}
+   other ->
+      f{context, scope, form, arg}
+
+protected_value{name, value}{match, scope, form, arg} =
+   #pattern ->
+      throw E.syntax.pattern{"'"+name+"' is not a valid pattern and cannot be redeclared"}
+   other ->
+      match arg:
+         #void{} ->
+            #value{value}
+         other ->
+            #send{#value{value}, arg}
+
+
 [items{{...}} each {k, v} -> stdenv.bind{topscope, k, #macro{v}}] with
+
+   true = protected_value{.true, true}
+   false = protected_value{.false, false}
+   null = protected_value{.null, null}
+   undefined = protected_value{.undefined, undefined}
+
+   "*"{context, scope, form, expr} =
+      match {context, expr}:
+         {#pattern, #void{}} ->
+            #dynsplice{#ignore{}}
+         {#pattern or #expr{.data}, #data{#void{}, val}} ->
+            #dynsplice{val}
+         {_, #void{}} ->
+            #variable{"*"}
+         other ->
+            #send{#variable{"*"}, expr}
+
+   "."{context, scope, form, match} =
+      #data{#void{}, #symbol{s}} ->
+         #value{s}
+      #data{#void{}, other} or other ->
+         throw E.syntax.dot{"Argument to '.' must be a symbol", {argument = other}}
 
    "="{match, scope, form, #data{lhs, rhs}} =
       #expr{.multi} ->
-         #declare{lhs, rhs}
+         pp = PatternParser{scope, lhs}
+         exec = pp.process{rhs} with {
+            assign{v, value} =
+               #multi with
+                  #assign{v, value}
+                  #value{true}
+         }
+         match {pp.vars, exec}:
+            {{v}, #multi{#assign{_, value}, #value{== true}}} ->
+               #declare{v, value}
+            other ->
+               #splice{*decls, test} where
+                  decls = pp.vars each v -> #declare{v, #value{undefined}}
+                  test = 'if{^exec, true, false}
+      #expr{.data} ->
+         #symbol{s} or #value{s} = lhs
+         #assoc{#value{s}, rhs}
       other ->
-         E.syntax.declare{"A variable cannot be declared at that location"}
+         throw E.syntax.declare{"A variable cannot be declared at that location"}
 
    ":="{context, scope, form, #data{lhs, rhs}} =
       #assign{lhs, rhs}
+
+   "->"{context, scope, form, match} =
+      #data{#data{*args}, rhs} ->
+         #lambda{args, rhs}
+      other ->
+         throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
    if{context, scope, form, match} =
       #data{test, a, b} ->
@@ -377,7 +474,28 @@ stdenv = nullenv.fork{}
    [where]{context, scope, form, #data{body, bindings}} =
       'let{^bindings, ^body}
 
+   "break" => overridable with
+      {context, scope, form, #void{}} ->
+         #js_break{}
 
+   "?"{context, scope, form, #data{expr, #void{}}} =
+      checker = match expr:
+         'String -> mac1 with {x} -> '[typeof{^x} == "string"]
+         'Number -> mac1 with {x} -> '[typeof{^x} == "number"]
+         'true -> mac1 with {x} -> x
+         'false -> mac1 with {x} -> '[not ^x]
+         'null -> mac1 with {x} -> '[^x == ^=null]
+         'undefined -> mac1 with {x} -> '[^x == ^=undefined]
+         other -> '___checker{^expr}
+
+      #macro{...} with {match, env, form, expr} ->
+         #pattern ->
+            match expr:
+               #void{} ->
+                  #check{checker, #ignore{}}
+               other ->
+                  #check{checker, expr}
+         other -> '[^checker]{^expr}
 
    "<==>"{context, scope, form, #data{a, b}} =
       ' | temp = ^a
@@ -400,45 +518,152 @@ stdenv = nullenv.fork{}
       #wrong{123}
 
 
-
+mac1{f} = 
+   #macro with {context, scope, form, #data{expr}} ->
+      f{expr}
 
 class PatternParser:
 
-   constructor{assign, wraptest} =
-      @assign := assign
-      @wraptest := wraptest
+   constructor{scope, pattern} =
+      @arguments := null
       @vars := {}
-      @placeholder := null
+      @pattern := @expand{scope, pattern, true}
 
-   parse{scope, pattern, rhs, toplevel = false} =
-      rval = match step{#pattern, scope, pattern}:
+   ;; parse_specs{scope, specs} =
+   ;;    rest = undefined
+   ;;    rval = classify{.fw, .bw, .keys, .defaults} with
+   ;;       step_all{scope, specs} each
+   ;;          #dynsplice{variable} ->
+   ;;             rest := variable
+   ;;             #ignore
+   ;;          #assoc{key} ->
+   ;;             #keys with {key, key}
+   ;;          #assoc{key, value} ->
+   ;;             #keys with {key, value}
+   ;;          #default{variable, value} and match ->
+   ;;             when rest ->
+   ;;                throw E.syntax{"No default arguments after rest arg."}
+   ;;             otherwise ->
+   ;;                #defaults with {variable, value}
+   ;;          v when rest == undefined ->
+   ;;             #fw{v}
+   ;;          v ->
+   ;;             #bw{v}
+   ;;    rval.rest := rest
+   ;;    rval
+
+   expand{scope, pattern, toplevel = false} =
+      expr = step{#pattern, scope, pattern}
+      rval = match expr:
          #void ->
-            '[^rhs === null]
+            #check{mac1{{x} -> '[^x == ^=null]}, #ignore}
+         #ignore or #special ->
+            newpattern
+         #symbol or #variable ->
+            @vars.push with expr
+            #assign{expr}
+         #value{v} ->
+            #check{mac1{{x} -> '[^x == ^=v]}, #ignore}
+
+         #test{condition, subp} ->
+            #test{condition, @expand{scope, subp, toplevel}}
+         #project{projector, subp} ->
+            #project{projector, @expand{scope, subp, toplevel}}
+         #check{checker, subp} ->
+            #check{checker, @expand{scope, subp, toplevel}}
+
+         #send{f, arg} when not toplevel ->
+            throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
+               msg = "Function arguments can only be declared as a top level pattern."
+         #send{f, #data and arguments} ->
+            @arguments := arguments
+            @expand{scope, f, false}
+         #send{f, arg} ->
+            throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
+               msg = {"Function must be declared with an array of arguments"
+                      "(did you mean to use ':='?)"}.join{" "}
+
+         other ->
+            throw E.syntax.pattern{"Illegal pattern", {node = other}}
+
+      rval <<: pattern
+
+   process{rhs, fns} =
+      @process_helper{@pattern, ..., fns} with
+         if @arguments:
+            then: '[^[@arguments] -> ^rhs]
+            else: rhs
+
+   process_helper{pattern, rhs, fns} =
+      rval = match pattern:
          #ignore ->
             '[^rhs || true]
-         #symbol and expr ->
-            {v, code} = @assign{expr, rhs}
-            @vars.push with v
-            code
-         #value{v} ->
-            '[^rhs == ^=v]
+         #assign{sym} ->
+            fns.assign{sym, rhs}
          #test{condition, subp} ->
-            '[^condition && ^[@parse{scope, subp, rhs}]]
+            '[^condition and ^[@process_helper{subp, rhs, fns}]]
+         #check{checker, subp} ->
+            ' | let [temp = ^rhs]:
+                 [^checker]{temp} and ^[@process_helper{subp, 'temp, fns}]
          #project{projector, subp} ->
-            ' | res = [^projector]{^rhs}
-              | res[0] && ^[@parse{scope, subp, 'res[1]}]
+            ' | let [res = [^projector]{^rhs}]:
+                 res[0] && ^[@process_helper{subp, 'res[1], fns}]
+      rval
 
-         ;; #check{#macro and mac, subp} ->
-         ;;    @parse{scope, ...} with
+   ;; parse{scope, pattern, rhs, toplevel = false} =
+   ;;    rval = match step{#pattern, scope, pattern}:
+   ;;       #void ->
+   ;;          '[^rhs === null]
+   ;;       #ignore ->
+   ;;          '[^rhs || true]
+   ;;       #symbol and expr ->
+   ;;          {v, code} = @assign{expr, rhs}
+   ;;          @vars.push with v
+   ;;          code
+   ;;       #value{v} ->
+   ;;          '[^rhs == ^=v]
+   ;;       #test{condition, subp} ->
+   ;;          '[^condition && ^[@parse{scope, subp, rhs}]]
+   ;;       #project{projector, subp} ->
+   ;;          ' | res = [^projector]{^rhs}
+   ;;            | res[0] && ^[@parse{scope, subp, 'res[1]}]
+
+   ;;       ;; #check{#macro and mac, subp} ->
+   ;;       ;;    @parse{scope, ...} with
 
 
-         ;;    '[^mac ^subp]
+   ;;       ;;    '[^mac ^subp]
 
-         ;; #check{checker, subp} ->
-         ;;    ' | let [temp = ^rhs]:
-         ;;         [^checker]{temp} && ^[@parse{scope, subp, temp}]
+   ;;       ;; #check{checker, subp} ->
+   ;;       ;;    ' | let [temp = ^rhs]:
+   ;;       ;;         [^checker]{temp} && ^[@parse{scope, subp, temp}]
 
-      @wraptest{rval <<: pattern}
+   ;;    @wraptest{rval <<: pattern}
+
+
+
+embedded = {
+   ;; "patch" =>
+   ;;    Embedded with '
+   ;;       {} ->
+   ;;          r = {}
+   ;;          for [i = 0, i < arguments.length, i++]:
+   ;;             r := r.concat{___js_fetch{arguments, i}}
+   ;;          r
+   "___checker" =>
+      Embedded with '[1 + 2 + 3]
+}
+
+   ;; "patch"{context, scope, form, match} =
+   ;;    #array{*args} ->
+   ;;       construct{args} where
+   ;;          construct{match} =
+   ;;             {} -> #array{}
+   ;;             {arg} -> arg
+   ;;             {*rest, arg} ->
+   ;;                '[^construct{rest}].concat{^arg}
+   ;;    other ->
+   ;;       E.syntax.patch{"Cannot patch", {arg = other}}
 
 
 

@@ -202,28 +202,35 @@ errf_macro{tags} = {{context, env}, match} ->
 stdenv.register_macro{"E"} with errf_macro{{}}
 
 
+;; stdenv.register_macro{"#"} with {{context, env}, #data{#void{}, match}} ->
 
-;; stdenv.register_macro{"~"} with {{context, env}, #data{#void{}, #symbol{tag}}} ->
-;;    tag := #value{tag}
-;;    #macro{f} where f{{match, env}, expr} =
-;;       .pattern ->
-;;           checker_mac = #multi{#macro{f1}, #macro{f2}} where
-;;              f1{_, #data{expr}} =
-;;                 '[^expr instanceof Array]
-;;              f2{_, #data{expr}} =
-;;                 '[[^expr][0] == ^tag]
-;;           match expr:
-;;              #data{*subp} -> '{^tag, ^*subp}
-;;              #void{} -> #check{checker_mac, #ignore{}}
-;;              other -> #check{checker_mac, expr}
-;;       _ ->
-;;           match expr:
-;;              #void{} ->
-;;                 '{^tag}
-;;              #data{*args} ->
-;;                 '{^tag, ^*args}
-;;              other ->
-;;                 '{^tag}[^other]
+;;    #send{#symbol{tag}, #data{*args}} ->
+;;       #data{#value{tag}, *args}
+
+;;    #symbol{tag} ->
+;;       tag := #value{tag}
+;;       #macro{f} where f{{match, env}, expr} =
+;;          .pattern ->
+;;              checker_mac = #multi{#macro{f1}, #macro{f2}} where
+;;                 f1{_, #data{expr}} =
+;;                    '[^expr instanceof Array]
+;;                 f2{_, #data{expr}} =
+;;                    '[[^expr][0] == ^tag]
+;;              match expr:
+;;                 #data{*subp} -> '{^tag, ^*subp}
+;;                 #void{} -> #check{checker_mac, #ignore{}}
+;;                 other -> #check{checker_mac, expr}
+;;          _ ->
+;;              match expr:
+;;                 #void{} ->
+;;                    '{^tag}
+;;                 #data{*args} ->
+;;                    '{^tag, ^*args}
+;;                 other ->
+;;                    '{^tag, *[^other]}
+
+;;    other ->
+;;       throw E.syntax.bad_hash{"Bad hash", {node = other}}
 
 stdenv.register_macro{"#"} with {{context, env}, #data{#void{}, #symbol{tag}}} ->
    tag := #value{tag}
@@ -247,30 +254,7 @@ stdenv.register_macro{"#"} with {{context, env}, #data{#void{}, #symbol{tag}}} -
              other ->
                 '{^tag}[^other]
 
-;; stdenv.register_macro{"#"} with {{context, env}, #data{#void{}, #symbol{tag}}} ->
-;;    tag := #value{tag}
-;;    #macro with {{match, env}, expr} ->
-;;       .pattern ->
-;;           checker_mac = #macro with {_, #data{expr}} ->
-;;              '[[^expr]"#" == ^tag]
-;;           match expr:
-;;              #data{*subp} ->
-;;                 deconstructor_mac = #macro with {_, expr} ->
-;;                    '{^=true, ^expr[1]}
-;;                 #check{checker_mac
-;;                        #project{deconstructor_mac, {.duck, 0, *subp}}}
-;;              #void{} ->
-;;                 #check{checker_mac, #ignore{}}
-;;              other ->
-;;                 #check{checker_mac, expr}
-;;       _ ->
-;;           match expr:
-;;              #void{} ->
-;;                 'StructFactory{^tag}
-;;              #data{*args} ->
-;;                 'Struct{^tag, ^*args}
-;;              other ->
-;;                 '[StructFactory{^tag}][^other]
+
 
 
 
@@ -465,6 +449,9 @@ stdenv.register_macro{"="} with {{context, env}, expr} ->
             #if{x, 'undefined} with
                'throw[E.match{"The value failed to match"}
                       \ &: {location = #location{^=_src, ^=_start, ^=_end}}]
+
+            ;; #if{x, 'undefined} with
+            ;;    'throw[E.match{"The value failed to match"}]
 
          match clauses:
             {clause} ->
@@ -1134,8 +1121,8 @@ stdenv.register_macro{"|>"} with {{context, env}, match} ->
       clauses := new_clauses
       ;; END OPT
 
-      r = #js_throw{#data{#value{"Could not find a match"}, temp}}
-      ;; r = '[throw Error{"Could not find a match", ^temp}]
+      ;; r = #js_throw{#data{#value{"Could not find a match"}, temp}}
+      r = '[throw E.match{"Could not find a match", {value = ^temp}}]
 
       while [clauses.length > 0]:
          {conditions, body} = clauses.pop{}
@@ -1172,7 +1159,7 @@ stdenv.register_macro{"'"} with {{context, env}, #data{#void{}, expr}} ->
 
 stdenv.register_macro{"provide"} with {{context, env}, #data{aslist! expr}} ->
    #sink with
-      #multi.concat with
+      #multi ++
          expr each
             s and #symbol{name} ->
                '[exports[^=name] := ^s]
@@ -1296,7 +1283,7 @@ stdenv.register_macro{"chain"} with {{context, env}, #data{defn, body}} ->
    #symbol{var_str} = variable
    newenv.register_macro{var_str} with var_operator{temp}
 
-   stmts = #multi{}.concat with aslist{body} each x -> '[^temp := ^x]
+   stmts = #multi ++ [aslist{body} each x -> '[^temp := ^x]]
    v = ' | ^temp = ^expr
          | ^stmts
          | ^temp
