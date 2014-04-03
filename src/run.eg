@@ -139,7 +139,13 @@ _run{match} =
          eg.parse{tokens} where
             tokens = eg.tokenize{Source{s, null}}
 
-   {.test, s} ->
+   {.test, file} ->
+      data = fs.readFileSync{file, .utf8}
+      code = eg.generate2{Source{data, "<test>"}}
+      console.log with code
+      <> eval{code}
+
+   {.tests, s} ->
       code = eg.generate2{Source{s, "<test>"}}
       console.log with code
       <> eval{code}

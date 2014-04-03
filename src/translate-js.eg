@@ -383,7 +383,7 @@ class Translator:
                      b = @translate{y, .expr}
                      c = @translate{body, .stmt}
 
-         #js_try{attempt, #lambda{{#symbol{v}}, body}, #void{}} ->
+         #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body}, #void{}} ->
             match mode:
                .expr -> @body{expr, .expr}
                other ->

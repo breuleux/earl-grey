@@ -1,6 +1,6 @@
 
 provide:
-   items, enumerate
+   items, keys, enumerate
    binsearch
    classify
    neighbours
@@ -10,6 +10,12 @@ items{obj} =
    results = {}
    for [k in obj]:
       results.push with {k, obj[k]}
+   results
+
+keys{obj} =
+   results = {}
+   for [k in obj]:
+      results.push with k
    results
 
 enumerate{arr} =
