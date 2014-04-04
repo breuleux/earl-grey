@@ -140,9 +140,10 @@ _run{match} =
             tokens = eg.tokenize{Source{s, null}}
 
    {.test, file} ->
+      require: "js-beautify" -> js as beaut
       data = fs.readFileSync{file, .utf8}
       code = eg.generate2{Source{data, "<test>"}}
-      console.log with code
+      console.log with beaut{code}
       <> eval{code}
 
    {.tests, s} ->

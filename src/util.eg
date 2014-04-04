@@ -4,6 +4,8 @@ provide:
    binsearch
    classify
    neighbours
+   zip
+   partition
 
 
 items{obj} =
@@ -75,3 +77,16 @@ neighbours{match} =
    {x, y, *rest} ->
       {{x, y}} ++ neighbours{{y} ++ rest}
 
+
+zip{xs, ys} =
+   enumerate{xs} each {i, x} ->
+      {x, ys[i]}
+
+
+partition{xs, predicate} =
+   t = {}
+   f = {}
+   xs each
+      x when predicate{x} -> t.push{x}
+      x -> f.push{x}
+   {t, f}

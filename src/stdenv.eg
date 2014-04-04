@@ -5,7 +5,7 @@ require:
    "./helpers" ->
       aslist, transform, gensym, gensym_factory
    "./util" ->
-      enumerate, items
+      enumerate, items, partition
 
 provide:
    stdenv, stdprelude
@@ -1306,13 +1306,6 @@ stdenv.register_macro{"using"} with {{context, env}, #data{defn, body}} ->
    #done{expand{{context, newenv}, v}}
 
 
-partition{xs, predicate} =
-   t = {}
-   f = {}
-   xs each
-      x when predicate{x} -> t.push{x}
-      x -> f.push{x}
-   {t, f}
 
 stdenv.register_macro{"class"} with {{context, env}, arg} ->
 
