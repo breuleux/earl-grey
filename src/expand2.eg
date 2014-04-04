@@ -264,7 +264,7 @@ step_all{context, scope, {*stmts}} =
 
 generic_nodes = {
    .if
-   .js_while, .js_for, .js_for_in
+   .js_while, .js_for, .js_for_in, .js_label
    .js_break, .js_continue, .js_return
    .js_delete, .js_throw, .js_try, .js_new
 }
@@ -524,6 +524,11 @@ protected_value{name, value}{match, scope, form, arg} =
             #send{#value{value}, arg}
 
 
+setup_label{label, env, body} =
+   #bind{'break &: {env = env}, #macro{break_mac{label}}
+         #bind{'continue &: {env = env}, #macro{continue_mac{label}}
+               #js_label{#value{label}, body}}}
+
 break_mac{default_label} = overridable with
    {context, scope, form, match and expr} ->
       #void{} when default_label -> #js_break{#value{default_label}}
@@ -705,20 +710,50 @@ continue_mac{default_label} = overridable with
                {x} -> x
 
 
-   "each"{match, scope, form, #data{li, #multi! {*clauses}}} =
+   "each"{match, scope, form, #data{li, #multi! {*clauses}} and {=> env}} =
+
       #expr{.multi} ->
+         ;; expand{#multi} will call this macro again with either
+         ;; #expr{.ignore} or #expr{.expr}, depending on whether we
+         ;; are in the middle of a block or at the end of one. We want
+         ;; to specialize on that information, so we pass our turn.
          #nostep{form}
+
       #expr{.ignore} ->
+         ;; Middle of a block. This means we don't have to accumulate
+         ;; the values.
+
+         ;; Note about lbl:
+
+         ;; The "for" macro rebinds break and continue to refer to its
+         ;; own label in either the environment it is created in or in
+         ;; the environment of the label it is given. This means,
+         ;; roughly speaking, that break/continue in user code will
+         ;; jump over macro-generated loops (and the macro's will jump
+         ;; over the user's), unless the macro explicitly makes sure
+         ;; that break/continue are redefined in the user
+         ;; environment. To do so, we create a random label and give
+         ;; it the same environment as the argument to "each". This
+         ;; means "break" will jump out of "each" and not out of an
+         ;; outer loop.
+
+         lbl = #value{gensym{}} &: {env = env}
          ' | let [temp = ^li, len = temp.length]:
-              for [i = 0, i < len, i++]:
+              for[^lbl] [i = 0, i < len, i++]:
                  m = ___js_fetch{temp, i}
                  ^ | parse_clauses with
                       scope, 'm, clauses
                       'false
                       {x} -> x
+
       other ->
+         ;; Middle of a block. We have to accumulate the values in
+         ;; order to return them. Right now, this plays poorly with
+         ;; break and continue.
+
+         lbl = #value{gensym{}} &: {env = env}
          ' | let [temp = ^li, len = temp.length, accum = {}]:
-              for [i = 0, i < len, i++]:
+              for[^lbl] [i = 0, i < len, i++]:
                  m = ___js_fetch{temp, i}
                  ^ | parse_clauses with
                       scope, 'm, clauses
@@ -781,37 +816,29 @@ continue_mac{default_label} = overridable with
          other ->
             #if{test, #multi{*other}, #value{undefined}}
 
-   while{context, scope, form, expr and {=> env}} =
-      setup_while{test, body, label} =
-         #multi with
-            ;; #declare{'break &: {env = env}, #macro{break_mac{label}}}
-            ;; #declare{'breakz, #macro{break_mac{label}}}
-            ;; #declare{'x, #macro{break_mac{label}}}
-            #bind{'break &: {env = env}, #macro{break_mac{label}}
-                  #bind{'continue &: {env = env}, #macro{continue_mac{label}}
-                        #js_while{test, body, #value{label}}}}
+   while{context, scope, form, match and {=> env}} =
+      '[. ^[#symbol{label}]] or #value{label} ->
+         #macro with {context, scope, form, #data{test, body}} ->
+            setup_label{label, env, #js_while{test, body}}
+      #data{test, body} ->
+         setup_label{gensym{}, env, #js_while{test, body}}
+
+   for{context, scope, form, expr} =
+      setup_for{label, env, match, body} =
+         #multi{a, b, c} ->
+            #multi with
+               a
+               setup_label{label, env, #js_for{#value{null}, b, c, body}}
+         '[^a in ^b] ->
+            #multi with
+               #declare{a, #value{null}} ;; this is to show the symbol as resolved
+               setup_label{label, env, #js_for_in{a, b, body}}
       match expr:
          '[. ^[#symbol{label}]] or #value{label} ->
-            #macro with {context, scope, form, #data{test, body}} ->
-               setup_while{test, body, label}
-         #data{test, body} ->
-            setup_while{test, body, gensym{}}
-
-         ;; '[. ^[#symbol{label}]] or #value{label} ->
-         ;;    #macro with {context, scope, form, #data{test, body}} ->
-         ;;       {.js_while, test, body, #value{label}}
-         ;; #data{test, body} ->
-         ;;    {.js_while, test, body}
-
-   for{context, scope, form, #data{match, body}} =
-      #multi{a, b, c} ->
-         #multi with
-            a
-            #js_for{#value{null}, b, c, body}
-      '[^a in ^b] ->
-         #multi with
-            #declare{a, #value{null}} ;; this is to show the symbol as resolved
-            #js_for_in{a, b, body}
+            #macro with {context, scope, form, #data{spec, body}} ->
+               setup_for{label, expr.env, spec, body}
+         #data{spec, body} ->
+            setup_for{gensym{}, form.env, spec, body}
 
    let{context, scope, form, #data{#multi! {*bindings}, body}} =
       construct{match} =
@@ -1643,7 +1670,8 @@ hoistable = {
 }
 
 not_hoistable = {
-   .js_while, .js_for, .js_for_in
+   .void
+   .js_while, .js_for, .js_for_in, .js_label
 }
 
 hoist_helper{match and expr} =
