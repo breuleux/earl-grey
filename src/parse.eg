@@ -268,7 +268,14 @@ finalize{token and match} =
             result = match args:
                {} -> #value{undefined}
                ;; throw ["At least one expression must be enclosed in []"]
-               {x} -> x
+               {x} ->
+                  ;; Force x's location to include its surrounding []s
+                  ;; Highlighted snippets will look strange otherwise when
+                  ;; then span multiple nodes: for instance, [a] + [b]
+                  ;;                                          ^^^^^^^
+                  ;; Note that <<: only sets location if it's not already set
+                  x.location := sumloc
+                  x
                other -> #multi{*args}
             result <<: sumloc
 

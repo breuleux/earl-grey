@@ -1,0 +1,53 @@
+
+provide:
+   hoist
+
+hoist{expr} =
+   {b, inner} = hoist_helper{expr}
+   #scope{inner, b}
+
+hoistable = {
+   .send, .array, .object, .multi
+   .if, .assign
+   .js_break, .js_continue, .js_return
+   .js_delete, .js_throw, .js_try, .js_new
+}
+
+not_hoistable = {
+   .void
+   .js_while, .js_for, .js_for_in, .js_label
+}
+
+hoist_helper{match and expr} =
+
+   #symbol or #value or #variable ->
+      {expr, {}}
+
+   #scope{vars, body} ->
+      {newbody, inner} = hoist_helper{body}
+      {newbody, inner ++ vars}
+
+   #lambda{vars, body} ->
+      ;; Can't hoist past this!
+      {newbody, inner} = hoist_helper{body}
+      {#lambda{vars, #scope{inner, newbody}}, {}}
+
+   {type, *args} when hoistable.indexOf{type} != -1 ->
+      accum = {}
+      newargs = args each arg ->
+         {b, inner} = hoist_helper{arg}
+         accum ++= inner
+         b
+      {{type, *newargs}, accum}
+
+   {type, *args} when not_hoistable.indexOf{type} != -1 ->
+      newargs = args each arg ->
+         {b, inner} = hoist_helper{arg}
+         match inner:
+            {} -> b
+            other ->
+               #scope{inner, b}
+      {{type, *newargs}, {}}
+
+   other ->
+      throw E.syntax.illegal{"Illegal node -- this should not happen.", {node = other}}

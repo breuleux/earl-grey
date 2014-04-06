@@ -143,7 +143,7 @@ class Translator:
       match mode:
          .expr ->
             @translate{x, mode} where
-               x = #send{#lambda{{}, orig}, {.array}}
+               x = #send{#lambda{{}, orig}, #array{}}
          .return ->
             stmts = b.slice{0, -1}
             ret = b[b.length - 1]
@@ -188,6 +188,12 @@ class Translator:
                   "\"" + v + "\""
                undefined? ->
                   "(void 0)"
+               RegExp? ->
+                  chain String{v}:
+                     @slice{1, -1}
+                     @replace{R.g"/", "\\/"}
+                     @replace{R.g"\n", "\\n"}
+                     ["/" ++ [@]] ++ "/"
                [Number? or [== true] or [== false] or null?] ->
                   String{v}
                {"::id" => id} when id ->
@@ -305,6 +311,8 @@ class Translator:
                a = @translate{lhs, .expr}
                b = @translate{rhs, .expr}
 
+         #multi{} -> ""
+
          #multi{*args} ->
             isdecl{match} =
                #declare{variable, value} -> true
@@ -313,9 +321,10 @@ class Translator:
                when args.length == 1 ->
                   @translate{args[0], mode}
                when [mode == "expr"] and [not args.some{isdecl}] ->
-                  ["(" + xs.join{","} + ")"] where
-                     xs = args each x ->
-                        @translate{x, .expr}
+                  xs = args each x ->
+                     @translate{x, .expr}
+                  xs := xs each x when x != "" -> x
+                  ["(" + xs.join{","} + ")"]
                _ -> @body{expr, mode}
 
          #splice{*args} ->
@@ -367,8 +376,14 @@ class Translator:
          #js_label{#value{label}, body} ->
             match mode:
                .expr -> @body{expr, .expr}
+               ;; .return ->
+               ;;    v = #symbol{gensym{}}
+               ;;    @translate{x, #return{{x} -> @translate{#assign{v, x}, .return}
+               ;;       #declare{v, #value{undefined}}
+               ;;    "var " + v + ";" + @translate{expr, #return{...}} + ";return " with
+               ;;       {x} -> "(" + v + "=" + x ")";
                other ->
-                  label + ":" + @translate{body, .stmt}
+                  label + ":" + @translate{body, other}
 
          #js_while{test, body} ->
             match mode:
@@ -376,7 +391,7 @@ class Translator:
                other ->
                   ["while(" + a + "){" + b + "}"] where
                      a = @translate{test, .expr}
-                     b = @translate{body, .stmt}
+                     b = @translate{body, other}
 
          #js_for{x, y, z, body} ->
             match mode:

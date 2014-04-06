@@ -147,8 +147,9 @@ _run{match} =
       <> eval{code}
 
    {.tests, s} ->
+      require: "js-beautify" -> js as beaut
       code = eg.generate2{Source{s, "<test>"}}
-      console.log with code
+      console.log with beaut{code}
       <> eval{code}
 
    {.runs, data} ->

@@ -161,6 +161,19 @@ stdenv.register{"&:", #value{...}} with
                dest[k] := values[k]
          dest
 
+
+stdenv.register{"&+", #value{...}} with 
+   Embedded with '
+      {a, b} ->
+         dest = {=}
+         for [k in a]:
+            if a.hasOwnProperty{k}:
+               dest[k] := ___js_fetch{a, k}
+         for [k in b]:
+            if b.hasOwnProperty{k}:
+               dest[k] := ___js_fetch{b, k}
+         dest
+
 ;; stdenv.register{"send", #value{...}} with 
 ;;    Embedded with '
 ;;       {obj, msg and match} ->
@@ -1361,20 +1374,6 @@ stdenv.register_macro{"do"} with {{context, env}, #data{aslist! body}} ->
 stdenv.register_macro{"then"} with {{context, env}, #data{aslist! body}} ->
    #multi{*body}
 
-
-group{xs, classifier} =
-   groups = {}
-   curr = {}
-   newgroup{} =
-      if [curr.length > 0]:
-         groups.push with curr
-      curr := {}
-   xs each x ->
-      if classifier{x}:
-         newgroup{}
-      curr.push{x}
-   newgroup{}
-   groups
 
 blocktest_wrap{label, expr, accumulator} =
    value = gensym{}

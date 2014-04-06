@@ -1,0 +1,625 @@
+
+require:
+   "./pp" ->
+      <>
+   "./location" ->
+      [<<:]
+   "./util" as util ->
+      GenSym, gensym
+      zip, enumerate, keys as iterkeys, neighbours
+      classify, classify_contiguous
+      identity
+   "./expand2" as mt
+
+provide:
+   PatternParser
+   PatternProcessor
+   process_pattern, assemble_pattern, pattern_with_variables
+   process_pattern2, assemble_pattern2, pattern_with_variables2
+   parse_clauses, parse_pattern
+
+
+class PatternParser:
+
+   constructor{expander, scope, pattern, opt} =
+      @expander := expander
+      ;; @sav := strings_as_variables
+      @opt := opt
+      @arguments := {}
+      @vars := {}
+      @specials := {=}
+      @pattern := @expand{scope, pattern, true, @opt.indexable}
+
+   parse_specs{scope, specs} =
+      rest = undefined
+      rval = classify{.fw, .bw, .keys, .defaults} with
+         @expander.step_all{#pattern, scope, specs} each
+            #dynsplice{variable} ->
+               rest := @expand{scope, variable}
+               #ignore
+            #assoc{key} ->
+               #keys with {key, @expand{scope, key}}
+            #assoc{key, subp} ->
+               #keys with {key, @expand{scope, subp}}
+            #default{variable, value} ->
+               if rest:
+                  then: throw E.syntax.pattern{"No default arguments after rest arg."}
+                  else: #defaults with {@expand{scope, variable}, value}
+            v when rest == undefined ->
+               #fw with @expand{scope, v}
+            v ->
+               #bw with @expand{scope, v}
+      rval.rest := rest
+      rval
+
+   expand{scope, pattern, toplevel = false, checked = false} =
+      expr = @expander.step{#pattern, scope, pattern}
+      rval = match expr:
+         #void ->
+            #check{mt.checker.null, #ignore}
+         #ignore ->
+            expr
+         #special{type} ->
+            @specials[type] := true
+            expr
+         #symbol or #variable ->
+            @vars.push with expr
+            #assign{expr}
+         #value{v} when @opt.strings_as_variables ->
+            @vars.push with expr
+            #assign{expr}
+         #value{v} ->
+            #check{mt.checker{v}, #ignore}
+            ;; #check{mac1{{x} -> '[^x == ^=v]}, #ignore}
+
+         #test{condition, subp} ->
+            #test{condition, @expand{scope, subp, toplevel, false}}
+         #project{projector, subp} ->
+            #project{projector, @expand{scope, subp, toplevel, true}}
+         #check{checker, subp} ->
+            #check{checker, @expand{scope, subp, toplevel, true}}
+
+         #send{f, arg} when not toplevel ->
+            throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
+               msg = "Function arguments can only be declared as a top level pattern."
+         #send{f, #data and arguments} ->
+            @arguments.unshift with arguments
+            @expand{scope, f, true, false}
+         #send{f, arg} ->
+            throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
+               msg = {"Function must be declared with an array of arguments"
+                      "(did you mean to use ':='?)"}.join{" "}
+
+         #all{*xs} ->
+            #all ++ [xs each x -> @expand{scope, x}]
+
+         #any{*xs} ->
+            canon{all} =
+               all.sort{}.join{","}
+            normalize{vars} =
+               canon{...} with
+                  vars each #symbol{v} -> v
+            pps = xs each x ->
+               PatternParser{@expander, scope, x, {=}}
+            neighbours{pps} each {pp1, pp2} ->
+               pps each pp -> normalize{pp.vars}
+               if [normalize{pp1.vars} != normalize{pp2.vars}]:
+                  throw E.syntax.pattern{
+                     "Both branches of 'or' must contain the same variables"
+                     {vars1 = pp1.vars.sort{} <<: pp1.pattern
+                      vars2 = pp2.vars.sort{} <<: pp2.pattern}
+                  }
+               if [canon{iterkeys{pp1.specials}} != canon{iterkeys{pp2.specials}}]:
+                  throw E.syntax.pattern{
+                     "Both branches of 'or' must contain the same special tokens"
+                     {special1 = iterkeys{pp1.specials}.sort{} <<: pp1.pattern
+                      special2 = iterkeys{pp2.specials}.sort{} <<: pp2.pattern}
+                  }
+            {{=> vars}, *} = pps
+            @vars ++= vars
+            #any{*patts} where patts = pps each pp -> pp.pattern
+
+         #data{*args} ->
+            specs = @parse_specs{scope, args}
+            match specs:
+               {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
+                  #object_pattern{*keys}
+                  ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
+               {keys => {}, => fw, => bw, => defaults, => rest} ->
+                  patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
+                  if checked:
+                     then: patt
+                     else: #check{mt.checker.Array, patt}
+               other ->
+                  throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
+                     msg = "Pattern must be an array or an object."
+
+         other ->
+            throw E.syntax.pattern{"Illegal pattern", {node = other}}
+
+      rval <<: pattern
+
+
+class PatternProcessor:
+
+   constructor{} =
+      @temps := {}
+      @parts := {}
+      @gen := GenSym{"t"}
+
+   do{part} =
+      @parts.push with #do{part}
+
+   check{part} =
+      @parts.push with #check{part}
+
+   temp{x, v = null} =
+      match x:
+         [#variable or #symbol] and [not v] and {single_assignment => true?} ->
+            x
+         init ->
+            ;; v = #variable{gensym{"t"}}
+            v := v or #symbol{@gen{}}
+            v.single_assignment := true
+            @temps.push with v
+            @do with '[^v := ^init]
+            v
+
+   process{pattern, rhs, fns} =
+      rval = match pattern:
+         #ignore ->
+            @do{rhs}
+         #assign{sym} ->
+            @parts.push with fns.assign{sym, rhs}
+         #special{kind} ->
+            @process{..., rhs, fns} with
+               fns.special{pattern, rhs}
+
+         #test{condition, subp} ->
+            @process{subp, rhs, fns}
+            @check with condition
+
+         #check{checker, #ignore} ->
+            @check with '[^checker]{^rhs}
+         #check{checker, subp} ->
+            t = @temp{rhs}
+            @check with '[^checker]{^t}
+            @process{subp, t, fns}
+
+         #project{projector, subp} ->
+            t = @temp{'[^projector]{^rhs}}
+            @check with '[^t][0]
+            @process{subp, '[^t][1], fns}
+
+         #all{*xs} ->
+            t = @temp{rhs}
+            xs each x -> @process{x, t, fns}
+            null
+
+         #any{*xs} ->
+            t = @temp{rhs, #symbol{gensym{"bridge"}}}
+            ;; t = #symbol{gensym{"bridge"}}
+            ;; @temps.push with t
+            ;; @do with '[^t := ^rhs]
+            @check with
+               util.construct{parts, fn, 'false} where
+                  fn{x, rest} = '[^x or ^rest]
+                  parts = xs each x ->
+                     pp = PatternProcessor{}
+                     pp.process{x, t, fns}
+                     assemble_pattern{pp}
+
+         #object_pattern{*subp} ->
+            t = @temp{rhs}
+            subp each {#value{k}, v} ->
+               @check with '[___hasprop{^t, ^=k}]
+               @process{v, '[^t][^=k], fns}
+
+         #array_pattern{fw, bw, dflt, rest} ->
+            ;; {a, b, c = 123, *rest, d, e}
+            ;;  ^^^^  ^^^^^^^  ^^^^^  ^^^^
+            ;;  fw    dflt     rest   bw
+
+            nfw = fw.length
+            nbw = bw.length
+            ndflt = dflt.length
+
+            extract_length = true
+            check_length = true
+
+            lo = nfw + nbw
+            hi = lo + ndflt
+
+            t = @temp{rhs}
+            len = @temp{'[^t].length}
+
+            @check with
+               match rest:
+                  true? ->
+                     '[^len >= ^=lo]
+                  when lo == hi ->
+                     '[^len == ^=lo]
+                  otherwise ->
+                     '[^len >= ^=lo and ^len <= ^=hi]
+
+            enumerate{fw} each {i, m} ->
+               @process{m, '[^t][^=i], fns}
+
+            enumerate{dflt} each {i, {patt, value}} ->
+               idx = i + nfw
+               @process{patt, 'if{^=idx >= ^len, ^value, [^t][^=idx]}, fns}
+
+            if [rest != undefined]:
+               then:
+                  slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
+                     pos = nfw + ndflt
+                  @process{rest, '[[^t].slice ^slice], fns}
+               else: {}
+
+            enumerate{bw} each {i, m} ->
+               @process{m, '___js_fetch{^t, ^len - ^=[nbw - i]}, fns}
+
+      ;; fns.wrap{pattern, rval <<: pattern}
+      rval
+
+
+
+inject_below_uses{match, fn} =
+   #use{scope, x} ->
+      #use{scope, inject_below_uses{x, fn}}
+   other ->
+      fn{other}
+
+
+
+
+process_pattern{pp, rhs, fns} =
+   proc = PatternProcessor{}
+   proc.process{pp.pattern, ..., fns} with
+      if pp.arguments.length:
+         then:
+            inject_below_uses{rhs} with {x} ->
+               util.construct{pp.arguments ++ {x}} with
+                  {args, rest} -> '[^args -> ^rest]
+         else:
+            rhs
+   assemble_pattern{proc}
+
+process_pattern2{pp, rhs, fns} =
+   proc = PatternProcessor{}
+   proc.process{pp.pattern, ..., fns} with
+      if pp.arguments.length:
+         then:
+            inject_below_uses{rhs} with {x} ->
+               construct{pp.arguments} where
+                  construct{match} =
+                     {} -> x
+                     {*rest, args} ->
+                        '[^args -> ^construct{rest}]
+         else:
+            rhs
+   {proc.temps, proc.parts}
+
+
+assemble_pattern{pp} =
+   construct{match} =
+      {} -> #value{true}
+      {#do{x}, *rest} ->
+         #multi{x, construct{rest}}
+      {#check{x}} -> x
+      {#check{x}, *rest} ->
+         '[^x and ^construct{rest}]
+   if pp.temps.length:
+      then:
+         #multi{*decls, construct{pp.parts}} where
+            decls = pp.temps each t -> #declare{t}
+      else:
+         construct{pp.parts}
+
+
+assemble_pattern2{parts, t, f = null} =
+   lead = {}
+   parts.slice{0} each
+      #do{x} ->
+         lead.push{x}
+         parts.shift{}
+      #check{x} -> break
+
+   trail = {}
+   parts.slice{0}.reverse{} each
+      #do{x} ->
+         trail.unshift{x}
+         parts.pop{}
+      #check{x} -> break
+
+   construct{match} =
+      {} -> #value{true}
+      {#do{x}, *rest} ->
+         #multi{x, construct{rest}}
+      {#check{x}} -> x
+      {#check{x}, *rest} ->
+         '[^x and ^construct{rest}]
+      other ->
+         throw E.oops{"?!?", other}
+
+   if parts.length:
+      then:
+         test = construct{parts}
+         #multi{*lead, ...} with
+            if f:
+               then: 'if{^test, [^*trail, ^t], ^f}
+               else: 'if{^test, [^*trail, ^t]}
+      else:
+         #multi{*lead, *trail, t}
+
+
+
+
+pattern_with_variables{expander, scope, pattern, rhs, special_fn} =
+   pp = PatternParser{expander, scope, pattern, {=}}
+   exec = process_pattern{pp, rhs} with {
+      special = special_fn
+      assign{v, value} =
+         #do{#assign{v, value} <<: v}
+      wrap{pattern, result} =
+         result
+   }
+   {pp, exec}
+
+
+pattern_with_variables2{expander, scope, pattern, rhs, special_fn, opt} =
+   pp = PatternParser{expander, scope, pattern, opt}
+   {temps, blocks} = process_pattern2{pp, rhs} with {
+      special = special_fn
+      assign{v, value} =
+         #do{#assign{v, value} <<: v}
+      wrap{pattern, result} =
+         result
+   }
+   {pp, temps, blocks}
+
+
+
+
+checkall = {.send, .data, .multi, .assign, .void, .check, .do}
+
+same_block{match, ban1, ban2} =
+   {#variable{v1}, #variable{v2}} ->
+      v1 == v2
+   {#symbol{s1}, #symbol{s2}} ->
+      not ban1[s1] and not ban2[s2] and s1 == s2
+   {#value{v1}, #value{v2}} ->
+      v1 == v2
+   {#macro{m1}, #macro{m2}} ->
+      m1 == m2
+   {{type1, *args1}, {type2, *args2}} when checkall.indexOf{type1} != -1 ->
+      if [type1 == type2 and args1.length == args2.length]:
+         then:
+            zip{args1, args2} each pair ->
+               if [not same_block{pair, ban1, ban2}]:
+                  return false
+            true
+         else:
+            false
+   other ->
+      false
+
+parse_clauses{expander, scope, target, stmts, fallback, wrap, opt} =
+
+   all_temps = {}
+   the_parts = expander.step_all{#clause, scope, stmts} each
+
+      #clause{pattern, body} ->
+         placeholder = undefined
+         special_fn{#special{match} and expr, value} =
+            .match ->
+               placeholder := 'ph
+               #assign{placeholder}
+            other ->
+               throw E.syntax.pattern.special with
+                  "Special token cannot be used here"
+                  {special = expr}
+
+         {pp, temps, blocks} =
+            pattern_with_variables2{expander, scope, pattern, target, special_fn, opt}
+         all_temps ++= temps
+         vars = pp.vars
+         if placeholder:
+            vars.push with placeholder
+
+         vars2 = {=}
+         vars each
+            #symbol{xxx} ->
+               vars2[xxx] := true
+            other ->
+               throw E.syntax.unexpected{}
+
+         #clause{vars, vars2, blocks, bod} where
+            bod =
+               if placeholder:
+                  then:
+                     parse_clauses with
+                        expander, scope, placeholder, [#multi! body].slice{1}
+                        fallback, wrap, opt
+                  else: wrap{body}
+
+      #block b ->
+         b
+
+      other ->
+         throw E.syntax.clause with
+            "Illegal clause"
+            {clause = other}
+
+   the_parts.push with #block{fallback}
+   #multi{*decls, weave_clauses2{the_parts}} where
+      decls = all_temps each t -> #declare{t}
+
+
+weave_clauses{parts} =
+
+   breaks_used = false
+   label = gensym{}
+
+   helper{match, is_last} =
+      {} ->
+         #splice{}
+
+      {#clause{vars1, varsd1, {b1 = null, *blocks1}, body1} and first, *rest} ->
+         along = {#clause{vars1, varsd1, blocks1, body1}}
+         rest each
+            #clause{vars2, varsd2, {b2, *blocks2}, body2} ->
+               same = same_block{{b1, b2}, varsd1, varsd2}
+               if same:
+                  then: along.push with #clause{vars2, varsd2, blocks2, body2}
+                  else: break
+            other ->
+               break
+         others = rest.slice{along.length - 1}
+         if [along.length == 1]:
+            then:
+               decls = vars1 each v -> #declare{v}
+               #tagscope{.zero} with
+                  ' | ^*decls
+                    | ^ | assemble_pattern2 with
+                           if{b1, {b1}, {}} ++ blocks1
+                           '[^body1, ^if{is_last, #splice{},
+                                            [breaks_used := true, 'break[^=label]]}]
+                           if{others.length
+                              #use{.zero, #multi{helper{others, is_last}}}
+                              null}
+            else:
+               ' | ^ | assemble_pattern2 with
+                        if{b1, {b1}, {}}
+                        helper{along, is_last and others.length == 0}
+                 | ^helper{others, is_last}
+
+      {#block{#multi! {*body}}, *rest} ->
+         '[^*body, ^helper{rest, is_last}]
+
+   result = helper{parts, true}
+   if breaks_used:
+      then:
+         'while[^=label]{1, [^result, break[^=label]]}
+      else:
+         result
+
+
+opt_clauses{clauses} =
+
+   shares = enumerate{clauses.slice{1}} each
+      {i, #clause{vars, varsd, blocks, body}} ->
+         #clause{_, varsd0, blocks0, _} = clauses[i]
+         share = 0
+         idx = 0
+         blocks each b ->
+            if same_block{{blocks0[share], b}, varsd0, varsd}:
+               then:
+                  share++
+                  match b:
+                     #do -> null
+                     #check -> idx := share
+                     other -> <> other
+               else:
+                  break
+         {share, idx}
+
+   max = Math.max[shares each {x, _} -> x]
+   shares.push{{0, 0}}
+
+   temps = [1 .. max] each _ -> #symbol{gensym{}}
+
+   shared_last = 0
+   idx_last = 0
+   new_clauses = enumerate{clauses} each
+      {i, #clause{vars, varsd, blocks, body}} ->
+         {share, idx} = shares[i]
+         shared = if{idx_last, {#check{temps[idx_last - 1]}}, {}}
+         n_to_share = Math.max{shared_last, share}
+
+         to_share = enumerate{blocks.slice{shared_last, n_to_share}} each
+            {j, #check{x}} -> #check{#assign{temps[shared_last + j], x}}
+            {j, #do{x}} -> #do{x}
+
+         shared_last := share
+         idx_last := idx
+         #clause{vars, varsd, newblocks, body} where newblocks =
+            shared.concat{to_share}.concat{rest} where
+               rest = blocks.slice{n_to_share}
+      other ->
+         throw E.oops{"what", {value = other}}
+
+   {temps, new_clauses}
+
+
+weave_clauses2{parts} =
+
+   groups = classify_contiguous{parts} with {{cls, *}} -> cls
+
+   reassemble = {}
+   new_temps = {}
+   groups each
+      #clause{*elems} ->
+         {ts, new_clauses} = opt_clauses{elems}
+         new_temps ++= ts
+         reassemble ++= new_clauses
+      #block{*elems} ->
+         reassemble ++= elems
+
+   helper{match} =
+
+      {} ->
+         #multi{}
+
+      {#block{#multi! {*body}}, *rest} ->
+         '[^*body, ^helper{rest}]
+
+      {#clause{vars, varsd, blocks, body}, *rest} ->
+         decls = vars each v -> #declare{v}
+         #tagscope{.back} with
+            ' | ^*decls
+              | ^ | assemble_pattern2 with
+                     blocks
+                     body
+                     #use{.back, helper{rest}}
+
+   #multi with 
+      *[new_temps each t -> #declare{t}]
+      helper{reassemble}
+
+
+;; Options:
+;; strings_as_variables => treat strings as if they were variable names?
+;; wrap_target{x} => called on the value the pattern will be applied to:
+;;    either rhs, or args -> rhs, if args were found embedded in the pattern
+;; finalize => finalize the pattern?
+;; (if finalizing:)
+;; declare{vars} => preparation code to declare the variables
+;; success => what to return on success
+;; failure => what to return on failure
+
+parse_pattern{expander, scope, pattern, rhs, opt} =
+   parse = PatternParser{expander, scope, pattern, opt}
+   if [not opt.allow_arguments and parse.arguments.length]:
+      throw E.syntax.pattern.arguments with
+         "Arguments cannot be declared in this pattern"
+         {args = parse.arguments[0]}
+   [opt.wrap_target or identity]! target =
+      if parse.arguments.length:
+         then:
+            inject_below_uses{rhs} with {x} ->
+               util.construct{parse.arguments ++ {x}} with
+                  {args, rest} -> '[^args -> ^rest]
+         else:
+            rhs
+   proc = PatternProcessor{}
+   proc.process{parse.pattern, target, opt}
+   if opt.finalize:
+      then:
+         #splice with
+            *opt.declare{parse.vars}
+            #multi with
+               *[proc.temps each t -> #declare{t}]
+               assemble_pattern2{proc.parts, opt.success, opt.failure}
+      else:
+         {parse.vars, proc.temps, proc.parts}

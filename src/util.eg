@@ -1,11 +1,31 @@
 
 provide:
+   GenSym, gensym, uuid
+   identity
    items, keys, enumerate
    binsearch
-   classify
+   classify, classify_contiguous
    neighbours
    zip
    partition
+   construct
+   set
+
+GenSym{prefix} =
+   id = 0
+   {pfx = null} ->
+      r = [pfx or ""] + prefix + [String! id]
+      id++
+      r
+
+;; gensym = GenSym{"ȣ"}
+gensym = GenSym{"$"}
+
+uuid{} =
+   gensym{"#"}
+
+
+identity{x} = x
 
 
 items{obj} =
@@ -70,6 +90,23 @@ classify{*classes, xs} =
             results.rest.push with other
    results
 
+classify_contiguous{xs, classifier} =
+   groups = {}
+   currcls = null
+   curr = null
+   xs each x ->
+      cls = classifier{x}
+      if [cls == currcls]:
+         then: curr.push with x
+         else:
+            if curr:
+               groups.push with curr
+            curr := {cls, x}
+            currcls := cls
+   if curr:
+      groups.push with curr
+   groups
+
 
 neighbours{match} =
    {} -> {}
@@ -90,3 +127,25 @@ partition{xs, predicate} =
       x when predicate{x} -> t.push{x}
       x -> f.push{x}
    {t, f}
+
+
+construct{match, fn, zero} =
+   {} -> zero
+   {x} -> x
+   {x, *rest} ->
+      fn{x, construct{rest, fn, zero}}
+
+
+set{xs} =
+   rval = {=}
+   xs each x ->
+      rval[x] := true
+   rval
+
+
+
+
+
+
+
+

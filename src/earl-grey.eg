@@ -13,7 +13,8 @@ require:
       stdenv, stdprelude
    "./translate-js" ->
       translate, Translator
-   "./expand2" as e2
+   "./stdenv2" as e2
+   "./opt" as opt
 
 provide:
    Source, Location, highlight_locations
@@ -37,7 +38,7 @@ generate2{source} =
    t = tokenize{source}
    p = parse{t}
    ex = e2.expand{#top, e2.topscope, e2.bind_ast{#multi! p, e2.stdenv.fork{}}}
-   ex := e2.hoist{ex}
+   ex := opt.hoist{ex}
    tr = Translator{}
    rval = tr.translate{ex, .stmt}
    tr.dump_store{} + rval
