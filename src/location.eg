@@ -204,7 +204,7 @@ x ++: y =
 
 format_error{e and match} =
 
-   E.syntax? {args} ->
+   E.syntax? {args => {args}} ->
       hls = {.hl1, .hl2, .hl3, .hl4}
       locs = enumerate{items{args}} each
          {i, {key, arg}} when arg and arg.location ->

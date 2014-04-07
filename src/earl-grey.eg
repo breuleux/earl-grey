@@ -7,10 +7,10 @@ require:
       tokenize
    "./parse" ->
       parse
-   "./expand" ->
-      expand
-   "./stdenv" ->
-      stdenv, stdprelude
+   ;; "./expand" ->
+   ;;    expand
+   ;; "./stdenv" ->
+   ;;    stdenv, stdprelude
    "./translate-js" ->
       translate, Translator
    "./stdenv2" as e2
@@ -19,20 +19,20 @@ require:
 provide:
    Source, Location, highlight_locations
    tokenize, parse
-   generate_from_ast, generate
-   Generator
+   ;; generate_from_ast
+   ;; Generator, generate
    Generator2, generate2
 
 
-generate_from_ast{ast} =
-   ex = expand{#top{stdenv.fork{}}, #multi{ast}}
-   translate{ex, .stmt}
+;; generate_from_ast{ast} =
+;;    ex = expand{#top{stdenv.fork{}}, #multi{ast}}
+;;    translate{ex, .stmt}
 
-generate{source, prelude} =
-   t = tokenize{source}
-   p = parse{t}
-   ex = expand{#top{stdenv.fork{}}, #multi{p}}
-   [prelude or ""] + translate{ex, .stmt}
+;; generate{source, prelude} =
+;;    t = tokenize{source}
+;;    p = parse{t}
+;;    ex = expand{#top{stdenv.fork{}}, #multi{p}}
+;;    [prelude or ""] + translate{ex, .stmt}
 
 generate2{source} =
    ;; t = tokenize{source}
@@ -45,15 +45,15 @@ generate2{source} =
    Generator2{}.generate{source}
 
 
-class Generator:
-   constructor{} =
-      @tr := Translator{stdprelude}
-   generate{source} =
-      t = tokenize{source}
-      p = parse{t}
-      ex = expand{#top{stdenv.fork{}}, #multi{p}}
-      rval = @tr.translate{ex, .stmt}
-      @tr.dump_store{} + rval
+;; class Generator:
+;;    constructor{} =
+;;       @tr := Translator{stdprelude}
+;;    generate{source} =
+;;       t = tokenize{source}
+;;       p = parse{t}
+;;       ex = expand{#top{stdenv.fork{}}, #multi{p}}
+;;       rval = @tr.translate{ex, .stmt}
+;;       @tr.dump_store{} + rval
 
 
 class Generator2:
