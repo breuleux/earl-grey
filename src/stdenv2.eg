@@ -10,8 +10,6 @@ require:
       GenSym, gensym, uuid
    "./pattern" ->
       PatternParser, PatternProcessor
-      process_pattern, assemble_pattern, pattern_with_variables
-      process_pattern2, assemble_pattern2, pattern_with_variables2
       parse_pattern, parse_clauses
    "./expand2" as mt ->
       Expander, Scope, Env, nullenv, bind_ast
@@ -53,8 +51,8 @@ mkstdenv{} =
 
    .true, .false, .null, .undefined
 
-   .typeof, .String, .Array, .Number, .RegExp
-   .parseInt, .parseFloat
+   .typeof, .String, .Array, .Number, .Object, .RegExp
+   .parseInt, .parseFloat, .Math
    .Error, .TypeError, .ReferenceError
    .console
 
@@ -130,6 +128,7 @@ disregard_specials{#special{kind} and expr, value} =
 pattern_handlers = {
 
    declare_variables = {
+      allow_nested = true
       allow_arguments = true
       special = disregard_specials
       assign{v, value} =
@@ -142,6 +141,8 @@ pattern_handlers = {
    }
 
    build_object = {
+      strings_as_variables = true
+      allow_nested = true
       allow_arguments = true
       special = disregard_specials
       assign{#symbol{v} or #value{v}, value} =
@@ -155,6 +156,36 @@ pattern_handlers = {
 }
 
 
+;; Note about lbl:
+
+;; The "for" macro rebinds break and continue to refer to its
+;; own label in either the environment it is created in or in
+;; the environment of the label it is given. This means,
+;; roughly speaking, that break/continue in user code will
+;; jump over macro-generated loops (and the macro's will jump
+;; over the user's), unless the macro explicitly makes sure
+;; that break/continue are redefined in the user
+;; environment. To do so, we create a random label and give
+;; it the same environment as the argument to "each". This
+;; means "break" will jump out of "each" and not out of an
+;; outer loop.
+
+build_loop{scope, env, li, clauses, wrap, pre, post} =
+   lbl =
+      if env:
+         then: #value{gensym{}} &: {env = env}
+         else: #value{gensym{}}
+   ' | ^pre
+     | let [temp = ^li, len = temp.length]:
+        for[^lbl] [i = 0, i < len, i++]:
+           m = ___js_fetch{temp, i}
+           ^ | parse_clauses with
+                expander, scope, 'm, clauses
+                {fallback = 'false
+                 wrap = wrap}
+     | ^post
+
+
 
 [items{{...}} each {k, v} -> stdenv.bind{topscope, k, #macro{v}}] with
 
@@ -162,6 +193,21 @@ pattern_handlers = {
    false = protected_value{.false, false}
    null = protected_value{.null, null}
    undefined = protected_value{.undefined, undefined}
+
+   "++"{context, scope, form, match} =
+      #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
+      #data{x, #void{}} -> #send{#variable{"++"}, #data{x, #void{}}}
+      #data{x, y} -> '[^x].concat{^y}
+      #void{} -> '[{x, y} -> x.concat{y}]
+
+   ".."{context, scope, form, match} =
+      #data{#void{}, x} -> 'range{1, ^x}
+      #data{x, #void{}} -> 'range{^x}
+      #data{x, y} -> 'range{^x, ^y}
+      #void{} -> 'range
+
+   "//"{context, scope, form, #data{a, b}} =
+      'Math.floor{^a / ^b}
 
    "*"{context, scope, form, expr} =
       match {context, expr}:
@@ -181,9 +227,9 @@ pattern_handlers = {
          {#pattern or #expr{.data}, #data{#void{}, val}} ->
             #objsplice{val}
          {_, #void{}} ->
-            #variable{"**"}
-         other ->
-            #send{#variable{"**"}, expr}
+            'Math.pow
+         {_, #data{a, b}} ->
+            'Math.pow{^a, ^b}
 
    "_"{#pattern, scope, form, #void{}} =
       #ignore{}
@@ -218,13 +264,6 @@ pattern_handlers = {
             #data{lhs, rhs} = expr
             parse_pattern{expander, scope, lhs, #use{scope, rhs}} with
                pattern_handlers.declare_variables
-               ;; , stdargs &+ {...}} with
-               ;; assign{v, value} =
-               ;;    #do{#assign{v, value} <<: v}
-               ;; declare{vars} =
-               ;;    vars each v -> #declare{v}
-               ;; success = #multi{}
-               ;; failure = '[throw Error{"Mismatch"}]
 
          #expr{.data} ->
             match expr:
@@ -236,27 +275,27 @@ pattern_handlers = {
                #data{lhs, rhs} ->
                   #objsplice with #multi with
                      parse_pattern{expander, scope, lhs, #use{scope, rhs}} with
-                        pattern_handlers.declare_variables
-                        ;; , stdargs &+ {...}} with
-                        ;; assign{#symbol{v} or #value{v}, value} =
-                        ;;    #do{#assign{'accum[^=v], value} <<: v}
-                        ;; declare{vars} = {#declare{'accum, '{=}}}
-                        ;; success = 'accum
-                        ;; failure = '[throw Error{"Mismatch"}]
+                        pattern_handlers.build_object
 
          #pattern ->
+            #data{lhs, rhs} = expr
             #default{lhs, rhs}
 
          other ->
             throw E.syntax.declare{"A variable cannot be declared at that location"}
 
-   "=>"{match, scope, form, #data{lhs, rhs, => env}} =
+   "=>"{match, scope, {=> env}, #data{lhs, rhs}} =
       #pattern ->
          match {lhs, rhs}:
             {#void, #symbol{k} or #value{k}} ->
                #assoc{#value{k}, #symbol{k} &: {env = env}}
             {#symbol{k} or #value{k}, rhs} ->
                #assoc{#value{k}, rhs}
+      #test ->
+         #multi! {*stmts} = rhs
+         #blocktest{lhs, stmts}
+      other ->
+         #assoc{lhs, rhs}
 
    ":="{context, scope, form, #data{lhs, rhs}} =
       #assign{lhs, rhs}
@@ -268,19 +307,34 @@ pattern_handlers = {
       other ->
          match expr:
             #data{#data{*args} and arg, rhs} ->
-               pp = PatternParser{expander, scope, arg, {indexable = true}}
+               pp = PatternParser{expander, scope, arg, {...}} with
+                  indexable = true
+                  allow_nested = true
                match pp.pattern:
-                  #array_pattern{fw, {}, {}, undefined?}
-                         \ when not pp.specials.match ->
-                     decls = {}
+                  #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
+                     decls = if{pp.specials.match, {#declare{'ph}}, {}}
                      newargs = zip{fw, args} each {x, arg} -> match x:
                         #assign{expr and #symbol{v}} ->
                            expr
                         other ->
                            newv = #symbol{gensym{.temp}} &: {env = stdenv}
-                           decls.push with '[^arg = ^newv]                           
+                           decls.push with
+                              parse_pattern{expander, scope, arg, newv} with
+                                 pattern_handlers.declare_variables &+ {
+                                    special = {#special{match} and expr, value} ->
+                                       .match ->
+                                          placeholder := 'ph
+                                          #assign{placeholder}
+                                       other ->
+                                          throw E.syntax.pattern.special with
+                                             "Special token cannot be used here"
+                                             {special = expr}
+                                 }
                            newv
-                     #lambda{newargs, #multi{*decls, rhs}}
+                     #lambda{newargs, #multi{*decls, ...}} with
+                        if pp.specials.match:
+                           then: '[match ph: ^rhs]
+                           else: rhs
                   other ->
                      #lambda{{}, body} where
                         body = ' | match.indexable arguments:
@@ -306,12 +360,16 @@ pattern_handlers = {
          '[let [^to_match = ^value]: ^mbody] where mbody =
             parse_clauses with
                expander, scope, to_match, body
-               '[throw Error{"mismatch!!"}]
-               {x} -> x
-               opt
+               opt &+ {
+                  fallback = '[throw Error{"mismatch!!"}]
+                  wrap = {x} -> x
+               }
 
 
-   "each"{match, scope, form, #data{li, #multi! {*clauses}} and {=> env}} =
+   "each"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
+
+      #test ->
+         #test_factory{li, clauses} &: {env = env}
 
       #expr{.multi} ->
          ;; expand{#multi} will call this macro again with either
@@ -323,46 +381,13 @@ pattern_handlers = {
       #expr{.ignore} ->
          ;; Middle of a block. This means we don't have to accumulate
          ;; the values.
-
-         ;; Note about lbl:
-
-         ;; The "for" macro rebinds break and continue to refer to its
-         ;; own label in either the environment it is created in or in
-         ;; the environment of the label it is given. This means,
-         ;; roughly speaking, that break/continue in user code will
-         ;; jump over macro-generated loops (and the macro's will jump
-         ;; over the user's), unless the macro explicitly makes sure
-         ;; that break/continue are redefined in the user
-         ;; environment. To do so, we create a random label and give
-         ;; it the same environment as the argument to "each". This
-         ;; means "break" will jump out of "each" and not out of an
-         ;; outer loop.
-
-         lbl = #value{gensym{}} &: {env = env}
-         ' | let [temp = ^li, len = temp.length]:
-              for[^lbl] [i = 0, i < len, i++]:
-                 m = ___js_fetch{temp, i}
-                 ^ | parse_clauses with
-                      expander, scope, 'm, clauses
-                      'false
-                      {x} -> x
-                      {=}
+         build_loop{scope, env, li, clauses, {x} -> x, #splice{}, #splice{}}
 
       other ->
          ;; Middle of a block. We have to accumulate the values in
          ;; order to return them. Right now, this plays poorly with
          ;; break and continue.
-
-         lbl = #value{gensym{}} &: {env = env}
-         ' | let [temp = ^li, len = temp.length, accum = {}]:
-              for[^lbl] [i = 0, i < len, i++]:
-                 m = ___js_fetch{temp, i}
-                 ^ | parse_clauses with
-                      expander, scope, 'm, clauses
-                      'false
-                      {x} -> 'accum.push{^x}
-                      {=}
-              accum
+         build_loop{scope, env, li, clauses, {x} -> 'acc.push{^x}, '[acc = {}], 'acc}
 
    "!!"{match, scope, form, #data{expr, #multi! {*clauses}}} =
       #expr{.multi} ->
@@ -374,20 +399,16 @@ pattern_handlers = {
             ' | {excv} ->
                  ^ | parse_clauses with
                       expander, scope, 'excv, clauses
-                      'false
-                      {x} -> x
-                      {=}
+                      {wrap = {x} -> x}
       other ->
          clauses.push with
             bind_ast{'[e -> throw e], mkstdenv{}}
          ' | let [rval = false]:
-              ^ #js_try{expr, ..., #void{}} with
+              ^ #js_try{'[rval := ^expr], ..., #void{}} with
                  ' | {excv} ->
                       ^ | parse_clauses with
                            expander, scope, 'excv, clauses
-                           'false
-                           {x} -> '[rval := ^x]
-                           {=}
+                           {wrap = {x} -> '[rval := ^x]}
               rval
 
    "@" => var_operator{gensym{"it"}}
@@ -410,6 +431,9 @@ pattern_handlers = {
    do{match, scope, form, #data{body}} =
       #clause ->
          #block{body}
+      #test ->
+         #multi! {*stmts} = body
+         #do{#splice{*stmts}}
       other ->
          #multi{body}
 
@@ -522,8 +546,8 @@ pattern_handlers = {
 
    "!"{context, scope, form, #data{expr, #void{}}} =
       projector = match expr:
-         'String -> mac1 with {x} -> '{true, String{^x}}
-         'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+         'String -> mt.mac1 with {x} -> '{true, String{^x}}
+         'Number -> mt.mac1 with {x} -> '{true, parseFloat{^x}}
          other -> '___projector{^expr}
 
       #macro{...} with {match, env, form, expr} ->
@@ -601,9 +625,69 @@ pattern_handlers = {
                   throw E.syntax.provide with
                      "Each clause of provide must be 'sym' or 'sym as name'"
 
+   ;; constructor{match, scope, form, expr} =
+   ;;    #pattern ->
+   ;;       ;; <> {"ok?", expr}
+   ;;       #project{#macro{m}, #send{#value{"constructor"}, expr}} where
+   ;;          m{context, scope, form, #data{match}} =
+   ;;             '[^args -> ^body] ->
+   ;;                '{true, ...} with
+   ;;                   ^args ->
+   ;;                      console.log{"yay"}
+   ;;                      ;; ^body
+   ;;             other ->
+   ;;                throw E.syntax.constructor{"Constructor must be a function"}
 
+   class{context, scope, form, expr} =
 
+      helper{name, stmts} =
+         statics = {}
+         ctor = {#data{}, #multi{}}
+         new_stmts = stmts each
+            'static{^[#multi! {*methods}]} ->
+               statics ++= methods
+            '[constructor[^args] = ^body] or '[constructor = ^args -> ^body] ->
+               ctor := {args, body}
+               #splice{}
+            '[^lhs = ^rhs] ->
+               parse_pattern{expander, scope, lhs, rhs} with
+                  pattern_handlers.build_object &+ {
+                     allow_nested = false
+                     assign{#symbol{v} or #value{v}, value} =
+                        #do{#assign{'[^name].prototype[^=v], value} <<: v}
+                     declare{vars} = {}
+                     wrap_target{match} =
+                        '[^args -> ^body] ->
+                           {=> env} = body
+                           it = #symbol{"@"} &: {env = env}
+                           ' | ^args ->
+                                let [^it = this]:
+                                   ^body
+                        other ->
+                           other
+                     success = #splice{}
+                     failure = '[throw Error{"Mismatch"}]
+                  }
 
+         {ctor_args, ctor_body} = ctor
+         ctor_body :=
+            {env => env2} = ctor_body
+            it = #symbol{"@"} &: {env = env2}
+            ' | let [^it = if{not [^name]? this, Object.create{[^name].prototype}, this}]:
+                 ^ctor_body
+                 ^it
+
+         #splice with
+            ' | ^name = ^ctor_args -> ^ctor_body
+            ' | ^*new_stmts
+            ' | [^name] &: {=, ^*statics}
+            ' | ^name
+
+      match expr:
+         #data{name, #multi! {*stmts}} ->
+            helper{name, stmts}
+         #data{#multi! {*stmts}} ->
+            helper{#symbol{gensym{}}, stmts}
 
 
 
@@ -623,405 +707,58 @@ pattern_handlers = {
 
 
 
-;; blocktest_wrap{label, expr, accumulator} =
-;;    ' | value = [[...] !! e -> #error{e}] with
-;;         match [^expr]:
-;;            true? x -> #success{x}
-;;            false? x -> #failure{x}
-;;      | [^accumulator].push with
-;;         #test_result{^label, value}
+blocktest_wrap{expr} =
+   ' | value = [[...] !! e -> #error{e}] with
+        match [^expr]:
+           true? x -> #success{x}
+           false? x -> #failure{x}
+     | acc.push with
+        #test_result{label, value}
+
+blocktest_mac{scope, tests} =
+
+   exptests = enumerate{expander.step_all{#test, scope, tests}}
+   n = exptests.length
+   stmts = exptests each
+
+      {i, #do{stmt}} ->
+         stmt
+
+      {i, #blocktest{more_labels, more_tests}} ->
+         ' | let [label = label.concat{Array! ^more_labels}]:
+              acc := acc.concat with
+                 ^blocktest_mac{scope, more_tests}
+
+      {i, #test_factory{elements, clauses} and {=> env}} ->
+         build_loop{scope, env, elements, clauses, wrap, #splice{}, #splice{}} where
+            wrap{expr} =
+               ' | let [label = label.concat{{i}}]:
+                    ^blocktest_wrap{expr}
+
+      {i, expr} ->
+         lbl = if{n == 1, '{}, '{^=i}}
+         ' | let [label = label.concat{^lbl}]:
+              ^blocktest_wrap{expr}
+
+   ' | let [acc = {}]:
+        [[...] !! e -> acc.concat{{#error{label, e}}}] with
+           [^*stmts, acc]
+
+
+stdenv.bind{topscope, "blocktest", #macro{...}} with
+   {context, scope, form, #data{*args}} ->
+      ;; acc = gensym{}
+      ;; labv = gensym{}
+      ;; stmts = #multi with '[^acc = {}]
+      match args:
+         {#multi! {*tests}} ->
+            ' | label = {}
+              | ^blocktest_mac{scope, tests}
+         {labels, #multi! {*tests}} ->
+            ' | label = Array! ^labels
+              | ^blocktest_mac{scope, tests}
 
-;; blocktest_mac{scope, label, tests, acc} =
-;;    ;; ok = gensym{}
-;;    ;; stmts = {}
-;;    ;; stmts.push with ' | ^ok = true
 
-;;    stmts = step_all{#test, scope, tests} each
-
-;;       stmt and #send{#symbol{"do"}, _} ->
-;;          ' | ^stmt !! e ->
-;;               [^acc].push with #error{^label, e}
-;;               ok := false
-
-;;       #send{#symbol{"=>"}, #data{new_label, aslist! new_tests}} ->
-;;          labv = gensym{}
-;;          stmts.push with
-;;             ' | ^labv = ^label ++ [Array! ^new_label]
-;;               | ^ #multi{*blocktest_mac{labv, new_tests, acc}}
-
-;;       #send{#symbol{"each"}, #data{sources, aslist! clauses}} ->
-;;          loopvar = gensym{}
-;;          clauses := clauses each clause ->
-;;             clause as #send{#symbol{"->"}, #data{lhs, rhs}}
-;;             '[^lhs -> ^[#multi{*x}]] where x =
-;;                blocktest_mac with
-;;                   '[^label ++ {^loopvar}]
-;;                   aslist! rhs
-;;                   acc
-;;          clauses.push with
-;;             ' | __no ->
-;;                  [^acc].push with
-;;                     #error{^label, "No handler for test case", __no}
-;;          stmts.push with build_each with
-;;             sources
-;;             #multi{*clauses}
-;;             #multi{}
-;;             #multi{}
-;;             loopvar
-
-;;       expr ->
-;;          stmts.push with
-;;             ' if [^ok]:
-;;                  then: ^blocktest_wrap{label, expr, acc}
-;;                  else: [^acc].push with #aborted{^label, ' ^expr}
-;;    stmts.push{acc}
-;;    stmts
-
-;; stdenv.register_macro{"blocktest"} with {{context, env}, #data{*args}} ->
-;;    acc = gensym{}
-;;    labv = gensym{}
-;;    stmts = #multi with '[^acc = {}]
-;;    rval = match args:
-;;       {aslist! tests} ->
-;;          stmts.push with '[^labv = {}]
-;;          stmts := stmts ++ blocktest_mac{labv, tests, acc}
-;;       {labels, aslist! tests} ->
-;;          stmts.push with '[^labv = [Array! ^labels]]
-;;          stmts := stmts ++ blocktest_mac{labv, tests, acc}
-;;    rval
-
-
-
-
-
-
-
-
-
-;; inject_below_uses{match, fn} =
-;;    #use{scope, x} ->
-;;       #use{scope, inject_below_uses{x, fn}}
-;;    other ->
-;;       fn{other}
-
-
-;; class PatternParser:
-
-;;    constructor{scope, pattern, strings_as_variables = false} =
-;;       @sav := strings_as_variables
-;;       @arguments := {}
-;;       @vars := {}
-;;       @specials := {=}
-;;       @pattern := @expand{scope, pattern, true}
-
-;;    parse_specs{scope, specs} =
-;;       rest = undefined
-;;       rval = classify{.fw, .bw, .keys, .defaults} with
-;;          step_all{#pattern, scope, specs} each
-;;             #dynsplice{variable} ->
-;;                rest := @expand{scope, variable}
-;;                #ignore
-;;             #assoc{key} ->
-;;                #keys with {key, @expand{scope, key}}
-;;             #assoc{key, subp} ->
-;;                #keys with {key, @expand{scope, subp}}
-;;             #default{variable, value} ->
-;;                if rest:
-;;                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
-;;                   else: #defaults with {@expand{scope, variable}, value}
-;;             v when rest == undefined ->
-;;                #fw with @expand{scope, v}
-;;             v ->
-;;                #bw with @expand{scope, v}
-;;       rval.rest := rest
-;;       rval
-
-;;    expand{scope, pattern, toplevel = false, checked = false} =
-;;       expr = step{#pattern, scope, pattern}
-;;       rval = match expr:
-;;          #void ->
-;;             #check{__chk_null, #ignore}
-;;          #ignore ->
-;;             expr
-;;          #special{type} ->
-;;             @specials[type] := true
-;;             expr
-;;          #symbol or #variable ->
-;;             @vars.push with expr
-;;             #assign{expr}
-;;          #value{v} when @sav ->
-;;             @vars.push with expr
-;;             #assign{expr}
-;;          #value{v} ->
-;;             #check{mkchecker{v}, #ignore}
-;;             ;; #check{mac1{{x} -> '[^x == ^=v]}, #ignore}
-
-;;          #test{condition, subp} ->
-;;             #test{condition, @expand{scope, subp, toplevel, false}}
-;;          #project{projector, subp} ->
-;;             #project{projector, @expand{scope, subp, toplevel, true}}
-;;          #check{checker, subp} ->
-;;             #check{checker, @expand{scope, subp, toplevel, true}}
-
-;;          #send{f, arg} when not toplevel ->
-;;             throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
-;;                msg = "Function arguments can only be declared as a top level pattern."
-;;          #send{f, #data and arguments} ->
-;;             @arguments.push with arguments
-;;             @expand{scope, f, true, false}
-;;          #send{f, arg} ->
-;;             throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
-;;                msg = {"Function must be declared with an array of arguments"
-;;                       "(did you mean to use ':='?)"}.join{" "}
-
-;;          #all{*xs} ->
-;;             #all ++ [xs each x -> @expand{scope, x}]
-
-;;          #any{*xs} ->
-;;             canon{all} =
-;;                all.sort{}.join{","}
-;;             normalize{vars} =
-;;                canon{...} with
-;;                   vars each #symbol{v} -> v
-;;             pps = xs each x ->
-;;                PatternParser{scope, x}
-;;             neighbours{pps} each {pp1, pp2} ->
-;;                pps each pp -> normalize{pp.vars}
-;;                if [normalize{pp1.vars} != normalize{pp2.vars}]:
-;;                   throw E.syntax.pattern{
-;;                      "Both branches of 'or' must contain the same variables"
-;;                      {vars1 = pp1.vars.sort{} <<: pp1.pattern
-;;                       vars2 = pp2.vars.sort{} <<: pp2.pattern}
-;;                   }
-;;                if [canon{iterkeys{pp1.specials}} != canon{iterkeys{pp2.specials}}]:
-;;                   throw E.syntax.pattern{
-;;                      "Both branches of 'or' must contain the same special tokens"
-;;                      {special1 = iterkeys{pp1.specials}.sort{} <<: pp1.pattern
-;;                       special2 = iterkeys{pp2.specials}.sort{} <<: pp2.pattern}
-;;                   }
-;;             {{=> vars}, *} = pps
-;;             @vars ++= vars
-;;             #any{*patts} where patts = pps each pp -> pp.pattern
-
-;;          #data{*args} ->
-;;             specs = @parse_specs{scope, args}
-;;             match specs:
-;;                {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
-;;                   #object_pattern{*keys}
-;;                   ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
-;;                {keys => {}, => fw, => bw, => defaults, => rest} ->
-;;                   patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
-;;                   if checked:
-;;                      then: patt
-;;                      else: #check{__chk_Array, patt}
-;;                other ->
-;;                   throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
-;;                      msg = "Pattern must be an array or an object."
-
-;;          other ->
-;;             throw E.syntax.pattern{"Illegal pattern", {node = other}}
-
-;;       rval <<: pattern
-
-
-;; class PatternProcessor:
-
-;;    constructor{} =
-;;       @temps := {}
-;;       @parts := {}
-;;       @gen := GenSym{"t"}
-
-;;    do{part} =
-;;       @parts.push with #do{part}
-
-;;    check{part} =
-;;       @parts.push with #check{part}
-
-;;    temp{x, v = null} =
-;;       match x:
-;;          [#variable or #symbol] and [not v] and {single_assignment => true?} ->
-;;             x
-;;          init ->
-;;             ;; v = #variable{gensym{"t"}}
-;;             v := v or #symbol{@gen{}}
-;;             v.single_assignment := true
-;;             @temps.push with v
-;;             @do with '[^v := ^init]
-;;             v
-
-;;    process{pattern, rhs, fns} =
-;;       rval = match pattern:
-;;          #ignore ->
-;;             @do{rhs}
-;;          #assign{sym} ->
-;;             @parts.push with fns.assign{sym, rhs}
-;;          #special{kind} ->
-;;             @process{..., rhs, fns} with
-;;                fns.special{pattern, rhs}
-
-;;          #test{condition, subp} ->
-;;             @process{subp, rhs, fns}
-;;             @check with condition
-
-;;          #check{checker, #ignore} ->
-;;             @check with '[^checker]{^rhs}
-;;          #check{checker, subp} ->
-;;             t = @temp{rhs}
-;;             @check with '[^checker]{^t}
-;;             @process{subp, t, fns}
-
-;;          #project{projector, subp} ->
-;;             t = @temp{'[^projector]{^rhs}}
-;;             @check with '[^t][0]
-;;             @process{subp, '[^t][1], fns}
-
-;;          #all{*xs} ->
-;;             t = @temp{rhs}
-;;             xs each x -> @process{x, t, fns}
-;;             null
-
-;;          #any{*xs} ->
-;;             t = @temp{rhs, #symbol{gensym{"bridge"}}}
-;;             ;; t = #symbol{gensym{"bridge"}}
-;;             ;; @temps.push with t
-;;             ;; @do with '[^t := ^rhs]
-;;             @check with
-;;                construct_oper{'[or], 'false, ...} with
-;;                   xs each x ->
-;;                      pp = PatternProcessor{}
-;;                      pp.process{x, t, fns}
-;;                      assemble_pattern{pp}
-
-;;          #object_pattern{*subp} ->
-;;             t = @temp{rhs}
-;;             subp each {#value{k}, v} ->
-;;                @check with '[___hasprop{^t, ^=k}]
-;;                @process{v, '[^t][^=k], fns}
-
-;;          #array_pattern{fw, bw, dflt, rest} ->
-;;             ;; {a, b, c = 123, *rest, d, e}
-;;             ;;  ^^^^  ^^^^^^^  ^^^^^  ^^^^
-;;             ;;  fw    dflt     rest   bw
-
-;;             nfw = fw.length
-;;             nbw = bw.length
-;;             ndflt = dflt.length
-
-;;             extract_length = true
-;;             check_length = true
-
-;;             lo = nfw + nbw
-;;             hi = lo + ndflt
-
-;;             t = @temp{rhs}
-;;             len = @temp{'[^t].length}
-
-;;             @check with
-;;                match rest:
-;;                   true? ->
-;;                      '[^len >= ^=lo]
-;;                   when lo == hi ->
-;;                      '[^len == ^=lo]
-;;                   otherwise ->
-;;                      '[^len >= ^=lo and ^len <= ^=hi]
-
-;;             enumerate{fw} each {i, m} ->
-;;                @process{m, '[^t][^=i], fns}
-
-;;             enumerate{dflt} each {i, {patt, value}} ->
-;;                idx = i + nfw
-;;                @process{patt, 'if{^=idx >= ^len, ^value, [^t][^=idx]}, fns}
-
-;;             if [rest != undefined]:
-;;                then:
-;;                   slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
-;;                      pos = nfw + ndflt
-;;                   @process{rest, '[[^t].slice ^slice], fns}
-;;                else: {}
-
-;;             enumerate{bw} each {i, m} ->
-;;                @process{m, '___js_fetch{^t, ^len - ^=[nbw - i]}, fns}
-
-;;       ;; fns.wrap{pattern, rval <<: pattern}
-;;       rval
-
-
-;; assemble_pattern2{match, t, f = null} =
-;;    {} ->
-;;       t
-;;    {#do{x}, *rest} ->
-;;       #multi{x, assemble_pattern2{rest, t, f}}
-;;    parts ->
-;;       construct{match} =
-;;          {} -> #value{true}
-;;          {#do{x}, *rest} ->
-;;             #multi{x, construct{rest}}
-;;          {#check{x}} -> x
-;;          {#check{x}, *rest} ->
-;;             '[^x and ^construct{rest}]
-;;       test = construct{parts}
-;;       if f:
-;;          then: 'if{^test, ^t, ^f}
-;;          else: 'if{^test, ^t}
-
-
-
-;; parse_clauses_original{scope, target, stmts, fallback, wrap} =
-
-;;    construct{match} =
-;;       {} ->
-;;          fallback
-;;       {match, *rest} ->
-
-;;          #clause{pattern, body} ->
-;;             placeholder = undefined
-;;             special_fn{#special{match} and expr, value} =
-;;                .match ->
-;;                   placeholder := 'ph
-;;                   #assign{placeholder}
-;;                other ->
-;;                   throw E.syntax.pattern.special with
-;;                      "Special token cannot be used here"
-;;                      {special = expr}
-
-;;             {pp, exec} = pattern_with_variables{scope, pattern, target, special_fn}
-;;             vars = pp.vars
-;;             if placeholder:
-;;                vars.push with placeholder
-
-;;             ;; We are nesting the clauses, but we don't want the variables
-;;             ;; of a clause to leak into the next one (which they would
-;;             ;; because they belong to the same environment). So what we
-;;             ;; do is that we tag the outer scope (#tagscope{"back", ...}),
-;;             ;; then we revert to it with #use{"back", ...}, which erases
-;;             ;; any variables in any environment declared in-between.
-
-;;             ;; Without this trick, "match a: [b -> 1, c -> b]" would not
-;;             ;; throw a reference error, because it would produce something
-;;             ;; akin to if{b = a, 1, if{c = a, b, fail}} and the second clause
-;;             ;; would see the variable "b" declared by the first. This is not
-;;             ;; acceptable.
-
-;;             #tagscope{.back, #multi{*decls, test}} where
-;;                decls = vars each v -> #declare{v, #value{undefined}}
-;;                test = 'if{^exec, ^bod, ^ #use{.back, construct{rest}}} where
-;;                   bod =
-;;                      if placeholder:
-;;                         then:
-;;                            parse_clauses with
-;;                               expander, scope, placeholder, [#multi! body].slice{1}
-;;                               fallback, wrap
-;;                         else: wrap{body}
-
-;;          #block{#multi! {*body}} ->
-;;             '[^*body, ^construct{rest}]
-
-;;          other ->
-;;             throw E.syntax.clause with
-;;                "Illegal clause"
-;;                {clause = other}
-
-;;    construct with step_all{#clause, scope, stmts}
 
 
 class RegexBuilder:
@@ -1150,6 +887,13 @@ stdenv.bind{topscope, "R", #macro{accum_flags{mac}}} where
          String? x -> key in String.prototype
          Number? x -> key in Number.prototype
          x -> key in x
+
+   "range" => Embedded with '
+      {from, to} ->
+         rval = {}
+         for [i = from, i <= to, i++]:
+            rval.push{i}
+         rval
 
 
 

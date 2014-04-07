@@ -193,16 +193,15 @@ stdenv.register_macro{".."} with {_, match} ->
    #data{x, y} -> 'range{^x, ^y}
    #void{} -> 'range
 
-make_checker{value, op} = {{context, env}, #data{expr}} ->
-   #send{op, #data{expr, value}}
-
-
 stdenv.register_macro{"**"} with {{context, env}, #data{a, b}} ->
    'Math.pow{^a, ^b}
 
 stdenv.register_macro{"//"} with {{context, env}, #data{a, b}} ->
    'Math.floor{^a / ^b}
 
+
+make_checker{value, op} = {{context, env}, #data{expr}} ->
+   #send{op, #data{expr, value}}
 
 errf_macro{tags} = {{context, env}, match} ->
    #void{} ->

@@ -391,7 +391,7 @@ class Translator:
                other ->
                   ["while(" + a + "){" + b + "}"] where
                      a = @translate{test, .expr}
-                     b = @translate{body, other}
+                     b = @translate{body, .stmt}
 
          #js_for{x, y, z, body} ->
             match mode:

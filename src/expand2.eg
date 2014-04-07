@@ -21,7 +21,7 @@ provide:
    GenSym, gensym
    bind_ast
    ;; hoist
-   checker
+   mac1, checker
 
 
 
@@ -63,7 +63,7 @@ class Env:
       if [scope == null]:
          return undefined
       scope_data = @scopes[scope.name]
-      if [scope_data and scope_data[name]]:
+      if [scope_data and Object.prototype.hasOwnProperty.call{scope_data, name}]:
          then: scope_data[name]
          else: @resolve{scope.parent, name}
 
@@ -430,7 +430,7 @@ checker{match} =
             __chk_ncache[n] := v
             v
    String? s ->
-      if [__chk_scache[s]]:
+      if Object.prototype.hasOwnProperty.call{__chk_scache, s}:
          then: __chk_scache[s]
          else:
             v = mac1{{x} -> '[^x == ^=s]}
@@ -442,7 +442,7 @@ checker &: {
    Number = mac1 with {x} -> '[typeof{^x} == "number"]
    Array = mac1 with {x} -> '[^x instanceof Array]
    true = mac1 with {x} -> x
-   false = mac1 with {x} -> '[not x]
+   false = mac1 with {x} -> '[not ^x]
    null = mac1{{x} -> '[^x == ^=null]}
    undefined = mac1{{x} -> '[^x == ^=undefined]}
 }

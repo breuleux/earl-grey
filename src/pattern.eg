@@ -14,8 +14,6 @@ require:
 provide:
    PatternParser
    PatternProcessor
-   process_pattern, assemble_pattern, pattern_with_variables
-   process_pattern2, assemble_pattern2, pattern_with_variables2
    parse_clauses, parse_pattern
 
 
@@ -23,7 +21,6 @@ class PatternParser:
 
    constructor{expander, scope, pattern, opt} =
       @expander := expander
-      ;; @sav := strings_as_variables
       @opt := opt
       @arguments := {}
       @vars := {}
@@ -32,6 +29,7 @@ class PatternParser:
 
    parse_specs{scope, specs} =
       rest = undefined
+      has_defaults = false
       rval = classify{.fw, .bw, .keys, .defaults} with
          @expander.step_all{#pattern, scope, specs} each
             #dynsplice{variable} ->
@@ -42,10 +40,11 @@ class PatternParser:
             #assoc{key, subp} ->
                #keys with {key, @expand{scope, subp}}
             #default{variable, value} ->
+               has_defaults := true
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
                   else: #defaults with {@expand{scope, variable}, value}
-            v when rest == undefined ->
+            v when rest == undefined and not has_defaults ->
                #fw with @expand{scope, v}
             v ->
                #bw with @expand{scope, v}
@@ -90,6 +89,10 @@ class PatternParser:
                msg = {"Function must be declared with an array of arguments"
                       "(did you mean to use ':='?)"}.join{" "}
 
+         when not @opt.allow_nested ->
+            throw E.syntax.pattern{msg, {node = expr}} where
+               msg = "Nested patterns are not allowed here."
+
          #all{*xs} ->
             #all ++ [xs each x -> @expand{scope, x}]
 
@@ -122,14 +125,14 @@ class PatternParser:
          #data{*args} ->
             specs = @parse_specs{scope, args}
             match specs:
-               {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
-                  #object_pattern{*keys}
-                  ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
                {keys => {}, => fw, => bw, => defaults, => rest} ->
                   patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
                   if checked:
                      then: patt
                      else: #check{mt.checker.Array, patt}
+               {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
+                  #object_pattern{*keys}
+                  ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
                other ->
                   throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
                      msg = "Pattern must be an array or an object."
@@ -207,7 +210,7 @@ class PatternProcessor:
                   parts = xs each x ->
                      pp = PatternProcessor{}
                      pp.process{x, t, fns}
-                     assemble_pattern{pp}
+                     assemble_conditions{pp}
 
          #object_pattern{*subp} ->
             t = @temp{rhs}
@@ -247,13 +250,16 @@ class PatternProcessor:
 
             enumerate{dflt} each {i, {patt, value}} ->
                idx = i + nfw
-               @process{patt, 'if{^=idx >= ^len, ^value, [^t][^=idx]}, fns}
+               @process{patt, 'if{^=[idx + nbw] >= ^len, ^value, [^t][^=idx]}, fns}
 
             if [rest != undefined]:
                then:
-                  slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
-                     pos = nfw + ndflt
-                  @process{rest, '[[^t].slice ^slice], fns}
+                  ;; slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
+                  ;;    pos = nfw + ndflt
+                  ;; @process{rest, '[[^t].slice ^slice], fns}
+                  pos = nfw + ndflt
+                  @process{rest, 'Array.prototype.slice.call{^t, ^=pos, ^*end}, fns} where
+                     end = if{nbw > 0, {#value{-nbw}}, {}}
                else: {}
 
             enumerate{bw} each {i, m} ->
@@ -262,46 +268,7 @@ class PatternProcessor:
       ;; fns.wrap{pattern, rval <<: pattern}
       rval
 
-
-
-inject_below_uses{match, fn} =
-   #use{scope, x} ->
-      #use{scope, inject_below_uses{x, fn}}
-   other ->
-      fn{other}
-
-
-
-
-process_pattern{pp, rhs, fns} =
-   proc = PatternProcessor{}
-   proc.process{pp.pattern, ..., fns} with
-      if pp.arguments.length:
-         then:
-            inject_below_uses{rhs} with {x} ->
-               util.construct{pp.arguments ++ {x}} with
-                  {args, rest} -> '[^args -> ^rest]
-         else:
-            rhs
-   assemble_pattern{proc}
-
-process_pattern2{pp, rhs, fns} =
-   proc = PatternProcessor{}
-   proc.process{pp.pattern, ..., fns} with
-      if pp.arguments.length:
-         then:
-            inject_below_uses{rhs} with {x} ->
-               construct{pp.arguments} where
-                  construct{match} =
-                     {} -> x
-                     {*rest, args} ->
-                        '[^args -> ^construct{rest}]
-         else:
-            rhs
-   {proc.temps, proc.parts}
-
-
-assemble_pattern{pp} =
+assemble_conditions{pp} =
    construct{match} =
       {} -> #value{true}
       {#do{x}, *rest} ->
@@ -316,8 +283,7 @@ assemble_pattern{pp} =
       else:
          construct{pp.parts}
 
-
-assemble_pattern2{parts, t, f = null} =
+assemble_pattern{parts, t, f = null} =
    lead = {}
    parts.slice{0} each
       #do{x} ->
@@ -353,30 +319,47 @@ assemble_pattern2{parts, t, f = null} =
          #multi{*lead, *trail, t}
 
 
+inject_below_uses{match, fn} =
+   #use{scope, x} ->
+      #use{scope, inject_below_uses{x, fn}}
+   other ->
+      fn{other}
 
+;; Options:
+;; strings_as_variables => treat strings as if they were variable names?
+;; wrap_target{x} => called on the value the pattern will be applied to:
+;;    either rhs, or args -> rhs, if args were found embedded in the pattern
+;; finalize => finalize the pattern?
+;; (if finalizing:)
+;; declare{vars} => preparation code to declare the variables
+;; success => what to return on success
+;; failure => what to return on failure
 
-pattern_with_variables{expander, scope, pattern, rhs, special_fn} =
-   pp = PatternParser{expander, scope, pattern, {=}}
-   exec = process_pattern{pp, rhs} with {
-      special = special_fn
-      assign{v, value} =
-         #do{#assign{v, value} <<: v}
-      wrap{pattern, result} =
-         result
-   }
-   {pp, exec}
-
-
-pattern_with_variables2{expander, scope, pattern, rhs, special_fn, opt} =
-   pp = PatternParser{expander, scope, pattern, opt}
-   {temps, blocks} = process_pattern2{pp, rhs} with {
-      special = special_fn
-      assign{v, value} =
-         #do{#assign{v, value} <<: v}
-      wrap{pattern, result} =
-         result
-   }
-   {pp, temps, blocks}
+parse_pattern{expander, scope, pattern, rhs, opt} =
+   parse = PatternParser{expander, scope, pattern, opt}
+   if [not opt.allow_arguments and parse.arguments.length]:
+      throw E.syntax.pattern.arguments with
+         "Arguments cannot be declared in this pattern"
+         {args = parse.arguments[0]}
+   [opt.wrap_target or identity]! target =
+      if parse.arguments.length:
+         then:
+            inject_below_uses{rhs} with {x} ->
+               util.construct{parse.arguments ++ {x}} with
+                  {args, rest} -> '[^args -> ^rest]
+         else:
+            rhs
+   proc = PatternProcessor{}
+   proc.process{parse.pattern, target, opt}
+   if opt.finalize:
+      then:
+         #splice with
+            *opt.declare{parse.vars}
+            #multi with
+               *[proc.temps each t -> #declare{t}]
+               assemble_pattern{proc.parts, opt.success, opt.failure}
+      else:
+         {parse.vars, proc.temps, proc.parts}
 
 
 
@@ -404,7 +387,7 @@ same_block{match, ban1, ban2} =
    other ->
       false
 
-parse_clauses{expander, scope, target, stmts, fallback, wrap, opt} =
+parse_clauses{expander, scope, target, stmts, opt} =
 
    all_temps = {}
    the_parts = expander.step_all{#clause, scope, stmts} each
@@ -420,10 +403,18 @@ parse_clauses{expander, scope, target, stmts, fallback, wrap, opt} =
                   "Special token cannot be used here"
                   {special = expr}
 
-         {pp, temps, blocks} =
-            pattern_with_variables2{expander, scope, pattern, target, special_fn, opt}
+         {vars, temps, blocks} =
+            parse_pattern{expander, scope, pattern, target} with
+               opt &+ {
+                  allow_arguments = false
+                  allow_nested = true
+                  special = special_fn
+                  assign{v, value} =
+                     #do{#assign{v, value} <<: v}
+                  finalize = false
+               }
+
          all_temps ++= temps
-         vars = pp.vars
          if placeholder:
             vars.push with placeholder
 
@@ -440,8 +431,8 @@ parse_clauses{expander, scope, target, stmts, fallback, wrap, opt} =
                   then:
                      parse_clauses with
                         expander, scope, placeholder, [#multi! body].slice{1}
-                        fallback, wrap, opt
-                  else: wrap{body}
+                        opt
+                  else: if{opt.wrap, opt.wrap{body}, body}
 
       #block b ->
          b
@@ -451,58 +442,11 @@ parse_clauses{expander, scope, target, stmts, fallback, wrap, opt} =
             "Illegal clause"
             {clause = other}
 
-   the_parts.push with #block{fallback}
-   #multi{*decls, weave_clauses2{the_parts}} where
-      decls = all_temps each t -> #declare{t}
-
-
-weave_clauses{parts} =
-
-   breaks_used = false
-   label = gensym{}
-
-   helper{match, is_last} =
-      {} ->
-         #splice{}
-
-      {#clause{vars1, varsd1, {b1 = null, *blocks1}, body1} and first, *rest} ->
-         along = {#clause{vars1, varsd1, blocks1, body1}}
-         rest each
-            #clause{vars2, varsd2, {b2, *blocks2}, body2} ->
-               same = same_block{{b1, b2}, varsd1, varsd2}
-               if same:
-                  then: along.push with #clause{vars2, varsd2, blocks2, body2}
-                  else: break
-            other ->
-               break
-         others = rest.slice{along.length - 1}
-         if [along.length == 1]:
-            then:
-               decls = vars1 each v -> #declare{v}
-               #tagscope{.zero} with
-                  ' | ^*decls
-                    | ^ | assemble_pattern2 with
-                           if{b1, {b1}, {}} ++ blocks1
-                           '[^body1, ^if{is_last, #splice{},
-                                            [breaks_used := true, 'break[^=label]]}]
-                           if{others.length
-                              #use{.zero, #multi{helper{others, is_last}}}
-                              null}
-            else:
-               ' | ^ | assemble_pattern2 with
-                        if{b1, {b1}, {}}
-                        helper{along, is_last and others.length == 0}
-                 | ^helper{others, is_last}
-
-      {#block{#multi! {*body}}, *rest} ->
-         '[^*body, ^helper{rest, is_last}]
-
-   result = helper{parts, true}
-   if breaks_used:
-      then:
-         'while[^=label]{1, [^result, break[^=label]]}
-      else:
-         result
+   if opt.fallback:
+      the_parts.push with #block{opt.fallback}
+   unique_temps = iterkeys{util.set{all_temps each #symbol{t} -> t}}
+   #multi{*decls, weave_clauses{the_parts}} where
+      decls = unique_temps each t -> #declare{#symbol{t}}
 
 
 opt_clauses{clauses} =
@@ -552,7 +496,7 @@ opt_clauses{clauses} =
    {temps, new_clauses}
 
 
-weave_clauses2{parts} =
+weave_clauses{parts} =
 
    groups = classify_contiguous{parts} with {{cls, *}} -> cls
 
@@ -578,7 +522,7 @@ weave_clauses2{parts} =
          decls = vars each v -> #declare{v}
          #tagscope{.back} with
             ' | ^*decls
-              | ^ | assemble_pattern2 with
+              | ^ | assemble_pattern with
                      blocks
                      body
                      #use{.back, helper{rest}}
@@ -586,40 +530,3 @@ weave_clauses2{parts} =
    #multi with 
       *[new_temps each t -> #declare{t}]
       helper{reassemble}
-
-
-;; Options:
-;; strings_as_variables => treat strings as if they were variable names?
-;; wrap_target{x} => called on the value the pattern will be applied to:
-;;    either rhs, or args -> rhs, if args were found embedded in the pattern
-;; finalize => finalize the pattern?
-;; (if finalizing:)
-;; declare{vars} => preparation code to declare the variables
-;; success => what to return on success
-;; failure => what to return on failure
-
-parse_pattern{expander, scope, pattern, rhs, opt} =
-   parse = PatternParser{expander, scope, pattern, opt}
-   if [not opt.allow_arguments and parse.arguments.length]:
-      throw E.syntax.pattern.arguments with
-         "Arguments cannot be declared in this pattern"
-         {args = parse.arguments[0]}
-   [opt.wrap_target or identity]! target =
-      if parse.arguments.length:
-         then:
-            inject_below_uses{rhs} with {x} ->
-               util.construct{parse.arguments ++ {x}} with
-                  {args, rest} -> '[^args -> ^rest]
-         else:
-            rhs
-   proc = PatternProcessor{}
-   proc.process{parse.pattern, target, opt}
-   if opt.finalize:
-      then:
-         #splice with
-            *opt.declare{parse.vars}
-            #multi with
-               *[proc.temps each t -> #declare{t}]
-               assemble_pattern2{proc.parts, opt.success, opt.failure}
-      else:
-         {parse.vars, proc.temps, proc.parts}
