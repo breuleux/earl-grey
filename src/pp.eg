@@ -85,13 +85,13 @@ HTML{match, default_tag} =
       [...].join{""} with
          children each child -> HTML{child, default_tag}
 
-   Node? {tags, children} ->
+   Node? {=> classes, => children} ->
       tag = default_tag or "span"
-      classes = {}
+      _classes = {}
       id = null
       kv = {}
       sub = {}
-      tags each
+      classes each
          #assoc{k, v} ->
             kv.push with {k, v}
          #assoc{k} ->
@@ -101,15 +101,15 @@ HTML{match, default_tag} =
          R'[start, "#", {*any}]? {_, m} ->
             id := m
          String? s ->
-            classes.push with s
+            _classes.push with s
 
       accum = if{tag == .raw, {}, {"<", tag}}
       if id:
          accum := accum.concat with
             " id=\"", id, "\""
-      if classes.length:
+      if _classes.length:
          accum := accum.concat with
-            " class=\"", quotify{classes.join{" "}}, "\""
+            " class=\"", quotify{_classes.join{" "}}, "\""
       if kv:
          kv each {k, v} ->
             accum := accum.concat with

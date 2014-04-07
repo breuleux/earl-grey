@@ -62,7 +62,7 @@ class Generator2:
    generate{source} =
       t = tokenize{source}
       p = parse{t}
-      ex = e2.expand{#top, e2.topscope, e2.bind_ast{#multi! p, e2.stdenv.fork{}}}
+      ex = e2.expand{#top, e2.topscope, e2.bind_ast{#multi{p}, e2.stdenv.fork{}}}
       ex := opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
       @tr.dump_store{} + rval

@@ -57,6 +57,7 @@ run{cmd} =
    _run{cmd} !!
       e ->
          display_error{e}
+         console.log with e
          process.exit{1}
 
 _run{match} =
@@ -135,7 +136,8 @@ _run{match} =
                   to = path.join{out, d}
                   fs.mkdirSync{to} !! e -> "ignore error"
                {.file, match} ->
-                  R'[start, {*any}, ".eg", end]? {x, name} ->
+                  R'[start, {*any}, ".eg", end]! results when results ->
+                     {x, name} = results
                      from = path.join{file, x}
                      to = path.join{out, name + ".js"}
                      data = fs.readFileSync{from, .utf8}
@@ -184,6 +186,7 @@ _run{match} =
       data = fs.readFileSync{file, .utf8}
       code = eg.generate2{Source{data, "<test>"}}
       ;; console.log with beaut{code}
+      ;; console.log with eval{code}
       <> eval{code}
 
    {.inspect, file} ->
@@ -196,10 +199,11 @@ _run{match} =
       require: "js-beautify" -> js as beaut
       code = eg.generate2{Source{s, "<test>"}}
       console.log with beaut{code}
+      console.log with eval{code}
       <> eval{code}
 
    {.runs, data} ->
-      <> eval{gen{data, "<command>"}}
+      console.log with eval{gen{data, "<command>"}}
 
    other ->
       console.log with usage

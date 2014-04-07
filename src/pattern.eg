@@ -396,7 +396,7 @@ parse_clauses{expander, scope, target, stmts, opt} =
          placeholder = undefined
          special_fn{#special{match} and expr, value} =
             .match ->
-               placeholder := 'ph
+               placeholder := #symbol{gensym{.ph}}
                #assign{placeholder}
             other ->
                throw E.syntax.pattern.special with
@@ -430,7 +430,7 @@ parse_clauses{expander, scope, target, stmts, opt} =
                if placeholder:
                   then:
                      parse_clauses with
-                        expander, scope, placeholder, [#multi! body].slice{1}
+                        expander, scope, placeholder, [#multi! body]
                         opt
                   else: if{opt.wrap, opt.wrap{body}, body}
 

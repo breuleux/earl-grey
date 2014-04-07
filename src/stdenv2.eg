@@ -1080,19 +1080,29 @@ stdprelude = Embedded with '
          else:
             false
 
+   ;; Array.prototype[":::project"] := {value} ->
+   ;;    if [value instanceof Array]:
+   ;;       then:
+   ;;          for [i = 0, i < this.length, i++]:
+   ;;             if [this[i] != value[i]]:
+   ;;                rval = this.slice{0}
+   ;;                rval.push{value}
+   ;;                return {true, rval}
+   ;;          {true, value}
+   ;;       else:
+   ;;          rval = this.slice{0}
+   ;;          rval.push{value}
+   ;;          {true, rval}
+
    Array.prototype[":::project"] := {value} ->
       if [value instanceof Array]:
          then:
             for [i = 0, i < this.length, i++]:
                if [this[i] != value[i]]:
-                  rval = this.slice{0}
-                  rval.push{value}
-                  return {true, rval}
-            {true, value}
+                  return {true, {value}}
+            {true, value.slice{this.length}}
          else:
-            rval = this.slice{0}
-            rval.push{value}
-            {true, rval}
+            {true, {value}}
 
    Array.prototype[":::deconstruct"] := {value} ->
       {true, value.slice{this.length}}
