@@ -50,7 +50,7 @@ regexps = {
 
   numr_f = {m, wsb, wsa, last_op} ->
      {_, radix, intp, frac} = m
-     value := parseInt{intp.replace{R.g"_", ""}, radix}
+     value = parseInt{intp.replace{R.g"_", ""}, radix}
      if frac:
         frac := frac.replace{R.g"_", ""}
         value := value + parseInt{frac, radix} / Math.pow{radix, frac.length}
@@ -269,8 +269,8 @@ tokenize{src} =
    results = {}
    wsb = text.match{ws_re}[0].length
    text := text.slice{wsb}
-   pos := wsb
-   column := 0
+   pos = wsb
+   column = 0
    indent = indent_tracker{}
 
    while text:

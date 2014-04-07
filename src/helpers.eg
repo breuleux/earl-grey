@@ -15,7 +15,7 @@ aslist{match} =
 
 transform{expr, cb} =
    tr{x} = transform{x, cb}
-   result = cb.call{tr, expr} !!
+   result = cb.call{tr, expr} !! e ->
       match expr:
          #void{} -> #void{}
          #symbol{s} -> expr

@@ -103,7 +103,7 @@ class PatternParser:
                canon{...} with
                   vars each #symbol{v} -> v
             pps = xs each x ->
-               PatternParser{@expander, scope, x, {=}}
+               PatternParser{@expander, scope, x, @opt}
             neighbours{pps} each {pp1, pp2} ->
                pps each pp -> normalize{pp.vars}
                if [normalize{pp1.vars} != normalize{pp2.vars}]:
@@ -150,7 +150,7 @@ class PatternProcessor:
       @parts := {}
       @gen := GenSym{"t"}
 
-   do{part} =
+   "do"{part} =
       @parts.push with #do{part}
 
    check{part} =
@@ -158,7 +158,7 @@ class PatternProcessor:
 
    temp{x, v = null} =
       match x:
-         [#variable or #symbol] and [not v] and {single_assignment => true?} ->
+         [#variable or #symbol] and {single_assignment => true?} when not v ->
             x
          init ->
             ;; v = #variable{gensym{"t"}}
@@ -357,7 +357,7 @@ parse_pattern{expander, scope, pattern, rhs, opt} =
             *opt.declare{parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
-               assemble_pattern{proc.parts, opt.success, opt.failure}
+               assemble_pattern{proc.parts, opt.success{}, opt.failure{}}
       else:
          {parse.vars, proc.temps, proc.parts}
 

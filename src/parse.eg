@@ -193,7 +193,7 @@ order{o1, o2} =
    {code1, ord1} = consult{o1}[1]
    {code2, ord2} = consult{o2}[0]
    match:
-      when [[code1 & code2] == 0] ->
+      when [[code1 &. code2] == 0] ->
          throw E.syntax.order{...} with
             "Cannot mix operators in the given order"
             {left = o1, right = o2}
@@ -235,10 +235,11 @@ finalize{token and match} =
                [x when x.fromop] and #send{f, #data{a, b}} ->
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
                #data{*args} ->
-                   tr := this
-                   res = #data ++ patch_array.apply{null} with args each
-                      #symbol{"..."} -> [inserted := true, body]
-                      other -> {tr{other} <<: other}
+                   tr = this
+                   res = #data
+                   args each
+                      #symbol{"..."} -> [inserted := true, res ++= body]
+                      other -> res.push with [tr{other} <<: other]
                    res <<: expr
 
             if [not inserted]:

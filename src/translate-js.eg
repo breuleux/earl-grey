@@ -17,9 +17,9 @@ js_op_table2 = {
    "*" => "*"
    "/" => "/"
    "mod" => "%"
-   ".&" => "&"
-   ".|" => "|"
-   ".^" => "^"
+   "&." => "&"
+   "|." => "|"
+   "^." => "^"
    "~" => "~"
    "and" => "&&"
    "or" => "||"
@@ -97,6 +97,18 @@ class Translator:
          name ->
             name
 
+   register_raw{raw, id} =
+      match @cache[id]:
+         undefined? ->
+            temp = gensym{}
+            @cache[id] := temp
+            @prepend.push{@translate{..., .stmt}} with
+               #declare{temp, #raw{raw}}
+            temp
+         name ->
+            name
+
+
    dump_store{} =
       ;; decls = items{@store} each {id, {name, serial}} ->
       ;;    #declare{name, serial}
@@ -137,7 +149,7 @@ class Translator:
       r.join{""}
 
    body{b, mode} =
-      orig := b
+      orig = b
       b := aslist{b}
       trst{stmt} = @translate{stmt, .stmt}
       match mode:
@@ -216,13 +228,13 @@ class Translator:
                trmsg = @translate{msg, .expr}
 
          #send{f, msg and #value{s}} ->
-            cond:
-               [[typeof{s} == "string"]
-                \ and s.match{R'[start, + in "a-zA-Z_$", end]}] =>
+            match:
+               when [[typeof{s} == "string"]
+                     \ and s.match{R'[start, + in "a-zA-Z_$", end]}] ->
                   @expr{trf + "." + trmsg, mode} where
                      trf = @translate{f, .expr}
                      trmsg = @translate{#symbol{s}, .expr}
-               else =>
+               otherwise ->
                   @expr{trf + "[" + trmsg + "]", mode} where
                      trf = @translate{f, .expr}
                      trmsg = @translate{msg, .expr}
@@ -245,7 +257,10 @@ class Translator:
          ;;       trmsg = @translate{msg, .expr}
 
          #send{f, msg} ->
-            @expr{"send(" + trf + "," + trmsg + ")", mode} where
+            #symbol{codevar} = @register_raw{code, "~send"} where code =
+               "(function(o,m){if(typeof(m)==='string'||typeof(m)==='number'){return o[m];}else{return o['::send'](m);}})"
+            ;; codevar = "send"
+            @expr{codevar + "(" + trf + "," + trmsg + ")", mode} where
                trf = @translate{f, .expr}
                trmsg = @translate{msg, .expr}
 
@@ -311,7 +326,8 @@ class Translator:
                a = @translate{lhs, .expr}
                b = @translate{rhs, .expr}
 
-         #multi{} -> ""
+         #multi{} ->
+            if{mode == .stmt, ";", ""}
 
          #multi{*args} ->
             isdecl{match} =
@@ -419,6 +435,8 @@ class Translator:
                   "try{" + a + "}catch(" + v + "){" + b + "}" where
                      a = @translate{attempt, .stmt}
                      b = @translate{body, .stmt}
+
+         #raw{x} -> x
 
          other ->
             throw other

@@ -21,6 +21,7 @@ provide:
    stdenv
    expander
    expand
+   stdprelude
 
 
 class Embedded:
@@ -41,7 +42,7 @@ mkstdenv{} =
 
 [{...} each k -> stdenv.bind{topscope, k, #variable{k}}] with
    "+", "-", "*", "/", "mod"
-   ".&", ".|", ".^"
+   "&.", "|.", "^."
    "and", "or", "not"
    "==", "!=", "===", "!=="
    "<", ">", "<=", ">="
@@ -51,10 +52,10 @@ mkstdenv{} =
 
    .true, .false, .null, .undefined
 
-   .typeof, .String, .Array, .Number, .Object, .RegExp
+   .typeof, .String, .Array, .Number, .Object, .RegExp, .Function
    .parseInt, .parseFloat, .Math
    .Error, .TypeError, .ReferenceError
-   .console
+   .console, .process, .eval
 
    .___js_fetch
 
@@ -109,9 +110,11 @@ var_operator{name} = {context, scope, form, expr} ->
          other ->
             #send{sym, other}
 
-accum_flags{mac} =
+accum_flags{mac, also_values = true} =
    make{flags}{context, scope, form, match} =
-      #value{flag} or '[. ^[#symbol{flag}]] ->
+      #value{flag} when also_values ->
+         #macro{make{flags ++ {flag}}}
+      '[. ^[#symbol{flag}]] ->
          #macro{make{flags ++ {flag}}}
       other ->
          mac{context, scope, form, other, flags}
@@ -136,8 +139,8 @@ pattern_handlers = {
       finalize = true
       declare{vars} =
          vars each v -> #declare{v}
-      success = #multi{}
-      failure = '[throw Error{"Mismatch"}]
+      success{} = #multi{}
+      failure{} = '[throw Error{"Mismatch"}]
    }
 
    build_object = {
@@ -149,8 +152,8 @@ pattern_handlers = {
          #do{#assign{'accum[^=v], value} <<: v}
       finalize = true
       declare{vars} = {#declare{'accum, '{=}}}
-      success = 'accum
-      failure = '[throw Error{"Mismatch"}]
+      success{} = 'accum
+      failure{} = '[throw Error{"Mismatch"}]
    }
 
 }
@@ -186,6 +189,21 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
      | ^post
 
 
+partial_pattern{operator} =
+   op = #variable{operator}
+   {context, scope, form, expr} ->
+      match {context, expr}:
+         {#pattern, #data{#void{}, val}} ->
+            #check{m, #ignore{}} where
+               m = mt.mac1 with {x} -> '[^op]{^x, ^val}
+         {_, #void{}} ->
+            op
+         other ->
+            #send{op, expr}
+
+make_assigner{op}{context, scope, form, #data{a, b}} =
+   #assign{a, #send{#symbol{op}, #data{a, b}}}
+
 
 [items{{...}} each {k, v} -> stdenv.bind{topscope, k, #macro{v}}] with
 
@@ -193,6 +211,13 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
    false = protected_value{.false, false}
    null = protected_value{.null, null}
    undefined = protected_value{.undefined, undefined}
+
+   "==" => partial_pattern{"=="}
+   "!=" => partial_pattern{"!="}
+   "<=" => partial_pattern{"<="}
+   ">=" => partial_pattern{">="}
+   "<" => partial_pattern{"<"}
+   ">" => partial_pattern{">"}
 
    "++"{context, scope, form, match} =
       #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
@@ -273,6 +298,16 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
                   ;; special case for the most common situation
                   #assoc{#value{s}, rhs}
                #data{lhs, rhs} ->
+                  ;; goddamn = parse_pattern{expander, scope, lhs, rhs} with
+                  ;;    pattern_handlers.build_object
+                  ;; BAH{match} =
+                  ;;    x and {=> env} ->
+                  ;;       <> {x, env}
+                  ;;    {type, *rest} ->
+                  ;;       rest each x -> BAH{x}
+                  ;;    other ->
+                  ;;       null
+                  ;; BAH{goddamn}
                   #objsplice with #multi with
                      parse_pattern{expander, scope, lhs, #use{scope, rhs}} with
                         pattern_handlers.build_object
@@ -300,6 +335,16 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
    ":="{context, scope, form, #data{lhs, rhs}} =
       #assign{lhs, rhs}
 
+   "+=" => make_assigner{"+"}
+   "-=" => make_assigner{"-"}
+   "*=" => make_assigner{"*"}
+   "/=" => make_assigner{"/"}
+   "<<=" => make_assigner{"<<"}
+   ">>=" => make_assigner{">>"}
+   ">>>=" => make_assigner{">>>"}
+   "++=" => make_assigner{"++"}
+   "?=" => make_assigner{"match"}
+
    "->"{match, scope, form, expr} =
       #clause ->
          #data{lhs, rhs} = expr
@@ -323,8 +368,7 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
                                  pattern_handlers.declare_variables &+ {
                                     special = {#special{match} and expr, value} ->
                                        .match ->
-                                          placeholder := 'ph
-                                          #assign{placeholder}
+                                          #assign{'ph}
                                        other ->
                                           throw E.syntax.pattern.special with
                                              "Special token cannot be used here"
@@ -413,7 +457,7 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
 
    "@" => var_operator{gensym{"it"}}
 
-   chain{context, scope, form, #data{defn and {=> env}, #multi! {*body}}} =
+   "chain"{context, scope, form, #data{defn and {=> env}, #multi! {*body}}} =
       it = '[@] &: {env = env}
       construct{match} =
          {x} -> x
@@ -422,13 +466,13 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
                  ^construct{rest}
       construct{{defn} ++ body}
 
-   using{context, scope, form, #data{defn and {=> env}, body}} =
+   "using"{context, scope, form, #data{defn and {=> env}, body}} =
       it = '[@] &: {env = env}
       ' | let [^it = ^defn]:
            ^body
       
 
-   do{match, scope, form, #data{body}} =
+   "do"{match, scope, form, #data{body}} =
       #clause ->
          #block{body}
       #test ->
@@ -437,19 +481,19 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
       other ->
          #multi{body}
 
-   ifneeded{match, scope, form, #data{yes, no}} =
-      #expr{match} ->
-         x ->
-            <> x
-            yes
-         .multi -> #nostep{form}
-         .ignore -> no
-         other -> yes
-      other ->
-         <> other
-         yes
+   ;; ifneeded{match, scope, form, #data{yes, no}} =
+   ;;    #expr{match} ->
+   ;;       x ->
+   ;;          <> x
+   ;;          yes
+   ;;       .multi -> #nostep{form}
+   ;;       .ignore -> no
+   ;;       other -> yes
+   ;;    other ->
+   ;;       <> other
+   ;;       yes
 
-   if{context, scope, form, match} =
+   "if"{context, scope, form, match} =
       #data{test, a, b} ->
          #if{test, a, b}
       #data{test, #multi! {*match}} ->
@@ -462,19 +506,19 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
          other ->
             #if{test, #multi{*other}, #value{undefined}}
 
-   while{context, scope, form, match and {=> env}} =
+   "while"{context, scope, form, match and {=> env}} =
       '[. ^[#symbol{label}]] or #value{label} ->
          #macro with {context, scope, form, #data{test, body}} ->
             setup_label{label, env, #js_while{test, body}}
       #data{test, body} ->
          setup_label{gensym{}, env, #js_while{test, body}}
 
-   for{context, scope, form, expr} =
+   "for"{context, scope, form, expr} =
       setup_for{label, env, match, body} =
          #multi{a, b, c} ->
             #multi with
                a
-               setup_label{label, env, #js_for{#value{null}, b, c, body}}
+               setup_label{label, env, #js_for{#multi{}, b, c, body}}
          '[^a in ^b] ->
             #multi with
                #declare{a, #value{null}} ;; this is to show the symbol as resolved
@@ -486,7 +530,7 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
          #data{spec, body} ->
             setup_for{gensym{}, form.env, spec, body}
 
-   let{context, scope, form, #data{#multi! {*bindings}, body}} =
+   "let"{context, scope, form, #data{#multi! {*bindings}, body}} =
       construct{match} =
          {} -> body
          {x, *xs} ->
@@ -494,8 +538,11 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
       construct{bindings}
       ;; #multi{*bindings, body} &: {nonrecursive = true}
 
-   [where]{context, scope, form, #data{body, bindings}} =
-      'let{^bindings, ^body}
+   "letrec"{context, scope, form, #data{#multi! {*bindings}, body}} =
+      #multi{*bindings, body}
+
+   "where"{context, scope, form, #data{body, bindings}} =
+      'letrec{^bindings, ^body}
 
    "break" => break_mac{null}
    ;; "break" => overridable with
@@ -577,12 +624,13 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
                #data{*args} ->
                   '{^tag, ^*args}
                other ->
-                  throw E.syntax"#" with
-                     "Illegal argument for #"
-                     {form = form
-                      argument = expr}
+                  '{^tag}[^other]
+                  ;; throw E.syntax"#" with
+                  ;;    "Illegal argument for #"
+                  ;;    {form = form
+                  ;;     argument = expr}
 
-   require{context, scope, form, #data{expr}} =
+   "require"{context, scope, form, #data{expr}} =
 
       req = #variable{.require}
       stmts = {}
@@ -597,7 +645,7 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
             fetch{s, expr}
 
          #value{String? s} ->
-            fetch{s, gensym{}}
+            fetch{s, #symbol{gensym{}}}
 
          #multi{*subp} or #data{*subp} ->
             subp each p -> produce{p, fetch}
@@ -613,7 +661,7 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
       produce{expr, topfetch}
       #splice{*stmts}
 
-   provide{context, scope, form, #data{#multi! {*expr}}} =
+   "provide"{context, scope, form, #data{#multi! {*expr}}} =
       #sink with
          #multi ++
             expr each
@@ -638,13 +686,13 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
    ;;             other ->
    ;;                throw E.syntax.constructor{"Constructor must be a function"}
 
-   class{context, scope, form, expr} =
+   "class"{context, scope, {=> env}, expr} =
 
       helper{name, stmts} =
-         statics = {}
-         ctor = {#data{}, #multi{}}
+         statics = #data{'[=]}
+         ctor = {#data{}, #multi{} &: {env = env}}
          new_stmts = stmts each
-            'static{^[#multi! {*methods}]} ->
+            #send{'static, #data{#multi! {*methods}}} ->
                statics ++= methods
             '[constructor[^args] = ^body] or '[constructor = ^args -> ^body] ->
                ctor := {args, body}
@@ -665,8 +713,8 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
                                    ^body
                         other ->
                            other
-                     success = #splice{}
-                     failure = '[throw Error{"Mismatch"}]
+                     success{} = #splice{}
+                     failure{} = '[throw Error{"Mismatch"}]
                   }
 
          {ctor_args, ctor_body} = ctor
@@ -677,11 +725,15 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
                  ^ctor_body
                  ^it
 
-         #splice with
-            ' | ^name = ^ctor_args -> ^ctor_body
-            ' | ^*new_stmts
-            ' | [^name] &: {=, ^*statics}
-            ' | ^name
+         node =
+            #splice with
+               ' | ^name = ^ctor_args -> ^ctor_body
+               ' | ^*new_stmts
+               ' | [^name] &: ^statics
+               ' | ^name
+         match context:
+            #expr{.multi} -> node
+            other -> #multi{node}
 
       match expr:
          #data{name, #multi! {*stmts}} ->
@@ -690,20 +742,47 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
             helper{#symbol{gensym{}}, stmts}
 
 
+   "%"{context, scope, form, #data{descr, contents}} =
+      tags = #data{}
 
-   numbers{context, scope, form, #data{body, => env}} =
-      nums = "zero one two three four five six seven eight nine ten".split{" "}
-      syms = nums each n ->
-         #symbol{n} &: {env = env}
-      rval = #multi ++
-         enumerate{syms} each {i, sym} -> #declare{sym, #value{i}}
-      rval.push with body
-      rval
+      parse{match} =
+         #void{} -> null
+         #symbol{s} -> tags.push with #value{"+" + s}
+         #value{x} ->
+            tags.push with #value{"+" + x}
+         #send{#symbol{"."}, #data{#void{}, #symbol{x} or #value{x}}} ->
+            tags.push with #value{x}
+         #send{#symbol{"#"}, #data{#void{}, #symbol{x} or #value{x}}} ->
+            tags.push with #value{"#" + x}
+         #send{#symbol{"="}, #data{#symbol{prop} or #value{prop}, value}} ->
+            tags.push with '[#assoc{^=prop, ^value}]
+         #send{expr, rest} ->
+            parse{expr}, parse{rest}
+         #multi{*args} or #data{*args} ->
+            args.forEach{parse}
 
-   "<==>"{context, scope, form, #data{a, b}} =
-      ' | temp = ^a
-        | ^a := ^b
-        | ^b := temp
+      parse{descr}
+      contents ?=
+         #void{} -> #data{}
+         #multi{*args} -> #data{*args}
+         x -> x
+
+      'Node{^tags, ^contents}
+
+
+   ;; numbers{context, scope, form, #data{body, => env}} =
+   ;;    nums = "zero one two three four five six seven eight nine ten".split{" "}
+   ;;    syms = nums each n ->
+   ;;       #symbol{n} &: {env = env}
+   ;;    rval = #multi ++
+   ;;       enumerate{syms} each {i, sym} -> #declare{sym, #value{i}}
+   ;;    rval.push with body
+   ;;    rval
+
+   ;; "<==>"{context, scope, form, #data{a, b}} =
+   ;;    ' | temp = ^a
+   ;;      | ^a := ^b
+   ;;      | ^b := temp
 
 
 
@@ -758,6 +837,27 @@ stdenv.bind{topscope, "blocktest", #macro{...}} with
             ' | label = Array! ^labels
               | ^blocktest_mac{scope, tests}
 
+
+qqstruct{name, args} =
+   #data{#value{name}, *args}
+
+qq{expr and match} =
+   #symbol{s} -> qqstruct{.symbol, {#value{s}}}
+   #void{} -> qqstruct{.void, {}}
+   #value{v} ->
+      qqstruct{.value, {expr}}
+   #send{#symbol{"^"}, #data{#void{}, insert}} ->
+      insert
+   #send{#symbol{"^="}, #data{#void{}, insert}} ->
+      qqstruct{.value, {insert}}
+   #send{#symbol{"^*"}, #data{#void{}, insert}} ->
+      '[* ^insert]
+   {name, *args} ->
+      qqstruct{name, args each arg -> qq{arg}}
+
+stdenv.bind{topscope, "'", #macro{...}} with
+   {context, scope, form, #data{#void{}, expr}} ->
+      qq{expr}
 
 
 
@@ -815,7 +915,7 @@ class RegexBuilder:
                   x = @quote_charset{v}
             "not" ->
                #void{} = a
-               b as #send{#symbol{"in"}, #data{#void{}, #value{v}}}
+               #send{#symbol{"in"}, #data{#void{}, #value{v}}} = b
                ["[^" + x + "]"] where
                   x = @quote_charset{v}
 
@@ -831,7 +931,7 @@ class RegexBuilder:
 
 build_regexp{x} = RegexBuilder{}.build{x}
 
-stdenv.bind{topscope, "R", #macro{accum_flags{mac}}} where
+stdenv.bind{topscope, "R", #macro{accum_flags{mac, false}}} where
    mac{context, scope, form, match, flags} =
       #value{String? v} ->
          'RegExp{^=v, ^=[flags.join{""}]}
@@ -839,6 +939,19 @@ stdenv.bind{topscope, "R", #macro{accum_flags{mac}}} where
          'RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}
          ;; #value{rx} where
          ;;    rx = RegExp{build_regexp{arg}, [flags.join{""}]}
+
+
+errf_macro{tags}{context, scope, form, match} =
+   #void{} ->
+      'ErrorFactory{{^*tags}}
+   #data{*args} ->
+      'ErrorFactory{{^*tags}}.create{^*args}
+   other ->
+      #macro with errf_macro{tags ++ {other}}
+
+stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
+
+
 
 
 
@@ -894,6 +1007,115 @@ stdenv.bind{topscope, "R", #macro{accum_flags{mac}}} where
          for [i = from, i <= to, i++]:
             rval.push{i}
          rval
+
+   "___serialize_ast" => Embedded with '
+      {match} ->
+         String? x or Number? x ->
+            #value{x}
+         other ->
+            other["::serialize_ast"]{}
+
+   "ErrorFactory" => Embedded with '
+      class:
+
+         constructor{tags} =
+            @tags := tags
+
+         create{message = "", *args} =
+            e = Error{message}
+            e["::tags"] := @tags
+            e.args := args
+            e.name := [{.E} ++ @tags].join{"."}
+            e
+
+         "::check"{e} =
+            if [not e or not Error? e]:
+               return false
+            tags = e["::tags"] or {}
+            @tags each tag when tags.indexOf{tag} == -1 ->
+               return false
+            true
+
+         "::deconstruct"{e} =
+            e.args
+
+   "Node" => Embedded with '
+      class:
+         static:
+            "::check"{x} =
+               x and x.classes and x.children
+            "::deconstruct"{x} =
+               {x.classes, x.children}
+
+         constructor{Array! classes, Array! children} =
+            @classes := classes.sort{}
+            @children := children
+
+         "::check"{n} =
+            @classes each c when n.classes.indexOf{c} == -1 ->
+               return false
+            true
+
+
+
+
+
+stdprelude = Embedded with '
+
+   send{obj, msg and match} =
+      [String? or Number?] -> ___js_fetch{obj, msg}
+      other -> obj["::send"]{msg}
+
+   Array[":::project"] := {value and match} ->
+      Array? -> {true, value}
+      _ -> {true, {value}}
+
+   Array.prototype["::check"] := {value} ->
+      if [value instanceof Array]:
+         then:
+            for [i = 0, i < this.length, i++]:
+               if [this[i] != value[i]]:
+                  return false
+            true
+         else:
+            false
+
+   Array.prototype[":::project"] := {value} ->
+      if [value instanceof Array]:
+         then:
+            for [i = 0, i < this.length, i++]:
+               if [this[i] != value[i]]:
+                  rval = this.slice{0}
+                  rval.push{value}
+                  return {true, rval}
+            {true, value}
+         else:
+            rval = this.slice{0}
+            rval.push{value}
+            {true, rval}
+
+   Array.prototype[":::deconstruct"] := {value} ->
+      {true, value.slice{this.length}}
+
+   Array.prototype["::serialize_ast"] := {} ->
+      #array{*this.map{___serialize_ast}}
+
+   RegExp.prototype["::check"] := {value} ->
+      value.match{this}
+
+   RegExp.prototype[":::project"] := {value} ->
+      match value.match{this}:
+         null? m -> {false, null}
+         m -> {true, m}
+
+   RegExp.prototype[":::deconstruct"] := {value} ->
+      match value.match{this}:
+         null? m -> {false, null}
+         m -> {true, m}
+
+   Function.prototype["::send"] := {args} ->
+      this.apply{this, args}
+
 
 
 

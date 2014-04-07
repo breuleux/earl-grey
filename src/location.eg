@@ -119,20 +119,23 @@ morsel{spans} =
    jump{active, bot, top} =
       e = Math.min{top, * ...} with
          active each {_, x, _} -> x
-      attributes = patch_array [active each {_, _, X} -> X]
+      attributes = {}
+      active each {_, _, X} -> attributes ++= X
+      ;; attributes = patch_array [active each {_, _, X} -> X]
       {e, {bot, e, attributes}}
 
    jumptill{active, bot, top} =
-      ? | bot == top =>
-           {{}, active}
-        | else =>
+      if [bot == top]:
+         then:
+            {{}, active}
+         else:
            {newbot, span} = jump{active, bot, top}
            newactive = active each
               x and {_, e, attr} when e > newbot -> x
            {spans, remainder} = jumptill{newactive, newbot, top}
            {{span} ++ spans, remainder}
 
-   process{start, active, rem} = {start, active, rem} |>
+   process{start, active, rem} = match {start, active, rem}:
       {_, {}, {}} ->
          {}
       {start, active, {}} ->
@@ -195,7 +198,7 @@ x <<: y =
 x ++: y =
    x := if{not x or Location? x, x, x.location}
    y := if{not y or Location? y, y, y.location}
-   [merge_locations with {x, y}] !! undefined
+   [merge_locations with {x, y}] !! e -> undefined
 
 
 
@@ -223,7 +226,7 @@ format_error{e and match} =
          .traceback % e.stack or ""
 
    {location => #location{url, start, end}} ->
-      data = fs.readFileSync{url, .utf8} !! null
+      data = fs.readFileSync{url, .utf8} !! e -> null
       if data:
          then:
             loc = Location{Source{data, url}, start, end}

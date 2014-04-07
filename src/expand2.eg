@@ -353,7 +353,7 @@ class Expander:
                      ;; construct_oper{'[&:], #object{}, obj_parts}
                      util.construct{obj_parts, ..., #object{}} with
                         {x, rest} -> '[^x &: ^rest]
-   
+
                   when is_obj ->
                      throw E.syntax.array.object{"Cannot mix array and object notations."}
    
@@ -389,13 +389,13 @@ class Expander:
                         else: s := s.parent
                   if s:
                      then: helper{context, s, x}
-                     else: throw E.syntax.noscope{"Could not find a scope tagged: " + tag}
+                     else: throw E.syntax.noscope{"Could not find a scope tagged: " + name}
                newscope ->
                   helper{context, newscope, x}
-   
+
             #tagscope{String? tag, body} ->
                helper{context, Scope{scope, gensym{tag + "/"}}, body}
-   
+
             {type, *args} when [@generic_nodes.indexOf{type} != -1] ->
                {type} ++
                   args each arg ->

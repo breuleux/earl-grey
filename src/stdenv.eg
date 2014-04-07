@@ -36,6 +36,8 @@ stdenv = Env{nullenv}
    "^" => "___binxor"
    "&" => "___binand"
    "|" => "___binor"
+   "&." => "___binand"
+   "|." => "___binor"
    "&&" => "___and"
    "||" => "___or"
    "and" => "___and"
@@ -419,7 +421,7 @@ stdenv.register_macro{"each"} with {{match, env}, #data{arr, aslist! patterns}} 
          #send{#symbol{"->"}, #data{patt, expr}} ->
             '[^patt -> [^res].push{^expr}]
          other ->
-            INVALID_PATTERN ;; TODO: fix into throw
+            throw "INVALID_PATTERN" ;; TODO: fix into throw
       patterns.push with '[other -> false]
       build_each with
          arr
@@ -657,7 +659,7 @@ rx_build2{match} =
             x = rx_quote2{v}
       "not" ->
          #void{} = a
-         b as #send{#symbol{"in"}, #data{#void{}, #value{v}}}
+         #send{#symbol{"in"}, #data{#void{}, #value{v}}} = b
          ["[^" + x + "]"] where
             x = rx_quote2{v}
 
@@ -839,13 +841,15 @@ parse_lhs{env, lhs, rhs, gen} =
          extract_length = true
          check_length = true
 
+         len = -1
+
          ;; Note: I am splitting length assignment into two parts
          ;; because it lets the crude optimizer reuse it across
          ;; different clauses
          if extract_length:
 
             ;; Part 1: temp <- length
-            len = mktemp{}
+            len := mktemp{}
             current.push with
                '[^len := [^temp].length]
                'true
@@ -1405,7 +1409,7 @@ blocktest_mac{label, tests, acc} =
       #send{#symbol{"each"}, #data{sources, aslist! clauses}} ->
          loopvar = gensym{}
          clauses := clauses each clause ->
-            clause as #send{#symbol{"->"}, #data{lhs, rhs}}
+            #send{#symbol{"->"}, #data{lhs, rhs}} = clause
             '[^lhs -> ^[#multi{*x}]] where x =
                blocktest_mac with
                   '[^label ++ {^loopvar}]
@@ -1444,13 +1448,13 @@ stdenv.register_macro{"blocktest"} with {{context, env}, #data{*args}} ->
    rval
 
 
-stdenv.register_macro{"macro"} with {{context, env}, expr} ->
-   #data{#send{name and #symbol{sname}, args}, body} = expr
-   fn = '[^args -> ^body]
-   code = generate_from_ast{fn}
-   efn = eval{"(" + code.slice{0, -1} + ")"}
-   env.register_macro{sname, efn}
-   #value{undefined}
+;; stdenv.register_macro{"macro"} with {{context, env}, expr} ->
+;;    #data{#send{name and #symbol{sname}, args}, body} = expr
+;;    fn = '[^args -> ^body]
+;;    code = generate_from_ast{fn}
+;;    efn = eval{"(" + code.slice{0, -1} + ")"}
+;;    env.register_macro{sname, efn}
+;;    #value{undefined}
 
 
 stdenv.register_macro{"match"} with {{context, env}, match} ->

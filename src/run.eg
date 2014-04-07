@@ -48,6 +48,10 @@ gen{text, file} =
    g = eg.Generator{}
    g.generate{Source{text, path.resolve{file}}}
 
+gen2{text, file} =
+   g = eg.Generator2{}
+   g.generate{Source{text, path.resolve{file}}}
+
 
 run{cmd} =
    _run{cmd} !!
@@ -94,7 +98,7 @@ _run{match} =
                {.dir, d} ->
                   from = path.join{file, d}
                   to = path.join{out, d}
-                  fs.mkdirSync{to} !! "ignore error"
+                  fs.mkdirSync{to} !! e -> "ignore error"
                {.file, match} ->
                   R'[start, {*any}, ".eg", end]? {x, name} ->
                      from = path.join{file, x}
@@ -115,6 +119,42 @@ _run{match} =
          otherwise ->
             data = fs.readFileSync{file, .utf8}
             console.log with gen{data, file}
+
+
+   {.tr2 or .translate2, file, *args} ->
+
+      out = args[0]
+
+      stats = fs.statSync{file}
+
+      match:
+         when stats.isDirectory{} ->
+            walk{file, "/"} with {*match} ->
+               {.dir, d} ->
+                  from = path.join{file, d}
+                  to = path.join{out, d}
+                  fs.mkdirSync{to} !! e -> "ignore error"
+               {.file, match} ->
+                  R'[start, {*any}, ".eg", end]? {x, name} ->
+                     from = path.join{file, x}
+                     to = path.join{out, name + ".js"}
+                     data = fs.readFileSync{from, .utf8}
+                     fs.writeFileSync{to} with
+                        gen2{data, from} + "\n"
+                  f ->
+                     from = path.join{file, f}
+                     to = path.join{out, f}
+                     copy{from, to}
+
+         when out ->
+            data = fs.readFileSync{file, .utf8}
+            fs.writeFileSync{out} with
+               gen2{data, file} + "\n"
+
+         otherwise ->
+            data = fs.readFileSync{file, .utf8}
+            console.log with gen2{data, file}
+
 
    {.tok, s} ->
       eg.tokenize{Source{s, null}} each token ->
@@ -143,8 +183,14 @@ _run{match} =
       require: "js-beautify" -> js as beaut
       data = fs.readFileSync{file, .utf8}
       code = eg.generate2{Source{data, "<test>"}}
-      console.log with beaut{code}
+      ;; console.log with beaut{code}
       <> eval{code}
+
+   {.inspect, file} ->
+      require: "js-beautify" -> js as beaut
+      data = fs.readFileSync{file, .utf8}
+      code = eg.generate2{Source{data, "<test>"}}
+      console.log with beaut{code}
 
    {.tests, s} ->
       require: "js-beautify" -> js as beaut

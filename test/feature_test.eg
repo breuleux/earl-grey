@@ -14,7 +14,7 @@ results = blocktest:
 
    "Fibonacci" =>
       do:
-         fib{|>} =
+         fib{match} =
             0 -> 0
             1 -> 1
             n -> fib{n - 1} + fib{n - 2}
@@ -25,9 +25,12 @@ results = blocktest:
    "Conditionals" =>
       do:
          positivity{x} =
-            ? | [x > 0] => .positive
-              | [x < 0] => .negative
-              | [x == 0] => .zero
+            if [x > 0]:
+               then: .positive
+               else:
+                  if [x < 0]:
+                     then: .negative
+                     else: .zero
 
       positivity{0} == .zero
       positivity{11} == .positive
@@ -37,7 +40,7 @@ results = blocktest:
 
       "Comparison operators" =>
          do:
-            compare{|>, threshold} =
+            compare{match, threshold} =
                [> threshold] -> "above"
                [< threshold] -> "below"
                [== threshold] -> "equal"
@@ -48,7 +51,7 @@ results = blocktest:
 
       "Match on #struct" =>
          do:
-            calc{|>} =
+            calc{match} =
                Number? n -> n
                #add{m, n} -> calc{m} + calc{n}
                #sub{m, n} -> calc{m} - calc{n}
@@ -63,15 +66,15 @@ results = blocktest:
          do: {{a, b}, c} = {{1, 2}, 3}
          [a + b + c] == 6
          "Bounds checks" =>
-            [{a} = {11, 22}, false] !! true
-            [{a, b, c} = {11, 22}, false] !! true
+            [{a} = {11, 22}, false] !! e -> true
+            [{a, b, c} = {11, 22}, false] !! e -> true
 
-      "Sub-clauses with |>" =>
+      "Sub-clauses with match" =>
          do:
-            tr{|>} =
+            tr{match} =
                String? s -> s
                Number? n -> String{n}
-               #send{f, |>} ->
+               #send{f, match} ->
                   String? s -> tr{f} + "." + s
                   #data{*args} -> tr{f} + "{" + args.join{", "} + "}"
                other -> throw "illegal expression"
@@ -102,18 +105,18 @@ results = blocktest:
          [Number! "123"] == 123
          [Number! "123.5e3"] == 123.5e3
       "Array" =>
-         [Array! .hello] |> {.hello} -> true
-         [Array! {.hello}] |> {.hello} -> true
+         match [Array! .hello]: {.hello} -> true
+         match [Array! {.hello}]: {.hello} -> true
       "#struct" =>
-         [#data! {1, 2}] |> #data{{1, 2}} -> true
-         [#data! #data{1, 2}] |> #data{1, 2} -> true
-         [#data! 1] |> #data{1} -> true
+         match [#data! {1, 2}]: #data{{1, 2}} -> true
+         match [#data! #data{1, 2}]: #data{1, 2} -> true
+         match [#data! 1]: #data{1} -> true
 
    "Exception handling" =>
-      true !! false
-      var_doesnt_exist !! true
-      var_doesnt_exist !! ReferenceError? -> true
-      null.x !! true
+      true !! e -> false
+      ;; var_doesnt_exist !! e -> true
+      ;; var_doesnt_exist !! ReferenceError? -> true
+      null.x !! e -> true
       [throw .hello] !!
          .hello -> true
          other -> false
@@ -131,8 +134,9 @@ results = blocktest:
       "cabbage".replace{re, "arria"} == "carriage"
 
       do: re = R'[start, +"a", {+"b"}, "a", end]
-      [{...} each re? {_, s} -> R"b+"? s] with
-         "abba", "abbbbbba", "aaaaaba"
+      ;; TODO: REACTIVATE
+      ;; [{...} each re! {_, s} -> R"b+"? s] with
+      ;;    "abba", "abbbbbba", "aaaaaba"
       [{...} each s -> not re? s] with
          "cabbage", "labia"
 
@@ -145,12 +149,12 @@ results = blocktest:
              {7, 6}.concat{@}
              @join{""}
 
-      "7654321" ==
-         chain [{1, 2, 3} as /]:
-             /concat with {4, 5}
-             /reverse{}
-             {7, 6}.concat{/}
-             /join{""}
+      ;; "7654321" ==
+      ;;    chain [{1, 2, 3} as /]:
+      ;;        /concat with {4, 5}
+      ;;        /reverse{}
+      ;;        {7, 6}.concat{/}
+      ;;        /join{""}
 
    "Classes" =>
       do:
@@ -176,11 +180,12 @@ results = blocktest:
       two.age != "34"
       two.describe2{} == "igor~34"
 
-      Person{12, 12} and false !! true
+      Person{12, 12} and false !! e -> true
       not Person? {.peter, 12}
 
 yay = 0
 nay = 0
+
 <> results each
    #test_result{label, #success{value}} -> [yay++, true]
    #test_result{label, other} ->

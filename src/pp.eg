@@ -42,7 +42,7 @@ pr{match, r} =
 
 [<> x] = pr{x}
 
-repr{x and match, Function? recur or repr as recur} =
+repr{x and match, Function? recur = repr} =
    == true -> .special.true % "true"
    == false -> .special.false % "false"
    null? -> .special.nil % "null"

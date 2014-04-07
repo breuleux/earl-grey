@@ -86,7 +86,7 @@ expand{{context, env}, expr} =
                   arr := #array{}
 
          while [args.length > 0]:
-            match expand.step{{type, env}, args.shift{}}:
+            match expand.step{{.data, env}, args.shift{}}:
                #assoc{} -> is_obj := true
                #assoc{k, v} ->
                   is_obj := true
@@ -129,10 +129,10 @@ expand{{context, env}, expr} =
          #assign{expand{#decl{env}, lhs}
                  expand{#expr{env}, rhs}}
 
-      {type && [.js_while or .js_for or .js_for_in or .js_break
-                \ or .js_continue or .js_return or .js_delete
-                \ or .js_throw or .js_try or .js_new
-                \ or .if], *args} ->
+      {type and [.js_while or .js_for or .js_for_in or .js_break
+                 \ or .js_continue or .js_return or .js_delete
+                 \ or .js_throw or .js_try or .js_new
+                 \ or .if], *args} ->
          ctxs = js_contexts[type] or {}
          {type, *args.map{f}} where
             f{x, i} = expand{{ctxs[i] or .expr, env}, x}
