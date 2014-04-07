@@ -108,9 +108,9 @@ results = blocktest:
          match [Array! .hello]: {.hello} -> true
          match [Array! {.hello}]: {.hello} -> true
       "#struct" =>
-         match [#data! {1, 2}]: #data{{1, 2}} -> true
-         match [#data! #data{1, 2}]: #data{1, 2} -> true
-         match [#data! 1]: #data{1} -> true
+         match [#data! {1, 2}]: {{1, 2}} -> true
+         match [#data! #data{1, 2}]: {1, 2} -> true
+         match [#data! 1]: {1} -> true
 
    "Exception handling" =>
       true !! e -> false

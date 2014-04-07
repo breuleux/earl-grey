@@ -1,14 +1,21 @@
 
 require:
    "./util" ->
-      items
-   "./helpers" ->
-      aslist, gensym
+      items, gensym
+   ;; "./helpers" ->
+   ;;    aslist, gensym
    "./pp" ->
       <>
 
 provide:
    Translator, translate
+
+
+aslist{match} =
+   ;; #void{} -> {#void{}}
+   ;; undefined? -> {undefined}
+   #multi{*args} -> args
+   other -> {other}
 
 
 js_op_table2 = {
@@ -89,7 +96,7 @@ class Translator:
          ;;    throw E.translation.locked{msg} where
          ;;       msg = "While serializing a value, we can't attempt to serialize another."
          undefined? ->
-            temp = gensym{}
+            temp = #symbol{gensym{}}
             @cache[id] := temp ;; {temp, ___serialize_ast{v}}
             @prepend.push{@translate{..., .stmt}} with
                #declare{temp, ___serialize_ast{v}}
@@ -100,7 +107,7 @@ class Translator:
    register_raw{raw, id} =
       match @cache[id]:
          undefined? ->
-            temp = gensym{}
+            temp = #symbol{gensym{}}
             @cache[id] := temp
             @prepend.push{@translate{..., .stmt}} with
                #declare{temp, #raw{raw}}

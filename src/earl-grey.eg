@@ -13,7 +13,7 @@ require:
    ;;    stdenv, stdprelude
    "./translate-js" ->
       translate, Translator
-   "./stdenv2" as e2
+   "./stdenv" as e2
    "./opt" as opt
 
 provide:

@@ -1,201 +1,450 @@
 
+require:
+   "./pp" ->
+      <>
+   "./location" ->
+      <<:
+   "./util" as util ->
+      classify, items, keys as iterkeys, enumerate
+      neighbours, zip
+      GenSym, gensym, uuid
+   "./pattern" ->
+      PatternParser, PatternProcessor
 
 
-;; provide:
-;;    expand, Env, nullenv
-
-
-;; Env{parent} =
-;;    store = Object{}
-;;    self{expr} =
-;;       {.bind_env, self, expr}
-;;    self.resolve := {name} ->
-;;       attempt = store[name]
-;;       if attempt:
-;;          then: attempt
-;;          else: self.parent.resolve{name}
-;;    self.register := {name, value} ->
-;;       store[name] := value
-;;    self.register_macro := {name, m} ->
-;;       store[name] := #macro{m}
-;;    self.fork := {} ->
-;;       Env{self}
-;;    self.parent := parent
-;;    self.store := store
-;;    self
-
-;; nullenv = {resolve{x} = undefined}
-
-
-;; js_contexts = {
-;;    js_for = {.multi, .multi, .multi, .multi}
-;; }
-
-
-;; expand{{context, env}, expr} =
-;;    expr := expand.step{{context, env}, expr}
-
-;;    match expr:
-;;       #symbol{s} -> expr
-
-;;       #void{} -> #void{}
-
-;;       #send{f, arg} ->
-;;          f := expand{{.head, env}, f}
-;;          #send{f, expand{{.tail, env}, arg}}
-
-;;       #value{v} -> expr
-
-;;       {type and [.array or .object], *args} -> ;; or .splice
-;;          arr = {}
-;;          while [args.length > 0]:
-;;             match expand.step{{type, env}, args.shift{}}:
-;;                #splice{*stmts} ->
-;;                   args := stmts ++ args
-;;                other ->
-;;                   arr.push{other}
-;;          {type} ++
-;;             arr each x -> expand{{type, env}, x}
-
-;;       #multi{*args} ->
-;;          arr = {}
-;;          while [args.length > 0]:
-;;             type = if{args.length == 1, .expr, .multi}
-;;             match expand.step{{type, env}, args.shift{}}:
-;;                #splice{*stmts} ->
-;;                   args := stmts ++ args
-;;                #sink{stmt} ->
-;;                   args.push{stmt}
-;;                other ->
-;;                   arr.push{{other, type}}
-;;          #multi{} ++
-;;             arr each {x, type} -> expand{{type, env}, x}
-
-;;       #data{*args} ->
-
-;;          is_obj = false
-;;          obj = #object{}
-;;          arr = #array{}
-;;          parts = {}
-
-;;          newpart{} =
-;;             match arr:
-;;                #array{} -> false
-;;                other ->
-;;                   parts.push{arr}
-;;                   arr := #array{}
-
-;;          while [args.length > 0]:
-;;             match expand.step{{.data, env}, args.shift{}}:
-;;                #assoc{} -> is_obj := true
-;;                #assoc{k, v} ->
-;;                   is_obj := true
-;;                   obj.push with #array{k, v}
-;;                #splice{*exprs} ->
-;;                   args := exprs ++ args
-;;                #dynsplice{expr} ->
-;;                   newpart{}
-;;                   parts.push{expr}
-;;                other ->
-;;                   arr.push{other}
-
-;;          newpart{}
-
-;;          r = match parts:
-;;             {} when is_obj ->
-;;                obj
-;;             {} -> {.array}
-;;             {arr and #array{*things}} ->
-;;                if is_obj:
-;;                   arr.push{obj}
-;;                arr
-;;             other ->
-;;                if is_obj:
-;;                   parts.push{#array{obj}}
-;;                patch = #symbol{"patch_array"}
-;;                #send{patch, #array{*parts}}
-
-;;          expand{{context, env}, r}
-
-;;       #lambda{bindings, body} ->
-;;          #lambda{bindings each x -> expand{#decl{env}, x}
-;;                  expand{#expr{env}, body}}
-
-;;       #declare{binding, value} ->
-;;          #declare{expand{#decl{env}, binding}
-;;                   expand{#expr{env}, value}}
-
-;;       #assign{lhs, rhs} ->
-;;          #assign{expand{#decl{env}, lhs}
-;;                  expand{#expr{env}, rhs}}
-
-;;       {type and [.js_while or .js_for or .js_for_in or .js_break
-;;                  \ or .js_continue or .js_return or .js_delete
-;;                  \ or .js_throw or .js_try or .js_new
-;;                  \ or .if], *args} ->
-;;          ctxs = js_contexts[type] or {}
-;;          {type, *args.map{f}} where
-;;             f{x, i} = expand{{ctxs[i] or .expr, env}, x}
-
-;;       #done{expr} ->
-;;          expr
-
-;;       other ->
-;;          throw E.syntax.illegal_node{
-;;             "An illegal node was found in expand"
-;;             {node = other}
-;;          }
+provide:
+   Env
+   Scope
+   track_location
+   ;; expand, step, step_all
+   Expander
+   GenSym, gensym
+   bind_ast
+   ;; hoist
+   mac1, checker
 
 
 
-;; expand.step := {{context, env}, expr and match} ->
-;;    #symbol{s} ->
-;;       v = env.resolve{s}
-;;       match {v, context}:
-;;          {undefined?, _} -> #symbol{s}
-;;          {#macro{m}, .head} -> v
-;;          {#macro{m}, _} -> expand.step{{context, env}, m{{context, env}, #void{}}}
-;;          other -> v
 
-;;    #void{} -> #void{}
+;; construct_oper{oper, dflt, match} =
+;;    {} -> dflt
+;;    {x} -> x
+;;    {x, *xs} -> '[^oper]{^x, ^construct_oper{oper, dflt, xs}}
 
-;;    #macro{m} when [context == .head] ->
-;;       expr
+class Scope:
 
-;;    #macro{m} ->
-;;       expand.step{{context, env}, m{{context, env}, #void{}}}
+   constructor{parent = null, name = null} =
+      @name := name or gensym{"scope"}
+      @parent := parent
+      @options := {=}
 
-;;    #send{f, arg} ->
-;;       match expand.step{{.head, env}, f}:
-;;          #macro{m} -> expand.step{{context, env}, m{{context, env}, arg}}
-;;          other -> expr
+   getopt{opt} =
+      match:
+         when opt in @options ->
+            @options[opt]
+         when @parent == null ->
+            undefined
+         otherwise ->
+            @parent.getopt{opt}
 
-;;    {type, *args} ->
-;;       expr
+   setopt{opt, value} =
+      @options[opt] := value
 
-;;    other ->
-;;       throw E.syntax.illegal_node{
-;;          "An illegal node was found in expand.step"
-;;          {node = other}
-;;       }
+   toString{} =
+      "Scope{" + @name + "}"
 
 
+class Env:
 
-;; expand.step_all := {context, {*stmts}} ->
-;;    pre = {}
-;;    bulk = {}
-;;    post = {}
-;;    while stmts.length:
-;;       match expand.step{context, stmts.shift{}}:
-;;          #splice{*prepend} ->
-;;             stmts := prepend ++ stmts
-;;          #float{stmt} ->
-;;             pre ++= expand.step_all{context, {stmt}}
-;;          #sink{stmt} ->
-;;             post ++= expand.step_all{context, {stmt}}
-;;          #multimacro{m} ->
-;;             stmts := m{context, stmts}
-;;          x ->
-;;             bulk.push with x
-;;    [pre ++ bulk] ++ post
+   constructor{} =
+      @scopes := {=}
+
+   resolve{scope, name} =
+      if [scope == null]:
+         return undefined
+      scope_data = @scopes[scope.name]
+      if [scope_data and Object.prototype.hasOwnProperty.call{scope_data, name}]:
+         then: scope_data[name]
+         else: @resolve{scope.parent, name}
+
+   bind{scope, name, value} =
+      if [not @scopes[scope.name]]:
+         @scopes[scope.name] := {=}
+      @scopes[scope.name][name] := value
+
+   fork{} =
+      e = Env{}
+      items{@scopes} each {scope, bindings} ->
+         items{bindings} each {k, v} ->
+            if [not e.scopes[scope]]:
+               e.scopes[scope] := {=}
+            e.scopes[scope][k] := v
+      e
+
+   toString{} =
+      "Env{...}"
+
+
+
+bind_ast{expr and match, env} =
+   {env => e} ->
+      expr
+   #symbol or #value or #variable or #macro or #void ->
+      expr &: {env = env}
+   {type, *args} ->
+      args each arg -> bind_ast{arg, env}
+      expr &: {env = env}
+   other ->
+      expr &: {env = env}
+
+
+track_location{f} = 
+   f2{context, scope, expr} =
+      rval = f{context, scope, expr} !!
+         e ->
+            e <<: expr
+            throw e
+      match rval:
+         #bounce{v} ->
+            f2{context, scope, v <<: expr}
+         other ->
+            other <<: expr
+   f2
+
+
+class Expander:
+
+   constructor{env_factory, generic_nodes} =
+      @gensym := gensym ;;GenSym{"$$"}
+      @mkenv := env_factory
+      @generic_nodes := generic_nodes
+
+   run_macro{m, context, scope, form, arg} =
+      rval = m{context, scope, form, arg}
+      bind_ast{rval, @mkenv{}}
+      rval
+
+   ;; Perform one step of expansion.
+   
+   ;; Essentially, if the given expression is a macro call, it will be
+   ;; expanded. If it is a plain macro, it will also be expanded, with
+   ;; #void{} as its argument. Nothing else is expanded, and step does
+   ;; not keep going recursively.
+   
+   ;; step is appropriate for use in macros that process specific node
+   ;; types. For instance, pattern matching recognizes the #check{...}
+   ;; node. expand will refuse that node, because it doesn't recognize
+   ;; it, but step will let macros produce #check nodes and will leave
+   ;; them untouched, so that the pattern matching macro can do something
+   ;; with it and produce legal nodes.
+   
+   ;; context: the context in which the expression is evaluated (#expr,
+   ;; #pattern, #blocktest, etc.)
+   
+   ;; scope: the scope in which we are located
+   
+   ;; expr: the expression to expand (one step)
+   
+   step{context, scope, expr} =
+      helper = track_location{...} with {context, scope, expr and match} ->
+         #symbol{s} ->
+            env = match expr:
+               {=> env} -> expr.env
+               other -> throw E.syntax.no_env with
+                  "No environment was found to resolve"
+                  {symbol = expr}
+            match env.resolve{scope, s}:
+               #macro{m} ->
+                  match context:
+                     #expr{.head} ->
+                        #macro{m}
+                     other ->
+                        #bounce with @run_macro{m, context, scope, expr, #void{}}
+               other ->
+                  expr
+   
+         #macro{m} ->
+            match context:
+               #expr{.head} ->
+                  expr
+               other ->
+                  #bounce with @run_macro{m, context, scope, expr, #void{}}
+   
+         #send{f, arg} ->
+            match helper{#expr{.head}, scope, f}:
+               #macro{m} ->
+                  #bounce with @run_macro{m, context, scope, expr, arg}
+               other ->
+                  expr
+   
+         #nostep{x} ->
+            x
+   
+         other ->
+            expr
+      
+      helper{context, scope, expr}
+
+   
+   ;; Equivalent of step for a list of expressions. It recognizes
+   ;; additional instructions:
+   
+   ;; #splice{...} -> splice expressions into the stream, expand them
+   
+   ;; #float{expr} -> float the expression to the top. If multiple floats
+   ;;    are found, the first occurrences will be higher
+   
+   ;; #sink{expr} -> sinks the expression to the bottom. If multiple sinks
+   ;;    are found, the first occurrences will be higher up
+   
+   ;; #multimacro{m} -> m is a macro that should take the remaining
+   ;;    expressions in the list (those that come after itself), and
+   ;;    return a new list of expressions.
+   
+   step_all{context, scope, {*stmts}} =
+      pre = {}
+      bulk = {}
+      post = {}
+      while stmts.length:
+         current = stmts.shift{}
+         match @step{context, scope, current}:
+            #splice{*prepend} ->
+               stmts := prepend ++ stmts
+            #float{stmt} ->
+               pre ++= @step_all{context, scope, {stmt}}
+            #sink{stmt} ->
+               post ++= @step_all{context, scope, {stmt}}
+            #multimacro{m} ->
+               stmts := m{context, scope, current, stmts}
+            x ->
+               bulk.push with x
+      [pre ++ bulk] ++ post
+
+
+   ;; Compute the full expansion of the provided expression. expand
+   ;; is, more or less, the handler for the #expr context.
+
+   expand{context, scope, expr} =
+      helper = track_location{...} with {context, scope, expr} ->
+         expr := @step{context, scope, expr}
+   
+         match expr:
+   
+            #symbol{s} ->
+               {=> env} = expr
+               match env.resolve{scope, s}:
+                  undefined? ->
+                     throw E.syntax.undeclared{"Undeclared variable: " + s, {node = expr}}
+                     ;; #variable{"UNDECLARED__" + s}
+                  other ->
+                     #bounce{other}
+   
+            #value{_} ->
+               expr
+   
+            #variable{_} ->
+               expr
+   
+            #void{} ->
+               expr
+   
+            #send{f, arg} ->
+               #send with 
+                  helper{#expr{.head}, scope, f}
+                  helper{#expr{.tail}, scope, arg}
+   
+            #array{*args} ->
+               newargs = @step_all{#expr{.array}, scope, args} each arg ->
+                  helper{#expr{.expr}, scope, arg}
+               #array{*newargs}
+   
+            #object{*args} ->
+               newargs = @step_all{#expr{.object}, scope, args} each #array{k, v} ->
+                  #array{helper{#expr{.expr}, scope, k}
+                         helper{#expr{.expr}, scope, v}}
+               #object{*newargs}
+   
+            #bind{variable and #symbol{s}, value, body} ->
+               newscope = Scope{scope}
+               {=> env} = variable
+               env.bind{newscope, s, value}
+               helper{context, newscope, body}
+   
+            #multi{*args} ->
+               newscope = Scope{scope}
+               stepscope =
+                  if{expr.nonrecursive, scope, newscope}
+               {=> newargs, => vars} = classify{.newargs, .vars} with
+                  @step_all{#expr{.multi}, stepscope, args} each
+                     #option{opt, value} ->
+                        newscope.setopt{opt, value}
+                        #ignore
+                     #declare{variable and #symbol{s}, value = null} ->
+                        {=> env} = variable
+                        v = #variable{@gensym{s}} <<: variable
+                        env.bind{newscope, s} with v
+                        if value:
+                           then:
+                              #splice with
+                                 #newargs{#assign{v, value}}
+                                 #vars{v}
+                           else:
+                              #vars{v}
+                     #declare{v and #variable{_}, value = null} ->
+                        if value:
+                           then:
+                              #splice with
+                                 #newargs{#assign{v, value}}
+                                 #vars{v}
+                           else:
+                              #vars{v}                     
+                     other ->
+                        #newargs{other}
+               exp{s} =
+                  enumerate{newargs} each {i, arg} ->
+                     helper{#expr{...}, s, arg} with
+                        if{i == newargs.length - 1, .expr, .ignore}
+               if vars.length:
+                  then: #scope{vars, #multi{*exp{newscope}}}
+                  else: #multi{*exp{scope}}
+   
+            #data{*args} ->
+   
+               is_obj = false
+               obj = #object{}
+               arr = #array{}
+               arr_parts = {}
+               obj_parts = {}
+   
+               new_arr_part{} =
+                  match arr:
+                     #array{} -> false
+                     other ->
+                        arr_parts.push{arr}
+                        arr := #array{}
+   
+               new_obj_part{} =
+                  match obj:
+                     #object{} -> false
+                     other ->
+                        obj_parts.push{obj}
+                        obj := #object{}
+   
+               @step_all{#expr{.data}, scope, args} each
+                  #assoc{} ->
+                     is_obj := true
+                  #assoc{k, v} ->
+                     is_obj := true
+                     obj.push with #array{k, v}
+                  #dynsplice{expr} ->
+                     new_arr_part{}
+                     arr_parts.push{expr}
+                  #objsplice{expr} ->
+                     is_obj := true
+                     new_obj_part{}
+                     obj_parts.push{expr}
+                  other ->
+                     arr.push{other}
+   
+               new_arr_part{}
+               new_obj_part{}
+   
+               r = match arr_parts:
+                  {} when is_obj ->
+                     ;; construct_oper{'[&:], #object{}, obj_parts}
+                     util.construct{obj_parts, ..., #object{}} with
+                        {x, rest} -> '[^x &: ^rest]
+
+                  when is_obj ->
+                     throw E.syntax.array.object{"Cannot mix array and object notations."}
+   
+                  other ->
+                     util.construct{arr_parts.reverse{}, ..., #array{}} with
+                        {x, rest} -> '[^rest].concat{^x}
+               helper{context, scope, bind_ast{r, @mkenv{}}}
+   
+            #assign{target, value} ->
+               #assign with
+                  helper{#expr, scope, target}
+                  helper{#expr, scope, value}
+   
+            #lambda{bindings, body} ->
+               newscope = Scope{scope}
+               #lambda with
+                  bindings each
+                     #symbol{b} and {=> env} ->
+                        [env.bind{newscope, b, v}, v] where
+                           v = #variable{@gensym{b}}
+                     #variable and v ->
+                        v
+                     other ->
+                        throw E.syntax.lambda.binding{"Not a valid binding.", {node = other}}
+                  helper{#expr{.expr}, newscope, body}
+   
+            #use{match, x} ->
+               String? name ->
+                  s = scope
+                  while s:
+                     if [s.name.slice{0, name.length + 1} == [name + "/"]]:
+                        then: break
+                        else: s := s.parent
+                  if s:
+                     then: helper{context, s, x}
+                     else: throw E.syntax.noscope{"Could not find a scope tagged: " + name}
+               newscope ->
+                  helper{context, newscope, x}
+
+            #tagscope{String? tag, body} ->
+               helper{context, Scope{scope, @gensym{tag + "/"}}, body}
+
+            {type, *args} when [@generic_nodes.indexOf{type} != -1] ->
+               {type} ++
+                  args each arg ->
+                     helper{#expr{.expr}, scope, arg}
+   
+            other ->
+               throw E.syntax.illegal_node with
+                  "An illegal node was found."
+                  {node = other, context = context}
+
+      helper{context, scope, expr}
+
+
+
+mac1{f} = 
+   #macro with {context, scope, form, #data{expr}} ->
+      f{expr}
+
+__chk_ncache = {=}
+__chk_scache = {=}
+
+checker{match} =
+   null? -> checker.null
+   undefined? -> checker.undefined
+   ==true -> checker.true
+   ==false -> checker.false
+   Number? n ->
+      if [__chk_ncache[n]]:
+         then: __chk_ncache[n]
+         else:
+            v = mac1{{x} -> '[^x == ^=n]}
+            __chk_ncache[n] := v
+            v
+   String? s ->
+      if Object.prototype.hasOwnProperty.call{__chk_scache, s}:
+         then: __chk_scache[s]
+         else:
+            v = mac1{{x} -> '[^x == ^=s]}
+            __chk_scache[s] := v
+            v
+
+checker &: {
+   String = mac1 with {x} -> '[typeof{^x} == "string"]
+   Number = mac1 with {x} -> '[typeof{^x} == "number"]
+   Array = mac1 with {x} -> '[^x instanceof Array]
+   true = mac1 with {x} -> x
+   false = mac1 with {x} -> '[not ^x]
+   null = mac1{{x} -> '[^x == ^=null]}
+   undefined = mac1{{x} -> '[^x == ^=undefined]}
+}
 

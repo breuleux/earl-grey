@@ -9,7 +9,7 @@ require:
       zip, enumerate, keys as iterkeys, neighbours
       classify, classify_contiguous
       identity
-   "./expand2" as mt
+   "./expand" as mt
 
 provide:
    PatternParser
