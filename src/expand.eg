@@ -271,7 +271,7 @@ class Expander:
                helper{context, newscope, body}
    
             #multi{*args} ->
-               newscope = Scope{scope}
+               newscope = if{expr.override_scope, scope, Scope{scope}}
                stepscope =
                   if{expr.nonrecursive, scope, newscope}
                {=> newargs, => vars} = classify{.newargs, .vars} with

@@ -357,7 +357,7 @@ parse_pattern{expander, scope, pattern, rhs, opt} =
             *opt.declare{parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
-               assemble_pattern{proc.parts, opt.success{}, opt.failure{}}
+               assemble_pattern{proc.parts, opt.success{rhs}, opt.failure{rhs}}
       else:
          {parse.vars, proc.temps, proc.parts}
 
@@ -396,7 +396,7 @@ parse_clauses{expander, scope, target, stmts, opt} =
          placeholder = undefined
          special_fn{#special{match} and expr, value} =
             .match ->
-               placeholder := #symbol{gensym{.ph}}
+               placeholder := #symbol{gensym{.ph}} <<: expr
                #assign{placeholder}
             other ->
                throw E.syntax.pattern.special with
@@ -443,7 +443,7 @@ parse_clauses{expander, scope, target, stmts, opt} =
             {clause = other}
 
    if opt.fallback:
-      the_parts.push with #block{opt.fallback}
+      the_parts.push with #block{opt.fallback{target}}
    unique_temps = iterkeys{util.set{all_temps each #symbol{t} -> t}}
    #multi{*decls, weave_clauses{the_parts}} where
       decls = unique_temps each t -> #declare{#symbol{t}}

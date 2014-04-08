@@ -226,7 +226,7 @@ class Translator:
             @expr{r, mode}
 
 
-         #send{#symbol{"___node"}, #value{f}} ->
+         #send{#variable{"___node"}, #value{f}} ->
             f
 
          #send{#symbol{"___js_fetch"} or #variable{"___js_fetch"}, #array{f, msg}} ->

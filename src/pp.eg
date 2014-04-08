@@ -96,9 +96,9 @@ HTML{match, default_tag} =
             kv.push with {k, v}
          #assoc{k} ->
             kv.push with {k, undefined}
-         R'[start, "+", {*any}]? {_, m} ->
+         R'[start, "+", {*any}]! {_, m} ->
             tag := m
-         R'[start, "#", {*any}]? {_, m} ->
+         R'[start, "#", {*any}]! {_, m} ->
             id := m
          String? s ->
             _classes.push with s

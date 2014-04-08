@@ -7,62 +7,38 @@ require:
       tokenize
    "./parse" ->
       parse
-   ;; "./expand" ->
-   ;;    expand
-   ;; "./stdenv" ->
-   ;;    stdenv, stdprelude
    "./translate-js" ->
       translate, Translator
-   "./stdenv" as e2
+   "./stdenv" as std
    "./opt" as opt
 
 provide:
    Source, Location, highlight_locations
    tokenize, parse
-   ;; generate_from_ast
-   ;; Generator, generate
-   Generator2, generate2
+   Generator, generate
 
 
 ;; generate_from_ast{ast} =
 ;;    ex = expand{#top{stdenv.fork{}}, #multi{ast}}
 ;;    translate{ex, .stmt}
 
-;; generate{source, prelude} =
-;;    t = tokenize{source}
-;;    p = parse{t}
-;;    ex = expand{#top{stdenv.fork{}}, #multi{p}}
-;;    [prelude or ""] + translate{ex, .stmt}
+generate{source} =
+   Generator{}.generate{source}
 
-generate2{source} =
-   ;; t = tokenize{source}
-   ;; p = parse{t}
-   ;; ex = e2.expand{#top, e2.topscope, e2.bind_ast{#multi! p, e2.stdenv.fork{}}}
-   ;; ex := opt.hoist{ex}
-   ;; tr = Translator{}
-   ;; rval = tr.translate{ex, .stmt}
-   ;; tr.dump_store{} + rval
-   Generator2{}.generate{source}
-
-
-;; class Generator:
-;;    constructor{} =
-;;       @tr := Translator{stdprelude}
-;;    generate{source} =
-;;       t = tokenize{source}
-;;       p = parse{t}
-;;       ex = expand{#top{stdenv.fork{}}, #multi{p}}
-;;       rval = @tr.translate{ex, .stmt}
-;;       @tr.dump_store{} + rval
-
-
-class Generator2:
+class Generator:
    constructor{} =
-      @tr := Translator{e2.stdprelude}
+      @tr := Translator{std.stdprelude}
+      @env := std.stdenv.fork{}
    generate{source} =
       t = tokenize{source}
       p = parse{t}
-      ex = e2.expand{#top, e2.topscope, e2.bind_ast{#multi{p}, e2.stdenv.fork{}}}
+      ;; The override_scope annotation forces declarations into the
+      ;; top scope, which means successive calls to generate{} will
+      ;; see global variables set by the previous. This is essential
+      ;; for interactive mode.
+      ex = std.expand{#top
+                      std.topscope
+                      std.bind_ast{#multi{p} &: {override_scope = true}, @env}}
       ex := opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
       @tr.dump_store{} + rval

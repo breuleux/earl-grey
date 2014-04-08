@@ -57,9 +57,21 @@ mkstdenv{} =
    .Error, .TypeError, .ReferenceError
    .console, .process, .eval
 
-   .___js_fetch
+   .setTimeout, .clearTimeout
+
+   .___js_fetch, .___node
 
    .arguments, .this, .exports
+
+
+embed_location{match} =
+   {location => {source => {=> url}, => start, => end}} ->
+      '[#location{^=url, ^=start, ^=end}]
+   other ->
+      '[#location{null, 0, 0}]
+
+error_embed_location{error, target} =
+   '[throw [^error &: {location = ^embed_location{target}}]]
 
 
 overridable{f}{match and context, scope, form, arg} =
@@ -139,8 +151,10 @@ pattern_handlers = {
       finalize = true
       declare{vars} =
          vars each v -> #declare{v}
-      success{} = #multi{}
-      failure{} = '[throw Error{"Mismatch"}]
+      success{_} = #multi{}
+      failure{target} =
+         error_embed_location{..., target} with
+            'E.match{"Could not find a match for value", {value = ^target}}
    }
 
    build_object = {
@@ -152,8 +166,10 @@ pattern_handlers = {
          #do{#assign{'accum[^=v], value} <<: v}
       finalize = true
       declare{vars} = {#declare{'accum, '{=}}}
-      success{} = 'accum
-      failure{} = '[throw Error{"Mismatch"}]
+      success{_} = 'accum
+      failure{target} =
+         error_embed_location{..., target} with
+            'E.match{"Could not find a match for value", {value = ^target}}
    }
 
 }
@@ -184,7 +200,7 @@ build_loop{scope, env, li, clauses, wrap, pre, post} =
            m = ___js_fetch{temp, i}
            ^ | parse_clauses with
                 expander, scope, 'm, clauses
-                {fallback = 'false
+                {fallback{_} = 'false
                  wrap = wrap}
      | ^post
 
@@ -287,7 +303,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
          #expr{.multi} ->
             #data{lhs, rhs} = expr
-            parse_pattern{expander, scope, lhs, #use{scope, rhs}} with
+            parse_pattern{expander, scope, lhs, #use{scope, rhs} <<: rhs} with
                pattern_handlers.declare_variables
 
          #expr{.data} ->
@@ -298,18 +314,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                   ;; special case for the most common situation
                   #assoc{#value{s}, rhs}
                #data{lhs, rhs} ->
-                  ;; goddamn = parse_pattern{expander, scope, lhs, rhs} with
-                  ;;    pattern_handlers.build_object
-                  ;; BAH{match} =
-                  ;;    x and {=> env} ->
-                  ;;       <> {x, env}
-                  ;;    {type, *rest} ->
-                  ;;       rest each x -> BAH{x}
-                  ;;    other ->
-                  ;;       null
-                  ;; BAH{goddamn}
                   #objsplice with #multi with
-                     parse_pattern{expander, scope, lhs, #use{scope, rhs}} with
+                     parse_pattern{expander, scope, lhs, #use{scope, rhs} <<: rhs} with
                         pattern_handlers.build_object
 
          #pattern ->
@@ -380,8 +386,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                            then: '[match ph: ^rhs]
                            else: rhs
                   other ->
+                     a = 'arguments <<: arg
                      #lambda{{}, body} where
-                        body = ' | match.indexable arguments:
+                        body = ' | match.indexable [^a]:
                                     ^arg -> ^rhs
 
             #data{#data{*args}, rhs} ->
@@ -405,7 +412,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             parse_clauses with
                expander, scope, to_match, body
                opt &+ {
-                  fallback = '[throw Error{"mismatch!!"}]
+                  fallback{target} =
+                     error_embed_location{..., target} with
+                        'E.match{"Could not find a match for value", {value = ^target}}
                   wrap = {x} -> x
                }
 
@@ -713,8 +722,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                                    ^body
                         other ->
                            other
-                     success{} = #splice{}
-                     failure{} = '[throw Error{"Mismatch"}]
+                     success{_} = #splice{}
                   }
 
          {ctor_args, ctor_body} = ctor

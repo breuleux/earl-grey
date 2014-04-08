@@ -48,9 +48,9 @@ gen{text, file} =
    g = eg.Generator{}
    g.generate{Source{text, path.resolve{file}}}
 
-gen2{text, file} =
-   g = eg.Generator2{}
-   g.generate{Source{text, path.resolve{file}}}
+;; gen2{text, file} =
+;;    g = eg.Generator2{}
+;;    g.generate{Source{text, path.resolve{file}}}
 
 
 run{cmd} =
@@ -65,11 +65,11 @@ _run{match} =
    {} or {.i or "in" or .interactive} ->
       require: repl
       ;; vm.runInThisContext{libdata, "stdin"}
+      g = eg.Generator2{}
       settings = {
          prompt = "<> "
          ignoreUndefined = true
          eval{input, context, filename, callback} =
-            g = eg.Generator2{}
             result = [execute{} !! e -> handle{e}] where
                execute{} =
                   text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
@@ -85,42 +85,7 @@ _run{match} =
 
    {.run, file} ->
       data = fs.readFileSync{file, .utf8}
-      eval with gen2{data, file}
-
-   ;; {.tr or .translate, file, *args} ->
-
-   ;;    out = args[0]
-
-   ;;    stats = fs.statSync{file}
-
-   ;;    match:
-   ;;       when stats.isDirectory{} ->
-   ;;          walk{file, "/"} with {*match} ->
-   ;;             {.dir, d} ->
-   ;;                from = path.join{file, d}
-   ;;                to = path.join{out, d}
-   ;;                fs.mkdirSync{to} !! e -> "ignore error"
-   ;;             {.file, match} ->
-   ;;                R'[start, {*any}, ".eg", end]? {x, name} ->
-   ;;                   from = path.join{file, x}
-   ;;                   to = path.join{out, name + ".js"}
-   ;;                   data = fs.readFileSync{from, .utf8}
-   ;;                   fs.writeFileSync{to} with
-   ;;                      gen{data, from} + "\n"
-   ;;                f ->
-   ;;                   from = path.join{file, f}
-   ;;                   to = path.join{out, f}
-   ;;                   copy{from, to}
-
-   ;;       when out ->
-   ;;          data = fs.readFileSync{file, .utf8}
-   ;;          fs.writeFileSync{out} with
-   ;;             gen{data, file} + "\n"
-
-   ;;       otherwise ->
-   ;;          data = fs.readFileSync{file, .utf8}
-   ;;          console.log with gen{data, file}
-
+      eval with gen{data, file}
 
    {.tr or .translate, file, *args} ->
 
@@ -142,20 +107,21 @@ _run{match} =
                      to = path.join{out, name + ".js"}
                      data = fs.readFileSync{from, .utf8}
                      fs.writeFileSync{to} with
-                        gen2{data, from} + "\n"
+                        gen{data, from} + "\n"
                   f ->
                      from = path.join{file, f}
                      to = path.join{out, f}
                      copy{from, to}
 
          when out ->
+            require: "js-beautify" -> js as beaut
             data = fs.readFileSync{file, .utf8}
             fs.writeFileSync{out} with
-               gen2{data, file} + "\n"
+               beaut{gen{data, file}} + "\n"
 
          otherwise ->
             data = fs.readFileSync{file, .utf8}
-            console.log with gen2{data, file}
+            console.log with gen{data, file}
 
 
    {.tok, s} ->
@@ -203,7 +169,7 @@ _run{match} =
    ;;    <> eval{code}
 
    {.runs, data} ->
-      console.log with eval{gen2{data, "<command>"}}
+      console.log with eval{gen{data, "<command>"}}
 
    other ->
       console.log with usage
