@@ -7,12 +7,13 @@ require:
    "./util" as util ->
       classify, items, keys as iterkeys, enumerate
       neighbours, zip
-      GenSym, gensym, uuid
+      uuid
    "./pattern" ->
       PatternParser, PatternProcessor
       parse_pattern, parse_clauses
    "./expand" as mt ->
       Expander, Scope, Env, nullenv, bind_ast
+      mac1, checker_db
 
 
 provide:
@@ -24,6 +25,13 @@ provide:
    stdprelude
 
 
+generic_nodes = {
+   .if
+   .js_while, .js_for, .js_for_in, .js_label
+   .js_break, .js_continue, .js_return
+   .js_delete, .js_throw, .js_try, .js_new
+}
+
 class Embedded:
    constructor{code} =
       @code := bind_ast{code, mkstdenv{}}
@@ -31,7 +39,6 @@ class Embedded:
    "::serialize_ast"{} =
       expand{#top, topscope, @code}
 
-topscope = Scope{null, .top}
 
 stdenv = Env{}
 
@@ -39,6 +46,12 @@ mkstdenv{} =
    e = Env{}
    e.scopes[.top] := stdenv.scopes[.top]
    e
+
+expander = Expander{mkstdenv, generic_nodes}
+expand = expander.expand.bind{expander}
+
+topscope = Scope{null, .top, expander}
+
 
 [{...} each k -> stdenv.bind{topscope, k, #variable{k}}] with
    "+", "-", "*", "/", "mod"
@@ -73,8 +86,26 @@ embed_location{match} =
 error_embed_location{error, target} =
    '[throw [^error &: {location = ^embed_location{target}}]]
 
+match_error{match target} =
+   {location => {source => {=> url}, => start, => end}} ->
+      '___match_error{^target, ^=url, ^=start, ^=end}
+   other ->
+      '___match_error{^other}
 
-overridable{f}{match and context, scope, form, arg} =
+
+drop_ctx{f}{context, scope, form, arg} =
+   f{context, scope, form, arg} !!
+      E.match? {args => {{value => [== context and not #expr{.expr}]}}} ->
+         #nostep{form}
+
+expr_mac{f}{match, scope, form, arg} =
+   #expr{.expr} ->
+      f{scope, form, arg}
+   otherwise ->
+      #nostep{form}
+
+
+overridable{f}{match context, scope, form, arg} =
    #pattern ->
       #nostep{form}
    #expr{.multi} ->
@@ -99,14 +130,14 @@ setup_label{label, env, body} =
                #js_label{#value{label}, body}}}
 
 break_mac{default_label} = overridable with
-   {context, scope, form, match and expr} ->
+   {context, scope, form, match expr} ->
       #void{} when default_label -> #js_break{#value{default_label}}
       #void{} -> #js_break{}
       #value{v} -> #js_break{expr}
       #symbol{v} -> #js_break{#value{v}}
 
 continue_mac{default_label} = overridable with
-   {context, scope, form, match and expr} ->
+   {context, scope, form, match expr} ->
       #void{} when default_label -> #js_continue{#value{default_label}}
       #void{} -> #js_continue{}
       #value{v} -> #js_continue{expr}
@@ -155,8 +186,9 @@ pattern_handlers = {
          vars each v -> #declare{v}
       success{_} = #multi{}
       failure{target} =
-         error_embed_location{..., target} with
-            'E.match{"Could not find a match for value", {value = ^target}}
+         match_error{target}
+         ;; error_embed_location{..., target} with
+         ;;    'E.match{"Could not find a match for value", {value = ^target}}
    }
 
    build_object = {
@@ -170,8 +202,9 @@ pattern_handlers = {
       declare{vars} = {#declare{'accum, '{=}}}
       success{_} = 'accum
       failure{target} =
-         error_embed_location{..., target} with
-            'E.match{"Could not find a match for value", {value = ^target}}
+         match_error{target}
+         ;; error_embed_location{..., target} with
+         ;;    'E.match{"Could not find a match for value", {value = ^target}}
    }
 
 }
@@ -194,14 +227,14 @@ pattern_handlers = {
 build_loop{scope, env, li, clauses, wrap, pre, post} =
    lbl =
       if env:
-         then: #value{gensym{}} &: {env = env}
-         else: #value{gensym{}}
+         then: #value{scope.gensym{}} &: {env = env}
+         else: #value{scope.gensym{}}
    ' | ^pre
      | let [temp = ^li, len = temp.length]:
         for[^lbl] [i = 0, i < len, i++]:
            m = ___js_fetch{temp, i}
            ^ | parse_clauses with
-                expander, scope, 'm, clauses
+                scope, 'm, clauses
                 {fallback{_} = 'false
                  wrap = wrap}
      | ^post
@@ -213,7 +246,7 @@ partial_pattern{operator} =
       match {context, expr}:
          {#pattern, #data{#void{}, val}} ->
             #check{m, #ignore{}} where
-               m = mt.mac1 with {x} -> '[^op]{^x, ^val}
+               m = mac1 with {x} -> '[^op]{^x, ^val}
          {_, #void{}} ->
             op
          other ->
@@ -277,6 +310,12 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "_"{#pattern, scope, form, #void{}} =
       #ignore{}
 
+   "not"{match, scope, form, #data{#void{}, rhs} and arg} =
+      #pattern ->
+         #neg{rhs}
+      other ->
+         #send{#variable{"not"}, arg}
+
    "and"{match, scope, form, #data{lhs, rhs} and arg} =
       #pattern ->
          #all{lhs, rhs}
@@ -305,7 +344,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
          #expr{.multi} ->
             #data{lhs, rhs} = expr
-            parse_pattern{expander, scope, lhs, #use{scope, rhs} <<: rhs} with
+            parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
                pattern_handlers.declare_variables
 
          #expr{.data} ->
@@ -317,7 +356,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                   #assoc{#value{s}, rhs}
                #data{lhs, rhs} ->
                   #objsplice with #multi with
-                     parse_pattern{expander, scope, lhs, #use{scope, rhs} <<: rhs} with
+                     parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
                         pattern_handlers.build_object
 
          #pattern ->
@@ -360,7 +399,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       other ->
          match expr:
             #data{#data{*args} and arg, rhs} ->
-               pp = PatternParser{expander, scope, arg, {...}} with
+               pp = PatternParser{scope, arg, {...}} with
                   indexable = true
                   allow_nested = true
                match pp.pattern:
@@ -370,9 +409,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                         #assign{expr and #symbol{v}} ->
                            expr
                         other ->
-                           newv = #symbol{gensym{.temp}} &: {env = stdenv}
+                           newv = #symbol{scope.gensym{.temp}} &: {env = stdenv}
                            decls.push with
-                              parse_pattern{expander, scope, arg, newv} with
+                              parse_pattern{scope, arg, newv} with
                                  pattern_handlers.declare_variables &+ {
                                     special = {#special{match} and expr, value} ->
                                        .match ->
@@ -406,17 +445,18 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             other -> #all{other <<: expr, #special{.match} <<: form}
       other ->
          opt = util.set{flags}
-         to_match = #symbol{gensym{.m}} &: {single_assignment = true}
+         to_match = #symbol{scope.gensym{.m}} &: {single_assignment = true}
          {value, body} = match expr:
             #data{#multi! {*b}} -> {#value{null}, b}
             #data{v, #multi! {*b}} -> {v, b}
          '[let [^to_match = ^value]: ^mbody] where mbody =
             parse_clauses with
-               expander, scope, to_match, body
+               scope, to_match, body
                opt &+ {
                   fallback{target} =
-                     error_embed_location{..., target} with
-                        'E.match{"Could not find a match for value", {value = ^target}}
+                     match_error{target}
+                     ;; error_embed_location{..., target} with
+                     ;;    'E.match{"Could not find a match for value", {value = ^target}}
                   wrap = {x} -> x
                }
 
@@ -453,7 +493,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #js_try{expr, ..., #void{}} with
             ' | {excv} ->
                  ^ | parse_clauses with
-                      expander, scope, 'excv, clauses
+                      scope, 'excv, clauses
                       {wrap = {x} -> x}
       other ->
          clauses.push with
@@ -462,13 +502,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
               ^ #js_try{'[rval := ^expr], ..., #void{}} with
                  ' | {excv} ->
                       ^ | parse_clauses with
-                           expander, scope, 'excv, clauses
+                           scope, 'excv, clauses
                            {wrap = {x} -> '[rval := ^x]}
               rval
 
-   "@" => var_operator{gensym{"it"}}
+   "@" => var_operator{expander.gensym{"it"}}
 
-   "chain"{context, scope, form, #data{defn and {=> env}, #multi! {*body}}} =
+   expr_mac! "chain"{scope, form, #data{defn and {=> env}, #multi! {*body}}} =
       it = '[@] &: {env = env}
       construct{match} =
          {x} -> x
@@ -477,19 +517,18 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                  ^construct{rest}
       construct{{defn} ++ body}
 
-   "using"{context, scope, form, #data{defn and {=> env}, body}} =
+   expr_mac! "using"{scope, form, #data{defn and {=> env}, body}} =
       it = '[@] &: {env = env}
       ' | let [^it = ^defn]:
            ^body
-      
 
-   "do"{match, scope, form, #data{body}} =
+   overridable! "do"{match, scope, form, #data{body}} =
       #clause ->
          #block{body}
       #test ->
          #multi! {*stmts} = body
          #do{#splice{*stmts}}
-      other ->
+      #expr ->
          #multi{body}
 
    ;; ifneeded{match, scope, form, #data{yes, no}} =
@@ -504,7 +543,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    ;;       <> other
    ;;       yes
 
-   "if"{context, scope, form, match} =
+   expr_mac! "if"{scope, form, match} =
       #data{test, a, b} ->
          #if{test, a, b}
       #data{test, #multi! {*match}} ->
@@ -517,15 +556,15 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          other ->
             #if{test, #multi{*other}, #value{undefined}}
 
-   "while"{context, scope, form, match and {=> env}} =
+   expr_mac! "while"{scope, form, match {=> env}} =
       '[. ^[#symbol{label}]] or #value{label} ->
          #macro with {context, scope, form, #data{test, body}} ->
             setup_label{label, env, #js_while{test, body}}
       #data{test, body} ->
-         setup_label{gensym{}, env, #js_while{test, body}}
+         setup_label{scope.gensym{}, env, #js_while{test, body}}
 
-   "for"{context, scope, form, expr} =
-      setup_for{label, env, match, body} =
+   "for"{context, scope, form, match expr} =
+      do: setup_for{label, env, match, body} =
          #multi{a, b, c} ->
             #multi with
                a
@@ -534,14 +573,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             #multi with
                #declare{a, #value{null}} ;; this is to show the symbol as resolved
                setup_label{label, env, #js_for_in{a, b, body}}
-      match expr:
-         '[. ^[#symbol{label}]] or #value{label} ->
-            #macro with {context, scope, form, #data{spec, body}} ->
-               setup_for{label, expr.env, spec, body}
-         #data{spec, body} ->
-            setup_for{gensym{}, form.env, spec, body}
+      '[. ^[#symbol{label}]] or #value{label} ->
+         #macro with {context, scope, form, #data{spec, body}} ->
+            setup_for{label, expr.env, spec, body}
+      #data{spec, body} ->
+         setup_for{scope.gensym{}, form.env, spec, body}
 
-   "let"{context, scope, form, #data{#multi! {*bindings}, body}} =
+   expr_mac! "let"{scope, form, #data{#multi! {*bindings}, body}} =
       construct{match} =
          {} -> body
          {x, *xs} ->
@@ -549,7 +587,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       construct{bindings}
       ;; #multi{*bindings, body} &: {nonrecursive = true}
 
-   "letrec"{context, scope, form, #data{#multi! {*bindings}, body}} =
+   expr_mac! "letrec"{scope, form, #data{#multi! {*bindings}, body}} =
       #multi{*bindings, body}
 
    "where"{context, scope, form, #data{body, bindings}} =
@@ -559,26 +597,26 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "continue" => continue_mac{null}
 
-   overridable! "throw"{context, scope, form, arg} =
+   expr_mac! "throw"{scope, form, arg} =
       #js_throw{arg}
 
-   overridable! "return"{context, scope, form, arg} =
+   expr_mac! "return"{scope, form, arg} =
       #js_return{arg}
 
-   overridable! "new"{context, scope, form, arg} =
+   expr_mac! "new"{scope, form, arg} =
       #js_new{arg}
 
-   overridable! "delete"{context, scope, form, arg} =
+   expr_mac! "delete"{scope, form, arg} =
       #js_delete{arg}
 
    "?"{context, scope, form, #data{expr, #void{}}} =
       checker = match expr:
-         'String -> mt.checker.String
-         'Number -> mt.checker.Number
-         'true -> mt.checker.true
-         'false -> mt.checker.false
-         'null -> mt.checker.null
-         'undefined -> mt.checker.undefined
+         'String -> checker_db.String
+         'Number -> checker_db.Number
+         'true -> checker_db.true
+         'false -> checker_db.false
+         'null -> checker_db.null
+         'undefined -> checker_db.undefined
          other -> '___checker{^expr}
 
       #macro{...} with {match, env, form, expr} ->
@@ -592,8 +630,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "!"{context, scope, form, #data{expr, #void{}}} =
       projector = match expr:
-         'String -> mt.mac1 with {x} -> '{true, String{^x}}
-         'Number -> mt.mac1 with {x} -> '{true, parseFloat{^x}}
+         'String -> mac1 with {x} -> '{true, String{^x}}
+         'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
          other -> '___projector{^expr}
 
       #macro{...} with {match, env, form, expr} ->
@@ -635,27 +673,31 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       stmts = {}
 
       topfetch{pkg, v} =
-         stmts.push with '[^v = [^req]{^=pkg}]
+         stmts.push with '[^v = [^req]{^pkg}]
          v
 
-      produce{match, fetch} =
+      produce{match expr, fetch} =
 
-         expr and #symbol{s} ->
-            fetch{s, expr}
+         #symbol{s} ->
+            fetch{#value{s}, expr}
 
          #value{String? s} ->
-            fetch{s, #symbol{gensym{}}}
+            fetch{expr, #symbol{scope.gensym{}}}
 
          #multi{*subp} or #data{*subp} ->
             subp each p -> produce{p, fetch}
 
-         #send{#symbol{"as"}, #data{#value{pkg} or #symbol{pkg}, s}} ->
-            fetch{pkg, s}
+         #send{#symbol{"^"}, #data{#void{}, name}} ->
+            fetch{name, #symbol{scope.gensym{}}}
+
+         #send{#symbol{"as"}, #data{pkg, s}} ->
+            produce{pkg} with {the_pkg, _} ->
+               fetch{the_pkg, s}
 
          #send{#symbol{"->"}, #data{pkg, subp}} ->
             pkgv = produce{pkg, fetch}
             produce{subp} with {pkg, v} ->
-                stmts.push with '[^v = ^pkgv ^=pkg]
+                stmts.push with '[^v = ^pkgv ^pkg]
 
       produce{expr, topfetch}
       #splice{*stmts}
@@ -697,7 +739,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                ctor := {args, body}
                #splice{}
             '[^lhs = ^rhs] ->
-               parse_pattern{expander, scope, lhs, rhs} with
+               parse_pattern{scope, lhs, rhs} with
                   pattern_handlers.build_object &+ {
                      allow_nested = false
                      assign{#symbol{v} or #value{v}, value} =
@@ -737,7 +779,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #data{name, #multi! {*stmts}} ->
             helper{name, stmts}
          #data{#multi! {*stmts}} ->
-            helper{#symbol{gensym{}}, stmts}
+            helper{#symbol{scope.gensym{}}, stmts}
 
 
    "%"{context, scope, form, #data{descr, contents}} =
@@ -794,7 +836,7 @@ blocktest_wrap{expr} =
 
 blocktest_mac{scope, tests} =
 
-   exptests = enumerate{expander.step_all{#test, scope, tests}}
+   exptests = enumerate{scope.step_all{#test, scope, tests}}
    n = exptests.length
    stmts = exptests each
 
@@ -824,9 +866,6 @@ blocktest_mac{scope, tests} =
 
 stdenv.bind{topscope, "blocktest", #macro{...}} with
    {context, scope, form, #data{*args}} ->
-      ;; acc = gensym{}
-      ;; labv = gensym{}
-      ;; stmts = #multi with '[^acc = {}]
       match args:
          {#multi! {*tests}} ->
             ' | label = {}
@@ -839,7 +878,7 @@ stdenv.bind{topscope, "blocktest", #macro{...}} with
 qqstruct{name, args} =
    #data{#value{name}, *args}
 
-qq{expr and match} =
+qq{match expr} =
    #symbol{s} -> qqstruct{.symbol, {#value{s}}}
    #void{} -> qqstruct{.void, {}}
    #value{v} ->
@@ -1013,6 +1052,14 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          other ->
             other["::serialize_ast"]{}
 
+   "___match_error" => Embedded with '
+      {value, url, start, end} ->
+         err = E.match{"Could not find a match for value", {value = value}}
+         if url:
+            err.location := #location{url, start, end}
+         throw err
+
+
    "ErrorFactory" => Embedded with '
       class:
 
@@ -1060,11 +1107,11 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
 stdprelude = Embedded with '
 
-   send{obj, msg and match} =
+   send{obj, match msg} =
       [String? or Number?] -> ___js_fetch{obj, msg}
       other -> obj["::send"]{msg}
 
-   Array[":::project"] := {value and match} ->
+   Array[":::project"] := {match value} ->
       Array? -> {true, value}
       _ -> {true, {value}}
 
@@ -1126,14 +1173,4 @@ stdprelude = Embedded with '
 
 
 
-
-generic_nodes = {
-   .if
-   .js_while, .js_for, .js_for_in, .js_label
-   .js_break, .js_continue, .js_return
-   .js_delete, .js_throw, .js_try, .js_new
-}
-
-expander = Expander{mkstdenv, generic_nodes}
-expand = expander.expand.bind{expander}
 

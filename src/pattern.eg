@@ -9,7 +9,8 @@ require:
       zip, enumerate, keys as iterkeys, neighbours
       classify, classify_contiguous
       identity
-   "./expand" as mt
+   "./expand" ->
+      checker_db
 
 provide:
    PatternParser
@@ -19,8 +20,8 @@ provide:
 
 class PatternParser:
 
-   constructor{expander, scope, pattern, opt} =
-      @expander := expander
+   constructor{scope, pattern, opt} =
+      @expander := scope.expander
       @opt := opt
       @arguments := {}
       @vars := {}
@@ -55,7 +56,7 @@ class PatternParser:
       expr = @expander.step{#pattern, scope, pattern}
       rval = match expr:
          #void ->
-            #check{mt.checker.null, #ignore}
+            #check{checker_db.null, #ignore}
          #ignore ->
             expr
          #special{type} ->
@@ -68,7 +69,7 @@ class PatternParser:
             @vars.push with expr
             #assign{expr}
          #value{v} ->
-            #check{mt.checker{v}, #ignore}
+            #check{checker_db{v}, #ignore}
             ;; #check{mac1{{x} -> '[^x == ^=v]}, #ignore}
 
          #test{condition, subp} ->
@@ -93,6 +94,9 @@ class PatternParser:
             throw E.syntax.pattern{msg, {node = expr}} where
                msg = "Nested patterns are not allowed here."
 
+         #neg{x} ->
+            #neg{@expand{scope, x}}
+
          #all{*xs} ->
             #all ++ [xs each x -> @expand{scope, x}]
 
@@ -103,7 +107,7 @@ class PatternParser:
                canon{...} with
                   vars each #symbol{v} -> v
             pps = xs each x ->
-               PatternParser{@expander, scope, x, @opt}
+               PatternParser{scope, x, @opt}
             neighbours{pps} each {pp1, pp2} ->
                pps each pp -> normalize{pp.vars}
                if [normalize{pp1.vars} != normalize{pp2.vars}]:
@@ -129,7 +133,7 @@ class PatternParser:
                   patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
                   if checked:
                      then: patt
-                     else: #check{mt.checker.Array, patt}
+                     else: #check{checker_db.Array, patt}
                {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
                   #object_pattern{*keys}
                   ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
@@ -193,6 +197,12 @@ class PatternProcessor:
             t = @temp{'[^projector]{^rhs}}
             @check with '[^t][0]
             @process{subp, '[^t][1], fns}
+
+         #neg{patt} ->
+            @check{'[not ^[...]]} with
+               pp = PatternProcessor{}
+               pp.process{patt, rhs, fns}
+               assemble_conditions{pp}
 
          #all{*xs} ->
             t = @temp{rhs}
@@ -335,8 +345,8 @@ inject_below_uses{match, fn} =
 ;; success => what to return on success
 ;; failure => what to return on failure
 
-parse_pattern{expander, scope, pattern, rhs, opt} =
-   parse = PatternParser{expander, scope, pattern, opt}
+parse_pattern{scope, pattern, rhs, opt} =
+   parse = PatternParser{scope, pattern, opt}
    if [not opt.allow_arguments and parse.arguments.length]:
       throw E.syntax.pattern.arguments with
          "Arguments cannot be declared in this pattern"
@@ -391,16 +401,16 @@ same_block{match, ban1, ban2} =
    other ->
       false
 
-parse_clauses{expander, scope, target, stmts, opt} =
+parse_clauses{scope, target, stmts, opt} =
 
    all_temps = {}
-   the_parts = expander.step_all{#clause, scope, stmts} each
+   the_parts = scope.step_all{#clause, scope, stmts} each
 
       #clause{pattern, body} ->
          placeholder = undefined
          special_fn{#special{match} and expr, value} =
             .match ->
-               placeholder := #symbol{gensym{.ph}} <<: expr
+               placeholder := #symbol{scope.gensym{.ph}} <<: expr
                #assign{placeholder}
             other ->
                throw E.syntax.pattern.special with
@@ -408,7 +418,7 @@ parse_clauses{expander, scope, target, stmts, opt} =
                   {special = expr}
 
          {vars, temps, blocks} =
-            parse_pattern{expander, scope, pattern, target} with
+            parse_pattern{scope, pattern, target} with
                opt &+ {
                   allow_arguments = false
                   allow_nested = true
@@ -434,7 +444,7 @@ parse_clauses{expander, scope, target, stmts, opt} =
                if placeholder:
                   then:
                      parse_clauses with
-                        expander, scope, placeholder, [#multi! body]
+                        scope, placeholder, [#multi! body]
                         opt
                   else: if{opt.wrap, opt.wrap{body}, body}
 

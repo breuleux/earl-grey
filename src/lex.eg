@@ -172,9 +172,9 @@ indent_tracker{} =
    curr = false
    stack = {}
    stacks = {stack}
-   {token and match} ->
+   {match token} ->
 
-      #INDENT{new_indent and match} ->
+      #INDENT{match new_indent} ->
          when [curr == false] ->
             curr := new_indent
             {#OP{.IFX, .wide, ","}}

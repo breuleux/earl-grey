@@ -212,7 +212,7 @@ order{o1, o2} =
       when [ord1 < ord2]  -> RIGHT
       when [ord1 == ord2] -> BOTH
 
-finalize{token and match} =
+finalize{match token} =
 
    #ID{value} -> #symbol{value} <<: token
    #NUM{value} -> #value{value} <<: token
@@ -241,7 +241,7 @@ finalize{token and match} =
          {{"with"}, {target, _b and #multi! {*body}}} ->
 
             inserted = false
-            result = transform{target} with {expr and match} ->
+            result = transform{target} with {match expr} ->
                #symbol{"..."} -> [inserted := true, #multi{*body} <<: _b]
                [x when x.fromop] and #send{f, #data{a, b}} ->
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}

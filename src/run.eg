@@ -127,7 +127,7 @@ _run{match} =
          <> token.location.highlight{}
 
    {.pa, s} ->
-      walkloc{node and match} =
+      walkloc{match node} =
          #symbol{x} ->
             <> node
             <> node.location and node.location.highlight{}
@@ -166,8 +166,9 @@ _run{match} =
 
    {.runs, data} ->
       code = gen{data, "<command>"}
-      console.log with code
-      console.log with eval{code}
+      ;; console.log with code
+      ;; console.log with eval{code}
+      <> eval{code}
 
    other ->
       console.log with usage

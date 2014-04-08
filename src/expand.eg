@@ -21,7 +21,7 @@ provide:
    GenSym, gensym
    bind_ast
    ;; hoist
-   mac1, checker
+   mac1, checker_db
 
 
 
@@ -33,10 +33,11 @@ provide:
 
 class Scope:
 
-   constructor{parent = null, name = null} =
+   constructor{parent = null, name = null, expander = null} =
       @name := name or gensym{"scope"}
       @parent := parent
       @options := {=}
+      @expander := expander or parent.expander
 
    getopt{opt} =
       match:
@@ -49,6 +50,18 @@ class Scope:
 
    setopt{opt, value} =
       @options[opt] := value
+
+   gensym{} =
+      @expander.gensym{}
+
+   step{context, scope, expr} =
+      @expander.step{context, scope, expr}
+
+   step_all{context, scope, exprs} =
+      @expander.step_all{context, scope, exprs}
+
+   expand{context, scope, expr} =
+      @expander.expand{context, scope, expr}
 
    toString{} =
       "Scope{" + @name + "}"
@@ -86,7 +99,7 @@ class Env:
 
 
 
-bind_ast{expr and match, env} =
+bind_ast{match expr, env} =
    {env => e} ->
       expr
    #symbol or #value or #variable or #macro or #void ->
@@ -129,7 +142,9 @@ class Expander:
                other ->
                   find{match arg} =
                      == value ->
-                        E.syntax.argument{msg, {argument = arg, form = form}} where
+                        E.syntax.argument{msg, {context = context
+                                                argument = arg
+                                                form = form}} where
                            msg = "The macro could not match its argument (or part of it)."
                      {type, *xs} ->
                         xs each find! x ->
@@ -172,7 +187,7 @@ class Expander:
    ;; expr: the expression to expand (one step)
    
    step{context, scope, expr} =
-      helper = track_location{...} with {context, scope, expr and match} ->
+      helper = track_location{...} with {context, scope, match expr} ->
          #symbol{s} ->
             env = match expr:
                {=> env} -> expr.env
@@ -283,7 +298,7 @@ class Expander:
                newargs = @step_all{#expr{.array}, scope, args} each arg ->
                   helper{#expr{.expr}, scope, arg}
                #array{*newargs}
-   
+
             #object{*args} ->
                newargs = @step_all{#expr{.object}, scope, args} each #array{k, v} ->
                   #array{helper{#expr{.expr}, scope, k}
@@ -331,9 +346,13 @@ class Expander:
                      other ->
                         #newargs{other}
                exp{s} =
-                  enumerate{newargs} each {i, arg} ->
-                     helper{#expr{...}, s, arg} with
+                  ;; enumerate{newargs} each {i, arg} ->
+                  ;;    helper{#expr{...}, s, arg} with
+                  ;;       if{i == newargs.length - 1, .expr, .ignore}
+                  stepped = enumerate{newargs} each {i, arg} ->
+                     @step{#expr{...}, s, arg} with
                         if{i == newargs.length - 1, .expr, .ignore}
+                  stepped each arg -> helper{#expr{.expr}, s, arg}
                if vars.length:
                   then: #scope{vars, #multi{*exp{newscope}}}
                   else: #multi{*exp{scope}}
@@ -395,8 +414,8 @@ class Expander:
    
             #assign{target, value} ->
                #assign with
-                  helper{#expr, scope, target}
-                  helper{#expr, scope, value}
+                  helper{#expr{.expr}, scope, target}
+                  helper{#expr{.expr}, scope, value}
    
             #lambda{bindings, body} ->
                newscope = Scope{scope}
@@ -448,11 +467,11 @@ mac1{f} =
 __chk_ncache = {=}
 __chk_scache = {=}
 
-checker{match} =
-   null? -> checker.null
-   undefined? -> checker.undefined
-   ==true -> checker.true
-   ==false -> checker.false
+checker_db{match} =
+   null? -> checker_db.null
+   undefined? -> checker_db.undefined
+   ==true -> checker_db.true
+   ==false -> checker_db.false
    Number? n ->
       if [__chk_ncache[n]]:
          then: __chk_ncache[n]
@@ -468,7 +487,7 @@ checker{match} =
             __chk_scache[s] := v
             v
 
-checker &: {
+checker_db &: {
    String = mac1 with {x} -> '[typeof{^x} == "string"]
    Number = mac1 with {x} -> '[typeof{^x} == "number"]
    Array = mac1 with {x} -> '[^x instanceof Array]

@@ -18,7 +18,7 @@ not_hoistable = {
    .js_while, .js_for, .js_for_in, .js_label
 }
 
-hoist_helper{match and expr} =
+hoist_helper{match expr} =
 
    #symbol or #value or #variable ->
       {expr, {}}
