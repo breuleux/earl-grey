@@ -76,10 +76,12 @@ class Location:
 
 
 highlight{text, spans, offset = 0} =
+   ;; <> spans
+   ;; <> morsel{spans}
    % | morsel{spans} each {start, end, attributes} ->
         xstart = Math.max{start - offset, 0}
         xend = Math.min{end - offset, text.length}
-        Node{attributes, {text.slice{xstart, xend}}}
+        Node{attributes.slice{0, 1}, {text.slice{xstart, xend}}}
 
 highlight_lines{text, linelocs, {l1, l2}, spans} =
    span %
@@ -191,7 +193,7 @@ merge_locations{match} =
 
 
 x <<: y =
-   if [not x.location]:
+   if [not Location? x.location]:
       x.location := if{not y or Location? y, y, y.location}
    x
 

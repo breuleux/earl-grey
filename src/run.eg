@@ -48,10 +48,6 @@ gen{text, file} =
    g = eg.Generator{}
    g.generate{Source{text, path.resolve{file}}}
 
-;; gen2{text, file} =
-;;    g = eg.Generator2{}
-;;    g.generate{Source{text, path.resolve{file}}}
-
 
 run{cmd} =
    _run{cmd} !!
@@ -65,7 +61,7 @@ _run{match} =
    {} or {.i or "in" or .interactive} ->
       require: repl
       ;; vm.runInThisContext{libdata, "stdin"}
-      g = eg.Generator2{}
+      g = eg.Generator{}
       settings = {
          prompt = "<> "
          ignoreUndefined = true
@@ -114,14 +110,14 @@ _run{match} =
                      copy{from, to}
 
          when out ->
-            require: "js-beautify" -> js as beaut
             data = fs.readFileSync{file, .utf8}
             fs.writeFileSync{out} with
-               beaut{gen{data, file}} + "\n"
+               gen{data, file} + "\n"
 
          otherwise ->
+            require: "js-beautify" -> js as beaut
             data = fs.readFileSync{file, .utf8}
-            console.log with gen{data, file}
+            console.log with beaut{gen{data, file}}
 
 
    {.tok, s} ->
@@ -169,7 +165,9 @@ _run{match} =
    ;;    <> eval{code}
 
    {.runs, data} ->
-      console.log with eval{gen{data, "<command>"}}
+      code = gen{data, "<command>"}
+      console.log with code
+      console.log with eval{code}
 
    other ->
       console.log with usage

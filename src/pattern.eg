@@ -344,6 +344,10 @@ parse_pattern{expander, scope, pattern, rhs, opt} =
    [opt.wrap_target or identity]! target =
       if parse.arguments.length:
          then:
+            ;; <> rhs
+            ;; <> inject_below_uses{rhs} with {x} ->
+            ;;    util.construct{parse.arguments ++ {x}} with
+            ;;       {args, rest} -> '[^args -> ^rest]
             inject_below_uses{rhs} with {x} ->
                util.construct{parse.arguments ++ {x}} with
                   {args, rest} -> '[^args -> ^rest]
@@ -357,7 +361,7 @@ parse_pattern{expander, scope, pattern, rhs, opt} =
             *opt.declare{parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
-               assemble_pattern{proc.parts, opt.success{rhs}, opt.failure{rhs}}
+               assemble_pattern{proc.parts, opt.success{target}, opt.failure{target}}
       else:
          {parse.vars, proc.temps, proc.parts}
 

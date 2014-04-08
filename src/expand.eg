@@ -120,7 +120,33 @@ class Expander:
       @generic_nodes := generic_nodes
 
    run_macro{m, context, scope, form, arg} =
-      rval = m{context, scope, form, arg}
+      rval = m{context, scope, form, arg} !!
+         E.match? {args => {{=> value}}} ->
+            e = match value:
+               == context ->
+                  E.syntax.context{msg, {context = context, form = form}} where
+                     msg = "The macro cannot be found in this context."
+               other ->
+                  find{match arg} =
+                     == value ->
+                        E.syntax.argument{msg, {argument = arg, form = form}} where
+                           msg = "The macro could not match its argument (or part of it)."
+                     {type, *xs} ->
+                        xs each find! x ->
+                           if x: return x
+                        false
+                     other ->
+                        false
+                  err = find{arg}
+                  if err:
+                     then: err
+                     else: E.syntax.failure{msg, {form = form, value = value}} where
+                        msg = "The macro failed because it failed to match some value, probably one that it generated itself."
+            ;; e <<: form
+            throw e
+         e ->
+            throw e
+
       bind_ast{rval, @mkenv{}}
       rval
 
@@ -270,6 +296,10 @@ class Expander:
                env.bind{newscope, s, value}
                helper{context, newscope, body}
    
+            #splice{*args} ->
+               #bounce with
+                  #multi{*args} &: {override_scope = true}
+
             #multi{*args} ->
                newscope = if{expr.override_scope, scope, Scope{scope}}
                stepscope =

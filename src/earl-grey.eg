@@ -32,13 +32,13 @@ class Generator:
    generate{source} =
       t = tokenize{source}
       p = parse{t}
-      ;; The override_scope annotation forces declarations into the
-      ;; top scope, which means successive calls to generate{} will
-      ;; see global variables set by the previous. This is essential
-      ;; for interactive mode.
+      ;; #splice will force declarations into the top scope, which
+      ;; means successive calls to generate{} will see global
+      ;; variables set by the previous. This is essential for
+      ;; interactive mode.
       ex = std.expand{#top
                       std.topscope
-                      std.bind_ast{#multi{p} &: {override_scope = true}, @env}}
+                      std.bind_ast{#splice{p}, @env}}
       ex := opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
       @tr.dump_store{} + rval

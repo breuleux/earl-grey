@@ -77,6 +77,8 @@ error_embed_location{error, target} =
 overridable{f}{match and context, scope, form, arg} =
    #pattern ->
       #nostep{form}
+   #expr{.multi} ->
+      #nostep{form}
    other ->
       f{context, scope, form, arg}
 
@@ -322,8 +324,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             #data{lhs, rhs} = expr
             #default{lhs, rhs}
 
-         other ->
-            throw E.syntax.declare{"A variable cannot be declared at that location"}
+         ;; other ->
+         ;;    throw E.syntax.declare{"A variable cannot be declared at that location"}
 
    "=>"{match, scope, {=> env}, #data{lhs, rhs}} =
       #pattern ->
@@ -554,32 +556,20 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       'letrec{^bindings, ^body}
 
    "break" => break_mac{null}
-   ;; "break" => overridable with
-   ;;    {context, scope, form, match and expr} ->
-   ;;       #void{} -> #js_break{}
-   ;;       #value{v} -> #js_break{expr}
-   ;;       #symbol{v} -> #js_break{#value{v}}
 
    "continue" => continue_mac{null}
-   ;; "continue" => overridable with
-   ;;    {context, scope, form, #void{}} ->
-   ;;       #js_continue{}
 
-   "throw" => overridable with
-      {context, scope, form, arg} ->
-         #js_throw{arg}
+   overridable! "throw"{context, scope, form, arg} =
+      #js_throw{arg}
 
-   "return" => overridable with
-      {context, scope, form, arg} ->
-         #js_return{arg}
+   overridable! "return"{context, scope, form, arg} =
+      #js_return{arg}
 
-   "new" => overridable with
-      {context, scope, form, arg} ->
-         #js_new{arg}
+   overridable! "new"{context, scope, form, arg} =
+      #js_new{arg}
 
-   "delete" => overridable with
-      {context, scope, form, arg} ->
-         #js_delete{arg}
+   overridable! "delete"{context, scope, form, arg} =
+      #js_delete{arg}
 
    "?"{context, scope, form, #data{expr, #void{}}} =
       checker = match expr:
