@@ -811,40 +811,57 @@ each other. For instance, the following macro swaps two variables:
     macro [<=>]{*, #data{a, b}}:
        '[temp = ^a, ^a := ^b, ^b := temp]
 
+You can use the macro like this:
+
     temp = 1
     z = 2
     temp <=> z
     ;; temp is now 2, z is now 1
 
-The above won't translate to
+Now, if it was only a matter of straight subsitution, the above would
+translate to
 
     temp = temp
     temp := temp
     z := temp
 
-But rather to something like this:
+Of course, that wouldn't work. Thankfully, EG keeps track of the
+environment each variable is defined and produces something like this
+instead, which will work just fine.
 
     temp$0 = temp
     temp := z
     z := temp$0
 
-The way it works is that every node in the AST is associated to an
+Essentially, every node in the AST is associated to an
 *environment*. All of the user's source code belongs to the specific
-"user" environment, whereas the macro's productions belong to another.
+"user" environment, whereas the macro's productions belong to
+another. This means that a macro will work the same regardless of
+whatever unholy ways you might mangle your own namespace (and vice
+versa).
 
-There are specific instances, however, where you'd like to inject new
-variables into user code. For instance, perhaps you want to create a
-macro that defines the variable "one" to 1, "two" to 2, and so on, and
-expose these new variables to the user.
+On the other hand, it means that if you want your macro to define
+variables for the user, you'll have to jump through a few hoops (not
+too many, I promise). Imagine you want to create a macro that defines
+the variable "one" to 1, "two" to 2, and so on, and expose these new
+variables to the user. In other words, you want this
 
-In order to do that, you need to do two things:
+    numbers:
+       console.log with three + four
+
+to print "7".
+
+In order for the `numbers` macro to create these variables, it needs
+to do three things:
 
 1. Get a reference to the user environment.
-2. Bind your new variables to this environment.
+2. Bind the AST nodes for the new variables to this environment.
+3. Generate proper declarations for these doctored variables.
 
 Step 1 is easy, because `form.env` and `arg.env` will typically
 contain the environment you want. Step 2 is easy as well: just set the
-`env` field of your new variables. Here's a way to do it:
+`env` field of your new variables. Step 3 is just a matter of
+generating `var = value`.
 
     macro numbers{*, #data{body}}:
        nums = {'zero, 'one, 'two, 'three, 'four
@@ -853,9 +870,6 @@ contain the environment you want. Step 2 is easy as well: just set the
           v.env := body.env
           '[^v = ^=i]
        '[^*decls, ^body]
-
-    numbers:
-       console.log with three + four
 
 Feel free to play around with the code, and notice that removing the
 `v.env := body.env` line causes a reference error on the variable
