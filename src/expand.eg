@@ -54,14 +54,14 @@ class Scope:
    gensym{} =
       @expander.gensym{}
 
-   step{context, scope, expr} =
-      @expander.step{context, scope, expr}
+   step{context, expr} =
+      @expander.step{context, @, expr}
 
-   step_all{context, scope, exprs} =
-      @expander.step_all{context, scope, exprs}
+   step_all{context, exprs} =
+      @expander.step_all{context, @, exprs}
 
-   expand{context, scope, expr} =
-      @expander.expand{context, scope, expr}
+   expand{context, expr} =
+      @expander.expand{context, @, expr}
 
    toString{} =
       "Scope{" + @name + "}"
@@ -319,15 +319,22 @@ class Expander:
                newscope = if{expr.override_scope, scope, Scope{scope}}
                stepscope =
                   if{expr.nonrecursive, scope, newscope}
+               changes = false
                {=> newargs, => vars} = classify{.newargs, .vars} with
                   @step_all{#expr{.multi}, stepscope, args} each
                      #option{opt, value} ->
                         newscope.setopt{opt, value}
                         #ignore
+                     #declare{variable and #symbol{s}, #macro and mac} ->
+                        {=> env} = variable
+                        env.bind{newscope, s} with mac
+                        changes := true
+                        #ignore
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
                         v = #variable{@gensym{s}} <<: variable
                         env.bind{newscope, s} with v
+                        changes := true
                         if value:
                            then:
                               #splice with
@@ -336,6 +343,7 @@ class Expander:
                            else:
                               #vars{v}
                      #declare{v and #variable{_}, value = null} ->
+                        changes := true
                         if value:
                            then:
                               #splice with
@@ -353,7 +361,7 @@ class Expander:
                      @step{#expr{...}, s, arg} with
                         if{i == newargs.length - 1, .expr, .ignore}
                   stepped each arg -> helper{#expr{.expr}, s, arg}
-               if vars.length:
+               if changes:
                   then: #scope{vars, #multi{*exp{newscope}}}
                   else: #multi{*exp{scope}}
    

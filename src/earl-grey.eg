@@ -1,5 +1,7 @@
 
 require:
+   "./util" ->
+      items
    "./location" ->
       Source, Location
       highlight_locations
@@ -10,6 +12,7 @@ require:
    "./translate-js" ->
       translate, Translator
    "./stdenv" as std
+   "./expand" as exp
    "./opt" as opt
 
 provide:
@@ -18,9 +21,36 @@ provide:
    Generator, generate
 
 
-;; generate_from_ast{ast} =
-;;    ex = expand{#top{stdenv.fork{}}, #multi{ast}}
-;;    translate{ex, .stmt}
+generate_from_ast{ast} =
+   ex = std.expand{#top
+                   std.topscope
+                   std.bind_ast{#multi{ast}, std.stdenv.fork{}}}
+   ex := opt.hoist{ex}
+   tr = Translator{}
+   rval = tr.translate{ex, .expr}
+   {tr.dump_store{}, rval}
+
+std.stdenv.bind{std.topscope, "macro", #macro{...}} with
+   {context, scope, form, match} ->
+      #data{#send{name and #symbol{sym}, arguments}, ast} ->
+         {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
+         mac = eval{prep + ";("+code+")"}
+         mac2{c, s, f, e} =
+            ;; We bind the macro's name in the environment of what it
+            ;; returns; that way it can call itself recursively
+            env = scope.expander.mkenv{}
+            env.bind{scope, sym, #macro{mac2}}
+            r = mac{c, s, f, e}
+            exp.bind_ast{r, env}
+         #declare{name, #macro{mac2}}
+
+std.stdenv.bind{std.topscope, "macros", #macro{...}} with
+   {context, scope, {=> env}, #data{body}} ->
+      {prep, code} = generate_from_ast{body}
+      the_macros = eval{prep + ";(" + code + ")"}
+      #splice{* ...} with
+         items{the_macros} each {k, v} ->
+            #declare{#symbol{k} &: {env = env}, #macro{v}}
 
 generate{source} =
    Generator{}.generate{source}

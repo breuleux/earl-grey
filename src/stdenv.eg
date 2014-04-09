@@ -836,7 +836,7 @@ blocktest_wrap{expr} =
 
 blocktest_mac{scope, tests} =
 
-   exptests = enumerate{scope.step_all{#test, scope, tests}}
+   exptests = enumerate{scope.step_all{#test, tests}}
    n = exptests.length
    stmts = exptests each
 

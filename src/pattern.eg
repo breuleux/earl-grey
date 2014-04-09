@@ -21,7 +21,7 @@ provide:
 class PatternParser:
 
    constructor{scope, pattern, opt} =
-      @expander := scope.expander
+      ;; @expander := scope.expander
       @opt := opt
       @arguments := {}
       @vars := {}
@@ -32,7 +32,7 @@ class PatternParser:
       rest = undefined
       has_defaults = false
       rval = classify{.fw, .bw, .keys, .defaults} with
-         @expander.step_all{#pattern, scope, specs} each
+         scope.step_all{#pattern, specs} each
             #dynsplice{variable} ->
                rest := @expand{scope, variable}
                #ignore
@@ -53,7 +53,7 @@ class PatternParser:
       rval
 
    expand{scope, pattern, toplevel = false, checked = false} =
-      expr = @expander.step{#pattern, scope, pattern}
+      expr = scope.step{#pattern, pattern}
       rval = match expr:
          #void ->
             #check{checker_db.null, #ignore}
@@ -404,7 +404,7 @@ same_block{match, ban1, ban2} =
 parse_clauses{scope, target, stmts, opt} =
 
    all_temps = {}
-   the_parts = scope.step_all{#clause, scope, stmts} each
+   the_parts = scope.step_all{#clause, stmts} each
 
       #clause{pattern, body} ->
          placeholder = undefined
