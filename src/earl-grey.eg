@@ -42,7 +42,7 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
             env.bind{scope, sym, #macro{mac2}}
             r = mac{c, s, f, e}
             exp.bind_ast{r, env}
-         #declare{name, #macro{mac2}}
+         #declare_raw{name, #macro{mac2}}
 
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
    {context, scope, {=> env}, #data{body}} ->
@@ -50,7 +50,7 @@ std.stdenv.bind{std.topscope, "macros", #macro{...}} with
       the_macros = eval{prep + ";(" + code + ")"}
       #splice{* ...} with
          items{the_macros} each {k, v} ->
-            #declare{#symbol{k} &: {env = env}, #macro{v}}
+            #declare_raw{#symbol{k} &: {env = env}, #macro{v}}
 
 generate{source} =
    Generator{}.generate{source}

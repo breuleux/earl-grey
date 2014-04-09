@@ -11,11 +11,11 @@ provide:
    Translator, translate
 
 
-aslist{match} =
-   ;; #void{} -> {#void{}}
-   ;; undefined? -> {undefined}
-   #multi{*args} -> args
-   other -> {other}
+;; aslist{match} =
+;;    ;; #void{} -> {#void{}}
+;;    ;; undefined? -> {undefined}
+;;    #multi{*args} -> args
+;;    other -> {other}
 
 
 js_op_table2 = {
@@ -155,9 +155,8 @@ class Translator:
          r.push{tr[c] or c}
       r.join{""}
 
-   body{b, mode} =
-      orig = b
-      b := aslist{b}
+   body{orig, mode} =
+      #multi! {*b} = orig ;;aslist{b}
       trst{stmt} = @translate{stmt, .stmt}
       match mode:
          .expr ->
@@ -346,7 +345,7 @@ class Translator:
                when [mode == "expr"] and [not args.some{isdecl}] ->
                   xs = args each x ->
                      @translate{x, .expr}
-                  xs := xs each x when x != "" -> x
+                  xs := xs each? x when x != "" -> x
                   ["(" + xs.join{","} + ")"]
                _ -> @body{expr, mode}
 

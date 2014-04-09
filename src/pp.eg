@@ -7,25 +7,6 @@ provide:
    pr_terminus
    pr, <>
    repr
-   Node
-
-
-class Node:
-
-   static:
-      "::check"{x} =
-         x and x.classes and x.children
-      "::deconstruct"{x} =
-         {x.classes, x.children}
-
-   constructor{Array! classes, Array! children} =
-      @classes := classes.sort{}
-      @children := children
-
-   "::check"{n} =
-      @classes each c when n.classes.indexOf{c} == -1 ->
-         return false
-      true
 
 
 pr_terminus{node} =

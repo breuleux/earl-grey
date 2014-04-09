@@ -224,18 +224,19 @@ pattern_handlers = {
 ;; means "break" will jump out of "each" and not out of an
 ;; outer loop.
 
-build_loop{scope, env, li, clauses, wrap, pre, post} =
+build_loop{scope, env, form, li, clauses, wrap, pre, post, fallback} =
    lbl =
       if env:
          then: #value{scope.gensym{}} &: {env = env}
          else: #value{scope.gensym{}}
+   m = 'm <<: form ;; transfer location, for error printing purposes
    ' | ^pre
      | let [temp = ^li, len = temp.length]:
         for[^lbl] [i = 0, i < len, i++]:
-           m = ___js_fetch{temp, i}
+           ^m = ___js_fetch{temp, i}
            ^ | parse_clauses with
-                scope, 'm, clauses
-                {fallback{_} = 'false
+                scope, m, clauses
+                {fallback = fallback
                  wrap = wrap}
      | ^post
 
@@ -405,7 +406,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                match pp.pattern:
                   #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
                      decls = if{pp.specials.match, {#declare{'ph}}, {}}
-                     newargs = zip{fw, args} each {x, arg} -> match x:
+                     newargs = zip{fw, args} each {match, arg} ->
                         #assign{expr and #symbol{v}} ->
                            expr
                         other ->
@@ -476,13 +477,46 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #expr{.ignore} ->
          ;; Middle of a block. This means we don't have to accumulate
          ;; the values.
-         build_loop{scope, env, li, clauses, {x} -> x, #splice{}, #splice{}}
+         build_loop{scope, env, form, li, clauses
+                    {x} -> x, #splice{}, #splice{}
+                    {target} -> match_error{target}}
 
       other ->
          ;; Middle of a block. We have to accumulate the values in
          ;; order to return them. Right now, this plays poorly with
          ;; break and continue.
-         build_loop{scope, env, li, clauses, {x} -> 'acc.push{^x}, '[acc = {}], 'acc}
+         build_loop{scope, env, form, li, clauses
+                    {x} -> 'acc.push{^x}, '[acc = {}], 'acc
+                    {target} -> match_error{target}}
+
+
+   "each?"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
+
+      #test ->
+         #test_factory{li, clauses} &: {env = env}
+
+      #expr{.multi} ->
+         ;; expand{#multi} will call this macro again with either
+         ;; #expr{.ignore} or #expr{.expr}, depending on whether we
+         ;; are in the middle of a block or at the end of one. We want
+         ;; to specialize on that information, so we pass our turn.
+         #nostep{form}
+
+      #expr{.ignore} ->
+         ;; Middle of a block. This means we don't have to accumulate
+         ;; the values.
+         build_loop{scope, env, form, li, clauses
+                    {x} -> x, #splice{}, #splice{}
+                    {target} -> 'false}
+
+      other ->
+         ;; Middle of a block. We have to accumulate the values in
+         ;; order to return them. Right now, this plays poorly with
+         ;; break and continue.
+         build_loop{scope, env, form, li, clauses
+                    {x} -> 'acc.push{^x}, '[acc = {}], 'acc
+                    {target} -> 'false}
+
 
    "!!"{match, scope, form, #data{expr, #multi! {*clauses}}} =
       #expr{.multi} ->
@@ -810,6 +844,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       'Node{^tags, ^contents}
 
 
+   "globals"{context, scope, form, #data{#multi! {*vars}}} =
+      #splice{* ...} with
+         vars each var and #symbol{s} -> #declare_raw{var, #variable{s}}
+
+
    ;; numbers{context, scope, form, #data{body, => env}} =
    ;;    nums = "zero one two three four five six seven eight nine ten".split{" "}
    ;;    syms = nums each n ->
@@ -849,10 +888,13 @@ blocktest_mac{scope, tests} =
                  ^blocktest_mac{scope, more_tests}
 
       {i, #test_factory{elements, clauses} and {=> env}} ->
-         build_loop{scope, env, elements, clauses, wrap, #splice{}, #splice{}} where
+         build_loop{scope, env, #void{}
+                    elements, clauses, wrap, #splice{}, #splice{}, fall} where
             wrap{expr} =
                ' | let [label = label.concat{{i}}]:
                     ^blocktest_wrap{expr}
+            fall{target} =
+               match_error{target}
 
       {i, expr} ->
          lbl = if{n == 1, '{}, '{^=i}}
@@ -1077,7 +1119,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             if [not e or not Error? e]:
                return false
             tags = e["::tags"] or {}
-            @tags each tag when tags.indexOf{tag} == -1 ->
+            @tags each? tag when tags.indexOf{tag} == -1 ->
                return false
             true
 
@@ -1097,7 +1139,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             @children := children
 
          "::check"{n} =
-            @classes each c when n.classes.indexOf{c} == -1 ->
+            @classes each? c when n.classes.indexOf{c} == -1 ->
                return false
             true
 

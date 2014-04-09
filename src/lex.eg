@@ -96,7 +96,7 @@ regexps = {
        \ or "and" or "not" or "or"
        \ or "in" or "instanceof" or "mod"
        \ or "each" or "as"
-     boundary
+     [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
 
   op4 = R'
      start
