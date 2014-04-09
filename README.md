@@ -972,22 +972,22 @@ This is a bit more advanced, but you can also return anonymous macros
 with `#macro{macro_function}`. They will be applied like any normal
 macro:
 
-   macro addnums{*, expr}:
-      f{accum, match} =
-         #void{} ->
-            #value{accum}
-         #value{Number? n} ->
-            #macro{m} where
-               m{*, expr} = f{accum + n, expr}
-      f{0, expr}
+    macro addnums{*, expr}:
+       f{accum, match} =
+          #void{} ->
+             #value{accum}
+          #value{Number? n} ->
+             #macro{m} where
+                m{*, expr} = f{accum + n, expr}
+       f{0, expr}
    
-   console.log with
-      addnums[1][2][3][4][5][6][7][8][9][10]
+    console.log with
+       addnums[1][2][3][4][5][6][7][8][9][10]
 
-So... what happens is that `addnums[1]` will return a macro, which
-will take `[2]`, and so on. `#void{}` is the special value the
-expander gives when there is no argument to apply the macro to, so it
-can be used as the stopping condition.
+`addnums[1]` will return a macro, which will take `[2]` as its own
+argument, and so on. `#void{}` is the special value the expander gives
+when there is no argument to apply the macro to, so it can be used as
+the stopping condition.
 
 Note: `addnums 1 2 3 ...` won't work, but that's simply because wide
 spacing between arguments is right-associative :)
@@ -1045,7 +1045,7 @@ in the list and takes care of #splice, #sink and #float for you.
 Ideally, to give users the best feedback, you should handle your own
 errors. They should look like this:
 
-    throw E.syntax{message, {node1 = ..., node2 = ..., ...}}
+    throw E.syntax.macro_name{message, {node1 = ..., node2 = ..., ...}}
 
 `node1`, `node2`, etc. can be any label. Each piece of information you
 give, if it is associated to a source code location (don't worry about
