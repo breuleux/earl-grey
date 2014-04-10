@@ -31,13 +31,15 @@ identity{x} = x
 items{obj} =
    results = {}
    for [k in obj]:
-      results.push with {k, obj[k]}
+      if Object.prototype.hasOwnProperty.call{obj, k}:
+         results.push with {k, obj[k]}
    results
 
 keys{obj} =
    results = {}
    for [k in obj]:
-      results.push with k
+      if Object.prototype.hasOwnProperty.call{obj, k}:
+         results.push with k
    results
 
 enumerate{arr} =
