@@ -85,6 +85,18 @@ class Env:
          @scopes[scope.name] := {=}
       @scopes[scope.name][name] := value
 
+   convert{expr} =
+      match expr:
+         {env => e} ->
+            expr
+         #symbol or #value or #variable or #macro or #void ->
+            expr &: {env = [@]}
+         {type, *args} ->
+            args each arg -> @convert{arg}
+            expr &: {env = [@]}
+         other ->
+            expr &: {env = [@]}
+
    fork{} =
       e = Env{}
       items{@scopes} each {scope, bindings} ->
@@ -109,6 +121,17 @@ bind_ast{match expr, env} =
       expr &: {env = env}
    other ->
       expr &: {env = env}
+
+;; bind_ast{match expr, env} =
+;;    {env => e} ->
+;;       expr
+;;    #symbol or #value or #variable or #macro or #void ->
+;;       expr & {env = env}
+;;    {type, *args} ->
+;;       newargs = args each arg -> bind_ast{arg, env}
+;;       {type, *newargs} &: {env = env}
+;;    other ->
+;;       expr & {env = env}
 
 
 track_location{f} = 
@@ -162,8 +185,8 @@ class Expander:
          e ->
             throw e
 
-      bind_ast{rval, @mkenv{}}
-      rval
+      @mkenv{}.convert{rval}
+      ;; rval
 
    ;; Perform one step of expansion.
    
@@ -418,7 +441,7 @@ class Expander:
                   other ->
                      util.construct{arr_parts.reverse{}, ..., #array{}} with
                         {x, rest} -> '[^rest].concat{^x}
-               helper{context, scope, bind_ast{r, @mkenv{}}}
+               helper{context, scope, @mkenv{}.convert{r}}
    
             #assign{target, value} ->
                #assign with

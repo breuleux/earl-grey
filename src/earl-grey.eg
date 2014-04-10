@@ -24,7 +24,7 @@ provide:
 generate_from_ast{ast} =
    ex = std.expand{#top
                    std.topscope
-                   std.bind_ast{#multi{ast}, std.stdenv.fork{}}}
+                   std.stdenv.fork{}.convert{#multi{ast}}}
    ex := opt.hoist{ex}
    tr = Translator{}
    rval = tr.translate{ex, .expr}
@@ -41,7 +41,7 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
             env = scope.expander.mkenv{}
             env.bind{scope, sym, #macro{mac2}}
             r = mac{c, s, f, e}
-            exp.bind_ast{r, env}
+            env.convert{r}
          #declare_raw{name, #macro{mac2}}
 
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
@@ -68,7 +68,7 @@ class Generator:
       ;; interactive mode.
       ex = std.expand{#top
                       std.topscope
-                      std.bind_ast{#splice{p}, @env}}
+                      @env.convert{#splice{p}}}
       ex := opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
       @tr.dump_store{} + rval

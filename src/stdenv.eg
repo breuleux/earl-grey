@@ -12,13 +12,13 @@ require:
       PatternParser, PatternProcessor
       parse_pattern, parse_clauses
    "./expand" as mt ->
-      Expander, Scope, Env, nullenv, bind_ast
+      Expander, Scope, Env, nullenv ;;, bind_ast
       mac1, checker_db
 
 
 provide:
    topscope
-   bind_ast
+   ;; bind_ast
    stdenv
    expander
    expand
@@ -34,7 +34,7 @@ generic_nodes = {
 
 class Embedded:
    constructor{code} =
-      @code := bind_ast{code, mkstdenv{}}
+      @code := mkstdenv{}.convert{code}
       @"::id" := uuid{}
    "::serialize_ast"{} =
       expand{#top, topscope, @code}
@@ -126,8 +126,8 @@ protected_value{name, value}{match, scope, form, arg} =
 
 
 setup_label{label, env, body} =
-   #bind{'break &: {env = env}, #macro{break_mac{label}}
-         #bind{'continue &: {env = env}, #macro{continue_mac{label}}
+   #bind{'break & {env = env}, #macro{break_mac{label}}
+         #bind{'continue & {env = env}, #macro{continue_mac{label}}
                #js_label{#value{label}, body}}}
 
 break_mac{default_label} = overridable with
@@ -146,7 +146,7 @@ continue_mac{default_label} = overridable with
 
 var_operator{name} = {context, scope, form, expr} ->
    {=> env} = form
-   sym = #symbol{name} &: {env = env}
+   sym = #symbol{name} & {env = env}
    match expr:
       #void{} ->
          sym
@@ -228,7 +228,7 @@ pattern_handlers = {
 build_loop{scope, env, form, li, clauses, wrap, pre, post, fallback} =
    lbl =
       if env:
-         then: #value{scope.gensym{}} &: {env = env}
+         then: #value{scope.gensym{}} & {env = env}
          else: #value{scope.gensym{}}
    m = 'm <<: form ;; transfer location, for error printing purposes
    ' | ^pre
@@ -377,7 +377,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #pattern ->
          match {lhs, rhs}:
             {#void, #symbol{k} or #value{k}} ->
-               #assoc{#value{k}, #symbol{k} &: {env = env}}
+               #assoc{#value{k}, #symbol{k} & {env = env}}
             {#symbol{k} or #value{k}, rhs} ->
                #assoc{#value{k}, rhs}
       #test ->
@@ -416,10 +416,10 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                         #assign{expr and #symbol{v}} ->
                            expr
                         other ->
-                           newv = #symbol{scope.gensym{.temp}} &: {env = stdenv}
+                           newv = #symbol{scope.gensym{.temp}} & {env = stdenv}
                            decls.push with
                               parse_pattern{scope, arg, newv} with
-                                 pattern_handlers.declare_variables &+ {
+                                 pattern_handlers.declare_variables & {
                                     special = {#special{match} and expr, value} ->
                                        .match ->
                                           #assign{'ph}
@@ -452,14 +452,14 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             other -> #all{other <<: expr, #special{.match} <<: form}
       other ->
          opt = util.set{flags}
-         to_match = #symbol{scope.gensym{.m}} &: {single_assignment = true}
+         to_match = #symbol{scope.gensym{.m}} & {single_assignment = true}
          {value, body} = match expr:
             #data{#multi! {*b}} -> {#value{null}, b}
             #data{v, #multi! {*b}} -> {v, b}
          '[let [^to_match = ^value]: ^mbody] where mbody =
             parse_clauses with
                scope, to_match, body
-               opt &+ {
+               opt & {
                   fallback{target} =
                      match_error{target}
                      ;; error_embed_location{..., target} with
@@ -471,7 +471,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "each"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
 
       #test ->
-         #test_factory{li, clauses} &: {env = env}
+         #test_factory{li, clauses} & {env = env}
 
       #expr{.multi} ->
          ;; expand{#multi} will call this macro again with either
@@ -499,7 +499,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "each?"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
 
       #test ->
-         #test_factory{li, clauses} &: {env = env}
+         #test_factory{li, clauses} & {env = env}
 
       #expr{.multi} ->
          ;; expand{#multi} will call this macro again with either
@@ -529,7 +529,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #nostep{form}
       #expr{.ignore} ->
          clauses.push with
-            bind_ast{'[e -> throw e], mkstdenv{}}
+            mkstdenv{}.convert{'[e -> throw e]}
          #js_try{expr, ..., #void{}} with
             ' | {excv} ->
                  ^ | parse_clauses with
@@ -537,7 +537,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                       {wrap = {x} -> x}
       other ->
          clauses.push with
-            bind_ast{'[e -> throw e], mkstdenv{}}
+            mkstdenv{}.convert{'[e -> throw e]}
          ' | let [rval = false]:
               ^ #js_try{'[rval := ^expr], ..., #void{}} with
                  ' | {excv} ->
@@ -549,7 +549,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "@" => var_operator{expander.gensym{"it"}}
 
    expr_mac! "chain"{scope, form, #data{defn and {=> env}, #multi! {*body}}} =
-      it = '[@] &: {env = env}
+      it = '[@] & {env = env}
       construct{match} =
          {x} -> x
          {x, *rest} ->
@@ -558,7 +558,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       construct{{defn} ++ body}
 
    expr_mac! "using"{scope, form, #data{defn and {=> env}, body}} =
-      it = '[@] &: {env = env}
+      it = '[@] & {env = env}
       ' | let [^it = ^defn]:
            ^body
 
@@ -623,9 +623,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       construct{match} =
          {} -> body
          {x, *xs} ->
-            #multi{x, construct{xs}} &: {nonrecursive = true}
+            #multi{x, construct{xs}} & {nonrecursive = true}
       construct{bindings}
-      ;; #multi{*bindings, body} &: {nonrecursive = true}
+      ;; #multi{*bindings, body} & {nonrecursive = true}
 
    expr_mac! "letrec"{scope, form, #data{#multi! {*bindings}, body}} =
       #multi{*bindings, body}
@@ -771,7 +771,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
       helper{name, stmts} =
          statics = #data{'[=]}
-         ctor = {#data{}, #multi{} &: {env = env}}
+         ctor = {#data{}, #multi{} & {env = env}}
          new_stmts = stmts each
             #send{'static, #data{#multi! {*methods}}} ->
                statics ++= methods
@@ -780,7 +780,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                #splice{}
             '[^lhs = ^rhs] ->
                parse_pattern{scope, lhs, rhs} with
-                  pattern_handlers.build_object &+ {
+                  pattern_handlers.build_object & {
                      allow_nested = false
                      assign{#symbol{v} or #value{v}, value} =
                         #do{#assign{'[^name].prototype[^=v], value} <<: v}
@@ -788,7 +788,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                      wrap_target{match} =
                         '[^args -> ^body] ->
                            {=> env} = body
-                           it = #symbol{"@"} &: {env = env}
+                           it = #symbol{"@"} & {env = env}
                            ' | ^args ->
                                 let [^it = this]:
                                    ^body
@@ -800,7 +800,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          {ctor_args, ctor_body} = ctor
          ctor_body :=
             {env => env2} = ctor_body
-            it = #symbol{"@"} &: {env = env2}
+            it = #symbol{"@"} & {env = env2}
             ' | let [^it = if{not [^name]? this, Object.create{[^name].prototype}, this}]:
                  ^ctor_body
                  ^it
@@ -1097,18 +1097,26 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                dest[k] := ___js_fetch{values, k}
          dest
 
-   "&+" => Embedded with '
+   ;; "&+" => Embedded with '
+   ;;    {a, b} ->
+   ;;       dest = {=}
+   ;;       for [k in a]:
+   ;;          if a.hasOwnProperty{k}:
+   ;;             dest[k] := ___js_fetch{a, k}
+   ;;       for [k in b]:
+   ;;          if b.hasOwnProperty{k}:
+   ;;             dest[k] := ___js_fetch{b, k}
+   ;;       dest
+
+   "&" => Embedded with '
       {a, b} ->
-         dest = {=}
-         for [k in a]:
-            if a.hasOwnProperty{k}:
-               dest[k] := ___js_fetch{a, k}
+         dest = clone{a}
          for [k in b]:
-            if b.hasOwnProperty{k}:
+            if Object.prototype.hasOwnProperty.call{b, k}:
                dest[k] := ___js_fetch{b, k}
          dest
 
-   "&" => Embedded with '
+   "&+" => Embedded with '
       {a, b} ->
          dest = clone{a}
          for [k in b]:
@@ -1128,6 +1136,8 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                if Object.prototype.hasOwnProperty.call{x, k}:
                   dest[k] := ___js_fetch{x, k}
             dest
+         other ->
+            throw E.clone{"Object cannot be cloned", {obj = x}}
 
    "___checker" => Embedded with '
       {type} ->
@@ -1201,6 +1211,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          "::deconstruct"{e} =
             e.args
 
+
    "Node" => Embedded with '
       class:
          static:
@@ -1217,9 +1228,6 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             @classes each? c when n.classes.indexOf{c} === -1 ->
                return false
             true
-
-
-
 
 
 stdprelude = Embedded with '
@@ -1245,20 +1253,6 @@ stdprelude = Embedded with '
    Array.prototype["::clone"] := {} ->
       this.slice{0}
 
-   ;; Array.prototype[":::project"] := {value} ->
-   ;;    if [value instanceof Array]:
-   ;;       then:
-   ;;          for [i = 0, i < this.length, i++]:
-   ;;             if [this[i] != value[i]]:
-   ;;                rval = this.slice{0}
-   ;;                rval.push{value}
-   ;;                return {true, rval}
-   ;;          {true, value}
-   ;;       else:
-   ;;          rval = this.slice{0}
-   ;;          rval.push{value}
-   ;;          {true, rval}
-
    Array.prototype[":::project"] := {value} ->
       if [value instanceof Array]:
          then:
@@ -1268,9 +1262,6 @@ stdprelude = Embedded with '
             {true, value.slice{this.length}}
          else:
             {true, {value}}
-
-   ;; Array.prototype[":::deconstruct"] := {value} ->
-   ;;    {true, value.slice{this.length}}
 
    Array.prototype["::serialize_ast"] := {} ->
       #array{*this.map{___serialize_ast}}
@@ -1283,14 +1274,16 @@ stdprelude = Embedded with '
          null? m -> {false, null}
          m -> {true, m}
 
-   ;; RegExp.prototype[":::deconstruct"] := {value} ->
-   ;;    match value.match{this}:
-   ;;       null? m -> {false, null}
-   ;;       m -> {true, m}
-
    Function.prototype["::send"] := {args} ->
       this.apply{this, args}
 
-
+   ;; Error.prototype["::clone"] := {} ->
+   ;;    e = Error{this.message}
+   ;;    e.message := this.message
+   ;;    e.stack := this.stack
+   ;;    e.name := this.name
+   ;;    items{this} each {k, v} ->
+   ;;       e[k] := v
+   ;;    e
 
 

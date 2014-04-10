@@ -419,7 +419,7 @@ parse_clauses{scope, target, stmts, opt} =
 
          {vars, temps, blocks} =
             parse_pattern{scope, pattern, target} with
-               opt &+ {
+               opt & {
                   allow_arguments = false
                   allow_nested = true
                   special = special_fn
