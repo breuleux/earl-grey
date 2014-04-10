@@ -243,7 +243,10 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, fallback} =
 
 
 partial_pattern{operator} =
-   op = #variable{operator}
+   op =
+      match operator:
+         #symbol -> operator
+         String? -> #variable{operator}
    {context, scope, form, expr} ->
       match {context, expr}:
          {#pattern, #data{#void{}, val}} ->
@@ -267,8 +270,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "===" => partial_pattern{"==="}
    "!==" => partial_pattern{"!=="}
-   ;; "==" => partial_pattern{"=="}
-   ;; "!=" => partial_pattern{"!="}
+   "==" => partial_pattern{#symbol{"___equal"}}
+   "!=" => partial_pattern{#symbol{"___nequal"}}
    "<=" => partial_pattern{"<="}
    ">=" => partial_pattern{">="}
    "<" => partial_pattern{"<"}
@@ -1053,7 +1056,10 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          enumerate{xs} each {i, x} ->
             {x, ys[i]}
 
-   "=:=" => Embedded with '
+   "___nequal" => Embedded with '
+      {x, y} -> not [x == y]
+
+   "___equal" => Embedded with '
       {match a, b} ->
          === b ->
             true
@@ -1063,22 +1069,22 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             if [not Array? b or a.length !== b.length]:
                return false
             for [i = 0, i < a.length, i++]:
-               if [not [___js_fetch{a, i} =:= ___js_fetch{b, i}]]:
+               if [not [___js_fetch{a, i} == ___js_fetch{b, i}]]:
                   return false
             true
          when [Object.getPrototypeOf{a} === Object.prototype
                \ and Object.getPrototypeOf{b} === Object.prototype] ->
             ka = keys{a}
-            if [not [ka.sort{} =:= keys{b}.sort{}]]:
+            if [not [ka.sort{} == keys{b}.sort{}]]:
                return false
             ka each k ->
-               if [not [___js_fetch{a, k} =:= ___js_fetch{b, k}]]:
+               if [not [___js_fetch{a, k} == ___js_fetch{b, k}]]:
                   return false
             true
          {"::serialize" => _} ->
             match b:
                {"::serialize" => _} ->
-                  a["::serialize"]{} =:= b["::serialize"]{}
+                  a["::serialize"]{} == b["::serialize"]{}
                otherwise ->
                   false
          otherwise ->
