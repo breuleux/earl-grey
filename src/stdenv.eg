@@ -57,7 +57,8 @@ topscope = Scope{null, .top, expander}
    "+", "-", "*", "/", "mod"
    "&.", "|.", "^."
    "and", "or", "not"
-   "==", "!=", "===", "!=="
+   ;; "==", "!="
+   "===", "!=="
    "<", ">", "<=", ">="
    "<<", ">>", ">>>"
    "in", "instanceof", "--"
@@ -95,7 +96,7 @@ match_error{match target} =
 
 drop_ctx{f}{context, scope, form, arg} =
    f{context, scope, form, arg} !!
-      E.match? {args => {{value => [== context and not #expr{.expr}]}}} ->
+      E.match? {args => {{value => [=== context and not #expr{.expr}]}}} ->
          #nostep{form}
 
 expr_mac{f}{match, scope, form, arg} =
@@ -266,8 +267,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "===" => partial_pattern{"==="}
    "!==" => partial_pattern{"!=="}
-   "==" => partial_pattern{"=="}
-   "!=" => partial_pattern{"!="}
+   ;; "==" => partial_pattern{"=="}
+   ;; "!=" => partial_pattern{"!="}
    "<=" => partial_pattern{"<="}
    ">=" => partial_pattern{">="}
    "<" => partial_pattern{"<"}
@@ -685,7 +686,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #pattern ->
             checker_mac = #macro with {context, scope, form, #data{expr}} ->
                ' | let [x = ^expr]:
-                    [x instanceof Array and x[0] == ^tag]
+                    [x instanceof Array and x[0] === ^tag]
             match expr:
                #data{*subp} -> '{^tag, ^*subp}
                #void{} -> #check{checker_mac, #ignore{}}
@@ -884,7 +885,7 @@ blocktest_mac{scope, tests} =
                match_error{target}
 
       {i, expr} ->
-         lbl = if{n == 1, '{}, '{^=i}}
+         lbl = if{n === 1, '{}, '{^=i}}
          ' | let [label = label.concat{^lbl}]:
               ^blocktest_wrap{expr}
 
@@ -1115,7 +1116,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             x
          {"::clone" => _} ->
             x["::clone"]{}
-         when Object.getPrototypeOf{x} == Object.prototype ->
+         when Object.getPrototypeOf{x} === Object.prototype ->
             dest = {=}
             for [k in x]:
                if Object.prototype.hasOwnProperty.call{x, k}:
@@ -1125,17 +1126,17 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
    "___checker" => Embedded with '
       {type} ->
          f = type["::check"]
-         if [f == undefined]:
+         if [f === undefined]:
             then: {value} -> value instanceof type
             else: {value} -> f.call{type, value}
 
    "___projector" => Embedded with '
       {type} -> {value} ->
          f = type[":::project"]
-         if [f == undefined]:
+         if [f === undefined]:
             then:
                f = type["::project"]
-               if [f == undefined]:
+               if [f === undefined]:
                   then: {true, type{value}}
                   else: {true, f{value}} !! e -> {false, null}
             else:
@@ -1187,7 +1188,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             if [not e or not Error? e]:
                return false
             tags = e["::tags"] or {}
-            @tags each? tag when tags.indexOf{tag} == -1 ->
+            @tags each? tag when tags.indexOf{tag} === -1 ->
                return false
             true
 
@@ -1207,7 +1208,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             @children := children
 
          "::check"{n} =
-            @classes each? c when n.classes.indexOf{c} == -1 ->
+            @classes each? c when n.classes.indexOf{c} === -1 ->
                return false
             true
 
@@ -1229,7 +1230,7 @@ stdprelude = Embedded with '
       if [value instanceof Array]:
          then:
             for [i = 0, i < this.length, i++]:
-               if [this[i] != value[i]]:
+               if [this[i] !== value[i]]:
                   return false
             true
          else:
@@ -1256,7 +1257,7 @@ stdprelude = Embedded with '
       if [value instanceof Array]:
          then:
             for [i = 0, i < this.length, i++]:
-               if [this[i] != value[i]]:
+               if [this[i] !== value[i]]:
                   return {true, {value}}
             {true, value.slice{this.length}}
          else:

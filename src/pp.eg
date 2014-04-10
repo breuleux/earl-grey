@@ -24,8 +24,8 @@ pr{match, r} =
 [<> x] = pr{x}
 
 repr{x and match, Function? recur = repr} =
-   == true -> .special.true % "true"
-   == false -> .special.false % "false"
+   === true -> .special.true % "true"
+   === false -> .special.false % "false"
    null? -> .special.nil % "null"
    undefined? -> .special.nil % "undefined"
    Number? -> .num % String{x}
@@ -36,7 +36,7 @@ repr{x and match, Function? recur = repr} =
       .sequence % [entries each x -> recur{x, repr}]
    when x["::repr"] ->
       x["::repr"]{recur}
-   when Object.getPrototypeOf{x} == Object.prototype ->
+   when Object.getPrototypeOf{x} === Object.prototype ->
       .table %
          items{x} each {k, v} ->
             .pairing %
@@ -84,7 +84,7 @@ HTML{match, default_tag} =
          String? s ->
             _classes.push with s
 
-      accum = if{tag == .raw, {}, {"<", tag}}
+      accum = if{tag === .raw, {}, {"<", tag}}
       if id:
          accum := accum.concat with
             " id=\"", id, "\""
@@ -94,7 +94,7 @@ HTML{match, default_tag} =
       if kv:
          kv each {k, v} ->
             accum := accum.concat with
-               if [v != null]:
+               if [v !== null]:
                   then: {" ", k, "=\"", quotify{v}, "\""}
                   else: {" ", k}
 

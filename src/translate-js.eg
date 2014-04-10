@@ -212,7 +212,7 @@ class Translator:
                      @replace{R.g"/", "\\/"}
                      @replace{R.g"\n", "\\n"}
                      ["/" ++ [@]] ++ "/"
-               [Number? or [== true] or [== false] or null?] ->
+               [Number? or [=== true] or [=== false] or null?] ->
                   String{v}
                {"::id" => id} when id ->
                   @translate{..., mode} with
@@ -235,7 +235,7 @@ class Translator:
 
          #send{f, msg and #value{s}} ->
             match:
-               when [[typeof{s} == "string"]
+               when [[typeof{s} === "string"]
                      \ and s.match{R'[start, + in "a-zA-Z_$", end]}] ->
                   @expr{trf + "." + trmsg, mode} where
                      trf = @translate{f, .expr}
@@ -333,19 +333,19 @@ class Translator:
                b = @translate{rhs, .expr}
 
          #multi{} ->
-            if{mode == .stmt, ";", ""}
+            if{mode === .stmt, ";", ""}
 
          #multi{*args} ->
             isdecl{match} =
                #declare{variable, value} -> true
                other -> false
             match:
-               when args.length == 1 ->
+               when args.length === 1 ->
                   @translate{args[0], mode}
-               when [mode == "expr"] and [not args.some{isdecl}] ->
+               when [mode === "expr"] and [not args.some{isdecl}] ->
                   xs = args each x ->
                      @translate{x, .expr}
-                  xs := xs each? x when x != "" -> x
+                  xs := xs each? x when x !== "" -> x
                   ["(" + xs.join{","} + ")"]
                _ -> @body{expr, mode}
 
@@ -371,27 +371,27 @@ class Translator:
             @expr{"(new " + @translate{value, .expr} + ")", mode}
 
          #js_break{#value{label} = #value{null}} ->
-            if [mode == "expr"]:
+            if [mode === "expr"]:
                then: throw "Invalid break in ctx"
                else: "break" + if{label, " " + label, ""} + ";"
 
          #js_continue{#value{label} = #value{null}} ->
-            if [mode == "expr"]:
+            if [mode === "expr"]:
                then: throw "Invalid continue in ctx"
                else: "continue" + if{label, " " + label, ""} + ";"
 
          #js_return{value} ->
-            if [mode == "expr"]:
+            if [mode === "expr"]:
                then: throw "Invalid return in ctx"
                else: "return " + @translate{value, .expr} + ";"
 
          #js_delete{value} ->
-            if [mode == "expr"]:
+            if [mode === "expr"]:
                then: throw "Invalid delete in ctx"
                else: "delete " + @translate{value, .expr} + ";"
 
          #js_throw{value} ->
-            if [mode == "expr"]:
+            if [mode === "expr"]:
                then: "function(){throw " + @translate{value, .expr} + ";}()"
                else: "throw " + @translate{value, .expr} + ";"
 

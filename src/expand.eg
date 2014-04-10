@@ -43,7 +43,7 @@ class Scope:
       match:
          when Object.prototype.hasOwnProperty.call{@options, opt} ->
             @options[opt]
-         when @parent == null ->
+         when @parent === null ->
             undefined
          otherwise ->
             @parent.getopt{opt}
@@ -73,7 +73,7 @@ class Env:
       @scopes := {=}
 
    resolve{scope, name} =
-      if [scope == null]:
+      if [scope === null]:
          return undefined
       scope_data = @scopes[scope.name]
       if [scope_data and Object.prototype.hasOwnProperty.call{scope_data, name}]:
@@ -136,12 +136,12 @@ class Expander:
       rval = m{context, scope, form, arg} !!
          E.match? {args => {{=> value}}} ->
             e = match value:
-               == context ->
+               === context ->
                   E.syntax.context{msg, {context = context, form = form}} where
                      msg = "The macro cannot be found in this context."
                other ->
                   find{match arg} =
-                     == value ->
+                     === value ->
                         E.syntax.argument{msg, {context = context
                                                 argument = arg
                                                 form = form}} where
@@ -356,10 +356,10 @@ class Expander:
                exp{s} =
                   ;; enumerate{newargs} each {i, arg} ->
                   ;;    helper{#expr{...}, s, arg} with
-                  ;;       if{i == newargs.length - 1, .expr, .ignore}
+                  ;;       if{i === newargs.length - 1, .expr, .ignore}
                   stepped = enumerate{newargs} each {i, arg} ->
                      @step{#expr{...}, s, arg} with
-                        if{i == newargs.length - 1, .expr, .ignore}
+                        if{i === [newargs.length - 1], .expr, .ignore}
                   stepped each arg -> helper{#expr{.expr}, s, arg}
                if changes:
                   then: #scope{vars, #multi{*exp{newscope}}}
@@ -442,7 +442,7 @@ class Expander:
                String? name ->
                   s = scope
                   while s:
-                     if [s.name.slice{0, name.length + 1} == [name + "/"]]:
+                     if [s.name.slice{0, name.length + 1} === [name + "/"]]:
                         then: break
                         else: s := s.parent
                   if s:
@@ -454,7 +454,7 @@ class Expander:
             #tagscope{String? tag, body} ->
                helper{context, Scope{scope, @gensym{tag + "/"}}, body}
 
-            {type, *args} when [@generic_nodes.indexOf{type} != -1] ->
+            {type, *args} when [@generic_nodes.indexOf{type} !== -1] ->
                {type} ++
                   args each arg ->
                      helper{#expr{.expr}, scope, arg}
@@ -478,30 +478,30 @@ __chk_scache = {=}
 checker_db{match} =
    null? -> checker_db.null
    undefined? -> checker_db.undefined
-   ==true -> checker_db.true
-   ==false -> checker_db.false
+   ===true -> checker_db.true
+   ===false -> checker_db.false
    Number? n ->
       if [__chk_ncache[n]]:
          then: __chk_ncache[n]
          else:
-            v = mac1{{x} -> '[^x == ^=n]}
+            v = mac1{{x} -> '[^x === ^=n]}
             __chk_ncache[n] := v
             v
    String? s ->
       if Object.prototype.hasOwnProperty.call{__chk_scache, s}:
          then: __chk_scache[s]
          else:
-            v = mac1{{x} -> '[^x == ^=s]}
+            v = mac1{{x} -> '[^x === ^=s]}
             __chk_scache[s] := v
             v
 
 checker_db &: {
-   String = mac1 with {x} -> '[typeof{^x} == "string"]
-   Number = mac1 with {x} -> '[typeof{^x} == "number"]
+   String = mac1 with {x} -> '[typeof{^x} === "string"]
+   Number = mac1 with {x} -> '[typeof{^x} === "number"]
    Array = mac1 with {x} -> '[^x instanceof Array]
    true = mac1 with {x} -> x
    false = mac1 with {x} -> '[not ^x]
-   null = mac1{{x} -> '[^x == ^=null]}
-   undefined = mac1{{x} -> '[^x == ^=undefined]}
+   null = mac1{{x} -> '[^x === ^=null]}
+   undefined = mac1{{x} -> '[^x === ^=undefined]}
 }
 

@@ -53,7 +53,7 @@ class Location:
    linecol{} =
       {start, end} where
          start = @source.linecol{@start}
-         end = if [@start == @end]:
+         end = if [@start === @end]:
                   then: null
                   else: @source.linecol{@end - 1}
    ref{} =
@@ -63,9 +63,9 @@ class Location:
                l1 + ":" + c1
             {String! l2, String! c2} ->
                match:
-                  when l1 == l2 and c1 == c2 ->
+                  when l1 === l2 and c1 === c2 ->
                      l1 + ":" + c1
-                  when l1 == l2 ->
+                  when l1 === l2 ->
                      l1 + ":" + c1 + "-" + c2
                   otherwise ->
                      l1 + ":" + c1 + "-" + l1 + ":" + c2
@@ -127,7 +127,7 @@ morsel{spans} =
       {e, {bot, e, attributes}}
 
    jumptill{active, bot, top} =
-      if [bot == top]:
+      if [bot === top]:
          then:
             {{}, active}
          else:
@@ -150,8 +150,8 @@ morsel{spans} =
          spans ++ process{target, {next} ++ newactive, rest}
 
    thespans = spans.sort with
-      {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 - e2, s1 - s2}
-      ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 == s2, e1 < e2, s1 > s2}
+      {{s1, e1, _}, {s2, e2, _}} -> if{s1 === s2, e1 - e2, s1 - s2}
+      ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 === s2, e1 < e2, s1 > s2}
 
    process{thespans[0][0], {}, thespans}
 

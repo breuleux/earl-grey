@@ -98,7 +98,7 @@ classify_contiguous{xs, classifier} =
    curr = null
    xs each x ->
       cls = classifier{x}
-      if [cls == currcls]:
+      if [cls === currcls]:
          then: curr.push with x
          else:
             if curr:

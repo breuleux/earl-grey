@@ -106,7 +106,7 @@ regexps = {
      op = m[1] or m[0]
 
      match:
-        when op == "|" ->
+        when op === "|" ->
            {.INDENT, column - 1}
 
         when op in special_ops ->
@@ -175,7 +175,7 @@ indent_tracker{} =
    {match token} ->
 
       #INDENT{match new_indent} ->
-         when [curr == false] ->
+         when [curr === false] ->
             curr := new_indent
             {#OP{.IFX, .wide, ","}}
 
@@ -184,7 +184,7 @@ indent_tracker{} =
              curr := new_indent
             {#OP{.PFX, .wide, "["}}
 
-         [== curr] ->
+         [=== curr] ->
             {#OP{.IFX, .wide, ","}}
 
          [< curr] ->

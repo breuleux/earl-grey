@@ -162,31 +162,31 @@ oparse{next, order, finalize} =
                   \ or order{left_op, right_op}
 
       match o:
-         [== DONE] ->
+         [=== DONE] ->
             return between
 
-         [== LEFT] ->
+         [=== LEFT] ->
             current.push{between}
             between := finalize{current}
             v = stack.pop{}
             left_op := v 0
             current := v 1
 
-         [== RIGHT] ->
+         [=== RIGHT] ->
             stack.push{{left_op, current}}
             left_op := right_op
             current := {{right_op}, between}
             between := finalize{next{}}
             right_op := next{}
 
-         [== BOTH] ->
+         [=== BOTH] ->
             current[0].push{right_op}
             current.push{between}
             left_op := right_op
             between := finalize{next{}}
             right_op := next{}
 
-         ;; [== NONE] ->
+         ;; [=== NONE] ->
          ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
 
          other ->
@@ -205,13 +205,13 @@ order{o1, o2} =
    {code1, ord1} = consult{o1}[1]
    {code2, ord2} = consult{o2}[0]
    match:
-      when [[code1 &. code2] == 0] ->
+      when [[code1 &. code2] === 0] ->
          throw E.syntax.order{...} with
             "Cannot mix operators in the given order"
             {left = o1, right = o2}
       when [ord1 > ord2]  -> LEFT
       when [ord1 < ord2]  -> RIGHT
-      when [ord1 == ord2] -> BOTH
+      when [ord1 === ord2] -> BOTH
 
 finalize{match token} =
 
@@ -271,7 +271,7 @@ finalize{match token} =
                   result <<: sumloc
 
          {{"[" or ",", *_}, _} ->
-            if [op == "["]:
+            if [op === "["]:
                args := args.slice{1, -1}
 
             args := args.filter{f} where

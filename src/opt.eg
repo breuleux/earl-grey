@@ -32,7 +32,7 @@ hoist_helper{match expr} =
       {newbody, inner} = hoist_helper{body}
       {#lambda{vars, #scope{inner, newbody}}, {}}
 
-   {type, *args} when hoistable.indexOf{type} != -1 ->
+   {type, *args} when hoistable.indexOf{type} !== -1 ->
       accum = {}
       newargs = args each arg ->
          {b, inner} = hoist_helper{arg}
@@ -40,7 +40,7 @@ hoist_helper{match expr} =
          b
       {{type, *newargs}, accum}
 
-   {type, *args} when not_hoistable.indexOf{type} != -1 ->
+   {type, *args} when not_hoistable.indexOf{type} !== -1 ->
       newargs = args each arg ->
          {b, inner} = hoist_helper{arg}
          match inner:

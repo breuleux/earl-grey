@@ -45,7 +45,7 @@ class PatternParser:
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
                   else: #defaults with {@expand{scope, variable}, value}
-            v when rest == undefined and not has_defaults ->
+            v when rest === undefined and not has_defaults ->
                #fw with @expand{scope, v}
             v ->
                #bw with @expand{scope, v}
@@ -70,7 +70,7 @@ class PatternParser:
             #assign{expr}
          #value{v} ->
             #check{checker_db{v}, #ignore}
-            ;; #check{mac1{{x} -> '[^x == ^=v]}, #ignore}
+            ;; #check{mac1{{x} -> '[^x === ^=v]}, #ignore}
 
          #test{condition, subp} ->
             #test{condition, @expand{scope, subp, toplevel, false}}
@@ -110,13 +110,13 @@ class PatternParser:
                PatternParser{scope, x, @opt}
             neighbours{pps} each {pp1, pp2} ->
                pps each pp -> normalize{pp.vars}
-               if [normalize{pp1.vars} != normalize{pp2.vars}]:
+               if [normalize{pp1.vars} !== normalize{pp2.vars}]:
                   throw E.syntax.pattern{
                      "Both branches of 'or' must contain the same variables"
                      {vars1 = pp1.vars.sort{} <<: pp1.pattern
                       vars2 = pp2.vars.sort{} <<: pp2.pattern}
                   }
-               if [canon{iterkeys{pp1.specials}} != canon{iterkeys{pp2.specials}}]:
+               if [canon{iterkeys{pp1.specials}} !== canon{iterkeys{pp2.specials}}]:
                   throw E.syntax.pattern{
                      "Both branches of 'or' must contain the same special tokens"
                      {special1 = iterkeys{pp1.specials}.sort{} <<: pp1.pattern
@@ -250,8 +250,8 @@ class PatternProcessor:
                match rest:
                   true? ->
                      '[^len >= ^=lo]
-                  when lo == hi ->
-                     '[^len == ^=lo]
+                  when lo === hi ->
+                     '[^len === ^=lo]
                   otherwise ->
                      '[^len >= ^=lo and ^len <= ^=hi]
 
@@ -262,7 +262,7 @@ class PatternProcessor:
                idx = i + nfw
                @process{patt, 'if{^=[idx + nbw] >= ^len, ^value, [^t][^=idx]}, fns}
 
-            if [rest != undefined]:
+            if [rest !== undefined]:
                then:
                   ;; slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
                   ;;    pos = nfw + ndflt
@@ -382,15 +382,15 @@ checkall = {.send, .data, .multi, .assign, .void, .check, .do}
 
 same_block{match, ban1, ban2} =
    {#variable{v1}, #variable{v2}} ->
-      v1 == v2
+      v1 === v2
    {#symbol{s1}, #symbol{s2}} ->
-      not ban1[s1] and not ban2[s2] and s1 == s2
+      not ban1[s1] and not ban2[s2] and s1 === s2
    {#value{v1}, #value{v2}} ->
-      v1 == v2
+      v1 === v2
    {#macro{m1}, #macro{m2}} ->
-      m1 == m2
-   {{type1, *args1}, {type2, *args2}} when checkall.indexOf{type1} != -1 ->
-      if [type1 == type2 and args1.length == args2.length]:
+      m1 === m2
+   {{type1, *args1}, {type2, *args2}} when checkall.indexOf{type1} !== -1 ->
+      if [type1 === type2 and args1.length === args2.length]:
          then:
             zip{args1, args2} each pair ->
                if [not same_block{pair, ban1, ban2}]:
