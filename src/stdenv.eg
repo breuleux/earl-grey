@@ -230,13 +230,27 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, fallback} =
       if env:
          then: #value{scope.gensym{}} & {env = env}
          else: #value{scope.gensym{}}
+
+   freshenv = scope.expander.mkenv{}
+   i = 'i & {env = freshenv}
+   len = 'len & {env = freshenv}
+
+   drop_ctx! first_mac{#pattern, scope, form, subp} =
+      #test{'[^i === 0], subp}
+   drop_ctx! last_mac{#pattern, scope, form, subp} =
+      #test{'[^i === [^len - 1]], subp}
+
+   newscope = Scope{scope}
+   env.bind{newscope, "first", #macro{first_mac}}
+   env.bind{newscope, "last", #macro{last_mac}}
+
    m = 'm <<: form ;; transfer location, for error printing purposes
    ' | ^pre
-     | let [temp = ^li, len = temp.length]:
-        for[^lbl] [i = 0, i < len, i++]:
-           ^m = ___js_fetch{temp, i}
+     | let [temp = ^li, ^len = temp.length]:
+        for[^lbl] [^i = 0, ^i < ^len, ^i++]:
+           ^m = ___js_fetch{temp, ^i}
            ^ | parse_clauses with
-                scope, m, clauses
+                newscope, m, clauses
                 {fallback = fallback
                  wrap = wrap}
      | ^post
@@ -484,16 +498,22 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ;; Middle of a block. This means we don't have to accumulate
          ;; the values.
          build_loop{scope, env, form, li, clauses
-                    {x} -> x, #splice{}, #splice{}
-                    {target} -> match_error{target}}
+                    {x} -> x, #splice{}, #splice{}} with
+            {target, ends_with_test} ->
+               if ends_with_test:
+                  then: 'false
+                  else: match_error{target}
 
       other ->
          ;; Middle of a block. We have to accumulate the values in
          ;; order to return them. Right now, this plays poorly with
          ;; break and continue.
          build_loop{scope, env, form, li, clauses
-                    {x} -> 'acc.push{^x}, '[acc = {}], 'acc
-                    {target} -> match_error{target}}
+                    {x} -> 'acc.push{^x}, '[acc = {}], 'acc} with
+            {target, ends_with_test} ->
+               if ends_with_test:
+                  then: 'false
+                  else: match_error{target}
 
 
    "each?"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =

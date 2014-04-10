@@ -157,8 +157,8 @@ class PatternProcessor:
    "do"{part} =
       @parts.push with #do{part}
 
-   check{part} =
-      @parts.push with #check{part}
+   check{part, tags = {=}} =
+      @parts.push with #check{part} & tags
 
    temp{x, v = null} =
       match x:
@@ -184,7 +184,7 @@ class PatternProcessor:
 
          #test{condition, subp} ->
             @process{subp, rhs, fns}
-            @check with condition
+            @check{condition, {test = true}}
 
          #check{checker, #ignore} ->
             @check with '[^checker]{^rhs}
@@ -404,6 +404,8 @@ same_block{match, ban1, ban2} =
 parse_clauses{scope, target, stmts, opt} =
 
    all_temps = {}
+   ends_with_test = false
+
    the_parts = scope.step_all{#clause, stmts} each
 
       #clause{pattern, body} ->
@@ -427,6 +429,9 @@ parse_clauses{scope, target, stmts, opt} =
                      #do{#assign{v, value} <<: v}
                   finalize = false
                }
+
+         ends_with_test :=
+            blocks.length and blocks[blocks.length - 1].test
 
          all_temps ++= temps
          if placeholder:
@@ -457,7 +462,7 @@ parse_clauses{scope, target, stmts, opt} =
             {clause = other}
 
    if opt.fallback:
-      the_parts.push with #block{opt.fallback{target}}
+      the_parts.push with #block{opt.fallback{target, ends_with_test}}
    unique_temps = iterkeys{util.set{all_temps each #symbol{t} -> t}}
    #multi{*decls, weave_clauses{the_parts}} where
       decls = unique_temps each t -> #declare{#symbol{t}}

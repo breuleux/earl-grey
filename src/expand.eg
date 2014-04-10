@@ -16,20 +16,11 @@ provide:
    Env
    Scope
    track_location
-   ;; expand, step, step_all
    Expander
    GenSym, gensym
-   bind_ast
-   ;; hoist
    mac1, checker_db
 
 
-
-
-;; construct_oper{oper, dflt, match} =
-;;    {} -> dflt
-;;    {x} -> x
-;;    {x, *xs} -> '[^oper]{^x, ^construct_oper{oper, dflt, xs}}
 
 class Scope:
 
@@ -108,30 +99,6 @@ class Env:
 
    toString{} =
       "Env{...}"
-
-
-
-bind_ast{match expr, env} =
-   {env => e} ->
-      expr
-   #symbol or #value or #variable or #macro or #void ->
-      expr &: {env = env}
-   {type, *args} ->
-      args each arg -> bind_ast{arg, env}
-      expr &: {env = env}
-   other ->
-      expr &: {env = env}
-
-;; bind_ast{match expr, env} =
-;;    {env => e} ->
-;;       expr
-;;    #symbol or #value or #variable or #macro or #void ->
-;;       expr & {env = env}
-;;    {type, *args} ->
-;;       newargs = args each arg -> bind_ast{arg, env}
-;;       {type, *newargs} &: {env = env}
-;;    other ->
-;;       expr & {env = env}
 
 
 track_location{f} = 
@@ -431,7 +398,6 @@ class Expander:
    
                r = match arr_parts:
                   {} when is_obj ->
-                     ;; construct_oper{'[&:], #object{}, obj_parts}
                      util.construct{obj_parts, ..., #object{}} with
                         {x, rest} -> '[^x &: ^rest]
 
