@@ -10,6 +10,7 @@ provide:
    partition
    construct
    set
+   make_object
 
 GenSym{prefix} =
    id = 0
@@ -142,5 +143,11 @@ set{xs} =
    rval = {=}
    xs each x ->
       rval[x] := true
+   rval
+
+make_object{pairs} =
+   rval = {=}
+   pairs each {k, v} ->
+      rval[k] := v
    rval
 

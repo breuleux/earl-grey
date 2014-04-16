@@ -966,7 +966,7 @@ to the end. To illustrate:
     console.log with
        {1, 2, up 3, down 4, up 5, down 6, all{7, 8, 9}, 10}
 
-    ;; ==> {3, 5, 1, 2, 7, 8, 9, 4, 6}
+    ;; ==> {3, 5, 1, 2, 7, 8, 9, 10, 4, 6}
 
 These work recursively, so you can also do this:
 
@@ -1027,7 +1027,7 @@ what context:
        #js_for_in{x, y, body} ==> produces a JavaScript for(x in y) loop
        #js_break, #js_continue, #js_new, #js_return, #js_throw, etc.
 
-    #project{} context:
+    #pattern{} context:
        #check{checker, subp} ==> #pattern context, instruct to produce
           '[^checker]{^value_to_match}
           and then check the subpattern (the "?" macro returns this)

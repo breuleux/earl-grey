@@ -7,10 +7,10 @@ require:
 results = blocktest:
 
    "Operator priority" =>
-      [1 + 2 * 3] == 7
-      [1 * 2 + 3] == 5
-      [70 / 10 / 7] == 1
-      [2 ** 3 ** 2] == 512
+      [1 + 2 * 3] === 7
+      [1 * 2 + 3] === 5
+      [70 / 10 / 7] === 1
+      [2 ** 3 ** 2] === 512
 
    "Fibonacci" =>
       do:
@@ -19,8 +19,8 @@ results = blocktest:
             1 -> 1
             n -> fib{n - 1} + fib{n - 2}
 
-      fib{3} == 2
-      fib{10} == 55
+      fib{3} === 2
+      fib{10} === 55
 
    "Conditionals" =>
       do:
@@ -32,9 +32,9 @@ results = blocktest:
                      then: .negative
                      else: .zero
 
-      positivity{0} == .zero
-      positivity{11} == .positive
-      positivity{-41} == .negative
+      positivity{0} === .zero
+      positivity{11} === .positive
+      positivity{-41} === .negative
 
    "Pattern matching" =>
 
@@ -43,11 +43,11 @@ results = blocktest:
             compare{match, threshold} =
                [> threshold] -> "above"
                [< threshold] -> "below"
-               [== threshold] -> "equal"
+               [=== threshold] -> "equal"
 
-         compare{-41, 0} == "below"
-         compare{11, 0} == "above"
-         compare{9, 9} == "equal"
+         compare{-41, 0} === "below"
+         compare{11, 0} === "above"
+         compare{9, 9} === "equal"
 
       "Match on #struct" =>
          do:
@@ -59,12 +59,12 @@ results = blocktest:
                #div{m, n} -> calc{m} / calc{n}
                #sub{n} -> -calc{n}
 
-         [calc{x} == 10] where x = #mul{5, 2}
-         [calc{x} == -7] where x = #div{#add{1, 13}, #sub{2}}
+         [calc{x} === 10] where x = #mul{5, 2}
+         [calc{x} === -7] where x = #div{#add{1, 13}, #sub{2}}
 
       "Argument deconstruction" =>
          do: {{a, b}, c} = {{1, 2}, 3}
-         [a + b + c] == 6
+         [a + b + c] === 6
          "Bounds checks" =>
             [{a} = {11, 22}, false] !! e -> true
             [{a, b, c} = {11, 22}, false] !! e -> true
@@ -79,8 +79,8 @@ results = blocktest:
                   #data{*args} -> tr{f} + "{" + args.join{", "} + "}"
                other -> throw "illegal expression"
 
-         tr{x} == "a.b" where x = #send{"a", "b"}
-         tr{x} == "a{b, 12}" where x = #send{"a", #data{"b", 12}}
+         tr{x} === "a.b" where x = #send{"a", "b"}
+         tr{x} === "a{b, 12}" where x = #send{"a", #data{"b", 12}}
 
    "Testing for type" =>
       "String" =>
@@ -100,10 +100,10 @@ results = blocktest:
 
    "Coercion" =>
       "String" =>
-         [String! 123] == "123"
+         [String! 123] === "123"
       "Number" =>
-         [Number! "123"] == 123
-         [Number! "123.5e3"] == 123.5e3
+         [Number! "123"] === 123
+         [Number! "123.5e3"] === 123.5e3
       "Array" =>
          match [Array! .hello]: {.hello} -> true
          match [Array! {.hello}]: {.hello} -> true
@@ -131,7 +131,7 @@ results = blocktest:
          "aa", "aba", "abba", "aadvark", "cabbage"
       [{...} each s -> not re? s] with
          "a", "bachi", "bouzouk"
-      "cabbage".replace{re, "arria"} == "carriage"
+      "cabbage".replace{re, "arria"} === "carriage"
 
       do: re = R'[start, +"a", {+"b"}, "a", end]
       ;; TODO: REACTIVATE
@@ -142,14 +142,14 @@ results = blocktest:
 
    "Chaining" =>
 
-      "7654321" ==
+      "7654321" ===
          chain {1, 2, 3}:
              @concat with {4, 5}
              @reverse{}
              {7, 6}.concat{@}
              @join{""}
 
-      ;; "7654321" ==
+      ;; "7654321" ===
       ;;    chain [{1, 2, 3} as /]:
       ;;        /concat with {4, 5}
       ;;        /reverse{}
@@ -169,16 +169,16 @@ results = blocktest:
 
       do: one = new Person{.peter, 12}
       Person? one
-      one.name == .peter
-      one.age == 12
-      one.describe{} == "peter:12"
+      one.name === .peter
+      one.age === 12
+      one.describe{} === "peter:12"
 
       do: two = Person{.igor, "34"}
       Person? two
-      two.name == .igor
-      two.age == 34
-      two.age != "34"
-      two.describe2{} == "igor~34"
+      two.name === .igor
+      two.age === 34
+      two.age !== "34"
+      two.describe2{} === "igor~34"
 
       Person{12, 12} and false !! e -> true
       not Person? {.peter, 12}

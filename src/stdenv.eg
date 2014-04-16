@@ -5,7 +5,6 @@ require:
    "./location" ->
       <<:
    "./util" as util ->
-      classify, items, keys as iterkeys, enumerate
       neighbours, zip
       uuid
    "./pattern" ->
@@ -18,7 +17,6 @@ require:
 
 provide:
    topscope
-   ;; bind_ast
    stdenv
    expander
    expand
@@ -100,7 +98,7 @@ drop_ctx{f}{context, scope, form, arg} =
          #nostep{form}
 
 expr_mac{f}{match, scope, form, arg} =
-   #expr{.expr} ->
+   #expr{.expr} or #expr{.head} ->
       f{scope, form, arg}
    otherwise ->
       #nostep{form}
@@ -225,15 +223,17 @@ pattern_handlers = {
 ;; means "break" will jump out of "each" and not out of an
 ;; outer loop.
 
-build_loop{scope, env, form, li, clauses, wrap, pre, post, fallback} =
+build_loop{scope, env, form, li, clauses, wrap, pre, post, opt} =
    lbl =
       if env:
          then: #value{scope.gensym{}} & {env = env}
          else: #value{scope.gensym{}}
 
-   freshenv = scope.expander.mkenv{}
-   i = 'i & {env = freshenv}
-   len = 'len & {env = freshenv}
+   ;; freshenv = scope.expander.mkenv{}
+   ;; i = 'i & {env = freshenv}
+   ;; len = 'len & {env = freshenv}
+   i = '$index & {env = env}
+   len = '$length & {env = env}
 
    drop_ctx! first_mac{#pattern, scope, form, subp} =
       #test{'[^i === 0], subp}
@@ -251,8 +251,7 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, fallback} =
            ^m = ___js_fetch{temp, ^i}
            ^ | parse_clauses with
                 newscope, m, clauses
-                {fallback = fallback
-                 wrap = wrap}
+                opt & {wrap{x} = wrap{x, i}}
      | ^post
 
 
@@ -291,11 +290,20 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "<" => partial_pattern{"<"}
    ">" => partial_pattern{">"}
 
+   "-"{context, scope, form, match expr} =
+      #data{#void{}, #value{Number? n}} ->
+         #value{-n}
+      #void{} ->
+         #variable{"-"}
+      other ->
+         #send{#variable{"-"}, expr}
+
    "++"{context, scope, form, match} =
       #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
       #data{x, #void{}} -> #send{#variable{"++"}, #data{x, #void{}}}
       #data{x, y} -> '[^x].concat{^y}
       #void{} -> '[{x, y} -> x.concat{y}]
+      other -> '[___build_array{^other}]
 
    ".."{context, scope, form, match} =
       #data{#void{}, x} -> 'range{1, ^x}
@@ -353,11 +361,15 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #void{} -> #test{condition, #ignore{}}
       other -> #test{condition, other}
 
-   "."{context, scope, form, match} =
-      #data{#void{}, #symbol{s}} ->
-         #value{s}
-      #data{#void{}, other} or other ->
-         throw E.syntax.dot{"Argument to '.' must be a symbol", {argument = other}}
+   "."{context, scope, form, #data{#void{}, expr}} =
+      f{expr} where f{match} =
+         #symbol{x} or #value{x} ->
+            #value{x}
+         #data{*args} ->
+            #data{*[args each arg -> f{arg}]}
+         other ->
+            throw E.syntax.dot{"Argument to '.' must be a symbol or an array"
+                               {argument = other}}
 
    "="{context, scope, form, expr} =
 
@@ -412,6 +424,10 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    ">>>=" => make_assigner{">>>"}
    "++=" => make_assigner{"++"}
    "?=" => make_assigner{"match"}
+
+   "or=" => make_assigner{"or"}
+   "and=" => make_assigner{"and"}
+   "each=" => make_assigner{"each"}
 
    "->"{match, scope, form, expr} =
       #clause ->
@@ -484,6 +500,23 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "each"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
 
+      do:
+         ends_with_test = false
+         _build_loop{wrap, pre, post} =
+            build_loop{scope, env, form, li, clauses
+                       wrap, pre, post
+                       {...}} with
+               wrap_pattern{x, toplevel} =
+                  ends_with_test :=
+                     match x:
+                        #test -> toplevel
+                        other -> false
+                  x
+               fallback{target} =
+                  if ends_with_test:
+                     then: 'false
+                     else: match_error{target}
+
       #test ->
          #test_factory{li, clauses} & {env = env}
 
@@ -497,23 +530,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #expr{.ignore} ->
          ;; Middle of a block. This means we don't have to accumulate
          ;; the values.
-         build_loop{scope, env, form, li, clauses
-                    {x} -> x, #splice{}, #splice{}} with
-            {target, ends_with_test} ->
-               if ends_with_test:
-                  then: 'false
-                  else: match_error{target}
+         _build_loop{{x} -> x, #splice{}, #splice{}}
 
       other ->
          ;; Middle of a block. We have to accumulate the values in
          ;; order to return them. Right now, this plays poorly with
          ;; break and continue.
-         build_loop{scope, env, form, li, clauses
-                    {x} -> 'acc.push{^x}, '[acc = {}], 'acc} with
-            {target, ends_with_test} ->
-               if ends_with_test:
-                  then: 'false
-                  else: match_error{target}
+         _build_loop{{x} -> 'acc.push{^x}, '[acc = {}], 'acc}
 
 
    "each?"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
@@ -533,7 +556,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ;; the values.
          build_loop{scope, env, form, li, clauses
                     {x} -> x, #splice{}, #splice{}
-                    {target} -> 'false}
+                    {fallback = {target} -> 'false}}
 
       other ->
          ;; Middle of a block. We have to accumulate the values in
@@ -541,7 +564,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ;; break and continue.
          build_loop{scope, env, form, li, clauses
                     {x} -> 'acc.push{^x}, '[acc = {}], 'acc
-                    {target} -> 'false}
+                    {fallback = {target} -> 'false}}
 
 
    "!!"{match, scope, form, #data{expr, #multi! {*clauses}}} =
@@ -774,19 +797,6 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                   throw E.syntax.provide with
                      "Each clause of provide must be 'sym' or 'sym as name'"
 
-   ;; constructor{match, scope, form, expr} =
-   ;;    #pattern ->
-   ;;       ;; <> {"ok?", expr}
-   ;;       #project{#macro{m}, #send{#value{"constructor"}, expr}} where
-   ;;          m{context, scope, form, #data{match}} =
-   ;;             '[^args -> ^body] ->
-   ;;                '{true, ...} with
-   ;;                   ^args ->
-   ;;                      console.log{"yay"}
-   ;;                      ;; ^body
-   ;;             other ->
-   ;;                throw E.syntax.constructor{"Constructor must be a function"}
-
    "class"{context, scope, {=> env}, expr} =
 
       helper{name, stmts} =
@@ -900,9 +910,10 @@ blocktest_mac{scope, tests} =
 
       {i, #test_factory{elements, clauses} and {=> env}} ->
          build_loop{scope, env, #void{}
-                    elements, clauses, wrap, #splice{}, #splice{}, fall} where
-            wrap{expr} =
-               ' | let [label = label.concat{{i}}]:
+                    elements, clauses, wrap, #splice{}, #splice{}
+                    {fallback = fall}} where
+            wrap{expr, index} =
+               ' | let [label = label.concat{{^index}}]:
                     ^blocktest_wrap{expr}
             fall{target} =
                match_error{target}
@@ -1047,6 +1058,12 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
 [items{{...}} each {k, v} -> stdenv.bind{topscope, k, #value{v}}] with
 
+   "___build_array" => Embedded with '
+      {arrays} ->
+         results = {}
+         arrays each a -> results := results.concat{a}
+         results
+
    "items" => Embedded with '
       {obj} ->
          results = {}
@@ -1075,6 +1092,11 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       {xs, ys} ->
          enumerate{xs} each {i, x} ->
             {x, ys[i]}
+
+   "predicate" => Embedded with '
+      {f} ->
+         f["::check"] := f
+         f
 
    "___nequal" => Embedded with '
       {x, y} -> not [x == y]
@@ -1306,4 +1328,8 @@ stdprelude = Embedded with '
    ;;       e[k] := v
    ;;    e
 
+
+expander.utils := {
+   var_operator = var_operator
+}
 

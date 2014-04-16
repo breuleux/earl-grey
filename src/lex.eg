@@ -8,6 +8,8 @@ provide:
 
 
 special_ops = {
+   ;; Operators for which the fixity is predetermined regardless
+   ;; of whitespace or other factors.
    "(" => .PFX
    "[" => .PFX
    "{" => .PFX
@@ -34,6 +36,8 @@ regexps = {
    {unkn,   unkn_f}
 } where
 
+  ;; Identifiers
+  ;; ex. abc, Abc123, _x, $, a$b$c
   id = R'
      start
      in "a-zA-Z$_"
@@ -42,6 +46,8 @@ regexps = {
   id_f = {m, wsb, wsa, last_op} -> #ID{.ID, m[0]}
 
 
+  ;; Numbers with arbitrary radii
+  ;; ex. 2r1110, 36rZ, 4r312.33
   numr = R'
      start
      {+d}, in "rR"
@@ -57,6 +63,7 @@ regexps = {
      #ID{.NUM, value}
 
 
+  ;; Base 10 numbers
   num = R'
      start
      {+ in "0-9_"}
@@ -67,6 +74,7 @@ regexps = {
      #ID{.NUM, parseFloat{m[0].replace{R.g"_", ""}}}
 
 
+  ;; Strings (no interpolation)
   str = R'
      start
      "\""
@@ -82,14 +90,19 @@ regexps = {
      r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
      #ID{.STR, r}
 
+
+  ;; Operators
+  ;; ex. +, -, **+, ^%, ...
   op = R'
      start
      + in "+\\-*/~^<>=%&|?!@#.:'"
 
+  ;; brackets: [], {}
   op2 = R'
      start
      in "[{}],"
 
+  ;; Word operators: with, each, each?, where%+%, etc.
   op3 = R'
      start
      "with" or "where" or "when"
@@ -98,6 +111,7 @@ regexps = {
        \ or "each" or "as"
      [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
 
+  ;; `operator`
   op4 = R'
      start
      "`", {+ in "A-Za-z0-9_"}, "`"
@@ -107,37 +121,51 @@ regexps = {
 
      match:
         when op === "|" ->
+           ;; | is equivalent to an indent to its column
            {.INDENT, column - 1}
 
         when op in special_ops ->
+           ;; These operators have predetermined fixities;
+           ;; Refer to special_ops before
            fixity = special_ops[op]
            width =
               match fixity:
                  .IFX -> if{wsb or wsa, .wide, .short}
                  .SFX -> if{wsb, .wide, .short}
                  .PFX -> if{wsa, .wide, .short}
-                 other -> throw E.should_never_happen{"unknown fixity"}
+                 other -> throw E.syntax.should_never_happen{"unknown fixity"}
            #OP{fixity, width, op}
 
         when wsa and wsb ->
+           ;; Whitespace on the left and right of the operator means
+           ;; that the operator is infix, unless the previous token was
+           ;; an operator.
            #OP{if{last_op, .PFX, .IFX}, .wide, op}
 
         when not wsa and not wsb ->
+           ;; Lack of whitespace on the left and right of the operator means
+           ;; that the operator is infix, unless the previous token was
+           ;; an operator.
            #OP{if{last_op, .PFX, .IFX}, .short, op}
 
         when wsa and last_op  ->
+           ;; If there's whitespace after the op but not before, but that the
+           ;; previous token was an op, this is a prefix use
            #OP{.PFX, .wide, op}
 
         when wsa ->
+           ;; If there's whitespace after the op but not before it's suffix
            #OP{.SFX, .short, op}
 
         when wsb ->
+           ;; If there's whitespace before the op but not after it's prefix
            #OP{.PFX, .short, op}
 
         _ ->
            #OP{.PFX, .short, op}
 
 
+  ;; Indent
   indent = R'
      start
      +["\n", {*" "}]
@@ -147,6 +175,7 @@ regexps = {
      #INDENT{ilen}
 
 
+  ;; Comment
   cmnt = R'
      start
      ";"
@@ -155,6 +184,7 @@ regexps = {
   cmnt_f = {m, wsb, wsa, last_op} -> #IGNORE{}
 
 
+  ;; Anything else is an error
   unkn = R'
      start
      any
@@ -169,25 +199,38 @@ ws_re = R'[start, *" ", *["\n", *" ", "\\", *" "]]
 eol_re = R'[start, *" ", "\n" or end]
 
 indent_tracker{} =
-   curr = false
-   stack = {}
-   stacks = {stack}
+   ;; This returns a function that tracks indentation levels
+   ;; as tokens are fed into it. For each token it returns a
+   ;; list of tokens including additional commas and brackets
+   ;; corresponding to line breaks, indent and dedents.
+
+   curr = false      ;; current indent
+   stack = {}        ;; stack of indent levels up to this point
+   stacks = {stack}  ;; [ or { start a new stack of indent levels
+
+   ;; We return the following function
    {match token} ->
 
       #INDENT{match new_indent} ->
          when [curr === false] ->
+            ;; This is the first line break, we produce ","
             curr := new_indent
             {#OP{.IFX, .wide, ","}}
 
          [> curr] ->
+            ;; Indent is larger than before, so we push the previous
+            ;; and produce "["
             stack.push{curr}
              curr := new_indent
             {#OP{.PFX, .wide, "["}}
 
          [=== curr] ->
+            ;; Same as before, ","
             {#OP{.IFX, .wide, ","}}
 
          [< curr] ->
+            ;; Smaller than before, so we generate "]" until
+            ;; the new indent is no larger than the current one
             rval = {}
             while [[stack.length > 0] and [new_indent < curr]]:
                curr := stack.pop{}
@@ -198,6 +241,8 @@ indent_tracker{} =
       #ID{*stuff} -> {token}
 
       #OP{fixity, width, "[" or "{"} ->
+         ;; We restart indent calculation inside each []/{} that
+         ;; we find.
          stack.push{curr}
          stacks.push{stack}
          stack := {}
@@ -205,6 +250,7 @@ indent_tracker{} =
          {token}
 
       #OP{fixity, width, "]" or "}"} ->
+         ;; We close all indented blocks with every closing bracket
          rval = stack each _ -> #OP{.SFX, .short, "]"}
          stack := stacks.pop{}
          curr := stack.pop{}
