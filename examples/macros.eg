@@ -1,0 +1,46 @@
+
+
+;; Unless
+
+macro unless{*, #data{test, body}}:
+   'if{not ^test, ^body}
+
+unless 0:
+   console.log with "yes"
+
+
+;; A fancy way of writing while [1]: ... :)
+
+macro forever{context, scope, form, #data{body}}:
+   ;; The label is needed in order for the user to be able
+   ;; to break/continue from forever. Without the label, EG
+   ;; considers that the while loop is not visible from the
+   ;; user's lexical scope, so break ought to skip past it.
+   ;; However, if there's a label, EG will look at the its
+   ;; environment to determine the whole while loop's
+   ;; visibility. form.env.convert will stamp our freshly
+   ;; created label with the environment where forever was
+   ;; used :)
+   lbl = form.env.convert{#value{scope.gensym{}}}
+   'while[^lbl]{1, ^body}
+
+1..4 each i ->
+   forever:
+      console.log with "let's not be too crazy and break out while we still can!"
+      break ;; comment out the lbl= line and you'll see the above is only printed once
+
+
+;; Define the ~ operator to define anonymous functions, with the
+;; variable $ holding the first argument
+
+macro [~]{context, scope, form, #data{#void{}, body}}:
+   dolla = form.env.convert{'$}
+   ' | {^dolla} -> ^body
+
+add10 = ~[$ + 10]
+first4 = ~$.substring{0, 4}
+
+console.log with
+   add10{91}
+   first4{"hello"}
+

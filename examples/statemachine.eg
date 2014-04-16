@@ -1,0 +1,100 @@
+
+
+macro statemachine{context, scope, form, #data{name, #multi! {*fns}}}:
+   ;; This macro will help us define state machines nicely and easily
+
+   ;; Usage:
+   ;; statemachine name{*constructor_args} =
+   ;;    initial_state{*args} =
+   ;;       ...
+   ;;       switch .other_state
+   ;;       ...
+   ;;    other_state{*args} =
+   ;;       ...
+   ;;    ...
+   ;; sm = name{*constructor_args}
+   ;; sm{*args}
+   ;; sm{*other_args}
+   ;; ...
+
+   ;; Arguments of the macro:
+   ;; context, scope: we won't need them here
+   ;; form: a reference to the whole macro call
+   ;; #data{name, #multi! {*fns}}: this will match something like
+   ;;      statemachine{name, [fn1, fn2, ...]}, or something like
+   ;;      statemachine name:
+   ;;         fn1
+   ;;         ...
+
+   ;; First we create variables named "state" and "switch" which will
+   ;; be visible in the user's lexical environment
+   ;; form.env should contain a reference to that environment
+   state = form.env.convert{'state}
+   switch = form.env.convert{'switch}
+
+   ;; We scrape the name of the initial state from the first clause
+   '[[^ #symbol{initial_state}][^_] = ^_] =
+      fns[0]
+
+   ;; We define switch as a macro so that we don't need {}s or with
+   ;; switch newstate ==> state := newstate
+   switch_macro{*, newstate} =
+      ' | ^state := ^newstate
+
+   ;; #splice shouldn't actually be needed here, I'll have to check
+   ;; what's going on with this. Anyway, it works.
+   #splice with
+      ' | ^name =
+           ^ | #declare_raw{switch, #macro{switch_macro}}
+           states = {^* fns}
+           ^state = ^=initial_state
+           {*args} ->
+              states[^state].apply{null, args}
+
+
+statemachine Safe{key, prize}:
+   ;; Exercise: add the #put action :)
+
+   locked{*match} =
+      #lock ->
+      #unlock{== key} ->
+         switch .unlocked
+      #unlock ->
+         throw E.safe.wrong_key{}
+      #open ->
+         throw E.safe.locked{}
+      #close ->
+      #take ->
+         throw E.safe.closed{}
+
+   unlocked{*match} =
+      #lock ->
+         switch .locked
+      #unlock ->
+      #open ->
+         switch .open
+      #close ->
+      #take ->
+         throw E.safe.closed{}
+
+   open{*match} =
+      #lock ->
+         throw E.safe.open{}
+      #unlock ->
+      #open ->
+      #close ->
+         switch .unlocked
+      #take when prize ->
+         console.log with "Took " + [String! prize] + "!"
+         prize := null
+      #take ->
+         console.log with "The safe is empty!"
+
+
+safe = Safe{"secret", "a million dollars"}
+
+safe #unlock{"secret"}
+safe #open
+safe #take
+
+

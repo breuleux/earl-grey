@@ -1,0 +1,15 @@
+
+predicate! even{x} = x mod 2 == 0
+predicate! odd{x} = x mod 2 == 1
+
+floor_even{match} =
+   even? x -> x
+   odd? x -> x - 1
+   x -> floor_even{Math.floor{x}}
+
+console.log with
+   even? 4
+   even? 5
+   floor_even{7}
+   floor_even{13.5}
+

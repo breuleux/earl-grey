@@ -1,0 +1,41 @@
+
+;; Function composition
+[f1 @@ f2]{x} = f1{f2{x}}
+
+f{x} = x + 1.5
+g{x} = x / 2
+h{x} = 3 ** x
+
+;; I have yet to provide hooks to define precedence rules
+fgh = f @@ [g @@ h]
+
+console.log with
+   1..10 each i -> fgh{i}
+
+
+;; Let's swap some variables!
+macro [<=>]{*, #data{a, b}}:
+   ' | temp = ^a
+     | ^a := ^b
+     | ^b := temp
+
+x = 10
+y = 20
+console.log with
+   x, y
+
+x <=> y
+console.log with
+   x, y
+
+
+;; Besides their predefined priority, there's really nothing special
+;; about the standard operators
+console.log with
+   10 + 4 / 8
+   10 + 4 / 8 where
+      a + b = a - b
+      a / b = a * b
+
+
+
