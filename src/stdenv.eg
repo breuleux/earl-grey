@@ -769,6 +769,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
          #multi{*subp} or #data{*subp} ->
             subp each p -> produce{p, fetch}
+            null
 
          #send{#symbol{"^"}, #data{#void{}, name}} ->
             fetch{name, #symbol{scope.gensym{}}}
@@ -781,6 +782,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             pkgv = produce{pkg, fetch}
             produce{subp} with {pkg, v} ->
                 stmts.push with '[^v = ^pkgv ^pkg]
+                v
 
       produce{expr, topfetch}
       #splice{*stmts}
@@ -835,6 +837,12 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                  ^ctor_body
                  ^it
 
+         #symbol{name_str} = name
+         statics.push with
+            '["::name" = ^=name_str]
+         statics.push with
+            '["::egclass" = true]
+
          node =
             #splice with
                ' | ^name = ^ctor_args -> ^ctor_body
@@ -851,11 +859,10 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #data{#multi! {*stmts}} ->
             helper{#symbol{scope.gensym{}}, stmts}
 
-
    "%"{context, scope, form, #data{descr, contents}} =
       tags = #data{}
 
-      parse{match} =
+      parse{match toparse} =
          #void{} -> null
          #symbol{s} -> tags.push with #value{"+" + s}
          #value{x} ->
@@ -866,6 +873,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             tags.push with #value{"#" + x}
          #send{#symbol{"="}, #data{#symbol{prop} or #value{prop}, value}} ->
             tags.push with '[#assoc{^=prop, ^value}]
+         ;; '[^k = ^v] ->
+         ;;    tags.push with toparse
          #send{expr, rest} ->
             parse{expr}, parse{rest}
          #multi{*args} or #data{*args} ->
@@ -1064,6 +1073,13 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          arrays each a -> results := results.concat{a}
          results
 
+   "object" => Embedded with '
+      {pairs} ->
+         rval = {=}
+         pairs each {k, v} ->
+            rval[k] := v
+         rval
+
    "items" => Embedded with '
       {obj} ->
          results = {}
@@ -1072,13 +1088,15 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                results.push with {k, obj[k]}
          results
 
-   "keys" => Embedded with '
-      {obj} ->
-         results = {}
-         for [k in obj]:
-            if Object.prototype.hasOwnProperty.call{obj, k}:
-               results.push with k
-         results
+   ;; "keys" => Embedded with '
+   ;;    {obj} ->
+   ;;       results = {}
+   ;;       for [k in obj]:
+   ;;          if Object.prototype.hasOwnProperty.call{obj, k}:
+   ;;             results.push with k
+   ;;       results
+
+   "keys" => Embedded with 'Object.keys
 
    "enumerate" => Embedded with '
       {arr} ->
@@ -1239,6 +1257,9 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             e = Error{message}
             e["::tags"] := @tags
             e.args := args
+            enumerate{args} each {i, arg} ->
+               e[i] := arg
+            e.length := args.length
             e.name := [{.E} ++ @tags].join{"."}
             e
 
@@ -1308,13 +1329,19 @@ stdprelude = Embedded with '
    Array.prototype["::serialize_ast"] := {} ->
       #array{*this.map{___serialize_ast}}
 
-   RegExp.prototype["::check"] := {value} ->
-      value.match{this}
+   RegExp.prototype["::check"] := {match} ->
+      String? value ->
+         if{value.match{this}, true, false}
+      other ->
+         false
 
-   RegExp.prototype[":::project"] := {value} ->
-      match value.match{this}:
-         null? m -> {false, null}
-         m -> {true, m}
+   RegExp.prototype[":::project"] := {match} ->
+      String? value ->
+         match value.match{this}:
+            null? m -> {false, null}
+            m -> {true, m}
+      other ->
+         {false, null}
 
    Function.prototype["::send"] := {args} ->
       this.apply{this, args}

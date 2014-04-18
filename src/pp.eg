@@ -37,11 +37,17 @@ repr{x and match, Function? recur = repr} =
    when x["::repr"] ->
       x["::repr"]{recur}
    when Object.getPrototypeOf{x} === Object.prototype ->
-      .table %
+      table.object %
          items{x} each {k, v} ->
-            .pairing %
-               recur{k, repr}
-               recur{v, repr}
+            tr %
+               th % recur{k, repr}
+               td % recur{v, repr}
+   ;; when Object.getPrototypeOf{x} === Object.prototype ->
+   ;;    .table %
+   ;;       items{x} each {k, v} ->
+   ;;          .pairing %
+   ;;             recur{k, repr}
+   ;;             recur{v, repr}
    other ->
       .unknown % other.toString{}
 

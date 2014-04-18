@@ -298,7 +298,9 @@ finalize{match token} =
                   ;; then span multiple nodes: for instance, [a] + [b]
                   ;;                                          ^^^^^^^
                   ;; Note that <<: only sets location if it's not already set
-                  x.location := sumloc
+                  globals: isNaN
+                  if [not isNaN{sumloc.start} and not isNaN{sumloc.end}]:
+                     x.location := sumloc
                   x
                other -> #multi{*args}
             result <<: sumloc

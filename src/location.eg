@@ -56,6 +56,7 @@ class Location:
          end = if [@start === @end]:
                   then: null
                   else: @source.linecol{@end - 1}
+
    ref{} =
       match @linecol{}:
          {{String! l1, String! c1}, match} ->
@@ -204,7 +205,13 @@ x ++: y =
 
 
 
-format_error{match e} =
+format_error{match e, context = 0} =
+
+   do:
+      fmt_args{e} =
+         if [e.args and e.args.length]:
+            then: .error_args % repr{e.args}
+            else: ""
 
    E.syntax? {args => {args}} ->
       hls = {.hl1, .hl2, .hl3, .hl4}
@@ -212,19 +219,19 @@ format_error{match e} =
          {i, {key, arg}} when arg and arg.location ->
             {arg.location, hls[i mod 4]}
       div %
-         div %
+         .error %
             .error_type % e.name
             .error_message % e.message
-         repr{args}
-         highlight_locations{locs}
+         .error_args.syntax % repr{args}
+         highlight_locations{locs, context}
 
    {location => Location? loc} ->
       div %
-         div %
+         .error %
             .error_type % e.name
             .error_message % e.message
-         if{e.args, repr{e.args}, ""}
-         highlight_locations{{{loc, .hl1}}}
+         fmt_args{e}
+         highlight_locations{{{loc, .hl1}}, context}
          .traceback % e.stack or ""
 
    {location => #location{url, start, end}} ->
@@ -233,20 +240,34 @@ format_error{match e} =
          then:
             loc = Location{Source{data, url}, start, end}
             div %
-               div %
+               .error %
                   .error_type % e.name
                   .error_message % e.message
-               if{e.args, repr{e.args}, ""}
-               highlight_locations{{{loc, .hl1}}}
-               .traceback % e.stack or ""
+               fmt_args{e}
+               ;; if{e.args, .error_args % repr{e.args}, ""}
+               highlight_locations{{{loc, .hl1}}, context}
+               .traceback %
+                  % e.stack or ""
          else:
             div %
+               .error %
+                  .error_type % e.name
+                  .error_message % e.message
+               fmt_args{e}
                .traceback %
-                  e.stack or e
+                  % e.stack or e
 
    other ->
-      .traceback %
-         e.stack or e
+      div %
+         .error %
+            .error_type % e.name
+            .error_message % e.message
+         ;; if e.args:
+         ;;    then: .error_args % repr{e.args}
+         ;;    else: ""
+         fmt_args{e}
+         .traceback %
+            % e.stack
 
 display_error{e} =
    <> format_error{e}
