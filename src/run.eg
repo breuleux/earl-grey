@@ -170,6 +170,12 @@ _run{match} =
       ;; console.log with eval{code}
       <> eval{code}
 
+   {.trs, data} ->
+      code = gen{data, "<command>"}
+      ;; console.log with code
+      ;; console.log with eval{code}
+      <> code
+
    other ->
       console.log with usage
 

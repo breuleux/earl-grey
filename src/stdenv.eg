@@ -64,7 +64,9 @@ topscope = Scope{null, .top, expander}
 
    .true, .false, .null, .undefined
 
-   .typeof, .String, .Array, .Number, .Object, .RegExp, .Function
+   .typeof
+   .String, .Array, .Number, .Boolean, .Object
+   .RegExp, .Function, .Date
    .parseInt, .parseFloat, .Math
    .Error, .TypeError, .ReferenceError
    .console, .process, .eval
@@ -732,7 +734,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #pattern ->
             checker_mac = #macro with {context, scope, form, #data{expr}} ->
                ' | let [x = ^expr]:
-                    [x instanceof Array and x[0] === ^tag]
+                    [[instanceof]{x, Array} and x[0] === ^tag]
             match expr:
                #data{*subp} -> '{^tag, ^*subp}
                #void{} -> #check{checker_mac, #ignore{}}
@@ -821,8 +823,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                         '[^args -> ^body] ->
                            {=> env} = body
                            it = #symbol{"@"} & {env = env}
+                           it2 = #symbol{"self"} & {env = env}
                            ' | ^args ->
-                                let [^it = this]:
+                                let [^it = this, ^it2 = this]:
                                    ^body
                         other ->
                            other
@@ -1203,7 +1206,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       {type} ->
          f = type["::check"]
          if [f === undefined]:
-            then: {value} -> value instanceof type
+            then: {value} -> [instanceof]{value, type}
             else: {value} -> f.call{type, value}
 
    "___projector" => Embedded with '
@@ -1304,7 +1307,7 @@ stdprelude = Embedded with '
       _ -> {true, {value}}
 
    Array.prototype["::check"] := {value} ->
-      if [value instanceof Array]:
+      if [instanceof]{value, Array}:
          then:
             for [i = 0, i < this.length, i++]:
                if [this[i] !== value[i]]:
@@ -1317,7 +1320,7 @@ stdprelude = Embedded with '
       this.slice{0}
 
    Array.prototype[":::project"] := {value} ->
-      if [value instanceof Array]:
+      if [instanceof]{value, Array}:
          then:
             for [i = 0, i < this.length, i++]:
                if [this[i] !== value[i]]:

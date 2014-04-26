@@ -276,11 +276,23 @@ class Translator:
             @expr{r, mode}
 
          #object{*args} ->
-            r = ["({" + args.map{f}.join{","} + "})"] where
-               f{#array{x, y}} =
-                  a = @translate{x, .expr}
-                  b = @translate{y, .expr}
-                  a + ":" + b
+            all_strings = args.every with {#array{match, y}} ->
+               #value{v} -> true
+               other -> false
+            r = if all_strings:
+               then:
+                  ["({" + args.map{f}.join{","} + "})"] where
+                     f{#array{x, y}} =
+                        a = @translate{x, .expr}
+                        b = @translate{y, .expr}
+                        a + ":" + b
+               else:
+                  v = gensym{}
+                  ["(function(){" + "var " + v + "={};" + args.map{f}.join{""} + ";return " + v + ";}())"] where
+                     f{#array{x, y}} =
+                        a = @translate{x, .expr}
+                        b = @translate{y, .expr}
+                        v + "[" + a + "]=" + b + ";"
             @expr{r, mode}
 
          #lambda{bindings, body} ->

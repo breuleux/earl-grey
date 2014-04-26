@@ -107,7 +107,7 @@ regexps = {
      start
      "with" or "where" or "when"
        \ or "and" or "not" or "or"
-       \ or "in" or "instanceof" or "mod"
+       \ or "in" or "mod"
        \ or "each" or "as"
      [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
 
