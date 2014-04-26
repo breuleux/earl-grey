@@ -694,39 +694,80 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    expr_mac! "delete"{scope, form, arg} =
       #js_delete{arg}
 
-   "?"{context, scope, form, #data{expr, #void{}}} =
-      checker = match expr:
-         'String -> checker_db.String
-         'Number -> checker_db.Number
-         'true -> checker_db.true
-         'false -> checker_db.false
-         'null -> checker_db.null
-         'undefined -> checker_db.undefined
-         other -> '___checker{^expr}
+   "splice"{context, scope, form, #data{#multi! {*stmts}}} =
+      #splice{*stmts}
 
-      #macro{...} with {match, env, form, expr} ->
-         #pattern ->
-            match expr:
-               #void{} ->
-                  #check{checker, #ignore{}}
-               other ->
-                  #check{checker, expr}
-         other -> '[^checker]{^expr}
+   "?"{context, scope, form, match} =
 
-   "!"{context, scope, form, #data{expr, #void{}}} =
-      projector = match expr:
-         'String -> mac1 with {x} -> '{true, String{^x}}
-         'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
-         other -> '___projector{^expr}
+      #data{expr, #void{}} ->
+         checker = match expr:
+            'String -> checker_db.String
+            'Number -> checker_db.Number
+            'true -> checker_db.true
+            'false -> checker_db.false
+            'null -> checker_db.null
+            'undefined -> checker_db.undefined
+            other -> '___checker{^expr}
 
-      #macro{...} with {match, env, form, expr} ->
-         #pattern ->
-            match expr:
-               #void{} ->
-                  #project{projector, #ignore{}}
-               other ->
-                  #project{projector, expr}
-         other -> '[^projector]{^expr}[1]
+         #macro{...} with {match, env, form, expr} ->
+            #pattern ->
+               match expr:
+                  #void{} ->
+                     #check{checker, #ignore{}}
+                  other ->
+                     #check{checker, expr}
+            other -> '[^checker]{^expr}
+
+      #data{chk, target} ->
+         checker = match chk:
+            'String -> checker_db.String
+            'Number -> checker_db.Number
+            'true -> checker_db.true
+            'false -> checker_db.false
+            'null -> checker_db.null
+            'undefined -> checker_db.undefined
+            other -> '___checker{^chk}
+         match context:
+            #pattern ->
+               match target:
+                  #void{} ->
+                     #check{checker, #ignore{}}
+                  other ->
+                     #check{checker, target}
+            other -> '[^checker]{^target}
+
+   "!"{context, scope, form, match} =
+
+      #data{expr, #void{}} ->
+         projector = match expr:
+            'String -> mac1 with {x} -> '{true, String{^x}}
+            'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+            other -> '___projector{^expr}
+
+         #macro{...} with {match, env, form, expr} ->
+            #pattern ->
+               match expr:
+                  #void{} ->
+                     #project{projector, #ignore{}}
+                  other ->
+                     #project{projector, expr}
+            other -> '[^projector]{^expr}[1]
+
+      #data{prj, target} ->
+         projector = match prj:
+            'String -> mac1 with {x} -> '{true, String{^x}}
+            'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+            other -> '___projector{^prj}
+
+         match context:
+            #pattern ->
+               match target:
+                  #void{} ->
+                     #project{projector, #ignore{}}
+                  other ->
+                     #project{projector, target}
+            other -> '[^projector]{^target}[1]
+
 
    "#"{context, scope, form, #data{#void{}, #symbol{tag}}} =
       tag := #value{tag}

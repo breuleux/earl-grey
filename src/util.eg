@@ -11,6 +11,7 @@ provide:
    construct
    set
    make_object
+   product
 
 GenSym{prefix} =
    id = 0
@@ -151,3 +152,9 @@ make_object{pairs} =
       rval[k] := v
    rval
 
+product{a, b} =
+   results = {}
+   a each x ->
+      results ++=
+         b each y -> {x, y}
+   results
