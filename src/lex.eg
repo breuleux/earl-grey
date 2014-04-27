@@ -20,6 +20,7 @@ special_ops = {
    ":" => .IFX
    "." => .PFX
    "'" => .PFX
+   "not" => .PFX
 }
 
 regexps = {

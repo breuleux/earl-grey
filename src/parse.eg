@@ -5,7 +5,7 @@ require:
 
 provide:
    parse
-   order
+   ;; order
    oparse
    finalize
    DONE
@@ -29,127 +29,352 @@ transform{expr, cb} =
 
 
 
+class OperatorGroups:
+
+   constructor{groups} =
+
+      itg = items{groups}
+      @gnames := itg each {name, _} -> name
+      @groups := itg each {name, descrs} ->
+         [++][descrs each descr -> parse_op_description{descr}]
+      @fns := {}
+      @to_gid := {
+         IFX = {wide = {=}, short = {=}}
+         PFX = {wide = {=}, short = {=}}
+         SFX = {wide = {=}, short = {=}}
+      }
+      enumerate{@groups} each {i, group} ->
+         group each
+            {fixity, width, name} ->
+               @to_gid[fixity][width][name] := i
+            f ->
+               @fns.push with {f, i}
+
+   get_name{o} =
+      @gnames[@get{o}]
+
+   get{o and {fixity, width, name}} =
+      attempt = @to_gid[fixity][width][name]
+      if [undefined? attempt]:
+         then:
+            @fns each {f, i} ->
+               if f{o}:
+                  return i
+            throw E.syntax.unknown_operator{
+               "Unknown operator: " + [String! o]
+               {operator = o}
+            }
+         else:
+            attempt
+
+
+parse_op_description{match} =
+   do: rx = R'[start, {?"X"}, {? in " _"}, {* not in " _Y"}
+               {? in " _"}, {? "Y"}, end]
+   Function? f -> f
+   rx! {_, x, w1, op, w2, y} ->
+      {fixity, short} =
+         match:
+            when x === "" ->
+               {.PFX, w2 === ""}
+            when y === "" ->
+               {.SFX, w1 === ""}
+            otherwise ->
+               {.IFX, w1 === "" or w2 === ""}
+      if [w1 === "_" or w2 === "_"]:
+         then: {{fixity, .short, op}, {fixity, .wide, op}}
+         else: {{fixity, if{short, .short, .wide}, op}}
+   other ->
+      throw E.invalid_op_description with
+         "Invalid operator description: " + other
+
+
+;; POSSIBLE BUG: do all JS engines preserve the order of properties?
+;; If they don't, custom might be triggered before pfx/sfx and that
+;; would be a problem.
+eg_groups = OperatorGroups with {
+    ;; High priority
+    tokenpfx = {".Y", "#Y", "@Y"}
+    sjuxt = {"XWHITEY"}
+    ifx = {{match} -> [#IFX{.short, _} -> true, _ -> false]}
+    pfx = {{match} -> [#PFX{.short, _} -> true, _ -> false]}
+    sfx = {{match} -> [#SFX{.short, _} -> true, _ -> false]}
+
+    ;; Arithmetic
+    pow = {"X ** Y"}
+    mul = {"X * Y", "X / Y", "X // Y", "X mod Y", "+ Y", "- Y"}
+    add = {"X + Y", "X - Y"}
+    cmp = {"X < Y", "X <= Y", "X == Y"
+           "X > Y", "X >= Y", "X != Y"}
+
+    ;; Collection
+    cat = {"X ++ Y"}
+    union = {"X & Y"}
+    range = {"X .. Y", "X ..", ".. Y"}
+    [in] = {"X in Y"}
+
+    ;; Other
+    wjuxt = {"X WHITE Y"}
+    colon = {"X_:_Y"}
+
+    ;; Logic
+    [and] = ["X and Y"]
+    [or] = ["X or Y"]
+    [not] = ["not Y"]
+
+    ;; Low priority
+    "with" = {"X with Y"}
+    decl = {"X -> Y", "X = Y", "X := Y", "X => Y", "X where Y", "X when Y", "X each Y"}
+
+    ;; Brackets
+    brack = {"X_,_Y"
+             "(_Y", "[_Y", "{_Y"
+             "X_)", "X_]", "X_}"}
+
+    ;; Custom
+    custom = {{x} -> true}
+}
+
+
+class SimplePriority:
+
+   constructor{groups, priorities} =
+      @groups := groups
+      _i = 0
+      tracks = {=}
+      @prio := groups.gnames each name ->
+         {{Array! ltracks, lp}, {Array! rtracks, rp}} = priorities[name]
+         {lt, rt} = {ltracks, rtracks} each tr ->
+            rval = 0
+            tr each
+               .all -> rval := 2**31 - 1
+               t when not tracks[t] ->
+                  rval := rval |. 2**_i
+                  tracks[t] := _i++
+               t ->
+                  rval := rval |. 2**tracks[t]
+            rval
+         {{lt, lp}, {rt, rp}}
+
+   compare{op1, op2} =
+      i1 = @groups.get{op1}
+      i2 = @groups.get{op2}
+      {_, {code1, ord1}} = @prio[i1]
+      {{code2, ord2}, _} = @prio[i2]
+      match:
+         when [[code1 &. code2] === 0] ->
+            throw E.syntax.order{...} with
+               "Cannot mix operators in the given order"
+               {left = op1, right = op2}
+         when [ord1 > ord2]  -> LEFT
+         when [ord1 < ord2]  -> RIGHT
+         when [ord1 === ord2] -> BOTH
+
 
 MAX = 1/0
 
-order_map = {
+eg_order = SimplePriority{eg_groups, eg_prio} where
 
-   IFX = {
-      wide = {
-         ","     => {{2r1111, 1}, {2r1111, 1}}
+   eg_groups = OperatorGroups{{...}} with
 
-         "with"  => {{2r1111, 1999}, {2r1111, 10}}
-         "each"  => {{2r1111, 11},  {2r1111, 10}}
-         "each?" => {{2r1111, 11},  {2r1111, 10}}
-         "where" => {{2r1111, 11},  {2r1111, 10}}
-         "!!"    => {{2r1111, 11},  {2r1111, 10}}
-         "|>"    => {{2r1111, 11},  {2r1111, 10}}
-         "->"    => {{2r1111, 11},  {2r1111, 10}}
-         "=>"    => {{2r1111, 11},  {2r1111, 10}}
-         "="     => {{2r1111, 11},  {2r1111, 10}}
-         ":="    => {{2r1111, 11},  {2r1111, 10}}
-         "+="    => {{2r1111, 11},  {2r1111, 10}}
-         "-="    => {{2r1111, 11},  {2r1111, 10}}
-         "*="    => {{2r1111, 11},  {2r1111, 10}}
-         "/="    => {{2r1111, 11},  {2r1111, 10}}
-         "<<="   => {{2r1111, 11},  {2r1111, 10}}
-         ">>="   => {{2r1111, 11},  {2r1111, 10}}
-         ">>>="  => {{2r1111, 11},  {2r1111, 10}}
-         "++="   => {{2r1111, 11},  {2r1111, 10}}
-         "?="    => {{2r1111, 11},  {2r1111, 10}}
-         "or="   => {{2r1111, 11},  {2r1111, 10}}
-         "and="  => {{2r1111, 11},  {2r1111, 10}}
-         "each=" => {{2r1111, 11},  {2r1111, 10}}
+      sh_ifx = {{match} -> [#IFX{.short, _} -> true, _ -> false]}
+      sh_pfx = {{match} -> [#PFX{.short, _} -> true, _ -> false]}
+      sh_sfx = {{match} -> [#SFX{.short, _} -> true, _ -> false]}
+      wi_ifx = {{match} -> [#IFX{.wide, _} -> true, _ -> false]}
+      wi_pfx = {{match} -> [#PFX{.wide, _} -> true, _ -> false]}
+      wi_sfx = {{match} -> [#SFX{.wide, _} -> true, _ -> false]}
 
-         ;; Misc
-         "%"     => {{2r1111, 11}, {2r1111, 10}}
+      comma = {"X_,_Y"}
+      obrack = {"(_Y", "[_Y", "{_Y"}
+      cbrack = {"X_)", "X_]", "X_}"}
 
-         ;; Logical
-         "when" => {{2r1111, 100}, {2r1111, 101}}
-         "||"   => {{2r1111, 110}, {2r1111, 111}}
-         "&&"   => {{2r1111, 120}, {2r1111, 121}}
-         "or"   => {{2r1111, 110}, {2r1111, 111}}
-         "and"  => {{2r1111, 120}, {2r1111, 121}}
-         "not"  => {{2r1111, 130}, {2r1111, 131}}
+      "with" = {"X with Y"}
+      lowprio = {"X each Y", "X each? Y", "X where Y"
+                 "X !! Y", "X |> Y"
+                 "X -> Y", "X => Y", "X = Y"
+                 "X := Y", "X += Y", "X -= Y", "X *= Y", "X /= Y"
+                 "X <<= Y", "X >>= Y", "X >>>= Y", "X ++= Y", "X ?= Y"
+                 "X or= Y", "X and= Y", "X each= Y"
+                 "X % Y"}
+      "when" = {"X when Y"}
+      "or" = {"X or Y"}
+      "and" = {"X and Y"}
+      "not" = {"not Y"}
+      cmp = {"X == Y", "X != Y"
+             "X >= Y", "X <= Y"
+             "X > Y", "X < Y"}
+      binxor = {"X ^. Y"}
+      binor = {"X |. Y"}
+      binand = {"X &. Y"}
+      shift = {"X << Y", "X >> Y", "X >>> Y"}
+      add = {"X + Y", "X - Y"}
+      mul = {"X * Y", "X / Y", "X // Y", "X mod Y"}
+      exp = {"X ** Y"}
+      sjuxt = {"XWHITEY"}
+      wjuxt = {"X WHITE Y"}
+      colon = {"X_:_Y"}
 
-         ;; Comparison
-         "==" => {{2r1111, 200}, {2r1111, 201}}
-         "!=" => {{2r1111, 200}, {2r1111, 201}}
-         ">=" => {{2r1111, 200}, {2r1111, 201}}
-         "<=" => {{2r1111, 200}, {2r1111, 201}}
-         ">"  => {{2r1111, 200}, {2r1111, 201}}
-         "<"  => {{2r1111, 200}, {2r1111, 201}}
+      pfx = {"._Y", "#_Y", "@_Y"}
+      when2 = {"when Y"}
+      pp = {"<> Y"}
 
-         ;; Binary
-         "^." => {{2r1111, 400}, {2r1111, 401}}
-         "|." => {{2r1111, 410}, {2r1111, 411}}
-         "&." => {{2r1111, 420}, {2r1111, 421}}
 
-         ;; Arithmetic
-         "<<"  => {{2r0001, 500}, {2r0001, 501}}
-         ">>"  => {{2r0001, 500}, {2r0001, 501}}
-         ">>>" => {{2r0001, 500}, {2r0001, 501}}
-         "+"   => {{2r0001, 550}, {2r0001, 551}}
-         "-"   => {{2r0001, 550}, {2r0001, 551}}
-         "*"   => {{2r0001, 560}, {2r0001, 561}}
-         "/"   => {{2r0001, 560}, {2r0001, 561}}
-         "mod" => {{2r0001, 560}, {2r0001, 561}}
-         "**"  => {{2r0001, 571}, {2r0001, 570}}
+   eg_prio = {...} with
+      comma   = {#all{1}, #all{1}}
+      obrack  = {#all{MAX}, #all{1}}
+      cbrack  = {#all{1}, #all{MAX}}
 
-         ;; Others
-         DEFAULT = {{2r1000, 900}, {2r0100, 901}}
-         WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
-         ":"    => {{2r1111, 1001}, {2r1111, 2}}
-      }
-      short = {
-         DEFAULT = {{2r1111, 1800}, {2r1111, 1801}}
-         WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
-         ","    => {{2r1111, 1},    {2r1111, 1}}
-         ":"    => {{2r1111, 1001}, {2r1111, 2}}
-      }
-   }
+      "with"  = {#all{1999}, #all{10}}
+      lowprio = {#all{11}, #all{10}}
+      "when"  = {#all{100}, #all{101}}
+      "or"    = {#all{110}, #all{111}}
+      "and"   = {#all{120}, #all{121}}
+      "not"   = {#all{MAX}, #all{131}}
+      cmp     = {#all{200}, #all{201}}
+      binxor  = {#all{400}, #all{401}}
+      binor   = {#all{410}, #all{411}}
+      binand  = {#all{420}, #all{421}}
+      shift   = {#arith{500}, #arith{501}}
+      add     = {#arith{550}, #arith{551}}
+      mul     = {#arith{560}, #arith{561}}
+      exp     = {#arith{571}, #arith{570}}
+      wjuxt   = {#all{1002}, #all{1001}}
+      colon   = {#all{1001}, #all{2}}
 
-   PFX = {
-      wide = {
-         DEFAULT = {{2r1111, MAX}, {2r1111, 900}}
-         "when" => {{2r1111, MAX}, {2r1111, 101}}
-         "not"  => {{2r1111, MAX}, {2r1111, 131}}
-         "." => {{2r1111, MAX}, {2r1111, 3000}}
-         "#" => {{2r1111, MAX}, {2r1111, 3000}}
-         ;; "~" => {{2r1111, MAX}, {2r1111, 3000}}
-         "@" => {{2r1111, MAX}, {2r1111, 3000}}
-         "<>" => {{2r1111, MAX}, {2r1111, 5}}
-         "(" => {{2r1111, MAX}, {2r1111, 1}}
-         "[" => {{2r1111, MAX}, {2r1111, 1}}
-         "{" => {{2r1111, MAX}, {2r1111, 1}}
-      }
-      short = {
-         DEFAULT = {{2r1111, MAX}, {2r1111, 1901}}
-         "." => {{2r1111, MAX}, {2r1111, 3000}}
-         "#" => {{2r1111, MAX}, {2r1111, 3000}}
-         ;; "~" => {{2r1111, MAX}, {2r1111, 3000}}
-         "@" => {{2r1111, MAX}, {2r1111, 3000}}
-         "(" => {{2r1111, MAX}, {2r1111, 1}}
-         "[" => {{2r1111, MAX}, {2r1111, 1}}
-         "{" => {{2r1111, MAX}, {2r1111, 1}}
-      }
-   }
+      sjuxt   = {#all{2000}, #all{2001}}
 
-   SFX = {
-      wide = {
-         DEFAULT = {{2r1111, 901}, {2r1111, MAX}}
-         ")" => {{2r1111, 1}, {2r1111, MAX}}
-         "]" => {{2r1111, 1}, {2r1111, MAX}}
-         "}" => {{2r1111, 1}, {2r1111, MAX}}
-      }
-      short = {
-         DEFAULT = {{2r1111, 1900}, {2r1111, MAX}}
-         ")" => {{2r1111, 1}, {2r1111, MAX}}
-         "]" => {{2r1111, 1}, {2r1111, MAX}}
-         "}" => {{2r1111, 1}, {2r1111, MAX}}
-      }
-   }
-}
+      pfx     = {#all{MAX}, #all{3000}}
+      pp      = {#all{MAX}, #all{5}}
+      when2   = {#all{MAX}, #all{101}}
+
+      sh_ifx  = {#all{1800}, #all{1801}}
+      sh_pfx  = {#all{MAX}, #all{1901}}
+      sh_sfx  = {#all{1900}, #all{MAX}}
+      wi_ifx  = {#customl{900}, #customr{901}}
+      wi_pfx  = {#all{MAX}, #all{901}}
+      wi_sfx  = {#all{900}, #all{MAX}}
+
+
+
+
+
+;; order_map = {
+;;    IFX = {
+;;       wide = {
+;;          ","     => {{2r1111, 1}, {2r1111, 1}}
+
+;;          "with"  => {{2r1111, 1999}, {2r1111, 10}}
+;;          "each"  => {{2r1111, 11},  {2r1111, 10}}
+;;          "each?" => {{2r1111, 11},  {2r1111, 10}}
+;;          "where" => {{2r1111, 11},  {2r1111, 10}}
+;;          "!!"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "|>"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "->"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "=>"    => {{2r1111, 11},  {2r1111, 10}}
+;;          "="     => {{2r1111, 11},  {2r1111, 10}}
+;;          ":="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "+="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "-="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "*="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "/="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "<<="   => {{2r1111, 11},  {2r1111, 10}}
+;;          ">>="   => {{2r1111, 11},  {2r1111, 10}}
+;;          ">>>="  => {{2r1111, 11},  {2r1111, 10}}
+;;          "++="   => {{2r1111, 11},  {2r1111, 10}}
+;;          "?="    => {{2r1111, 11},  {2r1111, 10}}
+;;          "or="   => {{2r1111, 11},  {2r1111, 10}}
+;;          "and="  => {{2r1111, 11},  {2r1111, 10}}
+;;          "each=" => {{2r1111, 11},  {2r1111, 10}}
+
+;;          ;; Misc
+;;          "%"     => {{2r1111, 11}, {2r1111, 10}}
+
+;;          ;; Logical
+;;          "when" => {{2r1111, 100}, {2r1111, 101}}
+;;          ;; "||"   => {{2r1111, 110}, {2r1111, 111}}
+;;          ;; "&&"   => {{2r1111, 120}, {2r1111, 121}}
+;;          "or"   => {{2r1111, 110}, {2r1111, 111}}
+;;          "and"  => {{2r1111, 120}, {2r1111, 121}}
+;;          "not"  => {{2r1111, 130}, {2r1111, 131}}
+
+;;          ;; Comparison
+;;          "==" => {{2r1111, 200}, {2r1111, 201}}
+;;          "!=" => {{2r1111, 200}, {2r1111, 201}}
+;;          ">=" => {{2r1111, 200}, {2r1111, 201}}
+;;          "<=" => {{2r1111, 200}, {2r1111, 201}}
+;;          ">"  => {{2r1111, 200}, {2r1111, 201}}
+;;          "<"  => {{2r1111, 200}, {2r1111, 201}}
+
+;;          ;; Binary
+;;          "^." => {{2r1111, 400}, {2r1111, 401}}
+;;          "|." => {{2r1111, 410}, {2r1111, 411}}
+;;          "&." => {{2r1111, 420}, {2r1111, 421}}
+
+;;          ;; Arithmetic
+;;          "<<"  => {{2r0001, 500}, {2r0001, 501}}
+;;          ">>"  => {{2r0001, 500}, {2r0001, 501}}
+;;          ">>>" => {{2r0001, 500}, {2r0001, 501}}
+;;          "+"   => {{2r0001, 550}, {2r0001, 551}}
+;;          "-"   => {{2r0001, 550}, {2r0001, 551}}
+;;          "*"   => {{2r0001, 560}, {2r0001, 561}}
+;;          "/"   => {{2r0001, 560}, {2r0001, 561}}
+;;          "mod" => {{2r0001, 560}, {2r0001, 561}}
+;;          "**"  => {{2r0001, 571}, {2r0001, 570}}
+
+;;          ;; Others
+;;          DEFAULT = {{2r1000, 900}, {2r0100, 901}}
+;;          WHITE   = {{2r1111, 1002}, {2r1111, 1001}}
+;;          ":"    => {{2r1111, 1001}, {2r1111, 2}}
+;;       }
+;;       short = {
+;;          DEFAULT = {{2r1111, 1800}, {2r1111, 1801}}
+;;          WHITE   = {{2r1111, 2000}, {2r1111, 2001}}
+;;          ","    => {{2r1111, 1},    {2r1111, 1}}
+;;          ":"    => {{2r1111, 1001}, {2r1111, 2}}
+;;       }
+;;    }
+
+;;    PFX = {
+;;       wide = {
+;;          DEFAULT = {{2r1111, MAX}, {2r1111, 900}}
+;;          "when" => {{2r1111, MAX}, {2r1111, 101}}
+;;          "not"  => {{2r1111, MAX}, {2r1111, 131}}
+;;          "." => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          ;; "~" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "@" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "<>" => {{2r1111, MAX}, {2r1111, 5}}
+;;          "(" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "[" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "{" => {{2r1111, MAX}, {2r1111, 1}}
+;;       }
+;;       short = {
+;;          DEFAULT = {{2r1111, MAX}, {2r1111, 1901}}
+;;          "." => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "#" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          ;; "~" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "@" => {{2r1111, MAX}, {2r1111, 3000}}
+;;          "(" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "[" => {{2r1111, MAX}, {2r1111, 1}}
+;;          "{" => {{2r1111, MAX}, {2r1111, 1}}
+;;       }
+;;    }
+
+;;    SFX = {
+;;       wide = {
+;;          DEFAULT = {{2r1111, 901}, {2r1111, MAX}}
+;;          ")" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "]" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "}" => {{2r1111, 1}, {2r1111, MAX}}
+;;       }
+;;       short = {
+;;          DEFAULT = {{2r1111, 1900}, {2r1111, MAX}}
+;;          ")" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "]" => {{2r1111, 1}, {2r1111, MAX}}
+;;          "}" => {{2r1111, 1}, {2r1111, MAX}}
+;;       }
+;;    }
+;; }
 
 
 
@@ -209,22 +434,22 @@ oparse{next, order, finalize} =
             }
 
 
-consult{{fixity, width, op}} =
-   map = order_map[fixity][width]
-   map[op] or map.DEFAULT
+;; consult{{fixity, width, op}} =
+;;    map = order_map[fixity][width]
+;;    map[op] or map.DEFAULT
 
 
-order{o1, o2} =
-   {code1, ord1} = consult{o1}[1]
-   {code2, ord2} = consult{o2}[0]
-   match:
-      when [[code1 &. code2] === 0] ->
-         throw E.syntax.order{...} with
-            "Cannot mix operators in the given order"
-            {left = o1, right = o2}
-      when [ord1 > ord2]  -> LEFT
-      when [ord1 < ord2]  -> RIGHT
-      when [ord1 === ord2] -> BOTH
+;; order{o1, o2} =
+;;    {code1, ord1} = consult{o1}[1]
+;;    {code2, ord2} = consult{o2}[0]
+;;    match:
+;;       when [[code1 &. code2] === 0] ->
+;;          throw E.syntax.order{...} with
+;;             "Cannot mix operators in the given order"
+;;             {left = o1, right = o2}
+;;       when [ord1 > ord2]  -> LEFT
+;;       when [ord1 < ord2]  -> RIGHT
+;;       when [ord1 === ord2] -> BOTH
 
 finalize{match token} =
 
@@ -341,6 +566,7 @@ finalize{match token} =
 
 parse{tokens} =
    next{} = tokens.shift{}
-   oparse{next, order, finalize}
+   ;; oparse{next, order, finalize}
+   oparse{next, eg_order.compare.bind{eg_order}, finalize}
 
 
