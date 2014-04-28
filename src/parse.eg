@@ -239,6 +239,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       mul     = {#arith{560}, #arith{561}}
       exp     = {#arith{571}, #arith{570}}
       wjuxt   = {#all{1002}, #all{1001}}
+      ;; wjuxt   = {#all{11}, #all{1001}}
       colon   = {#all{1001}, #all{2}}
 
       sjuxt   = {#all{2000}, #all{2001}}
