@@ -190,7 +190,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
       "with" = {"X with Y"}
       lowprio = {"X each Y", "X each? Y", "X where Y"
-                 "X !! Y", "X |> Y"
+                 "X !! Y"
                  "X -> Y", "X => Y", "X = Y"
                  "X := Y", "X += Y", "X -= Y", "X *= Y", "X /= Y"
                  "X <<= Y", "X >>= Y", "X >>>= Y", "X ++= Y", "X ?= Y"
@@ -217,6 +217,8 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       pfx = {"._Y", "#_Y", "@_Y"}
       when2 = {"when Y"}
       pp = {"<> Y"}
+
+      pipe = {"X |> Y"}
 
 
    eg_prio = {...} with
@@ -247,6 +249,8 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       pfx     = {#all{MAX}, #all{3000}}
       pp      = {#all{MAX}, #all{5}}
       when2   = {#all{MAX}, #all{101}}
+
+      pipe    = {#pipe{550}, #pipe{551}}
 
       sh_ifx  = {#all{1800}, #all{1801}}
       sh_pfx  = {#all{MAX}, #all{1901}}

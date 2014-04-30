@@ -934,7 +934,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
 
    "globals"{context, scope, form, #data{#multi! {*vars}}} =
-      #splice{* ...} with
+      #splice{*[...]} with
          vars each var and #symbol{s} -> #declare_raw{var, #variable{s}}
 
 
@@ -1227,6 +1227,10 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             if Object.prototype.hasOwnProperty.call{b, k}:
                dest[k] := ___js_fetch{b, k}
          dest
+
+   "|>" => Embedded with '
+      {f, g} -> {x} ->
+         g{f{x}}
 
    "clone" => Embedded with '
       {match x} ->

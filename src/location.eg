@@ -120,7 +120,7 @@ morsel{spans} =
    ;;     {7, 10, {1}}, {10, 40, {}}, {40, 50, {4}}}
 
    jump{active, bot, top} =
-      e = Math.min{top, * ...} with
+      e = Math.min{top, *[...]} with
          active each {_, x, _} -> x
       attributes = {}
       active each {_, _, X} -> attributes ++= X
