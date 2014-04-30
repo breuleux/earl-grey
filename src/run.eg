@@ -1,6 +1,5 @@
 
 require:
-   "./lex2" -> tokenize as tokenize2
    "./earl-grey" as eg
    "./pp" ->
       <>, Node
@@ -123,12 +122,6 @@ _run{match} =
 
    {.tok, s} ->
       eg.tokenize{Source{s, null}} each token ->
-         <> token
-         <> token.location.ref{}
-         <> token.location.highlight{}
-
-   {.tok2, s} ->
-      tokenize2{Source{s, null}} each token ->
          <> token
          <> token.location.ref{}
          <> token.location.highlight{}

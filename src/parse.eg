@@ -240,9 +240,12 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       add     = {#arith{550}, #arith{551}}
       mul     = {#arith{560}, #arith{561}}
       exp     = {#arith{571}, #arith{570}}
-      wjuxt   = {#all{1002}, #all{1001}}
-      ;; wjuxt   = {#all{11}, #all{1001}}
-      colon   = {#all{1001}, #all{2}}
+
+      ;; wjuxt   = {#all{1002}, #all{1001}}
+      ;; colon   = {#all{1001}, #all{2}}
+
+      wjuxt   = {#all{13}, #all{12}}
+      colon   = {#all{12}, #all{10}}
 
       sjuxt   = {#all{2000}, #all{2001}}
 

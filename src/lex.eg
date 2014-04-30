@@ -17,10 +17,12 @@ special_ops = {
    "]" => .SFX
    "}" => .SFX
    "," => .IFX
-   ":" => .IFX
+   ;; ":" => .IFX
    "." => .PFX
    "'" => .PFX
    "not" => .PFX
+   ;; "?" => .IFX
+   ;; "!" => .IFX
 }
 
 regexps = {
@@ -319,8 +321,11 @@ disambiguate_fixity{stream} =
                {#OP{.PFX, name} <<<: first} ++
                   collapse_operators{rest, true, false}
             {_, true?} ->
-               {#OP{.SFX, name} <<<: first} ++
-                  collapse_operators{rest, false, false}
+               results = collapse_operators{rest, false, false}
+               {t <<<: first} ++ results where t =
+                  match results:
+                     {} or {#OP{.PFX, *}, *} -> #OP{.IFX, name}
+                     _ -> #OP{.SFX, name}
 
    buffer = {}
    pfx = true
