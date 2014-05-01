@@ -2,14 +2,14 @@
 provide:
    GenSym, gensym, uuid
    identity
-   items, keys, enumerate
+   ;; items, keys, enumerate
    binsearch
    classify, classify_contiguous
    neighbours
-   zip
+   ;; zip
    partition
    construct
-   set
+   mkset
    make_object
    product
 
@@ -30,26 +30,26 @@ uuid{} =
 identity{x} = x
 
 
-items{obj} =
-   results = {}
-   for [k in obj]:
-      if Object.prototype.hasOwnProperty.call{obj, k}:
-         results.push with {k, obj[k]}
-   results
+;; items{obj} =
+;;    results = {}
+;;    for [k in obj]:
+;;       if Object.prototype.hasOwnProperty.call{obj, k}:
+;;          results.push with {k, obj[k]}
+;;    results
 
-keys{obj} =
-   results = {}
-   for [k in obj]:
-      if Object.prototype.hasOwnProperty.call{obj, k}:
-         results.push with k
-   results
+;; keys{obj} =
+;;    results = {}
+;;    for [k in obj]:
+;;       if Object.prototype.hasOwnProperty.call{obj, k}:
+;;          results.push with k
+;;    results
 
-enumerate{arr} =
-   results = {}
-   l = arr.length
-   for [i = 0, i < l, i++]:
-      results.push with {i, arr[i]}
-   results
+;; enumerate{arr} =
+;;    results = {}
+;;    l = arr.length
+;;    for [i = 0, i < l, i++]:
+;;       results.push with {i, arr[i]}
+;;    results
 
 binsearch{xs, x} =
    lo = 0
@@ -119,9 +119,9 @@ neighbours{match} =
       {{x, y}} ++ neighbours{{y} ++ rest}
 
 
-zip{xs, ys} =
-   enumerate{xs} each {i, x} ->
-      {x, ys[i]}
+;; zip{xs, ys} =
+;;    enumerate{xs} each {i, x} ->
+;;       {x, ys[i]}
 
 
 partition{xs, predicate} =
@@ -140,7 +140,7 @@ construct{match, fn, zero} =
       fn{x, construct{rest, fn, zero}}
 
 
-set{xs} =
+mkset{xs} =
    rval = {=}
    xs each x ->
       rval[x] := true

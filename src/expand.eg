@@ -5,8 +5,8 @@ require:
    "./location" ->
       <<:
    "./util" as util ->
-      classify, items, keys as iterkeys, enumerate
-      neighbours, zip
+      classify ;;, items, keys as iterkeys, enumerate
+      neighbours ;;, zip
       GenSym, gensym, uuid
    "./pattern" ->
       PatternParser, PatternProcessor
@@ -323,6 +323,7 @@ class Expander:
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
                         v = #variable{@gensym{s}} <<: variable
+                        v &: {mutable = variable.mutable}
                         env.bind{newscope, s} with v
                         changes := true
                         if value:

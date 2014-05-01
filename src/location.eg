@@ -1,7 +1,7 @@
 
 require:
    "./util" ->
-      binsearch, items, enumerate
+      binsearch ;;, items, enumerate
    "./pp" ->
       <>, repr
    fs
@@ -135,26 +135,26 @@ morsel{spans} =
            {newbot, span} = jump{active, bot, top}
            newactive = active each?
               x and {_, e, attr} when e > newbot -> x
-           {spans, remainder} = jumptill{newactive, newbot, top}
+           {let spans, remainder} = jumptill{newactive, newbot, top}
            {{span} ++ spans, remainder}
 
-   process{start, active, rem} = match {start, active, rem}:
+   process_elements{start, active, rem} = match {start, active, rem}:
       {_, {}, {}} ->
          {}
       {start, active, {}} ->
          top = Math.max[active each {_, e, _} -> e]
          bot = Math.min{start, top}
-         {spans, _} = jumptill{active, start, top}
+         {let spans, _} = jumptill{active, start, top}
          spans
       {start, active, {next and {target, end, attr}, *rest}} ->
-         {spans, newactive} = jumptill{active, start, target}
-         spans ++ process{target, {next} ++ newactive, rest}
+         {let spans, newactive} = jumptill{active, start, target}
+         spans ++ process_elements{target, {next} ++ newactive, rest}
 
    thespans = spans.sort with
       {{s1, e1, _}, {s2, e2, _}} -> if{s1 === s2, e1 - e2, s1 - s2}
       ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 === s2, e1 < e2, s1 > s2}
 
-   process{thespans[0][0], {}, thespans}
+   process_elements{thespans[0][0], {}, thespans}
 
 highlight_locations{locations, context = 0} =
    srcs = {=}

@@ -2,8 +2,8 @@
 require:
    "./earl-grey" as eg
    "./pp" ->
-      <>, Node
-   "./util" -> [enumerate, items]
+      <> ;;, Node
+   ;; "./util" -> [enumerate, items]
    "./location" ->
       Source
       display_error
@@ -76,8 +76,8 @@ _run{match} =
                   undefined
             callback{null, result}
       }
-      run = repl.start with settings
-      run.on{.exit} with {} -> run.outputStream.write{"\n"}
+      runner = repl.start with settings
+      runner.on{.exit} with {} -> runner.outputStream.write{"\n"}
 
    {.run, file} ->
       data = fs.readFileSync{file, .utf8}

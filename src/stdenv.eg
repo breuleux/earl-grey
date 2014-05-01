@@ -5,7 +5,7 @@ require:
    "./location" ->
       <<:
    "./util" as util ->
-      neighbours, zip
+      neighbours ;;, zip
       uuid
    "./pattern" ->
       PatternParser, PatternProcessor
@@ -180,11 +180,25 @@ pattern_handlers = {
       allow_nested = true
       allow_arguments = true
       special = disregard_specials
-      assign{v, value} =
+      assign{v, value, tags} =
          #do{#assign{v, value} <<: v}
       finalize = true
-      declare{vars} =
-         vars each v -> #declare{v}
+      tags = {declare_mode = .unqualified}
+      declare{scope, vars} =
+         vars each v ->
+            match v.declare_mode:
+               .set -> #splice{}
+               .let -> #declare{v & {mutable = false}}
+               .var -> #declare{v & {mutable = true}}
+               .unqualified ->
+                  match v.env.resolve{scope, v[1]}:
+                     undefined? ->
+                        #declare{v & {mutable = false}}
+                     {mutable => true?} ->
+                        #splice{}
+                     other ->
+                        throw E.syntax.redeclaring{msg, {variable = v}} where
+                           msg = "Variable was declared read-only. Declare with 'var' to make it mutable."
       success{_} = #multi{}
       failure{target} =
          match_error{target}
@@ -197,10 +211,11 @@ pattern_handlers = {
       allow_nested = true
       allow_arguments = true
       special = disregard_specials
-      assign{#symbol{v} or #value{v}, value} =
+      assign{#symbol{v} or #value{v}, value, _} =
          #do{#assign{'accum[^=v], value} <<: v}
       finalize = true
-      declare{vars} = {#declare{'accum, '{=}}}
+      declare{scope, vars} =
+         {#declare{'accum, '{=}}}
       success{_} = 'accum
       failure{target} =
          match_error{target}
@@ -249,7 +264,7 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, opt} =
    m = 'm <<: form ;; transfer location, for error printing purposes
    ' | ^pre
      | let [temp = ^li, ^len = temp.length]:
-        for[^lbl] [^i = 0, ^i < ^len, ^i++]:
+        for[^lbl] [let ^i = 0, ^i < ^len, ^i++]:
            ^m = ___js_fetch{temp, ^i}
            ^ | parse_clauses with
                 newscope, m, clauses
@@ -405,7 +420,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #pattern ->
          match {lhs, rhs}:
             {#void, #symbol{k} or #value{k}} ->
-               #assoc{#value{k}, #symbol{k} & {env = env}}
+               #assoc{#value{k}, [#symbol{k} <<: rhs] & {env = env}}
             {#symbol{k} or #value{k}, rhs} ->
                #assoc{#value{k}, rhs}
       #test ->
@@ -452,6 +467,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                            decls.push with
                               parse_pattern{scope, arg, newv} with
                                  pattern_handlers.declare_variables & {
+                                    tags = {declare_mode = .let}
                                     special = {#special{match} and expr, value} ->
                                        .match ->
                                           #assign{'ph}
@@ -483,7 +499,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             #void{} -> #special{.match}
             other -> #all{other <<: expr, #special{.match} <<: form}
       other ->
-         opt = util.set{flags}
+         opt = util.mkset{flags}
          to_match = #symbol{scope.gensym{.m}} & {single_assignment = true}
          {value, body} = match expr:
             #data{#multi! {*b}} -> {#value{null}, b}
@@ -664,16 +680,30 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #data{spec, body} ->
          setup_for{scope.gensym{}, form.env, spec, body}
 
-   expr_mac! "let"{scope, form, #data{#multi! {*bindings}, body}} =
-      construct{match} =
-         {} -> body
-         {x, *xs} ->
-            #multi{x, construct{xs}} & {nonrecursive = true}
-      construct{bindings}
-      ;; #multi{*bindings, body} & {nonrecursive = true}
+   "var"{#pattern, scope, form, argument} =
+      #mode{.var, argument}
+
+   "set"{#pattern, scope, form, argument} =
+      #mode{.set, argument}
+
+   "let"{match, scope, form, argument} =
+      #pattern ->
+         #mode{.let, argument}
+      other ->
+         match argument:
+            #data{#multi! {*bindings}, body} ->
+               construct{match} =
+                  {} -> body
+                  ;; {x, *xs} ->
+                  ;;    #multi{x, construct{xs}} & {nonrecursive = true}
+                  {'[^bind = ^val], *xs} ->
+                     #multi{'[let ^bind = ^val], construct{xs}} & {nonrecursive = true}
+               construct{bindings}
+               ;; #multi{*bindings, body} & {nonrecursive = true}
 
    expr_mac! "letrec"{scope, form, #data{#multi! {*bindings}, body}} =
-      #multi{*bindings, body}
+      #multi{*let_bindings, body} where
+         let_bindings = bindings each '[^b = ^v] -> '[let ^b = ^v]
 
    "where"{context, scope, form, #data{body, bindings}} =
       'letrec{^bindings, ^body}
@@ -862,9 +892,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                      declare{vars} = {}
                      wrap_target{match} =
                         '[^args -> ^body] ->
-                           {=> env} = body
-                           it = #symbol{"@"} & {env = env}
-                           it2 = #symbol{"self"} & {env = env}
+                           {env => other_env} = body
+                           it = #symbol{"@"} & {env = other_env}
+                           it2 = #symbol{"self"} & {env = other_env}
                            ' | ^args ->
                                 let [^it = this, ^it2 = this]:
                                    ^body
@@ -935,7 +965,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "globals"{context, scope, form, #data{#multi! {*vars}}} =
       #splice{*[...]} with
-         vars each var and #symbol{s} -> #declare_raw{var, #variable{s}}
+         vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}
 
 
 
@@ -1259,7 +1289,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          f = type[":::project"]
          if [f === undefined]:
             then:
-               f = type["::project"]
+               f := type["::project"]
                if [f === undefined]:
                   then: {true, type{value}}
                   else: {true, f{value}} !! e -> {false, null}
@@ -1362,7 +1392,7 @@ stdprelude = Embedded with '
             false
 
    Array.prototype["::clone"] := {} ->
-      this.slice{0}
+      this.slice{0} &: this
 
    Array.prototype[":::project"] := {value} ->
       if [instanceof]{value, Array}:

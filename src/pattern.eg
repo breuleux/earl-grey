@@ -6,7 +6,8 @@ require:
       [<<:]
    "./util" as util ->
       GenSym, gensym
-      zip, enumerate, keys as iterkeys, neighbours
+      ;; zip, enumerate, keys as iterkeys
+      neighbours
       classify, classify_contiguous
       identity
    "./expand" ->
@@ -26,33 +27,33 @@ class PatternParser:
       @arguments := {}
       @vars := {}
       @specials := {=}
-      @pattern := @expand{scope, pattern, true, @opt.indexable}
+      @pattern := @expand{scope, pattern, opt.tags or {=}, true, @opt.indexable}
 
-   parse_specs{scope, specs} =
+   parse_specs{scope, specs, tags} =
       rest = undefined
       has_defaults = false
       rval = classify{.fw, .bw, .keys, .defaults} with
          scope.step_all{#pattern, specs} each
             #dynsplice{variable} ->
-               rest := @expand{scope, variable}
+               rest := @expand{scope, variable, tags}
                #ignore
             #assoc{key} ->
-               #keys with {key, @expand{scope, key}}
+               #keys with {key, @expand{scope, key, tags}}
             #assoc{key, subp} ->
-               #keys with {key, @expand{scope, subp}}
+               #keys with {key, @expand{scope, subp, tags}}
             #default{variable, value} ->
                has_defaults := true
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
-                  else: #defaults with {@expand{scope, variable}, value}
+                  else: #defaults with {@expand{scope, variable, tags}, value}
             v when rest === undefined and not has_defaults ->
-               #fw with @expand{scope, v}
+               #fw with @expand{scope, v, tags}
             v ->
-               #bw with @expand{scope, v}
+               #bw with @expand{scope, v, tags}
       rval.rest := rest
       rval
 
-   expand{scope, pattern, toplevel = false, checked = false} =
+   expand{scope, pattern, tags, toplevel = false, checked = false} =
       expr = scope.step{#pattern, pattern}
       rval = match expr:
          #void ->
@@ -63,42 +64,50 @@ class PatternParser:
             @specials[type] := true
             expr
          #symbol or #variable ->
-            @vars.push with expr
-            #assign{expr}
+            variable = expr & tags
+            @vars.push with variable
+            #assign{variable}
          #value{v} when @opt.strings_as_variables ->
-            @vars.push with expr
-            #assign{expr}
+            ;; @vars.push with expr
+            ;; @vars.push with #symbol{v} <<: expr
+            variable = [#symbol{v} & tags] <<: expr
+            @vars.push with variable
+            #assign{variable}
          #value{v} ->
             #check{checker_db{v}, #ignore}
             ;; #check{mac1{{x} -> '[^x === ^=v]}, #ignore}
 
          #test{condition, subp} ->
-            #test{condition, @expand{scope, subp, toplevel, false}}
+            #test{condition, @expand{scope, subp, tags, toplevel, false}}
          #project{projector, subp} ->
-            #project{projector, @expand{scope, subp, toplevel, true}}
+            #project{projector, @expand{scope, subp, tags, toplevel, true}}
          #check{checker, subp} ->
-            #check{checker, @expand{scope, subp, toplevel, true}}
+            #check{checker, @expand{scope, subp, tags, toplevel, true}}
 
-         #send{f, arg} when not toplevel ->
-            throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
-               msg = "Function arguments can only be declared as a top level pattern."
          #send{f, #data and arguments} ->
-            @arguments.unshift with arguments
-            @expand{scope, f, true, false}
+            if toplevel:
+               then:
+                  @arguments.unshift with arguments
+                  @expand{scope, f, tags, true, false}
+               else:
+                  throw E.syntax.pattern{msg, {node = expr, arg = arguments}} where
+                     msg = "Function arguments can only be declared as a top level pattern."
+                  
          #send{f, arg} ->
-            throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
-               msg = {"Function must be declared with an array of arguments"
-                      "(did you mean to use ':='?)"}.join{" "}
+            #assign{expr}
+            ;; throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
+            ;;    msg = {"Function must be declared with an array of arguments"
+            ;;           "(did you mean to use ':='?)"}.join{" "}
 
          when not @opt.allow_nested ->
             throw E.syntax.pattern{msg, {node = expr}} where
                msg = "Nested patterns are not allowed here."
 
          #neg{x} ->
-            #neg{@expand{scope, x}}
+            #neg{@expand{scope, x, tags}}
 
          #all{*xs} ->
-            #all ++ [xs each x -> @expand{scope, x}]
+            #all ++ [xs each x -> @expand{scope, x, tags}]
 
          #any{*xs} ->
             canon{all} =
@@ -107,7 +116,7 @@ class PatternParser:
                canon{...} with
                   vars each #symbol{v} -> v
             pps = xs each x ->
-               PatternParser{scope, x, @opt}
+               PatternParser{scope, x, @opt & {tags = tags}}
             neighbours{pps} each {pp1, pp2} ->
                pps each pp -> normalize{pp.vars}
                if [normalize{pp1.vars} !== normalize{pp2.vars}]:
@@ -116,18 +125,18 @@ class PatternParser:
                      {vars1 = pp1.vars.sort{} <<: pp1.pattern
                       vars2 = pp2.vars.sort{} <<: pp2.pattern}
                   }
-               if [canon{iterkeys{pp1.specials}} !== canon{iterkeys{pp2.specials}}]:
+               if [canon{keys{pp1.specials}} !== canon{keys{pp2.specials}}]:
                   throw E.syntax.pattern{
                      "Both branches of 'or' must contain the same special tokens"
-                     {special1 = iterkeys{pp1.specials}.sort{} <<: pp1.pattern
-                      special2 = iterkeys{pp2.specials}.sort{} <<: pp2.pattern}
+                     {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
+                      special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
                   }
             {{=> vars}, *} = pps
             @vars ++= vars
             #any{*patts} where patts = pps each pp -> pp.pattern
 
          #data{*args} ->
-            specs = @parse_specs{scope, args}
+            specs = @parse_specs{scope, args, tags}
             match specs:
                {keys => {}, => fw, => bw, => defaults, => rest} ->
                   patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
@@ -140,6 +149,9 @@ class PatternParser:
                other ->
                   throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
                      msg = "Pattern must be an array or an object."
+
+         #mode{mode, subp} ->
+            @expand{scope, subp, tags & {declare_mode = mode}, toplevel, checked}
 
          other ->
             throw E.syntax.pattern{"Illegal pattern", {node = other}}
@@ -368,7 +380,7 @@ parse_pattern{scope, pattern, rhs, opt} =
    if opt.finalize:
       then:
          #splice with
-            *opt.declare{parse.vars}
+            *opt.declare{scope, parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
                assemble_pattern{proc.parts, opt.success{target}, opt.failure{target}}
@@ -459,7 +471,7 @@ parse_clauses{scope, target, stmts, opt} =
 
    if opt.fallback:
       the_parts.push with #block{opt.fallback{target}}
-   unique_temps = iterkeys{util.set{all_temps each #symbol{t} -> t}}
+   unique_temps = keys{util.mkset{all_temps each #symbol{t} -> t}}
    #multi{*decls, weave_clauses{the_parts}} where
       decls = unique_temps each t -> #declare{#symbol{t}}
 

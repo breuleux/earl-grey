@@ -120,7 +120,7 @@ regexps = {
      "`", {+ in "A-Za-z0-9_"}, "`"
 
   op_f = {m, column} ->
-     op = m[1] or m[0]
+     let op = m[1] or m[0]
 
      match:
         when op === "|" ->
@@ -140,6 +140,7 @@ regexps = {
   ;; Indent
   indent = R'
      start
+     *["\n *;", * not in "\n"]
      +["\n", {*" "}]
 
   indent_f = {m} ->
@@ -218,7 +219,7 @@ indent_tracker{} =
    ;; list of tokens including additional commas and brackets
    ;; corresponding to line breaks, indent and dedents.
 
-   curr = false      ;; current indent
+   curr = 0          ;; current indent
    stack = {}        ;; stack of indent levels up to this point
    stacks = {stack}  ;; [ or { start a new stack of indent levels
 
@@ -321,7 +322,7 @@ disambiguate_fixity{stream} =
                {#OP{.PFX, name} <<<: first} ++
                   collapse_operators{rest, true, false}
             {_, true?} ->
-               results = collapse_operators{rest, false, false}
+               let results = collapse_operators{rest, false, false}
                {t <<<: first} ++ results where t =
                   match results:
                      {} or {#OP{.PFX, *}, *} -> #OP{.IFX, name}
