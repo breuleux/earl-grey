@@ -273,6 +273,10 @@ indent_tracker{} =
          rval.push{token}
          rval
 
+      #EOF ->
+         stack each _ ->
+            #OP{.SFX, "]"} & {wsb = true, wsa = true}
+
       other -> {token}
 
 process_indent{stream} =
@@ -280,7 +284,7 @@ process_indent{stream} =
    results = {}
    stream each token ->
       results ++= tracker{token}
-   results
+   results ++ tracker{#EOF}
 
 
 disambiguate_fixity{stream} =

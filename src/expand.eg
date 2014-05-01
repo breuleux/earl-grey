@@ -304,6 +304,10 @@ class Expander:
             #splice{*args} ->
                #bounce with
                   #multi{*args} &: {override_scope = true}
+   
+            #interactive{*args} ->
+               #bounce with
+                  #multi{*args} &: {override_scope = true, all_mutable = true}
 
             #multi{*args} ->
                newscope = if{expr.override_scope, scope, Scope{scope}}
@@ -323,7 +327,7 @@ class Expander:
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
                         v = #variable{@gensym{s}} <<: variable
-                        v &: {mutable = variable.mutable}
+                        v &: {mutable = expr.all_mutable or variable.mutable}
                         env.bind{newscope, s} with v
                         changes := true
                         if value:

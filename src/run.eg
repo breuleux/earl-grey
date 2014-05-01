@@ -61,7 +61,7 @@ _run{match} =
    {} or {.i or "in" or .interactive} ->
       require: repl
       ;; vm.runInThisContext{libdata, "stdin"}
-      g = eg.Generator{}
+      g = eg.Generator{true}
       settings = {
          prompt = "<> "
          ignoreUndefined = true

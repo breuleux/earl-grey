@@ -56,19 +56,24 @@ generate{source} =
    Generator{}.generate{source}
 
 class Generator:
-   constructor{} =
+   constructor{interactive = false} =
       @tr := Translator{std.stdprelude}
       @env := std.stdenv.fork{}
+      @interactive := interactive
    generate{source} =
       t = tokenize{source}
       p = parse{t}
-      ;; #splice will force declarations into the top scope, which
+      ;; #interactive forces declarations into the top scope, which
       ;; means successive calls to generate{} will see global
-      ;; variables set by the previous. This is essential for
-      ;; interactive mode.
+      ;; variables set by the previous. It also makes all variables
+      ;; declared in the top scope mutable (because that's more
+      ;; practical in interactive mode)
       ex = std.expand{#top
                       std.topscope
-                      @env.convert{#splice{p}}}
+                      @env.convert{stmt}} where stmt =
+         if @interactive:
+            then: #interactive{p}
+            else: #multi{p}
       ex := opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
       @tr.dump_store{} + rval

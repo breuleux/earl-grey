@@ -66,8 +66,8 @@ results = blocktest:
          do: {{a, b}, c} = {{1, 2}, 3}
          [a + b + c] === 6
          "Bounds checks" =>
-            [{a} = {11, 22}, false] !! e -> true
-            [{a, b, c} = {11, 22}, false] !! e -> true
+            [let {a} = {11, 22}, false] !! e -> true
+            [let {a, b, c} = {11, 22}, false] !! e -> true
 
       "Sub-clauses with match" =>
          do:
@@ -160,8 +160,8 @@ results = blocktest:
       do:
          class Person:
             constructor{String? name, Number! age} =
-               @name := name
-               @age := age
+               @name = name
+               @age = age
             describe{} =
                @name + ":" + [String! @age]
             describe2{} =
