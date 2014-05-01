@@ -516,7 +516,8 @@ finalize{match token} =
                else:
                   result <<: sumloc
 
-         {{"[" or ",", *_}, _} ->
+         ;; {{"[" or ",", *_}, _} ->
+         {{"[", *commas, "]"} or commas, _} when commas.every{{x} -> x == ","} ->
             if [op === "["]:
                args := args.slice{1, -1}
 
@@ -540,7 +541,8 @@ finalize{match token} =
                other -> #multi{*args}
             result <<: sumloc
 
-         {{"{", *_}, _} ->
+         ;; {{"{", *_}, _} ->
+         {{"{", *commas, "}"}, _} when commas.every{{x} -> x == ","} ->
             #data{*args.slice{1, -1}.filter{f}} <<: sumloc where
                f{match} = | #void{} -> false
                           | other -> true
@@ -559,11 +561,11 @@ finalize{match token} =
                rval.fromop := true
                rval
 
-         other ->
-            throw E.should_never_happen{
-               "unknown node"
-               {node = token}
-            }
+         {op_strings, args} ->
+            throw E.syntax.mismatch{msg, tokens} where
+               tokens = object with enumerate{orig_ops} each {i, op} ->
+                  {"token" + String{i + 1}, op}
+               msg = "Mismatched/missing brackets/tokens"
 
    other ->
       throw E.should_never_happen{

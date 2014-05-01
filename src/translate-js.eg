@@ -345,7 +345,8 @@ class Translator:
                b = @translate{rhs, .expr}
 
          #multi{} ->
-            if{mode === .stmt, ";", ""}
+            ;;if{mode === .stmt, ";", ""}
+            ""
 
          #multi{*args} ->
             isdecl{match} =
@@ -431,9 +432,9 @@ class Translator:
             match mode:
                .expr -> @body{expr, .expr}
                other ->
-                  ["for("+a+b+c+"){"+d+"}"] where
-                     a = @translate{x, .stmt}
-                     b = @translate{y, .stmt}
+                  ["for("+a+";"+b+";"+c+"){"+d+"}"] where
+                     a = @translate{x, .expr}
+                     b = @translate{y, .expr}
                      c = @translate{z, .expr}
                      d = @translate{body, .stmt}
 
