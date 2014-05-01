@@ -84,8 +84,8 @@ js_op_table = {
 class Translator:
 
    constructor{prelude = null} =
-      @cache := {=}
-      @prepend := {}
+      @cache = {=}
+      @prepend = {}
       if prelude:
          @prepend.push with
             @translate{___serialize_ast{prelude}, .stmt}
@@ -97,7 +97,7 @@ class Translator:
          ;;       msg = "While serializing a value, we can't attempt to serialize another."
          undefined? ->
             temp = #symbol{gensym{}}
-            @cache[id] := temp ;; {temp, ___serialize_ast{v}}
+            @cache[id] = temp ;; {temp, ___serialize_ast{v}}
             @prepend.push{@translate{..., .stmt}} with
                #declare{temp, ___serialize_ast{v}}
             temp
@@ -108,7 +108,7 @@ class Translator:
       match @cache[id]:
          undefined? ->
             temp = #symbol{gensym{}}
-            @cache[id] := temp
+            @cache[id] = temp
             @prepend.push{@translate{..., .stmt}} with
                #declare{temp, #raw{raw}}
             temp
@@ -125,7 +125,7 @@ class Translator:
       ;; @locked := false
       ;; v
       rval = @prepend.join{"\n"}
-      @prepend := {}
+      @prepend = {}
       rval
 
    mangle{name} =
@@ -202,7 +202,7 @@ class Translator:
                      "\n" => "\\n"
                      "\\" => "\\\\"
                   }
-                  v := v.replace{R.g'{"\"" or "\\" or "\n"}, {m} -> repl[m]}
+                  set v = v.replace{R.g'{"\"" or "\\" or "\n"}, {m} -> repl[m]}
                   "\"" + v + "\""
                undefined? ->
                   "(void 0)"
@@ -296,7 +296,8 @@ class Translator:
             @expr{r, mode}
 
          #lambda{bindings, body} ->
-            @expr{"function("+a+"){"+b+"}", mode} where
+            name = if{R"^[$_a-zA-Z]*$"? expr.name, expr.name + " ", ""}
+            @expr{"function"+name+"("+a+"){"+b+"}", mode} where
                a = [bindings each x -> @translate{x, .expr}].join{","}
                b = @body{body, .return}
 
@@ -356,9 +357,9 @@ class Translator:
                when args.length === 1 ->
                   @translate{args[0], mode}
                when [mode === "expr"] and [not args.some{isdecl}] ->
-                  xs = args each x ->
+                  var xs = args each x ->
                      @translate{x, .expr}
-                  xs := xs each? x when x !== "" -> x
+                  set xs = xs each? x when x !== "" -> x
                   ["(" + xs.join{","} + ")"]
                _ -> @body{expr, mode}
 

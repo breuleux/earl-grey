@@ -16,15 +16,15 @@ provide:
 class Source:
 
    constructor{text, url = false} =
-      @text := text
-      @url := url
-      @counts := {}
+      @text = text
+      @url = url
+      @counts = {}
       curr = 0
       text.split{"\n"} each line ->
          @counts.push with curr
          curr += line.length + 1
       @counts.push with curr
-      @nlines := @counts.length - 1
+      @nlines = @counts.length - 1
 
    linecol{pos} =
       line = binsearch{@counts, pos}
@@ -37,9 +37,9 @@ class Source:
 class Location:
 
    constructor{source, start, end} =
-      @source := source or Source{"", null}
-      @start := start
-      @end := end
+      @source = source or Source{"", null}
+      @start = start
+      @end = end
 
    text{} =
       @source.text.slice{@start, @end}
@@ -161,7 +161,7 @@ highlight_locations{locations, context = 0} =
    locations each {loc, cls} ->
       key = String{loc.source and loc.source.url}
       if [not srcs[key]]:
-         srcs[key] := {}
+         srcs[key] = {}
       srcs[key].push with {loc, cls}
    div %
       items{srcs} each {_, locs} ->
@@ -195,13 +195,13 @@ merge_locations{match} =
 
 x <<: y =
    if [not Location? x.location]:
-      x.location := if{not y or Location? y, y, y.location}
+      x.location = if{not y or Location? y, y, y.location}
    x
 
 x ++: y =
-   x := if{not x or Location? x, x, x.location}
-   y := if{not y or Location? y, y, y.location}
-   [merge_locations with {x, y}] !! e -> undefined
+   x2 = if{not x or Location? x, x, x.location}
+   y2 = if{not y or Location? y, y, y.location}
+   [merge_locations with {x2, y2}] !! e -> undefined
 
 
 

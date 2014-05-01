@@ -34,11 +34,11 @@ class OperatorGroups:
    constructor{groups} =
 
       itg = items{groups}
-      @gnames := itg each {name, _} -> name
-      @groups := itg each {name, descrs} ->
+      @gnames = itg each {name, _} -> name
+      @groups = itg each {name, descrs} ->
          [++][descrs each descr -> parse_op_description{descr}]
-      @fns := {}
-      @to_gid := {
+      @fns = {}
+      @to_gid = {
          IFX = {wide = {=}, short = {=}}
          PFX = {wide = {=}, short = {=}}
          SFX = {wide = {=}, short = {=}}
@@ -46,7 +46,7 @@ class OperatorGroups:
       enumerate{@groups} each {i, group} ->
          group each
             {fixity, width, name} ->
-               @to_gid[fixity][width][name] := i
+               @to_gid[fixity][width][name] = i
             f ->
                @fns.push with {f, i}
 
@@ -139,20 +139,20 @@ eg_groups = OperatorGroups with {
 class SimplePriority:
 
    constructor{groups, priorities} =
-      @groups := groups
+      @groups = groups
       _i = 0
       tracks = {=}
-      @prio := groups.gnames each name ->
+      @prio = groups.gnames each name ->
          {{Array! ltracks, lp}, {Array! rtracks, rp}} = priorities[name]
          {lt, rt} = {ltracks, rtracks} each tr ->
-            rval = 0
+            var rval = 0
             tr each
-               .all -> rval := 2**31 - 1
+               .all -> rval = 2**31 - 1
                t when not tracks[t] ->
-                  rval := rval |. 2**_i
-                  tracks[t] := _i++
+                  rval = rval |. 2**_i
+                  tracks[t] = _i++
                t ->
-                  rval := rval |. 2**tracks[t]
+                  rval = rval |. 2**tracks[t]
             rval
          {{lt, lp}, {rt, rp}}
 
@@ -394,11 +394,11 @@ BOTH = 3
 
 
 oparse{next, order, finalize} =
-   between = finalize{next{}}
-   right_op = next{}
-   stack = {}
-   left_op = null
-   current = null
+   var between = finalize{next{}}
+   var right_op = next{}
+   var stack = {}
+   var left_op = null
+   var current = null
    while true:
       o =
          if [not left_op and not right_op]:
@@ -413,24 +413,24 @@ oparse{next, order, finalize} =
 
          [=== LEFT] ->
             current.push{between}
-            between := finalize{current}
+            set between = finalize{current}
             v = stack.pop{}
-            left_op := v 0
-            current := v 1
+            set left_op = v 0
+            set current = v 1
 
          [=== RIGHT] ->
             stack.push{{left_op, current}}
-            left_op := right_op
-            current := {{right_op}, between}
-            between := finalize{next{}}
-            right_op := next{}
+            set left_op = right_op
+            set current = {{right_op}, between}
+            set between = finalize{next{}}
+            set right_op = next{}
 
          [=== BOTH] ->
             current[0].push{right_op}
             current.push{between}
-            left_op := right_op
-            between := finalize{next{}}
-            right_op := next{}
+            set left_op = right_op
+            set between = finalize{next{}}
+            set right_op = next{}
 
          ;; [=== NONE] ->
          ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
@@ -466,15 +466,15 @@ finalize{match token} =
    #STR{value} -> #value{value} <<: token
    #VOID{} -> #void{} <<: token
 
-   {ops, *args} ->
-      sumloc = ops[0].location
+   {var ops, *[var args]} ->
+      var sumloc = ops[0].location
       ops.slice{1} each op ->
-         sumloc := sumloc ++: op
+         set sumloc = sumloc ++: op
       args each arg ->
-         sumloc := sumloc ++: arg
+         set sumloc = sumloc ++: arg
 
       orig_ops = ops
-      ops := ops each o -> o[2]
+      set ops = ops each o -> o[2]
       op = ops[0]
 
       match {ops, args}:
@@ -487,16 +487,16 @@ finalize{match token} =
 
          {{"with"}, {target, _b and #multi! {*body}}} ->
 
-            inserted = false
+            var inserted = false
             result = transform{target} with {match expr} ->
-               #symbol{"..."} -> [inserted := true, #multi{*body} <<: _b]
+               #symbol{"..."} -> [set inserted = true, #multi{*body} <<: _b]
                [x when x.fromop] and #send{f, #data{a, b}} ->
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
                #data{*args} ->
                    tr = this
                    res = #data
                    args each
-                      #symbol{"..."} -> [inserted := true, res ++= body]
+                      #symbol{"..."} -> [set inserted = true, res ++= body]
                       other -> res.push with [tr{other} <<: other]
                    res <<: expr
 
@@ -519,9 +519,9 @@ finalize{match token} =
          ;; {{"[" or ",", *_}, _} ->
          {{"[", *commas, "]"} or commas, _} when commas.every{{x} -> x == ","} ->
             if [op === "["]:
-               args := args.slice{1, -1}
+               set args = args.slice{1, -1}
 
-            args := args.filter{f} where
+            set args = args.filter{f} where
                f{match} = | #void{} -> false
                           | other -> true
 
@@ -536,7 +536,7 @@ finalize{match token} =
                   ;; Note that <<: only sets location if it's not already set
                   globals: isNaN
                   if [not isNaN{sumloc.start} and not isNaN{sumloc.end}]:
-                     x.location := sumloc
+                     x.location = sumloc
                   x
                other -> #multi{*args}
             result <<: sumloc
@@ -558,7 +558,7 @@ finalize{match token} =
                oabloc = [orig_ops[0] ++: abloc]
                rval = #send{#symbol{op} <<: oloc
                             #data{a, b} <<: abloc} <<: [oloc ++: abloc]
-               rval.fromop := true
+               rval.fromop = true
                rval
 
          {op_strings, args} ->

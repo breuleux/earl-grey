@@ -73,9 +73,9 @@ HTML{match, default_tag} =
          children each child -> HTML{child, default_tag}
 
    Node? {=> classes, => children} ->
-      tag = default_tag or "span"
+      var tag = default_tag or "span"
       _classes = {}
-      id = null
+      var id = null
       kv = {}
       sub = {}
       classes each
@@ -84,27 +84,27 @@ HTML{match, default_tag} =
          #assoc{k} ->
             kv.push with {k, undefined}
          R'[start, "+", {*any}]! {_, m} ->
-            tag := m
+            set tag = m
          R'[start, "#", {*any}]! {_, m} ->
-            id := m
+            set id = m
          String? s ->
             _classes.push with s
 
-      accum = if{tag === .raw, {}, {"<", tag}}
+      var accum = if{tag === .raw, {}, {"<", tag}}
       if id:
-         accum := accum.concat with
+         set accum = accum.concat with
             " id=\"", id, "\""
       if _classes.length:
-         accum := accum.concat with
+         set accum = accum.concat with
             " class=\"", quotify{_classes.join{" "}}, "\""
       if kv:
          kv each {k, v} ->
-            accum := accum.concat with
+            set accum = accum.concat with
                if [v !== null]:
                   then: {" ", k, "=\"", quotify{v}, "\""}
                   else: {" ", k}
 
-      children := match tag:
+      children2 = match tag:
          .raw -> children each
             String? s -> s
             c -> HTML{c, default_tag}
@@ -112,10 +112,10 @@ HTML{match, default_tag} =
 
       match tag:
          .raw ->
-            accum.concat{children}.join{""}
+            accum.concat{children2}.join{""}
          other ->
             accum.concat{x}.join{""} where x =
-               {">", *children, "</", tag, ">"}
+               {">", *children2, "</", tag, ">"}
 
    other ->
       HTML{String! other, default_tag}

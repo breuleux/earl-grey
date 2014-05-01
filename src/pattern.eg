@@ -23,26 +23,26 @@ class PatternParser:
 
    constructor{scope, pattern, opt} =
       ;; @expander := scope.expander
-      @opt := opt
-      @arguments := {}
-      @vars := {}
-      @specials := {=}
-      @pattern := @expand{scope, pattern, opt.tags or {=}, true, @opt.indexable}
+      @opt = opt
+      @arguments = {}
+      @vars = {}
+      @specials = {=}
+      @pattern = @expand{scope, pattern, opt.tags or {=}, true, @opt.indexable}
 
    parse_specs{scope, specs, tags} =
-      rest = undefined
-      has_defaults = false
+      var rest = undefined
+      var has_defaults = false
       rval = classify{.fw, .bw, .keys, .defaults} with
          scope.step_all{#pattern, specs} each
             #dynsplice{variable} ->
-               rest := @expand{scope, variable, tags}
+               set rest = @expand{scope, variable, tags}
                #ignore
             #assoc{key} ->
                #keys with {key, @expand{scope, key, tags}}
             #assoc{key, subp} ->
                #keys with {key, @expand{scope, subp, tags}}
             #default{variable, value} ->
-               has_defaults := true
+               set has_defaults = true
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
                   else: #defaults with {@expand{scope, variable, tags}, value}
@@ -50,7 +50,7 @@ class PatternParser:
                #fw with @expand{scope, v, tags}
             v ->
                #bw with @expand{scope, v, tags}
-      rval.rest := rest
+      rval.rest = rest
       rval
 
    expand{scope, pattern, tags, toplevel = false, checked = false} =
@@ -61,7 +61,7 @@ class PatternParser:
          #ignore ->
             expr
          #special{type} ->
-            @specials[type] := true
+            @specials[type] = true
             expr
          #symbol or #variable ->
             variable = expr & tags
@@ -162,9 +162,9 @@ class PatternParser:
 class PatternProcessor:
 
    constructor{} =
-      @temps := {}
-      @parts := {}
-      @gen := GenSym{"t"}
+      @temps = {}
+      @parts = {}
+      @gen = GenSym{"t"}
 
    "do"{part} =
       @parts.push with #do{part}
@@ -172,16 +172,16 @@ class PatternProcessor:
    check{part, tags = {=}} =
       @parts.push with #check{part} & tags
 
-   temp{x, v = null} =
+   temp{x, var v = null} =
       match x:
          [#variable or #symbol] and {single_assignment => true?} when not v ->
             x
          init ->
             ;; v = #variable{gensym{"t"}}
-            v := v or #symbol{@gen{}}
-            v.single_assignment := true
+            set v = v or #symbol{@gen{}}
+            v.single_assignment = true
             @temps.push with v
-            @do with '[^v := ^init]
+            @do with '[set ^v = ^init]
             v
 
    process{pattern, rhs, fns} =
@@ -420,10 +420,10 @@ parse_clauses{scope, target, stmts, opt} =
    the_parts = scope.step_all{#clause, stmts} each
 
       #clause{pattern, body} ->
-         placeholder = undefined
+         var placeholder = undefined
          special_fn{#special{match} and expr, value} =
             .match ->
-               placeholder := #symbol{scope.gensym{.ph}} <<: expr
+               set placeholder = #symbol{scope.gensym{.ph}} <<: expr
                #assign{placeholder}
             other ->
                throw E.syntax.pattern.special with
@@ -448,7 +448,7 @@ parse_clauses{scope, target, stmts, opt} =
          vars2 = {=}
          vars each
             #symbol{xxx} ->
-               vars2[xxx] := true
+               vars2[xxx] = true
             other ->
                throw E.syntax.unexpected{}
 
@@ -482,14 +482,14 @@ opt_clauses{clauses} =
       {i, #clause{vars, varsd, blocks, body}} ->
          #clause{_, varsd0, blocks0, _} = clauses[i]
          share = 0
-         idx = 0
+         var idx = 0
          blocks each b ->
             if same_block{{blocks0[share], b}, varsd0, varsd}:
                then:
                   share++
                   match b:
                      #do -> null
-                     #check -> idx := share
+                     #check -> set idx = share
                      other -> <> other
                else:
                   break
@@ -500,8 +500,8 @@ opt_clauses{clauses} =
 
    temps = [1 .. max] each _ -> #symbol{gensym{}}
 
-   shared_last = 0
-   idx_last = 0
+   var shared_last = 0
+   var idx_last = 0
    new_clauses = enumerate{clauses} each
       {i, #clause{vars, varsd, blocks, body}} ->
          {share, idx} = shares[i]
@@ -512,8 +512,8 @@ opt_clauses{clauses} =
             {j, #check{x}} -> #check{#assign{temps[shared_last + j], x}}
             {j, #do{x}} -> #do{x}
 
-         shared_last := share
-         idx_last := idx
+         set shared_last = share
+         set idx_last = idx
          #clause{vars, varsd, newblocks, body} where newblocks =
             shared.concat{to_share}.concat{rest} where
                rest = blocks.slice{n_to_share}

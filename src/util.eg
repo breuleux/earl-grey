@@ -52,40 +52,40 @@ identity{x} = x
 ;;    results
 
 binsearch{xs, x} =
-   lo = 0
-   hi = xs.length - 1
+   var lo = 0
+   var hi = xs.length - 1
    while [lo <= hi]:
       mid = lo + [[hi - lo] >> 1]
       v = xs[mid]
       match xs[mid]:
          [< x] ->
-            lo := mid + 1
+            set lo = mid + 1
          [> x] ->
-            hi := mid - 1
+            set hi = mid - 1
          [_] ->
             return [mid + 1]
    lo
 
-__classify{xs} =
+__classify{var xs} =
    results = {=}
    while xs.length:
       match xs.shift{}:
          #splice{newxs} ->
-            xs := newxs ++ xs
+            set xs = newxs ++ xs
          {cls, x} ->
             if [not results[cls]]:
-               results[cls] := {}
+               results[cls] = {}
             results[cls].push with x
    results
 
-classify{*classes, xs} =
+classify{*classes, var xs} =
    results = {rest = {}}
    classes each cls ->
-      results[cls] := {}
+      results[cls] = {}
    while xs.length:
       match xs.shift{}:
          #splice{*newxs} ->
-            xs := newxs ++ xs
+            set xs = newxs ++ xs
          #ignore ->
             null
          {cls, x} when results[cls] ->
@@ -96,8 +96,8 @@ classify{*classes, xs} =
 
 classify_contiguous{xs, classifier} =
    groups = {}
-   currcls = null
-   curr = null
+   var currcls = null
+   var curr = null
    xs each x ->
       cls = classifier{x}
       if [cls === currcls]:
@@ -105,8 +105,8 @@ classify_contiguous{xs, classifier} =
          else:
             if curr:
                groups.push with curr
-            curr := {cls, x}
-            currcls := cls
+            set curr = {cls, x}
+            set currcls = cls
    if curr:
       groups.push with curr
    groups
@@ -143,13 +143,13 @@ construct{match, fn, zero} =
 mkset{xs} =
    rval = {=}
    xs each x ->
-      rval[x] := true
+      rval[x] = true
    rval
 
 make_object{pairs} =
    rval = {=}
    pairs each {k, v} ->
-      rval[k] := v
+      rval[k] = v
    rval
 
 product{a, b} =

@@ -22,10 +22,10 @@ provide:
 
 
 generate_from_ast{ast} =
-   ex = std.expand{#top
-                   std.topscope
-                   std.stdenv.fork{}.convert{#multi{ast}}}
-   ex := opt.hoist{ex}
+   var ex = std.expand{#top
+                       std.topscope
+                       std.stdenv.fork{}.convert{#multi{ast}}}
+   set ex = opt.hoist{ex}
    tr = Translator{}
    rval = tr.translate{ex, .expr}
    {tr.dump_store{}, rval}
@@ -57,9 +57,9 @@ generate{source} =
 
 class Generator:
    constructor{interactive = false} =
-      @tr := Translator{std.stdprelude}
-      @env := std.stdenv.fork{}
-      @interactive := interactive
+      @tr = Translator{std.stdprelude}
+      @env = std.stdenv.fork{}
+      @interactive = interactive
    generate{source} =
       t = tokenize{source}
       p = parse{t}
@@ -68,13 +68,13 @@ class Generator:
       ;; variables set by the previous. It also makes all variables
       ;; declared in the top scope mutable (because that's more
       ;; practical in interactive mode)
-      ex = std.expand{#top
-                      std.topscope
-                      @env.convert{stmt}} where stmt =
+      var ex = std.expand{#top
+                          std.topscope
+                          @env.convert{stmt}} where stmt =
          if @interactive:
             then: #interactive{p}
             else: #multi{p}
-      ex := opt.hoist{ex}
+      set ex = opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
       @tr.dump_store{} + rval
 

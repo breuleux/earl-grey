@@ -32,8 +32,8 @@ generic_nodes = {
 
 class Embedded:
    constructor{code} =
-      @code := mkstdenv{}.convert{code}
-      @"::id" := uuid{}
+      @code = mkstdenv{}.convert{code}
+      @"::id" = uuid{}
    "::serialize_ast"{} =
       expand{#top, topscope, @code}
 
@@ -42,7 +42,7 @@ stdenv = Env{}
 
 mkstdenv{} =
    e = Env{}
-   e.scopes[.top] := stdenv.scopes[.top]
+   e.scopes[.top] = stdenv.scopes[.top]
    e
 
 expander = Expander{mkstdenv, generic_nodes}
@@ -180,8 +180,11 @@ pattern_handlers = {
       allow_nested = true
       allow_arguments = true
       special = disregard_specials
-      assign{v, value, tags} =
-         #do{#assign{v, value} <<: v}
+      assign{match v, value, tags} =
+         #symbol{name} ->
+            #do{#assign{v, value &: {name = name}} <<: v}
+         v ->
+            #do{#assign{v, value} <<: v}
       finalize = true
       tags = {declare_mode = .unqualified}
       declare{scope, vars} =
@@ -392,10 +395,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
       match context:
 
-         #expr{.multi} ->
+         #pattern ->
             #data{lhs, rhs} = expr
-            parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
-               pattern_handlers.declare_variables
+            #default{lhs, rhs}
 
          #expr{.data} ->
             match expr:
@@ -409,9 +411,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                      parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
                         pattern_handlers.build_object
 
-         #pattern ->
+         ;; #expr{.multi} ->
+         other ->
             #data{lhs, rhs} = expr
-            #default{lhs, rhs}
+            parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
+               pattern_handlers.declare_variables
 
          ;; other ->
          ;;    throw E.syntax.declare{"A variable cannot be declared at that location"}
@@ -447,6 +451,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "each=" => make_assigner{"each"}
 
    "->"{match, scope, form, expr} =
+      do:
+         if form.name:
+            console.log with form.name
       #clause ->
          #data{lhs, rhs} = expr
          #clause{lhs, rhs}
@@ -519,13 +526,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "each"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
 
       do:
-         ends_with_test = false
+         var ends_with_test = false
          _build_loop{wrap, pre, post} =
             build_loop{scope, env, form, li, clauses
                        wrap, pre, post
                        {...}} with
                wrap_pattern{x, toplevel} =
-                  ends_with_test :=
+                  set ends_with_test =
                      match x:
                         #test -> toplevel
                         other -> false
@@ -554,7 +561,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ;; Middle of a block. We have to accumulate the values in
          ;; order to return them. Right now, this plays poorly with
          ;; break and continue.
-         _build_loop{{x} -> 'acc.push{^x}, '[acc = {}], 'acc}
+         _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
 
 
    "each?"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
@@ -600,11 +607,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          clauses.push with
             mkstdenv{}.convert{'[e -> throw e]}
          ' | let [rval = false]:
-              ^ #js_try{'[rval := ^expr], ..., #void{}} with
+              ^ #js_try{'[set rval = ^expr], ..., #void{}} with
                  ' | {excv} ->
                       ^ | parse_clauses with
                            scope, 'excv, clauses
-                           {wrap = {x} -> '[rval := ^x]}
+                           {wrap = {x} -> '[set rval = ^x]}
               rval
 
    "@" => var_operator{expander.gensym{"it"}}
@@ -799,8 +806,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             other -> '[^projector]{^target}[1]
 
 
-   "#"{context, scope, form, #data{#void{}, #symbol{tag}}} =
-      tag := #value{tag}
+   "#"{context, scope, form, #data{#void{}, #symbol{var tag}}} =
+      set tag = #value{tag}
       #macro{f} where f{match, scope, form, expr} =
          #pattern ->
             checker_mac = #macro with {context, scope, form, #data{expr}} ->
@@ -865,9 +872,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #multi ++
             expr each
                s and #symbol{name} ->
-                  '[exports[^=name] := ^s]
+                  '[exports[^=name] = ^s]
                '[^s as ^[#symbol{name} or #value{name}]] ->
-                  '[exports[^=name] := ^s]
+                  '[exports[^=name] = ^s]
                other ->
                   throw E.syntax.provide with
                      "Each clause of provide must be 'sym' or 'sym as name'"
@@ -876,12 +883,12 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
       helper{name, stmts} =
          statics = #data{'[=]}
-         ctor = {#data{}, #multi{} & {env = env}}
+         var ctor = {#data{}, #multi{} & {env = env}}
          new_stmts = stmts each
             #send{'static, #data{#multi! {*methods}}} ->
                statics ++= methods
             '[constructor[^args] = ^body] or '[constructor = ^args -> ^body] ->
-               ctor := {args, body}
+               set ctor = {args, body}
                #splice{}
             '[^lhs = ^rhs] ->
                parse_pattern{scope, lhs, rhs} with
@@ -903,8 +910,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                      success{_} = #splice{}
                   }
 
-         {ctor_args, ctor_body} = ctor
-         ctor_body :=
+         {var ctor_args, ctor_body} = ctor
+         set ctor_body =
             {env => env2} = ctor_body
             it = #symbol{"@"} & {env = env2}
             ' | let [^it = if{not [^name]? this, Object.create{[^name].prototype}, this}]:
@@ -988,7 +995,7 @@ blocktest_mac{scope, tests} =
 
       {i, #blocktest{more_labels, more_tests}} ->
          ' | let [label = label.concat{Array! ^more_labels}]:
-              acc := acc.concat with
+              set acc = acc.concat with
                  ^blocktest_mac{scope, more_tests}
 
       {i, #test_factory{elements, clauses} and {=> env}} ->
@@ -1143,15 +1150,15 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
    "___build_array" => Embedded with '
       {arrays} ->
-         results = {}
-         arrays each a -> results := results.concat{a}
+         var results = {}
+         arrays each a -> set results = results.concat{a}
          results
 
    "object" => Embedded with '
       {pairs} ->
          rval = {=}
          pairs each {k, v} ->
-            rval[k] := v
+            rval[k] = v
          rval
 
    "items" => Embedded with '
@@ -1187,7 +1194,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
    "predicate" => Embedded with '
       {f} ->
-         f["::check"] := f
+         f["::check"] = f
          f
 
    "___nequal" => Embedded with '
@@ -1228,7 +1235,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       {dest, values} ->
          for [k in values]:
             if values.hasOwnProperty{k}:
-               dest[k] := ___js_fetch{values, k}
+               dest[k] = ___js_fetch{values, k}
          dest
 
    ;; "&+" => Embedded with '
@@ -1247,7 +1254,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          dest = clone{a}
          for [k in b]:
             if Object.prototype.hasOwnProperty.call{b, k}:
-               dest[k] := ___js_fetch{b, k}
+               dest[k] = ___js_fetch{b, k}
          dest
 
    "&+" => Embedded with '
@@ -1255,7 +1262,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          dest = clone{a}
          for [k in b]:
             if Object.prototype.hasOwnProperty.call{b, k}:
-               dest[k] := ___js_fetch{b, k}
+               dest[k] = ___js_fetch{b, k}
          dest
 
    "|>" => Embedded with '
@@ -1272,7 +1279,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             dest = {=}
             for [k in x]:
                if Object.prototype.hasOwnProperty.call{x, k}:
-                  dest[k] := ___js_fetch{x, k}
+                  dest[k] = ___js_fetch{x, k}
             dest
          other ->
             throw E.clone{"Object cannot be cloned", {obj = x}}
@@ -1286,10 +1293,10 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
    "___projector" => Embedded with '
       {type} -> {value} ->
-         f = type[":::project"]
+         var f = type[":::project"]
          if [f === undefined]:
             then:
-               f := type["::project"]
+               set f = type["::project"]
                if [f === undefined]:
                   then: {true, type{value}}
                   else: {true, f{value}} !! e -> {false, null}
@@ -1321,7 +1328,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       {value, url, start, end} ->
          err = E.match{"Could not find a match for value", {value = value}}
          if url:
-            err.location := #location{url, start, end}
+            err.location = #location{url, start, end}
          throw err
 
 
@@ -1329,16 +1336,16 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       class:
 
          constructor{tags} =
-            @tags := tags
+            @tags = tags
 
          create{message = "", *args} =
             e = Error{message}
-            e["::tags"] := @tags
-            e.args := args
+            e["::tags"] = @tags
+            e.args = args
             enumerate{args} each {i, arg} ->
-               e[i] := arg
-            e.length := args.length
-            e.name := [{.E} ++ @tags].join{"."}
+               e[i] = arg
+            e.length = args.length
+            e.name = [{.E} ++ @tags].join{"."}
             e
 
          "::check"{e} =
@@ -1362,8 +1369,8 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                {x.classes, x.children}
 
          constructor{Array! classes, Array! children} =
-            @classes := classes.sort{}
-            @children := children
+            @classes = classes.sort{}
+            @children = children
 
          "::check"{n} =
             @classes each? c when n.classes.indexOf{c} === -1 ->
@@ -1377,11 +1384,11 @@ stdprelude = Embedded with '
       [String? or Number?] -> ___js_fetch{obj, msg}
       other -> obj["::send"]{msg}
 
-   Array[":::project"] := {match value} ->
+   Array[":::project"]{match value} =
       Array? -> {true, value}
       _ -> {true, {value}}
 
-   Array.prototype["::check"] := {value} ->
+   Array.prototype["::check"]{value} =
       if [instanceof]{value, Array}:
          then:
             for [i = 0, i < this.length, i++]:
@@ -1391,10 +1398,10 @@ stdprelude = Embedded with '
          else:
             false
 
-   Array.prototype["::clone"] := {} ->
+   Array.prototype["::clone"]{} =
       this.slice{0} &: this
 
-   Array.prototype[":::project"] := {value} ->
+   Array.prototype[":::project"]{value} =
       if [instanceof]{value, Array}:
          then:
             for [i = 0, i < this.length, i++]:
@@ -1404,16 +1411,16 @@ stdprelude = Embedded with '
          else:
             {true, {value}}
 
-   Array.prototype["::serialize_ast"] := {} ->
+   Array.prototype["::serialize_ast"]{} =
       #array{*this.map{___serialize_ast}}
 
-   RegExp.prototype["::check"] := {match} ->
+   RegExp.prototype["::check"]{match} =
       String? value ->
          if{value.match{this}, true, false}
       other ->
          false
 
-   RegExp.prototype[":::project"] := {match} ->
+   RegExp.prototype[":::project"]{match} =
       String? value ->
          match value.match{this}:
             null? m -> {false, null}
@@ -1421,7 +1428,7 @@ stdprelude = Embedded with '
       other ->
          {false, null}
 
-   Function.prototype["::send"] := {args} ->
+   Function.prototype["::send"]{args} =
       this.apply{this, args}
 
    ;; Error.prototype["::clone"] := {} ->
@@ -1434,7 +1441,7 @@ stdprelude = Embedded with '
    ;;    e
 
 
-expander.utils := {
+expander.utils = {
    var_operator = var_operator
 }
 

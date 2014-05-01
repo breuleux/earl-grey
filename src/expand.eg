@@ -25,10 +25,10 @@ provide:
 class Scope:
 
    constructor{parent = null, name = null, expander = null} =
-      @name := name or gensym{"scope"}
-      @parent := parent
-      @options := {=}
-      @expander := expander or parent.expander
+      @name = name or gensym{"scope"}
+      @parent = parent
+      @options = {=}
+      @expander = expander or parent.expander
 
    getopt{opt} =
       match:
@@ -40,7 +40,7 @@ class Scope:
             @parent.getopt{opt}
 
    setopt{opt, value} =
-      @options[opt] := value
+      @options[opt] = value
 
    gensym{} =
       @expander.gensym{}
@@ -61,7 +61,7 @@ class Scope:
 class Env:
 
    constructor{} =
-      @scopes := {=}
+      @scopes = {=}
 
    resolve{scope, name} =
       if [scope === null]:
@@ -73,8 +73,8 @@ class Env:
 
    bind{scope, name, value} =
       if [not @scopes[scope.name]]:
-         @scopes[scope.name] := {=}
-      @scopes[scope.name][name] := value
+         @scopes[scope.name] = {=}
+      @scopes[scope.name][name] = value
 
    convert{expr} =
       match expr:
@@ -93,8 +93,8 @@ class Env:
       items{@scopes} each {scope, bindings} ->
          items{bindings} each {k, v} ->
             if [not e.scopes[scope]]:
-               e.scopes[scope] := {=}
-            e.scopes[scope][k] := v
+               e.scopes[scope] = {=}
+            e.scopes[scope][k] = v
       e
 
    toString{} =
@@ -118,9 +118,9 @@ track_location{f} =
 class Expander:
 
    constructor{env_factory, generic_nodes} =
-      @gensym := gensym ;;GenSym{"$$"}
-      @mkenv := env_factory
-      @generic_nodes := generic_nodes
+      @gensym = gensym ;;GenSym{"$$"}
+      @mkenv = env_factory
+      @generic_nodes = generic_nodes
 
    run_macro{m, context, scope, form, arg} =
       rval = m{context, scope, form, arg} !!
@@ -135,7 +135,7 @@ class Expander:
                         E.syntax.argument{msg, {context = context
                                                 argument = arg
                                                 form = form}} where
-                           msg = "The macro could not match its argument (or part of it)."
+                           msg = "The macro expected something different."
                      {type, *xs} ->
                         xs each find! x ->
                            if x: return x
@@ -146,14 +146,14 @@ class Expander:
                   if err:
                      then: err
                      else: E.syntax.failure{msg, {form = form, value = value}} where
-                        msg = "The macro failed because it failed to match some value, probably one that it generated itself."
+                        msg = "The macro expected something different (could not locate error in the source)."
             ;; e <<: form
             throw e
          e ->
             throw e
 
       @mkenv{}.convert{rval}
-      ;; rval
+
 
    ;; Perform one step of expansion.
    
@@ -232,7 +232,7 @@ class Expander:
    ;;    expressions in the list (those that come after itself), and
    ;;    return a new list of expressions.
    
-   step_all{context, scope, {*stmts}} =
+   step_all{context, scope, {*[var stmts]}} =
       pre = {}
       bulk = {}
       post = {}
@@ -240,13 +240,13 @@ class Expander:
          current = stmts.shift{}
          match @step{context, scope, current}:
             #splice{*prepend} ->
-               stmts := prepend ++ stmts
+               set stmts = prepend ++ stmts
             #float{stmt} ->
                pre ++= @step_all{context, scope, {stmt}}
             #sink{stmt} ->
                post ++= @step_all{context, scope, {stmt}}
             #multimacro{m} ->
-               stmts := m{context, scope, current, stmts}
+               set stmts = m{context, scope, current, stmts}
             x ->
                bulk.push with x
       [pre ++ bulk] ++ post
@@ -256,8 +256,8 @@ class Expander:
    ;; is, more or less, the handler for the #expr context.
 
    expand{context, scope, expr} =
-      helper = track_location{...} with {context, scope, expr} ->
-         expr := @step{context, scope, expr}
+      helper = track_location{...} with {context, scope, var expr} ->
+         set expr = @step{context, scope, expr}
    
          match expr:
    
@@ -313,7 +313,7 @@ class Expander:
                newscope = if{expr.override_scope, scope, Scope{scope}}
                stepscope =
                   if{expr.nonrecursive, scope, newscope}
-               changes = false
+               var changes = false
                {=> newargs, => vars} = classify{.newargs, .vars} with
                   @step_all{#expr{.multi}, stepscope, args} each
                      #option{opt, value} ->
@@ -322,14 +322,14 @@ class Expander:
                      #declare_raw{variable and #symbol{s}, value} ->
                         {=> env} = variable
                         env.bind{newscope, s} with value
-                        changes := true
+                        set changes = true
                         #ignore
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
                         v = #variable{@gensym{s}} <<: variable
                         v &: {mutable = expr.all_mutable or variable.mutable}
                         env.bind{newscope, s} with v
-                        changes := true
+                        set changes = true
                         if value:
                            then:
                               #splice with
@@ -338,7 +338,7 @@ class Expander:
                            else:
                               #vars{v}
                      #declare{v and #variable{_}, value = null} ->
-                        changes := true
+                        set changes = true
                         if value:
                            then:
                               #splice with
@@ -362,9 +362,9 @@ class Expander:
    
             #data{*args} ->
    
-               is_obj = false
-               obj = #object{}
-               arr = #array{}
+               var is_obj = false
+               var obj = #object{}
+               var arr = #array{}
                arr_parts = {}
                obj_parts = {}
    
@@ -373,26 +373,26 @@ class Expander:
                      #array{} -> false
                      other ->
                         arr_parts.push{arr}
-                        arr := #array{}
+                        set arr = #array{}
    
                new_obj_part{} =
                   match obj:
                      #object{} -> false
                      other ->
                         obj_parts.push{obj}
-                        obj := #object{}
+                        set obj = #object{}
    
                @step_all{#expr{.data}, scope, args} each
                   #assoc{} ->
-                     is_obj := true
+                     set is_obj = true
                   #assoc{k, v} ->
-                     is_obj := true
+                     set is_obj = true
                      obj.push with #array{k, v}
                   #dynsplice{expr} ->
                      new_arr_part{}
                      arr_parts.push{expr}
                   #objsplice{expr} ->
-                     is_obj := true
+                     set is_obj = true
                      new_obj_part{}
                      obj_parts.push{expr}
                   other ->
@@ -434,11 +434,11 @@ class Expander:
    
             #use{match, x} ->
                String? name ->
-                  s = scope
+                  var s = scope
                   while s:
                      if [s.name.slice{0, name.length + 1} === [name + "/"]]:
                         then: break
-                        else: s := s.parent
+                        else: set s = s.parent
                   if s:
                      then: helper{context, s, x}
                      else: throw E.syntax.noscope{"Could not find a scope tagged: " + name}
@@ -479,14 +479,14 @@ checker_db{match} =
          then: __chk_ncache[n]
          else:
             v = mac1{{x} -> '[^x === ^=n]}
-            __chk_ncache[n] := v
+            __chk_ncache[n] = v
             v
    String? s ->
       if Object.prototype.hasOwnProperty.call{__chk_scache, s}:
          then: __chk_scache[s]
          else:
             v = mac1{{x} -> '[^x === ^=s]}
-            __chk_scache[s] := v
+            __chk_scache[s] = v
             v
 
 checker_db &: {
