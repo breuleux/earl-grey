@@ -1,0 +1,19 @@
+
+require:
+   "./earl-grey" as eg
+   "./location" ->
+      Source
+   fs
+
+extensions = {...} with
+   ".eg"
+
+load{module, file} =
+   text = fs.readFileSync{file, .utf8}
+   g = eg.Generator{}
+   compiled = g.generate{Source{text, file}}
+   module._compile{compiled, file}
+
+extensions each ext ->
+   require.extensions[ext] = load
+

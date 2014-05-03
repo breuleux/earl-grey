@@ -12,10 +12,7 @@ provide:
    run
 
 
-usage = "Usage:
-
-earl
-  Start an interactive session.
+usage = "Usage: earl [global options] command [options] [arguments...]
 
 earl run [options] [file] [arguments...]
   Run the specified file as a script. The arguments are available in
@@ -38,6 +35,13 @@ earl compile [options] [file... | dir]
                         No files are created.
     -e  --eval <code>   Compile the provided code instead of reading from a file.
     -n  --noboil        Don't produce boilerplate code (useful with -p)
+
+earl
+  Start an interactive session.
+
+Global options:
+  -h  --help      Print this message.
+  -v  --version   Print the version
 "
 
 usage_error{message} =
@@ -219,7 +223,13 @@ compile_path{p, opts} =
 
 run{argv} =
    {opts, cmd} =
-      extract_options{argv, {=}, "global option"}
+      extract_options{argv, ..., "global option"} with {
+         h = #flag{"help"}
+         help = #flag{"help"}
+
+         v = #flag{"version"}
+         version = #flag{"version"}
+      }
    _run{cmd, opts} !!
       e ->
          display_error{e}
@@ -227,6 +237,14 @@ run{argv} =
 
 
 _run{match, opts} =
+
+   when opts.help ->
+      console.log with usage
+
+   when opts.version ->
+      console.log with
+         "Earl Grey version"
+         eg.version
 
    {} or {.run} ->
       _run{{.run, "-i"}, opts}

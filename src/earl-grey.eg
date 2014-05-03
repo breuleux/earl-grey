@@ -17,7 +17,9 @@ provide:
    Source, Location, highlight_locations
    tokenize, parse
    Generator, generate
+   version
 
+version = "zero"
 
 generate_from_ast{ast} =
    var ex = std.expand{#top

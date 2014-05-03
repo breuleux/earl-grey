@@ -78,6 +78,8 @@ topscope = Scope{null, .top, expander}
    .arguments, .this, .exports
    .global
 
+stdenv.bind{topscope, .pass, #variable{.undefined}}
+
 
 embed_location{match} =
    {location => {source => {=> url}, => start, => end}} ->
@@ -359,6 +361,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "_"{#pattern, scope, form, #void{}} =
       #ignore{}
+
+   "else"{match, scope, form, _} =
+      #pattern ->
+         #ignore{}
+      else ->
+         throw E.syntax.else{msg, {node = form}} where
+            msg = "'else' should be found inside an 'if' block"
 
    "not"{match, scope, form, #data{#void{}, rhs} and arg} =
       #pattern ->
