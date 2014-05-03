@@ -6,7 +6,6 @@ require:
       [<<:]
    "./util" as util ->
       GenSym, gensym
-      ;; zip, enumerate, keys as iterkeys
       neighbours
       classify, classify_contiguous
       identity
@@ -22,7 +21,6 @@ provide:
 class PatternParser:
 
    constructor{scope, pattern, opt} =
-      ;; @expander := scope.expander
       @opt = opt
       @arguments = {}
       @vars = {}

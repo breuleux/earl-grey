@@ -2,12 +2,11 @@
 require:
    "./earl-grey" as eg
    "./pp" ->
-      <> ;;, Node
-   ;; "./util" -> [enumerate, items]
+      <>
    "./location" ->
       Source
       display_error
-   fs, path, vm
+   fs, path, vm, module
 
 provide:
    run
@@ -26,6 +25,54 @@ earl translate <directory> <outdir>
 earl run [file] [arguments...]
   Run the specified file as a script.
 "
+
+
+extract_options{clone! argv, opttable} =
+   results = {=}
+   var associate = null
+
+   process_option{original, opt, last} =
+      match opttable[opt]:
+         undefined? ->
+            throw E.option{"Unrecognized option: " + original, original}
+         #flag{name} ->
+            results[name] = true
+         #value{name} when last ->
+            associate = name
+         #value{name} ->
+            results[name] = true
+
+   while argv.length:
+      arg = argv.shift{}
+      match arg:
+         R"^--([a-zA-Z_\\-]+)=(.*)"! {_, opt, value} ->
+            process_option{arg, opt, true}
+            results[associate] = value
+            associate = null
+
+         R"^--([a-zA-Z_\\-]+)"! {_, opt} ->
+            process_option{arg, opt, true}
+
+         R"^-([a-zA-Z_]+)"! {_, opts} ->
+            opts each
+               last ch ->
+                  process_option{arg, ch, true}
+               ch ->
+                  process_option{arg, ch}
+
+         other when associate ->
+            results[associate] = other
+            associate = null
+
+         other ->
+            argv.unshift{other}
+            break
+
+   {results, argv}
+
+
+
+
 
 walk{dir, partial, f} =
    stats = fs.statSync{dir}
@@ -49,19 +96,63 @@ gen{text, file} =
    g.generate{Source{text, path.resolve{file}}}
 
 
-run{cmd} =
-   _run{cmd} !!
+evaluator{options} =
+
+   paths = module._nodeModulePaths{options.cwd}
+
+   e_module = new module{options.showname}
+   e_module &: {
+      filename = options.filename
+      paths = paths
+   }
+
+   e_require{path} =
+      module._load{path, e_module, true}
+   e_require &: {
+      main = e_module
+      resolve{path} =
+         module._resolveFileName{path, e_module}
+      paths = paths
+      cache = require.cache
+   }
+
+   global &: {
+      __filename = options.filename
+      __dirname = path.dirname{options.filename}
+      module = e_module
+      require = e_require
+   }
+
+   {code} ->
+      script = vm.createScript{code, options.showname}
+      script.runInThisContext{}
+
+
+run{argv} =
+   {opts, cmd} =
+      extract_options{argv, {=}} !!
+         E.option? {opt} ->
+            console.error{"Unknown option:", opt}
+            console.error with usage
+            process.exit{1}
+   _run{cmd, opts} !!
       e ->
          display_error{e}
          ;; console.log with e
          process.exit{1}
 
-_run{match} =
+
+_run{match, opts} =
 
    {} or {.i or "in" or .interactive} ->
       require: repl
       ;; vm.runInThisContext{libdata, "stdin"}
       g = eg.Generator{true}
+      e = evaluator with {
+         filename = "."
+         showname = "repl"
+         cwd = process.cwd{}
+      }
       settings = {
          prompt = "<> "
          ignoreUndefined = true
@@ -69,7 +160,8 @@ _run{match} =
             result = [execute{} !! e -> handle{e}] where
                execute{} =
                   text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
-                  vm.runInThisContext{text, "stdin"}
+                  e{text}
+                  ;; vm.runInThisContext{text, "stdin"}
                handle{e} =
                   display_error{e}
                   ;; console.log{e.stack or e}
@@ -79,9 +171,15 @@ _run{match} =
       runner = repl.start with settings
       runner.on{.exit} with {} -> runner.outputStream.write{"\n"}
 
-   {.run, file} ->
+   {.run, _file, *args} ->
+      file = path.resolve{_file}
       data = fs.readFileSync{file, .utf8}
-      eval with gen{data, file}
+      e = evaluator with {
+         filename = file
+         showname = file
+         cwd = file
+      }
+      e with gen{data, file}
 
    {.tr or .translate, file, *args} ->
 

@@ -2,20 +2,11 @@
 require:
    "./util" ->
       gensym
-   ;; "./helpers" ->
-   ;;    aslist, gensym
    "./pp" ->
       <>
 
 provide:
    Translator, translate
-
-
-;; aslist{match} =
-;;    ;; #void{} -> {#void{}}
-;;    ;; undefined? -> {undefined}
-;;    #multi{*args} -> args
-;;    other -> {other}
 
 
 js_op_table2 = {
@@ -156,7 +147,7 @@ class Translator:
       r.join{""}
 
    body{orig, mode} =
-      #multi! {*b} = orig ;;aslist{b}
+      #multi! {*b} = orig
       trst{stmt} = @translate{stmt, .stmt}
       match mode:
          .expr ->

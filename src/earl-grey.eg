@@ -1,7 +1,5 @@
 
 require:
-   ;; "./util" ->
-   ;;    items
    "./location" ->
       Source, Location
       highlight_locations

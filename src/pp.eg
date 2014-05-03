@@ -1,7 +1,4 @@
 
-;; require:
-;;    "./util" ->
-;;       items
 
 provide:
    pr_terminus

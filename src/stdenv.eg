@@ -5,7 +5,7 @@ require:
    "./location" ->
       <<:
    "./util" as util ->
-      neighbours ;;, zip
+      neighbours
       uuid
    "./pattern" ->
       PatternParser, PatternProcessor
@@ -76,6 +76,7 @@ topscope = Scope{null, .top, expander}
    .___js_fetch, .___node
 
    .arguments, .this, .exports
+   .global
 
 
 embed_location{match} =
@@ -830,42 +831,49 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                   ;;    {form = form
                   ;;     argument = expr}
 
-   "require"{context, scope, form, #data{expr}} =
+   "require"{context, scope, form, match} =
 
-      req = #variable{.require}
-      stmts = {}
+      #data{expr} ->
+         req = #variable{.require}
+         stmts = {}
 
-      topfetch{pkg, v} =
-         stmts.push with '[^v = [^req]{^pkg}]
-         v
+         topfetch{pkg, v} =
+            stmts.push with '[^v = [^req]{^pkg}]
+            v
 
-      produce{match expr, fetch} =
+         produce{match expr, fetch} =
 
-         #symbol{s} ->
-            fetch{#value{s}, expr}
+            #symbol{s} ->
+               fetch{#value{s}, expr}
 
-         #value{String? s} ->
-            fetch{expr, #symbol{scope.gensym{}}}
+            #value{String? s} ->
+               fetch{expr, #symbol{scope.gensym{}}}
 
-         #multi{*subp} or #data{*subp} ->
-            subp each p -> produce{p, fetch}
-            null
+            #multi{*subp} or #data{*subp} ->
+               subp each p -> produce{p, fetch}
+               null
 
-         #send{#symbol{"^"}, #data{#void{}, name}} ->
-            fetch{name, #symbol{scope.gensym{}}}
+            #send{#symbol{"^"}, #data{#void{}, name}} ->
+               fetch{name, #symbol{scope.gensym{}}}
 
-         #send{#symbol{"as"}, #data{pkg, s}} ->
-            produce{pkg} with {the_pkg, _} ->
-               fetch{the_pkg, s}
+            #send{#symbol{"as"}, #data{pkg, s}} ->
+               produce{pkg} with {the_pkg, _} ->
+                  fetch{the_pkg, s}
 
-         #send{#symbol{"->"}, #data{pkg, subp}} ->
-            pkgv = produce{pkg, fetch}
-            produce{subp} with {pkg, v} ->
-                stmts.push with '[^v = ^pkgv ^pkg]
-                v
+            #send{#symbol{"->"}, #data{pkg, subp}} ->
+               pkgv = produce{pkg, fetch}
+               produce{subp} with {pkg, v} ->
+                   stmts.push with '[^v = ^pkgv ^pkg]
+                   v
 
-      produce{expr, topfetch}
-      #splice{*stmts}
+         produce{expr, topfetch}
+         #splice{*stmts}
+
+      #void{} ->
+         #variable{.require}
+
+      arg ->
+         #send{#variable{.require}, arg}
 
    "provide"{context, scope, form, #data{#multi! {*expr}}} =
       #sink with

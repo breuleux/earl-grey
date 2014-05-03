@@ -5,8 +5,8 @@ require:
    "./location" ->
       <<:
    "./util" as util ->
-      classify ;;, items, keys as iterkeys, enumerate
-      neighbours ;;, zip
+      classify
+      neighbours
       GenSym, gensym, uuid
    "./pattern" ->
       PatternParser, PatternProcessor
