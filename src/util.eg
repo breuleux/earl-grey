@@ -1,57 +1,46 @@
 
 provide:
-   GenSym, gensym, uuid
+   GenSym, gensym
    identity
-   ;; items, keys, enumerate
    binsearch
    classify, classify_contiguous
    neighbours
-   ;; zip
    partition
    construct
    mkset
-   make_object
    product
 
+
 GenSym{prefix} =
+   ;; Simple symbol generator.
+   ;; g = GenSym{"$"}
+   ;; g{} ==> "$0", "$1", "$2", ...
+   ;; g{"xyz"} ==> "xyz$0", "xyz$1", "xyz$2", ...
    id = 0
-   {pfx = null} ->
-      r = [pfx or ""] + prefix + [String! id]
+   {pfx = ""} ->
+      r = pfx + prefix + [String! id]
       id++
       r
 
 ;; gensym = GenSym{"ȣ"}
 gensym = GenSym{"$"}
 
-uuid{} =
-   gensym{"#"}
-
 
 identity{x} = x
 
 
-;; items{obj} =
-;;    results = {}
-;;    for [k in obj]:
-;;       if Object.prototype.hasOwnProperty.call{obj, k}:
-;;          results.push with {k, obj[k]}
-;;    results
-
-;; keys{obj} =
-;;    results = {}
-;;    for [k in obj]:
-;;       if Object.prototype.hasOwnProperty.call{obj, k}:
-;;          results.push with k
-;;    results
-
-;; enumerate{arr} =
-;;    results = {}
-;;    l = arr.length
-;;    for [i = 0, i < l, i++]:
-;;       results.push with {i, arr[i]}
-;;    results
-
 binsearch{xs, x} =
+   ;; Find an insertion point for x in the sorted array xs.
+   ;; Returns an index i such that
+   ;;   xs[i - 1] < x <= xs[i]
+   ;; In particular,
+   ;;   If x < xs[0]              ==> return 0
+   ;;   If x > xs[xs.length - 1]  ==> return xs.length
+   ;; Take note that
+   ;;   If x == xs[i]             ==> return i + 1
+   ;; The return value should not be interpreted as the index where x
+   ;; is found, but some index where x can be safely spliced to
+   ;; preserve the array's sortedness.
    var lo = 0
    var hi = xs.length - 1
    while [lo <= hi]:
@@ -66,19 +55,16 @@ binsearch{xs, x} =
             return [mid + 1]
    lo
 
-__classify{var xs} =
-   results = {=}
-   while xs.length:
-      match xs.shift{}:
-         #splice{newxs} ->
-            set xs = newxs ++ xs
-         {cls, x} ->
-            if [not results[cls]]:
-               results[cls] = {}
-            results[cls].push with x
-   results
 
 classify{*classes, var xs} =
+   ;; Classify a list of lists accordingly to the first element
+   ;; of the list. The categories must be listed explicitly
+   ;; and any element that doesn't fit is put in the rest field
+   ;; of the return value.
+   ;; Example:
+   ;;   classify{.a, .b, {#a{1}, #b{2}, #a{3}, #a{4}, #c{5}}}
+   ;;     ==> {a = {1, 2}, b = {2}, rest = {#c{5}}}
+
    results = {rest = {}}
    classes each cls ->
       results[cls] = {}
@@ -94,7 +80,15 @@ classify{*classes, var xs} =
             results.rest.push with other
    results
 
+
 classify_contiguous{xs, classifier} =
+   ;; Split xs according to a predicate, preserving the
+   ;; order. Contiguous elements with the same category are put
+   ;; together.
+   ;; Example:
+   ;;   classify_contiguous{{1, 2, 4, 3, 5}, {x} -> x mod 2 == 0}
+   ;;     ==> {{false, 1}, {true, 2, 4}, {false, 3, 5}}
+
    groups = {}
    var currcls = null
    var curr = null
@@ -113,24 +107,37 @@ classify_contiguous{xs, classifier} =
 
 
 neighbours{match} =
+   ;; Takes an array and returns an array of pairs of consecutive elements.
+   ;; Example:
+   ;;   neighbours{{1, 7, 10, 3, 7}}
+   ;;     ==> {{1, 7}, {7, 10}, {10, 3}, {3, 7}}
+
    {} -> {}
    {x} -> {}
    {x, y, *rest} ->
       {{x, y}} ++ neighbours{{y} ++ rest}
 
 
-;; zip{xs, ys} =
-;;    enumerate{xs} each {i, x} ->
-;;       {x, ys[i]}
-
-
 partition{xs, predicate} =
+   ;; Partition a list according to a predicate
+   ;; Example:
+   ;;   partition{{1, 2, 4, 5, 16}, {x} -> x mod 2}
+   ;;     ==> {{1, 5}, {2, 4, 16}}
+
    t = {}
    f = {}
    xs each
       x when predicate{x} -> t.push{x}
       x -> f.push{x}
    {t, f}
+
+
+product{a, b} =
+   results = {}
+   a each x ->
+      results ++=
+         b each y -> {x, y}
+   results
 
 
 construct{match, fn, zero} =
@@ -145,16 +152,3 @@ mkset{xs} =
    xs each x ->
       rval[x] = true
    rval
-
-make_object{pairs} =
-   rval = {=}
-   pairs each {k, v} ->
-      rval[k] = v
-   rval
-
-product{a, b} =
-   results = {}
-   a each x ->
-      results ++=
-         b each y -> {x, y}
-   results

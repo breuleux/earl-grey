@@ -6,12 +6,21 @@ hoist{expr} =
    {b, inner} = hoist_helper{expr}
    #scope{inner, b}
 
+;; Nodes over which variable declarations can be hoisted. For
+;; instance, #if{#multi{#deciare{x}, x}, ...} can be changed
+;; into #multi{#declare{x}, #if{x, ...}}
+;; This group also (implicitly) contains #scope.
+
 hoistable = {
    .send, .array, .object, .multi
    .if, .assign
    .js_break, .js_continue, .js_return
    .js_delete, .js_throw, .js_try, .js_new
 }
+
+;; Nodes over which we will *not* hoist declarations. For instance,
+;; declarations inside a for loop will remain there. This group also
+;; (implicitly) contains #lambda.
 
 not_hoistable = {
    .void
@@ -20,19 +29,40 @@ not_hoistable = {
 
 hoist_helper{match expr} =
 
+   ;; This floats variable declarations to the top as much as
+   ;; possible. It is assumed that we alpha renamed all variables
+   ;; beforehand, so there is no risk of name collision. The purpose
+   ;; of this phase is to avoid wrapping scopes in (function(){...}())
+   ;; when generating code.
+
+   ;; Variables are declared either as
+   ;;   #scope{vars, body}   (no closure)
+   ;; or as
+   ;;   #lambda{vars, body}  (closure)
+
+   ;; The return value of hoist_helper is
+   ;; {new_expression, hoisted_variables}
+
    #symbol or #value or #variable ->
+      ;; No variables here.
       {expr, {}}
 
    #scope{vars, body} ->
+      ;; We simply merge the variables with the variables to hoist
+      ;; from body.
       {newbody, inner} = hoist_helper{body}
       {newbody, inner ++ vars}
 
    #lambda{vars, body} ->
-      ;; Can't hoist past this!
+      ;; Can't hoist past this! We create a #scope to hold the
+      ;; variables hoisted from body.
       {newbody, inner} = hoist_helper{body}
       {#lambda{vars, #scope{inner, newbody}}, {}}
 
    {type, *args} when hoistable.indexOf{type} !== -1 ->
+      ;; Hoistable nodes. We assume that all the members of the node
+      ;; are expressions, so we accumulate hoistable variables from
+      ;; all of them.
       accum = {}
       newargs = args each arg ->
          {b, inner} = hoist_helper{arg}
@@ -41,6 +71,8 @@ hoist_helper{match expr} =
       {{type, *newargs}, accum}
 
    {type, *args} when not_hoistable.indexOf{type} !== -1 ->
+      ;; Not hoistable. We assume that all the members of the node are
+      ;; expressions. We create #scopes for each argument, if needed.
       newargs = args each arg ->
          {b, inner} = hoist_helper{arg}
          match inner:
@@ -50,4 +82,5 @@ hoist_helper{match expr} =
       {{type, *newargs}, {}}
 
    other ->
+      ;; hoistable and not_hoistable should contain all possible node types
       throw E.syntax.illegal{"Illegal node -- this should not happen.", {node = other}}
