@@ -77,20 +77,44 @@ regexps = {
      #NUM{parseFloat{m[0].replace{R.g"_", ""}}}
 
 
+  ;; ;; Strings (no interpolation)
+  ;; str = R'
+  ;;    start
+  ;;    "\""
+  ;;    {*["\\\\" or "\\\"" or [not in "\""]]}
+  ;;    "\""
+
+  ;; str_f = {m} ->
+  ;;    repl = {
+  ;;       "\\\"" => "\""
+  ;;       "\\\\" => "\\"
+  ;;       "\\n" => "\n"
+  ;;    }
+  ;;    r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
+  ;;    #STR{r}
+
   ;; Strings (no interpolation)
   str = R'
      start
      "\""
-     {*["\\\\" or "\\\"" or [not in "\""]]}
+     {*[["\\", any] or [not in "\""]]}
      "\""
 
   str_f = {m} ->
      repl = {
-        "\\\"" => "\""
-        "\\\\" => "\\"
-        "\\n" => "\n"
+        b = String.fromCharCode{8}
+        f = String.fromCharCode{12}
+        n = "\n"
+        r = String.fromCharCode{13}
+        t = String.fromCharCode{9}
      }
-     r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
+     r = m[1].replace{rx, f} where
+        rx = R.g"\\\\u[0-9A-Fa-f]{4}|\\\\x[0-9A-Fa-f]{2}|\\\\."
+        f{match} =
+           R"^(?:\\\\u|\\\\x)(.*)"! {_, digits} ->
+              String.fromCharCode{parseInt{digits, 16}}
+           R"^.(.)"! {_, chr} ->
+              repl[chr] or chr
      #STR{r}
 
 
