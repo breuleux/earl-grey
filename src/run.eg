@@ -276,6 +276,8 @@ _run{match, opts} =
                      {file, file, data, rest} where
                         data = fs.readFileSync{file, .utf8}
 
+      process.argv = {"earl-run", file} ++ rest
+
       e = evaluator with {
          filename = file
          showname = file

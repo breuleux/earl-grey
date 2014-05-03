@@ -7,7 +7,7 @@ require:
    "./util" as util ->
       classify
       neighbours
-      GenSym, gensym, uuid
+      GenSym, gensym
    "./pattern" ->
       PatternParser, PatternProcessor
 

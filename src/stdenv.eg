@@ -5,8 +5,8 @@ require:
    "./location" ->
       <<:
    "./util" as util ->
+      GenSym
       neighbours
-      uuid
    "./pattern" ->
       PatternParser, PatternProcessor
       parse_pattern, parse_clauses
@@ -30,10 +30,14 @@ generic_nodes = {
    .js_delete, .js_throw, .js_try, .js_new
 }
 
+
+mkid = GenSym{"#"}
+
+
 class Embedded:
    constructor{code} =
       @code = mkstdenv{}.convert{code}
-      @"::id" = uuid{}
+      @"::id" = mkid{}
    "::serialize_ast"{} =
       expand{#top, topscope, @code}
 
