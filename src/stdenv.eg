@@ -464,6 +464,46 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "and=" => make_assigner{"and"}
    "each=" => make_assigner{"each"}
 
+
+   "_lambda"{context, scope, form, #data{#data{*args} and arg, pre, body, post}} =
+      wrap{body2} =
+         if{post == #value{null}, body3, #multi{body3, post}} where
+            body3 = if{pre == #value{null}, body2, #multi{pre, body2}}
+      pp = PatternParser{scope, arg, {...}} with
+         indexable = true
+         allow_nested = true
+      match pp.pattern:
+         #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
+            decls = if{pp.specials.match, {#declare{'ph}}, {}}
+            newargs = zip{fw, args} each {match, arg} ->
+               #assign{expr and #symbol{v}} ->
+                  expr
+               other ->
+                  newv = #symbol{scope.gensym{.temp}} & {env = stdenv}
+                  decls.push with
+                     parse_pattern{scope, arg, newv} with
+                        pattern_handlers.declare_variables & {
+                           tags = {declare_mode = .let}
+                           special = {#special{match} and expr, value} ->
+                              .match ->
+                                 #assign{'ph}
+                              other ->
+                                 throw E.syntax.pattern.special with
+                                    "Special token cannot be used here"
+                                    {special = expr}
+                        }
+                  newv
+            #lambda{newargs, wrap{#multi{*decls, ...}}} with
+               if pp.specials.match:
+                  then: '[match ph: ^body]
+                  else: body
+         other ->
+            a = 'arguments <<: arg
+            #lambda{{}, wrap{body2}} where
+               body2 = ' | match.indexable [^a]:
+                            ^arg -> ^body
+
+
    "->"{match, scope, form, expr} =
       do:
          if form.name:
@@ -473,43 +513,46 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #clause{lhs, rhs}
       other ->
          match expr:
-            #data{#data{*args} and arg, rhs} ->
-               pp = PatternParser{scope, arg, {...}} with
-                  indexable = true
-                  allow_nested = true
-               match pp.pattern:
-                  #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
-                     decls = if{pp.specials.match, {#declare{'ph}}, {}}
-                     newargs = zip{fw, args} each {match, arg} ->
-                        #assign{expr and #symbol{v}} ->
-                           expr
-                        other ->
-                           newv = #symbol{scope.gensym{.temp}} & {env = stdenv}
-                           decls.push with
-                              parse_pattern{scope, arg, newv} with
-                                 pattern_handlers.declare_variables & {
-                                    tags = {declare_mode = .let}
-                                    special = {#special{match} and expr, value} ->
-                                       .match ->
-                                          #assign{'ph}
-                                       other ->
-                                          throw E.syntax.pattern.special with
-                                             "Special token cannot be used here"
-                                             {special = expr}
-                                 }
-                           newv
-                     #lambda{newargs, #multi{*decls, ...}} with
-                        if pp.specials.match:
-                           then: '[match ph: ^rhs]
-                           else: rhs
-                  other ->
-                     a = 'arguments <<: arg
-                     #lambda{{}, body} where
-                        body = ' | match.indexable [^a]:
-                                    ^arg -> ^rhs
+            #data{args, body} ->
+               '_lambda{^args, ^=null, ^body, ^=null}
 
-            #data{#data{*args}, rhs} ->
-               #lambda{args, rhs}
+            ;; #data{#data{*args} and arg, rhs} ->
+            ;;    pp = PatternParser{scope, arg, {...}} with
+            ;;       indexable = true
+            ;;       allow_nested = true
+            ;;    match pp.pattern:
+            ;;       #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
+            ;;          decls = if{pp.specials.match, {#declare{'ph}}, {}}
+            ;;          newargs = zip{fw, args} each {match, arg} ->
+            ;;             #assign{expr and #symbol{v}} ->
+            ;;                expr
+            ;;             other ->
+            ;;                newv = #symbol{scope.gensym{.temp}} & {env = stdenv}
+            ;;                decls.push with
+            ;;                   parse_pattern{scope, arg, newv} with
+            ;;                      pattern_handlers.declare_variables & {
+            ;;                         tags = {declare_mode = .let}
+            ;;                         special = {#special{match} and expr, value} ->
+            ;;                            .match ->
+            ;;                               #assign{'ph}
+            ;;                            other ->
+            ;;                               throw E.syntax.pattern.special with
+            ;;                                  "Special token cannot be used here"
+            ;;                                  {special = expr}
+            ;;                      }
+            ;;                newv
+            ;;          #lambda{newargs, #multi{*decls, ...}} with
+            ;;             if pp.specials.match:
+            ;;                then: '[match ph: ^rhs]
+            ;;                else: rhs
+            ;;       other ->
+            ;;          a = 'arguments <<: arg
+            ;;          #lambda{{}, body} where
+            ;;             body = ' | match.indexable [^a]:
+            ;;                         ^arg -> ^rhs
+
+            ;; #data{#data{*args}, rhs} ->
+            ;;    #lambda{args, rhs}
 
             other ->
                throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
@@ -923,9 +966,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                            {env => other_env} = body
                            it = #symbol{"@"} & {env = other_env}
                            it2 = #symbol{"self"} & {env = other_env}
-                           ' | ^args ->
-                                let [^it = this, ^it2 = this]:
-                                   ^body
+                           ' | _lambda with
+                                ^args
+                                splice: [let ^it = this, let ^it2 = this]
+                                ^body
+                                ^=null
                         other ->
                            other
                      success{_} = #splice{}
