@@ -140,7 +140,7 @@ regexps = {
   ;; Indent
   indent = R'
      start
-     *["\n *;", * not in "\n"]
+     *["\n", *" ", ";", * not in "\n"]
      +["\n", {*" "}]
 
   indent_f = {m} ->

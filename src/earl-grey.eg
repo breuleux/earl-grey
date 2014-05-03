@@ -66,11 +66,15 @@ class Generator:
       ;; variables set by the previous. It also makes all variables
       ;; declared in the top scope mutable (because that's more
       ;; practical in interactive mode)
-      var ex = std.expand{#top
-                          std.topscope
-                          @env.convert{stmt}} where stmt =
+      var ex = std.expand{
+         #top
+         std.topscope
+         @env.convert{stmt}
+      } where stmt =
          if @interactive:
-            then: #interactive{p}
+            then:
+               #multi! {*args} = p
+               #interactive{*args}
             else: #multi{p}
       set ex = opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}

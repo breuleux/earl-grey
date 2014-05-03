@@ -15,26 +15,38 @@ provide:
 usage = "
 usage:
 
+earl run [options] [file] [arguments...]
+  Run the specified file as a script. The arguments are available in
+  process.argv.slice{2} of the script.
+  Options:
+    -e <code>    Run the provided code instead of reading from a file.
+    -p           Print the result of the evaluation to standard out.
+    -i           Start an interactive interpreter after execution
+                 in the global environment of the script.
+
 earl translate <file> [outfile]
   Translate a source file, output to outfile. Without outfile
   specified, print to standard out.
 
 earl translate <directory> <outdir>
   Translate all the .eg files in the specified directory.
-
-earl run [file] [arguments...]
-  Run the specified file as a script.
 "
 
+usage_error{message} =
+   console.error{message}
+   console.error{usage}
+   process.exit{1}
 
-extract_options{clone! argv, opttable} =
+
+extract_options{clone! argv, opttable, optmessage} =
    results = {=}
    var associate = null
 
    process_option{original, opt, last} =
       match opttable[opt]:
          undefined? ->
-            throw E.option{"Unrecognized option: " + original, original}
+            ;; throw E.option{"Unrecognized option: " + original, original}
+            usage_error{"Unrecognized " + optmessage + ": " + original}
          #flag{name} ->
             results[name] = true
          #value{name} when last ->
@@ -128,58 +140,80 @@ evaluator{options} =
       script.runInThisContext{}
 
 
+interactive{g, e} =
+   require: repl
+   g.interactive = true
+   settings = {
+      prompt = "<> "
+      ignoreUndefined = true
+      eval{input, context, filename, callback} =
+         result = [execute{} !! e -> handle{e}] where
+            execute{} =
+               text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
+               e{text}
+            handle{e} =
+               display_error{e}
+               undefined
+         callback{null, result}
+   }
+   runner = repl.start with settings
+   runner.on{.exit} with {} -> runner.outputStream.write{"\n"}
+
+
 run{argv} =
    {opts, cmd} =
-      extract_options{argv, {=}} !!
-         E.option? {opt} ->
-            console.error{"Unknown option:", opt}
-            console.error with usage
-            process.exit{1}
+      extract_options{argv, {=}, "global option"}
    _run{cmd, opts} !!
       e ->
          display_error{e}
-         ;; console.log with e
          process.exit{1}
 
 
 _run{match, opts} =
 
-   {} or {.i or "in" or .interactive} ->
-      require: repl
-      ;; vm.runInThisContext{libdata, "stdin"}
-      g = eg.Generator{true}
-      e = evaluator with {
-         filename = "."
-         showname = "repl"
-         cwd = process.cwd{}
-      }
-      settings = {
-         prompt = "<> "
-         ignoreUndefined = true
-         eval{input, context, filename, callback} =
-            result = [execute{} !! e -> handle{e}] where
-               execute{} =
-                  text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
-                  e{text}
-                  ;; vm.runInThisContext{text, "stdin"}
-               handle{e} =
-                  display_error{e}
-                  ;; console.log{e.stack or e}
-                  undefined
-            callback{null, result}
-      }
-      runner = repl.start with settings
-      runner.on{.exit} with {} -> runner.outputStream.write{"\n"}
+   {} or {.run} ->
+      _run{{.run, "-i"}, opts}
 
-   {.run, _file, *args} ->
-      file = path.resolve{_file}
-      data = fs.readFileSync{file, .utf8}
+   {.run, *rawargs} ->
+
+      {o, rest} = extract_options{rawargs, ..., "option for run"} with {
+         e = #value{.evaluate}
+         eval = #value{.evaluate}
+
+         p = #flag{.print}
+         print = #flag{.print}
+
+         i = #flag{.interactive}
+         interactive = #flag{.interactive}
+      }
+
+      {file, wd, data, args} =
+         if o.evaluate:
+            then:
+               {"<repl>", process.cwd{}, o.evaluate, rest}
+            else:
+               match rest.shift{}:
+                  undefined? when o.interactive ->
+                     {"<repl>", process.cwd{}, "", rest}
+                  undefined? ->
+                     usage_error{"No filename specified."}
+                  path.resolve! file ->
+                     {file, file, data, rest} where
+                        data = fs.readFileSync{file, .utf8}
+
       e = evaluator with {
          filename = file
          showname = file
          cwd = file
       }
-      e with gen{data, file}
+
+      g = eg.Generator{o.interactive}
+      result = e with g.generate{Source{data, file}}
+      if o.print:
+         console.log with result
+      if o.interactive:
+         interactive{g, e}
+
 
    {.tr or .translate, file, *args} ->
 
@@ -275,5 +309,5 @@ _run{match, opts} =
       <> code
 
    other ->
-      console.log with usage
+      console.error with usage
 
