@@ -58,7 +58,7 @@ class Generator:
       @tr = Translator{std.stdprelude}
       @env = std.stdenv.fork{}
       @interactive = interactive
-   generate{source} =
+   generate{source, dump = true} =
       t = tokenize{source}
       p = parse{t}
       ;; #interactive forces declarations into the top scope, which
@@ -78,5 +78,7 @@ class Generator:
             else: #multi{p}
       set ex = opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
-      @tr.dump_store{} + rval
+      if dump:
+         then: @tr.dump_store{} + rval
+         else: rval
 

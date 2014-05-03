@@ -12,29 +12,37 @@ provide:
    run
 
 
-usage = "
-usage:
+usage = "Usage:
+
+earl
+  Start an interactive session.
 
 earl run [options] [file] [arguments...]
   Run the specified file as a script. The arguments are available in
   process.argv.slice{2} of the script.
   Options:
-    -e <code>    Run the provided code instead of reading from a file.
-    -p           Print the result of the evaluation to standard out.
-    -i           Start an interactive interpreter after execution
-                 in the global environment of the script.
+    -e  --eval <code>  Run the provided code instead of reading from a file.
+    -p  --print        Print the result of the evaluation to standard out.
+    -i  --interactive  Start an interactive interpreter after execution
+                       in the global environment of the script.
 
-earl translate <file> [outfile]
-  Translate a source file, output to outfile. Without outfile
-  specified, print to standard out.
-
-earl translate <directory> <outdir>
-  Translate all the .eg files in the specified directory.
+earl compile [options] [file... | dir]
+  Compile the specified source files into .js files. The files will be
+  placed next to the originals.
+  If a directory is given, all .eg files in the directory hierarchy
+  will be compiled. The -o option can be used to compile the files
+  into a different directory (all non-eg files will be copied over).
+  Options:
+    -o  --output <dir>  Output in given directory.
+    -p  --print         Print the compiled JavaScript to standard out.
+                        No files are created.
+    -e  --eval <code>   Compile the provided code instead of reading from a file.
+    -n  --noboil        Don't produce boilerplate code (useful with -p)
 "
 
 usage_error{message} =
-   console.error{message}
    console.error{usage}
+   console.error{message}
    process.exit{1}
 
 
@@ -103,9 +111,9 @@ copy{src, dest} =
    fs.writeFileSync{dest, data, .binary}
 
 
-gen{text, file} =
+gen{text, file, noboil = false} =
    g = eg.Generator{}
-   g.generate{Source{text, path.resolve{file}}}
+   g.generate{Source{text, path.resolve{file}}, not noboil}
 
 
 evaluator{options} =
@@ -158,6 +166,55 @@ interactive{g, e} =
    }
    runner = repl.start with settings
    runner.on{.exit} with {} -> runner.outputStream.write{"\n"}
+
+
+compile_path{p, opts} =
+
+   stats = fs.statSync{p}
+
+   match:
+      when stats.isDirectory{} ->
+         if opts.print:
+            usage_error{"Cannot use --print when compiling a directory"}
+         out = opts.output or p
+         walk{p, "/"} with {*match} ->
+            {.dir, d} ->
+               from = path.join{p, d}
+               if opts.output:
+                  to = path.join{out, d}
+                  fs.mkdirSync{to} !! e -> "ignore error"
+            {.file, match} ->
+               R'[start, {*any}, ".eg", end]! results when results ->
+                  {x, name} = results
+                  from = path.join{p, x}
+                  to = path.join{out, name + ".js"}
+                  data = fs.readFileSync{from, .utf8}
+                  fs.writeFileSync{to} with
+                     gen{data, from, opts.noboil} + "\n"
+               when not opts.output ->
+                  null
+               f ->
+                  ;; copy files if output directory is given
+                  from = path.join{p, f}
+                  to = path.join{out, f}
+                  copy{from, to}
+
+      else ->
+         data = fs.readFileSync{p, .utf8}
+         code = gen{data, p, opts.noboil}
+         match:
+            when opts.print ->
+               require: "js-beautify" -> js as beaut
+               console.log with beaut{code}
+            when opts.output ->
+               fs.writeFileSync{opts.output} with
+                  code + "\n"
+            else ->
+               noext = match p:
+                  R"^(.*).eg$"! {_, name} -> name
+                  name -> name
+               fs.writeFileSync{noext + ".js"} with
+                  code + "\n"
 
 
 run{argv} =
@@ -213,6 +270,42 @@ _run{match, opts} =
          console.log with result
       if o.interactive:
          interactive{g, e}
+
+   {.compile, *rawargs} ->
+
+      {o, rest} = extract_options{rawargs, ..., "option for compile"} with {
+         o = #value{.output}
+         output = #value{.output}
+
+         p = #flag{.print}
+         print = #flag{.print}
+
+         e = #value{.evaluate}
+         eval = #value{.evaluate}
+
+         n = #flag{.noboil}
+         noboil = #flag{.noboil}
+      }
+
+      match rest:
+         when o.evaluate ->
+            code = gen{o.evaluate, "<cli>", o.noboil}
+            match:
+               when o.output ->
+                  fs.writeFileSync{o.output} with
+                     code + "\n"
+               else ->
+                  console.log with code
+         {} ->
+            usage_error{"Must provide at least one file or directory to compile."}
+         {p} ->
+            compile_path{p, o}
+         when o.output ->
+            usage_error with
+               "The -o option cannot be used if more than one file or directory is compiled."
+         {*paths} ->
+            paths each p ->
+               compile_path{p, o}
 
 
    {.tr or .translate, file, *args} ->
@@ -296,18 +389,19 @@ _run{match, opts} =
    ;;    console.log with eval{code}
    ;;    <> eval{code}
 
-   {.runs, data} ->
-      code = gen{data, "<command>"}
-      ;; console.log with code
-      ;; console.log with eval{code}
-      <> eval{code}
+   ;; {.runs, data} ->
+   ;;    code = gen{data, "<command>"}
+   ;;    ;; console.log with code
+   ;;    ;; console.log with eval{code}
+   ;;    <> eval{code}
 
-   {.trs, data} ->
-      code = gen{data, "<command>"}
-      ;; console.log with code
-      ;; console.log with eval{code}
-      <> code
+   ;; {.trs, data} ->
+   ;;    code = gen{data, "<command>"}
+   ;;    ;; console.log with code
+   ;;    ;; console.log with eval{code}
+   ;;    <> code
 
-   other ->
-      console.error with usage
+   stuff ->
+      usage_error with
+         "Invalid use. Did you mean: earl run " + stuff.join{" "}
 
