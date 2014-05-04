@@ -7,6 +7,7 @@ require:
    "./util" as util ->
       GenSym
       neighbours
+      classify_contiguous
    "./pattern" ->
       PatternParser, PatternProcessor
       parse_pattern, parse_clauses
@@ -467,8 +468,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "_lambda"{context, scope, form, #data{#data{*args} and arg, pre, body, post}} =
       wrap{body2} =
-         if{post == #value{null}, body3, #multi{body3, post}} where
-            body3 = if{pre == #value{null}, body2, #multi{pre, body2}}
+         if{pre == #value{null}, body3, #multi{pre, body3}} where
+            body3 = if{post == #value{null}, body2, #multi{body2, post}}
       pp = PatternParser{scope, arg, {...}} with
          indexable = true
          allow_nested = true
@@ -648,6 +649,45 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                     {x} -> 'acc.push{^x}, '[acc = {}], 'acc
                     {fallback = {target} -> 'false}}
 
+   "try"{match, scope, form, #data{#multi! {*parts}}} =
+      do:
+         grouped = classify_contiguous{parts} with {match} ->
+            '[finally: ^b] -> .finally
+            '[^e -> ^b] -> .clause
+            other -> .stmt
+         {stmts, clauses, finally} = match grouped:
+            {#stmt{*a}, #clause{*b}, #finally{'[finally: ^c]}} ->
+               {a, b, c}
+            {#stmt{*a}, #clause{*b}} ->
+               {a, b, null}
+            {#stmt{*a}, #finally{'[finally: ^c]}} ->
+               {a, {}, c}
+            otherwise ->
+               throw E.syntax.try{msg, {node = form}} where
+                  msg = {"try expects a list of statements"
+                         "and one or more catch clauses and/or"
+                         "a finally clause"}.join{" "}
+
+      #expr{.multi} ->
+         #nostep{form}
+      #expr{.ignore} ->
+         clauses.push with
+            mkstdenv{}.convert{'[e -> throw e]}
+         #js_try{#multi{*stmts}, ..., finally or #void{}} with
+            ' | {excv} ->
+                 ^ | parse_clauses with
+                      scope, 'excv, clauses
+                      {wrap = {x} -> x}
+      other ->
+         clauses.push with
+            mkstdenv{}.convert{'[e -> throw e]}
+         ' | let [rval = false]:
+              ^ #js_try{'[set rval = ^[#multi{*stmts}]], ..., finally or #void{}} with
+                 ' | {excv} ->
+                      ^ | parse_clauses with
+                           scope, 'excv, clauses
+                           {wrap = {x} -> '[set rval = ^x]}
+              rval
 
    "!!"{match, scope, form, #data{expr, #multi! {*clauses}}} =
       #expr{.multi} ->
@@ -976,13 +1016,22 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                      success{_} = #splice{}
                   }
 
-         {var ctor_args, ctor_body} = ctor
-         set ctor_body =
+         {ctor_args, ctor_body} = ctor
+         ctor_expr =
             {env => env2} = ctor_body
             it = #symbol{"@"} & {env = env2}
-            ' | let [^it = if{not [^name]? this, Object.create{[^name].prototype}, this}]:
+            ' | _lambda with
+                 ^ctor_args
+                 ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
                  ^ctor_body
                  ^it
+
+         ;; set ctor_body =
+         ;;    {env => env2} = ctor_body
+         ;;    it = #symbol{"@"} & {env = env2}
+         ;;    ' | let [^it = if{not [^name]? this, Object.create{[^name].prototype}, this}]:
+         ;;         ^ctor_body
+         ;;         ^it
 
          #symbol{name_str} = name
          statics.push with
@@ -992,7 +1041,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
          node =
             #splice with
-               ' | ^name = ^ctor_args -> ^ctor_body
+               ' | ^name = ^ctor_expr
+               ;; ' | ^name = ^ctor_args -> ^ctor_body
                ' | ^*new_stmts
                ' | [^name] &: ^statics
                ' | ^name

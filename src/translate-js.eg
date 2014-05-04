@@ -439,13 +439,18 @@ class Translator:
                      b = @translate{y, .expr}
                      c = @translate{body, .stmt}
 
-         #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body}, #void{}} ->
-            match mode:
+         #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body}, finally} ->
+            r = match mode:
                .expr -> @body{expr, .expr}
                other ->
                   "try{" + a + "}catch(" + v + "){" + b + "}" where
                      a = @translate{attempt, .stmt}
                      b = @translate{body, .stmt}
+            match finally:
+               #void{} ->
+                  r
+               other ->
+                  r + "finally{" + @translate{other, .stmt} + "}"
 
          #raw{x} -> x
 
