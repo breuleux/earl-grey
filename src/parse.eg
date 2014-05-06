@@ -494,7 +494,7 @@ finalize{match token} =
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
                #data{*args} ->
                    tr = this
-                   res = #data
+                   var res = #data
                    args each
                       #symbol{"..."} -> [set inserted = true, res ++= body]
                       other -> res.push with [tr{other} <<: other]

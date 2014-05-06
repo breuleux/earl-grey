@@ -133,7 +133,7 @@ partition{xs, predicate} =
 
 
 product{a, b} =
-   results = {}
+   var results = {}
    a each x ->
       results ++=
          b each y -> {x, y}

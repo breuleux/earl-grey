@@ -233,9 +233,9 @@ class Expander:
    ;;    return a new list of expressions.
    
    step_all{context, scope, {*[var stmts]}} =
-      pre = {}
-      bulk = {}
-      post = {}
+      var pre = {}
+      var bulk = {}
+      var post = {}
       while stmts.length:
          current = stmts.shift{}
          match @step{context, scope, current}:
@@ -326,17 +326,21 @@ class Expander:
                         #ignore
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
-                        v = #variable{@gensym{s}} <<: variable
-                        v &: {mutable = expr.all_mutable or variable.mutable}
-                        env.bind{newscope, s} with v
-                        set changes = true
-                        if value:
+                        if variable.use_previous and env.resolve{newscope, s}:
                            then:
-                              #splice with
-                                 #newargs{#assign{v, value}}
-                                 #vars{v}
+                              #splice{}
                            else:
-                              #vars{v}
+                              v = #variable{@gensym{s}} <<: variable
+                              v &: {mutable = expr.all_mutable or variable.mutable}
+                              env.bind{newscope, s} with v
+                              set changes = true
+                              if value:
+                                 then:
+                                    #splice with
+                                       #newargs{#assign{v, value}}
+                                       #vars{v}
+                                 else:
+                                    #vars{v}
                      #declare{v and #variable{_}, value = null} ->
                         set changes = true
                         if value:
@@ -345,7 +349,12 @@ class Expander:
                                  #newargs{#assign{v, value}}
                                  #vars{v}
                            else:
-                              #vars{v}                     
+                              #vars{v}
+                     #undeclare{#symbol{s} and variable} ->
+                        {=> env} = variable
+                        env.bind{newscope, s} with undefined
+                        set changes = true
+                        #ignore
                      other ->
                         #newargs{other}
                exp{s} =
@@ -415,8 +424,27 @@ class Expander:
                helper{context, scope, @mkenv{}.convert{r}}
    
             #assign{target, value} ->
-               #assign with
-                  helper{#expr{.expr}, scope, target}
+               t = helper{#expr{.expr}, scope, target}
+               match t:
+                  #variable when [not t.mutable
+                                  \ and t.assigned
+                                  \ and t.assigned.group_id !== target.group_id] ->
+                     throw E.syntax{msg, {variable = target, loc = t.assigned}} where
+                        msg = {"Variable was declared as read-only. Declare it as"
+                               "mutable at the origin with `var` (if you have access"
+                               "to the declaration) or declare a new variable with"
+                               "`let` or `var` or remove the original binding with"
+                               "`delete`"}.join{" "}
+                  ;; #variable when [not t.mutable and t.assigned] ->
+                  ;;    console.log with {target, t.assigned.group_id}
+                  #macro ->
+                     throw E.syntax{msg, {variable = target}} where
+                        msg = {"This variable is a macro and cannot be assigned to."
+                               "Use `let` to redeclare it or `delete` to undeclare it"}.join{" "}
+                  otherwise ->
+                     t.assigned = target
+
+               #assign{t} with
                   helper{#expr{.expr}, scope, value}
    
             #lambda{bindings, body} ->

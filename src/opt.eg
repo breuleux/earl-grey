@@ -63,7 +63,7 @@ hoist_helper{match expr} =
       ;; Hoistable nodes. We assume that all the members of the node
       ;; are expressions, so we accumulate hoistable variables from
       ;; all of them.
-      accum = {}
+      var accum = {}
       newargs = args each arg ->
          {b, inner} = hoist_helper{arg}
          accum ++= inner

@@ -126,14 +126,16 @@ results = blocktest:
 
    "Regular expressions" =>
 
-      do: re = R"ab*a"
+      do:
+         var re = R"ab*a"
       [{...} each s -> re? s] with
          "aa", "aba", "abba", "aadvark", "cabbage"
       [{...} each s -> not re? s] with
          "a", "bachi", "bouzouk"
       "cabbage".replace{re, "arria"} === "carriage"
 
-      do: re = R'[start, +"a", {+"b"}, "a", end]
+      do:
+         re = R'[start, +"a", {+"b"}, "a", end]
       ;; TODO: REACTIVATE
       ;; [{...} each re! {_, s} -> R"b+"? s] with
       ;;    "abba", "abbbbbba", "aaaaaba"

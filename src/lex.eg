@@ -141,7 +141,7 @@ regexps = {
   ;; `operator`
   op4 = R'
      start
-     "`", {+ in "A-Za-z0-9_"}, "`"
+     "`", {+ in "A-Za-z0-9_$"}, "`"
 
   op_f = {m, column} ->
      let op = m[1] or m[0]
@@ -305,7 +305,7 @@ indent_tracker{} =
 
 process_indent{stream} =
    tracker = indent_tracker{}
-   results = {}
+   var results = {}
    stream each token ->
       results ++= tracker{token}
    results ++ tracker{#EOF}
@@ -364,7 +364,7 @@ disambiguate_fixity{stream} =
       set buffer = {}
       rval
 
-   results = {}
+   var results = {}
 
    stream each match token ->
 

@@ -25,7 +25,9 @@ class PatternParser:
       @arguments = {}
       @vars = {}
       @specials = {=}
-      @pattern = @expand{scope, pattern, opt.tags or {=}, true, @opt.indexable}
+      tags = clone{opt.tags or {=}}
+      tags.group_id or= gensym{.group}
+      @pattern = @expand{scope, pattern, tags, true, @opt.indexable}
 
    parse_specs{scope, specs, tags} =
       var rest = undefined
@@ -413,7 +415,7 @@ same_block{match, ban1, ban2} =
 
 parse_clauses{scope, target, stmts, opt} =
 
-   all_temps = {}
+   var all_temps = {}
 
    the_parts = scope.step_all{#clause, stmts} each
 
@@ -471,7 +473,7 @@ parse_clauses{scope, target, stmts, opt} =
       the_parts.push with #block{opt.fallback{target}}
    unique_temps = keys{util.mkset{all_temps each #symbol{t} -> t}}
    #multi{*decls, weave_clauses{the_parts}} where
-      decls = unique_temps each t -> #declare{#symbol{t}}
+      decls = unique_temps each t -> #declare{#symbol{t} &: {mutable = true}}
 
 
 opt_clauses{clauses} =
@@ -525,8 +527,8 @@ weave_clauses{parts} =
 
    groups = classify_contiguous{parts} with {{cls, *}} -> cls
 
-   reassemble = {}
-   new_temps = {}
+   var reassemble = {}
+   var new_temps = {}
    groups each
       #clause{*elems} ->
          {ts, new_clauses} = opt_clauses{elems}
@@ -544,7 +546,13 @@ weave_clauses{parts} =
          '[^*body, ^helper{rest}]
 
       {#clause{vars, varsd, blocks, body}, *rest} ->
-         decls = vars each v -> #declare{v}
+         decls = vars each v -> ;;#declare{v}
+            match v.declare_mode:
+               .set -> #splice{}
+               .let -> #declare{v & {mutable = false}}
+               .var -> #declare{v & {mutable = true}}
+               .unqualified or undefined? ->
+                  #declare{v & {mutable = false}}
          #tagscope{.back} with
             ' | ^*decls
               | ^ | assemble_pattern with

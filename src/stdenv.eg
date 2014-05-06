@@ -56,7 +56,7 @@ expand = expander.expand.bind{expander}
 topscope = Scope{null, .top, expander}
 
 
-[{...} each k -> stdenv.bind{topscope, k, #variable{k}}] with
+[{...} each k -> stdenv.bind{topscope, k, #variable{k} & {mutable = false, assigned = true}}] with
    "+", "-", "*", "/", "mod"
    "&.", "|.", "^."
    "and", "or", "not"
@@ -188,7 +188,7 @@ pattern_handlers = {
       allow_nested = true
       allow_arguments = true
       special = disregard_specials
-      assign{match v, value, tags} =
+      assign{match v, value} =
          #symbol{name} ->
             #do{#assign{v, value &: {name = name}} <<: v}
          v ->
@@ -202,14 +202,15 @@ pattern_handlers = {
                .let -> #declare{v & {mutable = false}}
                .var -> #declare{v & {mutable = true}}
                .unqualified ->
-                  match v.env.resolve{scope, v[1]}:
-                     undefined? ->
-                        #declare{v & {mutable = false}}
-                     {mutable => true?} ->
-                        #splice{}
-                     other ->
-                        throw E.syntax.redeclaring{msg, {variable = v}} where
-                           msg = "Variable was declared read-only. Declare with 'var' to make it mutable."
+                  #declare{v & {mutable = false, use_previous = true}}
+                  ;; match v.env.resolve{scope, v[1]}:
+                  ;;    undefined? ->
+                  ;;       #declare{v & {mutable = false}}
+                  ;;    {mutable => true?} ->
+                  ;;       #splice{}
+                  ;;    other ->
+                  ;;       throw E.syntax.redeclaring{msg, {variable = v}} where
+                  ;;          msg = "Variable was declared read-only. Declare with 'var' to make it mutable."
       success{_} = #multi{}
       failure{target} =
          match_error{target}
@@ -275,7 +276,7 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, opt} =
    m = 'm <<: form ;; transfer location, for error printing purposes
    ' | ^pre
      | let [temp = ^li, ^len = temp.length]:
-        for[^lbl] [let ^i = 0, ^i < ^len, ^i++]:
+        for[^lbl] [var ^i = 0, ^i < ^len, ^i++]:
            ^m = ___js_fetch{temp, ^i}
            ^ | parse_clauses with
                 newscope, m, clauses
@@ -646,7 +647,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ;; order to return them. Right now, this plays poorly with
          ;; break and continue.
          build_loop{scope, env, form, li, clauses
-                    {x} -> 'acc.push{^x}, '[acc = {}], 'acc
+                    {x} -> 'acc.push{^x}, '[var acc = {}], 'acc
                     {fallback = {target} -> 'false}}
 
    "try"{match, scope, form, #data{#multi! {*parts}}} =
@@ -681,7 +682,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       other ->
          clauses.push with
             mkstdenv{}.convert{'[e -> throw e]}
-         ' | let [rval = false]:
+         ' | let [var rval = false]:
               ^ #js_try{'[set rval = ^[#multi{*stmts}]], ..., finally or #void{}} with
                  ' | {excv} ->
                       ^ | parse_clauses with
@@ -703,7 +704,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       other ->
          clauses.push with
             mkstdenv{}.convert{'[e -> throw e]}
-         ' | let [rval = false]:
+         ' | let [var rval = false]:
               ^ #js_try{'[set rval = ^expr], ..., #void{}} with
                  ' | {excv} ->
                       ^ | parse_clauses with
@@ -825,8 +826,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    expr_mac! "new"{scope, form, arg} =
       #js_new{arg}
 
-   expr_mac! "delete"{scope, form, arg} =
-      #js_delete{arg}
+   "delete"{context, scope, form, match arg} =
+      #symbol{s} ->
+         #undeclare{arg}
+      other ->
+         #js_delete{other}
 
    "splice"{context, scope, form, #data{#multi! {*stmts}}} =
       #splice{*stmts}
@@ -986,7 +990,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "class"{context, scope, {=> env}, expr} =
 
       helper{name, stmts} =
-         statics = #data{'[=]}
+         var statics = #data{'[=]}
          var ctor = {#data{}, #multi{} & {env = env}}
          new_stmts = stmts each
             #send{'static, #data{#multi! {*methods}}} ->
@@ -1056,7 +1060,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #data{#multi! {*stmts}} ->
             helper{#symbol{scope.gensym{}}, stmts}
 
-   "%"{context, scope, form, #data{descr, contents}} =
+   "%"{context, scope, form, #data{descr, var contents}} =
       tags = #data{}
 
       parse{match toparse} =
@@ -1129,7 +1133,7 @@ blocktest_mac{scope, tests} =
          ' | let [label = label.concat{^lbl}]:
               ^blocktest_wrap{expr}
 
-   ' | let [acc = {}]:
+   ' | let [var acc = {}]:
         [[...] !! e -> acc.concat{{#error{label, e}}}] with
            [^*stmts, acc]
 

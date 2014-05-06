@@ -185,7 +185,7 @@ class Translator:
          #void{} ->
             @expr{"null", mode}
 
-         #value{v} ->
+         #value{var v} ->
             r = match v:
                String? ->
                   repl = {
