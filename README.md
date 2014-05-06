@@ -40,15 +40,30 @@ argument(s).
     {1, 2, 3}.map{{x} -> ...} with x * x
     ;; {1, 4, 9}
 
-**Declare variables** with the `=` operator. **Assign** to them with
-the `:=` operator
+**Declare variables** with the `=` operator **var** for mutable,
+**let** for immutable.
 
-    x = 12
-    y = 13
-    x := -3
+    var x = 12
+    let y = 13
+    x = -3
     console.log with x + y ;; 10
 
-**Blocks** are defined three different ways. Using `[]`:
+You can declare a variable directly with `var = value` if there is no
+existing variable called `var` in scope. By default, variables
+declared that way will be read-only.
+
+    foo = 1234
+    foo = 5678 ;; error: the foo variable is read only
+
+Note: for convenience's sake, all variables declared in an interactive
+prompt are mutable.
+
+
+**Blocks** are sequences of statements, the last of which is
+returned. Statements are separated by commas or newlines (semicolons
+start comments) There are three different ways to make blocks.
+
+Using `[]`:
 
     f{} = [this_is, a{block}]
 
@@ -65,24 +80,28 @@ Or using "|":
 
 **Conditionals**: `if` statements:
 
-    if [x > 0]:
+    if x > 0:
        console.log with "x is positive"
 
 If you need an `else` clause, you have to put it *in* the body of if,
 like this:
 
-    if [x < 0]:
+    if x < 0:
        console.log with "x is positive"
        else:
           console.log with "x is non-positive"
 
-For symmetry you can encapsulate the positive branch with `then`:
+For readability you can encapsulate the positive branch with `then`:
 
-    if [x < 0]:
+    if x < 0:
        then:
           console.log with "x is positive"
        else:
           console.log with "x is non-positive"
+
+`if` can be written in expression form:
+
+    if{x > 0, "positive", "not positive"}
 
 If you need to write many conditions, you would better use the `match`
 construct instead:
@@ -91,10 +110,6 @@ construct instead:
        when x > 0 -> "x is positive"
        when x < 0 -> "x is negative"
        otherwise -> "x is zero"
-
-`if` can be written in expression form:
-
-    if{x > 0, "positive", "not positive"}
 
 
 **Data structures** are defined using braces
@@ -140,8 +155,8 @@ In general, `obj[msg] <=> obj msg <=> [obj]msg`. In particular,
 
 For **looping** there is `while`:
 
-    x = 3
-    while [x > 0]:
+    var x = 3
+    while x > 0:
        x--
 
 To loop over lists use the `each` operator:
@@ -160,7 +175,8 @@ The `each` operator also serves for list comprehensions:
 
 ## Let and where
 
-You can define temporary variables with **let**:
+You can define temporary variables for a block with the following form
+of **let**:
 
     let [x = 1, y = 2]:
        x + y
@@ -172,12 +188,13 @@ Alternatively, you can use **where**:
        y = 2
 
 `where` is a good way to define callback functions in the middle of an
-expression. For instance, `setTimeout` takes a timeout argument
-*after* the callback, which is awkward. You also get to name the
-function so that you can call it recursively.
+expression. For instance, `setTimeout` in JavaScript takes a timeout
+argument *after* the callback, which is awkward. `where` makes it look
+better (though you can also use `with` in this instance):
 
     setTimeout{f, 1000} where f{} =
        alert{"I am a good pop-up, don't close me!"}
+
 
 
 ## Optional type annotations
@@ -259,10 +276,16 @@ Note that EG requires an exact argument count:
 `var*` can be used to catch the remainder of arguments regardless of
 where it is located
 
-    {x, rest*} = {1, 2, 3, 4}    ;; x is 1, rest is {2, 3, 4}
-    {rest*, x} = {1, 2, 3, 4}    ;; x is 4, rest is {1, 2, 3}
-    {x, rest*, y} = {1, 2, 3, 4} ;; x is 1, y is 4, rest is {2, 3}
-    {x, *, y} = {1, 2, 3, 4}     ;; throw away the remainder
+    {x, rest*} = {1, 2, 3, 4}     ;; x is 1, rest is {2, 3, 4}
+    {rest*, x} = {1, 2, 3, 4}     ;; x is 4, rest is {1, 2, 3}
+    {x, rest*, y} = {1, 2, 3, 4}  ;; x is 1, y is 4, rest is {2, 3}
+    {x, *, y} = {1, 2, 3, 4}      ;; throw away the remainder
+
+You can extract object properties too:
+
+    {=> x, => y} = {y = 1, x = 2} ;; x is 2, y is 1
+    {=> x} = {y = 1, x = 2}       ;; x is 2; you don't have to extract all properties
+    {foo => x} = {foo = 1234}     ;; x is 1234
 
 You can of course combine deconstruction with type checks and with
 coercion, to interesting effects:
@@ -371,24 +394,34 @@ The feature also works for rest arguments:
 ## Exception handling
 
 **Exceptions** are thrown with the `throw` operator, and caught with
-the `!!` operator.
+`try`:
 
     bad{} = throw TypeError{"I'm bad!"}
 
-    x = bad{} !! 555
+    x =
+       try:
+          bad{}
+          error ->
+             555
+    ;; x is 555
+
+Alternatively, you can use the `!!` operator.
+
+    x = bad{} !! error -> 555
     ;; x is 555
 
 The full power of EG's pattern matcher is at your disposal. This means
 you can easily catch a specific kind of error:
 
-    x = bad{} !! TypeError? e -> e
+    x =
+       try:
+          bad{}
+          TypeError? e -> e
+          ReferenceError? e -> e
+          finally:
+             ;; code to execute no matter what
     ;; x is a reference to a TypeError
 
-You can have multiple catch clauses to catch multiple kinds of error
-
-    bad{} !!
-       TypeError? e -> ...
-       ReferenceError? e -> ...
 
 ### Ad hoc exceptions
 
@@ -439,26 +472,11 @@ of evaluating each statement in the body:
 
 is equivalent to
 
-    _temp = {1, 2, 3}
-    _temp := _temp.concat with {4, 5}
-    _temp := _temp.reverse{}
-    _temp := {7, 6}.concat{_temp}
-    _temp
-
-If this is more practical for you, you can choose a different operator
-or variable for the chaining (the square brackets are needed):
-
-    chain [{1, 2, 3} as /]:
-        /concat with {4, 5}
-        /reverse{}
-        {7, 6}.concat{/}
-    ;; {7, 6, 5, 4, 3, 2}
-
-    chain [{1, 2, 3} as x]:
-        x.concat with {4, 5}
-        x.reverse{}
-        {7, 6}.concat{x}
-    ;; {7, 6, 5, 4, 3, 2}
+    [var _temp = {1, 2, 3}
+     _temp = _temp.concat with {4, 5}
+     _temp = _temp.reverse{}
+     _temp = {7, 6}.concat{_temp}
+     _temp]
 
 
 ## Defining operators
@@ -490,8 +508,7 @@ simply write:
 (Not as of yet) you can redefine virtually any operator. For instance,
 you can change the meaning of addition:
 
-    x + y = x - y
-
+    let x + y = x - y
     88 + 18 ;; 70
 
 This change won't leak outside of the scope of the declaration, so
@@ -515,11 +532,6 @@ sorts. Here's an example use:
     calc with #div{#add{1, 13}, #sub{2}}       ;; -7
     calc with {.div, {.add, 1, 13}, {.sub, 2}} ;; -7, same thing
 
-A struct label can also act as a coercer:
-
-    #foo! #foo{1, 2}   ;; #foo{1, 2}
-    #foo! 1            ;; #foo{1}
-
 
 ## Classes
 
@@ -533,8 +545,8 @@ Example:
 
     class Person:
        constructor{String? name, Number! age} =
-          @name := name
-          @age := age
+          @name = name
+          @age = age
        describe{} =
           @name + ":" + [String! @age]
        describe2{} =
@@ -560,17 +572,15 @@ behaves with respect to pattern matching.
           "::check"{p} = p.name and p.age
           ;; convert to Person
           "::project"{p} = Person{p.name, p.age}
-          ;; used for deconstructing assignment/matching
-          "::deconstruct"{p} = {p.name, p.age}
-       constructor{name, age} =
-          @name := name
-          @age := age
+       constructor{@name, @age} =
+          ;; The line above is a shortcut for setting @name and @age to
+          ;; the arguments of the constructor.
+          pass ;; pass means: "do nothing"
 
     Person? {name = .quentin, age = 91}   ;; yes
     Person? Person{null, null}            ;; nope
     Person! {name = .quentin, age = 91}   ;; creates a Person
-    Person? {a, b} = {name = .quentin, age = 91}
-    ;; a is "quentin", b is 91
+
 
 ## Regular expressions
 
@@ -598,7 +608,7 @@ Examples:
     R'any                      ==> /./
     R'[start, *"a", end]       ==> /^a*$/
     R'["'", * not in "'", "'"] ==> /'[^']*'/
-    R'[start, raw "." or end]  ==> /^(?:.|$)/
+    R'[start, [raw "."] or end]  ==> /^(?:.|$)/
 
 The operators are prefix to make blocks more natural to write. Note
 that `|` does not mean "or".
@@ -809,12 +819,12 @@ user code: even if they have the same names, they are invisible to
 each other. For instance, the following macro swaps two variables:
 
     macro [<=>]{*, #data{a, b}}:
-       '[temp = ^a, ^a := ^b, ^b := temp]
+       '[temp = ^a, ^a = ^b, ^b = temp]
 
 You can use the macro like this:
 
-    temp = 1
-    z = 2
+    var temp = 1
+    var z = 2
     temp <=> z
     ;; temp is now 2, z is now 1
 
@@ -822,16 +832,16 @@ Now, if it was only a matter of straight subsitution, the above would
 translate to
 
     temp = temp
-    temp := temp
-    z := temp
+    temp = temp
+    z = temp
 
 Of course, that wouldn't work. Thankfully, EG keeps track of the
 environment each variable is defined and produces something like this
 instead, which will work just fine.
 
     temp$0 = temp
-    temp := z
-    z := temp$0
+    temp = z
+    z = temp$0
 
 Essentially, every node in the AST is associated to an
 *environment*. All of the user's source code belongs to the specific
@@ -867,12 +877,12 @@ generating `var = value`.
        nums = {'zero, 'one, 'two, 'three, 'four
                'five, 'six, 'seven, 'eight, 'nine}
        decls = enumerate{nums} each {i, v} ->
-          v.env := body.env
+          v.env = body.env
           '[^v = ^=i]
        '[^*decls, ^body]
 
 Feel free to play around with the code, and notice that removing the
-`v.env := body.env` line causes a reference error on the variable
+`v.env = body.env` line causes a reference error on the variable
 `three`. That is because by default our variables would be
 instantiated in a fresh environment that user code cannot see.
 
