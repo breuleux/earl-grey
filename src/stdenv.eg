@@ -37,7 +37,7 @@ mkid = GenSym{"#"}
 
 class Embedded:
    constructor{code} =
-      @code = mkstdenv{}.convert{code}
+      @code = mkstdenv{}.mark{code}
       @"::id" = mkid{}
    "::serialize_ast"{} =
       expand{#top, topscope, @code}
@@ -673,7 +673,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #nostep{form}
       #expr{.ignore} ->
          clauses.push with
-            mkstdenv{}.convert{'[e -> throw e]}
+            mkstdenv{}.mark{'[e -> throw e]}
          #js_try{#multi{*stmts}, ..., finally or #void{}} with
             ' | {excv} ->
                  ^ | parse_clauses with
@@ -681,7 +681,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                       {wrap = {x} -> x}
       other ->
          clauses.push with
-            mkstdenv{}.convert{'[e -> throw e]}
+            mkstdenv{}.mark{'[e -> throw e]}
          ' | let [var rval = false]:
               ^ #js_try{'[set rval = ^[#multi{*stmts}]], ..., finally or #void{}} with
                  ' | {excv} ->
@@ -695,7 +695,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #nostep{form}
       #expr{.ignore} ->
          clauses.push with
-            mkstdenv{}.convert{'[e -> throw e]}
+            mkstdenv{}.mark{'[e -> throw e]}
          #js_try{expr, ..., #void{}} with
             ' | {excv} ->
                  ^ | parse_clauses with
@@ -703,7 +703,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                       {wrap = {x} -> x}
       other ->
          clauses.push with
-            mkstdenv{}.convert{'[e -> throw e]}
+            mkstdenv{}.mark{'[e -> throw e]}
          ' | let [var rval = false]:
               ^ #js_try{'[set rval = ^expr], ..., #void{}} with
                  ' | {excv} ->

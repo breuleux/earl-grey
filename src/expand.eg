@@ -63,6 +63,14 @@ class Env:
    constructor{} =
       @scopes = {=}
 
+   list_bindings{origin} =
+      values = {=}
+      var scope = origin
+      while scope:
+         values &: @scopes[scope.name]
+         scope = scope.parent
+      values
+
    resolve{scope, name} =
       if [scope === null]:
          return undefined
@@ -76,14 +84,14 @@ class Env:
          @scopes[scope.name] = {=}
       @scopes[scope.name][name] = value
 
-   convert{expr} =
+   mark{expr} =
       match expr:
          {env => e} ->
             expr
          #symbol or #value or #variable or #macro or #void ->
             expr &: {env = [@]}
          {type, *args} ->
-            args each arg -> @convert{arg}
+            args each arg -> @mark{arg}
             expr &: {env = [@]}
          other ->
             expr &: {env = [@]}
@@ -152,7 +160,7 @@ class Expander:
          e ->
             throw e
 
-      @mkenv{}.convert{rval}
+      @mkenv{}.mark{rval}
 
 
    ;; Perform one step of expansion.
@@ -228,7 +236,7 @@ class Expander:
    ;; #sink{expr} -> sinks the expression to the bottom. If multiple sinks
    ;;    are found, the first occurrences will be higher up
    
-   ;; #multimacro{m} -> m is a macro that should take the remaining
+   ;; #restmacro{m} -> m is a macro that should take the remaining
    ;;    expressions in the list (those that come after itself), and
    ;;    return a new list of expressions.
    
@@ -245,8 +253,10 @@ class Expander:
                pre ++= @step_all{context, scope, {stmt}}
             #sink{stmt} ->
                post ++= @step_all{context, scope, {stmt}}
-            #multimacro{m} ->
-               set stmts = m{context, scope, current, stmts}
+            #restmacro{m} ->
+               e = @mkenv{}
+               set stmts = m{stmts} each
+                  stmt -> e.mark{stmt}
             x ->
                bulk.push with x
       [pre ++ bulk] ++ post
@@ -421,7 +431,7 @@ class Expander:
                   other ->
                      util.construct{arr_parts.reverse{}, ..., #array{}} with
                         {x, rest} -> '[^rest].concat{^x}
-               helper{context, scope, @mkenv{}.convert{r}}
+               helper{context, scope, @mkenv{}.mark{r}}
    
             #assign{target, value} ->
                t = helper{#expr{.expr}, scope, target}
@@ -437,10 +447,11 @@ class Expander:
                                "`delete`"}.join{" "}
                   ;; #variable when [not t.mutable and t.assigned] ->
                   ;;    console.log with {target, t.assigned.group_id}
-                  #macro ->
-                     throw E.syntax{msg, {variable = target}} where
-                        msg = {"This variable is a macro and cannot be assigned to."
-                               "Use `let` to redeclare it or `delete` to undeclare it"}.join{" "}
+                  #macro{m} ->
+                     #bounce with m{#assign{}, scope, expr, value}
+                     ;; throw E.syntax{msg, {variable = target}} where
+                     ;;    msg = {"This variable is a macro and cannot be assigned to."
+                     ;;           "Use `let` to redeclare it or `delete` to undeclare it"}.join{" "}
                   otherwise ->
                      t.assigned = target
 

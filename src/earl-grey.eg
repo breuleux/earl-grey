@@ -24,7 +24,7 @@ version = "zero"
 generate_from_ast{ast} =
    var ex = std.expand{#top
                        std.topscope
-                       std.stdenv.fork{}.convert{#multi{ast}}}
+                       std.stdenv.fork{}.mark{#multi{ast}}}
    set ex = opt.hoist{ex}
    tr = Translator{}
    rval = tr.translate{ex, .expr}
@@ -36,12 +36,20 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
          {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
          mac = eval{prep + ";("+code+")"}
          mac2{c, s, f, e} =
-            ;; We bind the macro's name in the environment of what it
-            ;; returns; that way it can call itself recursively
-            env = scope.expander.mkenv{}
-            env.bind{scope, sym, #macro{mac2}}
+            ;; ;; We bind the macro's name in the environment of what it
+            ;; ;; returns; that way it can call itself recursively
+            ;; env = scope.expander.mkenv{}
+            ;; env.bind{scope, sym, #macro{mac2}}
+            ;; r = mac{c, s, f, e}
+            ;; env.mark{r}
+
+            bindings = form.env.list_bindings{scope}
+            ;; console.log with bindings
+            env = exp.Env{}
+            env.scopes[std.topscope.name] = bindings
             r = mac{c, s, f, e}
-            env.convert{r}
+            env.mark{r}
+
          #declare_raw{name, #macro{mac2}}
 
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
@@ -71,7 +79,7 @@ class Generator:
       var ex = std.expand{
          #top
          std.topscope
-         @env.convert{stmt}
+         @env.mark{stmt}
       } where stmt =
          if @interactive:
             then:

@@ -244,7 +244,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       ;; wjuxt   = {#all{1002}, #all{1001}}
       ;; colon   = {#all{1001}, #all{2}}
 
-      wjuxt   = {#all{13}, #all{12}}
+      wjuxt   = {#wjuxt{13}, #all{12}}
       colon   = {#all{12}, #all{10}}
 
       sjuxt   = {#all{2000}, #all{2001}}
@@ -526,7 +526,10 @@ finalize{match token} =
                           | other -> true
 
             result = match args:
-               {} -> #value{undefined}
+               {} ->
+                  ;; #void{}
+                  ;; #value{undefined}
+                  #multi{}
                ;; throw ["At least one expression must be enclosed in []"]
                {x} ->
                   ;; Force x's location to include its surrounding []s
