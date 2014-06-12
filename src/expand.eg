@@ -24,11 +24,16 @@ provide:
 
 class Scope:
 
-   constructor{parent = null, name = null, expander = null} =
-      @name = name or gensym{"scope"}
-      @parent = parent
+   ;; constructor{parent = null, name = null, expander = null} =
+   ;;    @name = name or gensym{"scope"}
+   ;;    @parent = parent
+   ;;    @options = {=}
+   ;;    @expander = expander or parent.expander
+
+   constructor{@parent = null
+               @name = gensym{"scope"}
+               @expander = @parent.expander} =
       @options = {=}
-      @expander = expander or parent.expander
 
    getopt{opt} =
       match:

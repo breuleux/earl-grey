@@ -989,7 +989,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "class"{context, scope, {=> env}, expr} =
 
-      helper{name, stmts} =
+      helper{name, super, stmts} =
          var statics = #data{'[=]}
          var ctor = {#data{}, #multi{} & {env = env}}
          new_stmts = stmts each
@@ -1024,11 +1024,15 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ctor_expr =
             {env => env2} = ctor_body
             it = #symbol{"@"} & {env = env2}
-            ' | _lambda with
-                 ^ctor_args
-                 ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
-                 ^ctor_body
-                 ^it
+            cls =
+               ' | _lambda with
+                    ^ctor_args
+                    ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
+                    ^ctor_body
+                    ^it
+            if super:
+               then: '___extend{^cls, ^super}
+               else: cls
 
          ;; set ctor_body =
          ;;    {env => env2} = ctor_body
@@ -1055,10 +1059,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             other -> #multi{node}
 
       match expr:
-         #data{name, #multi! {*stmts}} ->
-            helper{name, stmts}
+         #data{match, #multi! {*stmts}} ->
+            '[^name {^super}] ->
+               helper{name, super, stmts}
+            name ->
+               helper{name, null, stmts}
          #data{#multi! {*stmts}} ->
-            helper{#symbol{scope.gensym{}}, stmts}
+            helper{#symbol{scope.gensym{}}, null, stmts}
 
    "%"{context, scope, form, #data{descr, var contents}} =
       tags = #data{}
@@ -1451,6 +1458,14 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             err.location = #location{url, start, end}
          throw err
 
+   "___extend" => Embedded with '
+      {child, parent} ->
+         ;; copy static fields
+         items{parent} each {key, value} ->
+            child[key] = value
+         child.prototype = Object.create{parent.prototype}
+         child["::super"] = parent.prototype
+         child
 
    "ErrorFactory" => Embedded with '
       class:
