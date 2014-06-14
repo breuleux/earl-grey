@@ -1331,7 +1331,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       {match a, b} ->
          === b ->
             true
-         Number? or String? or null? or undefined? ->
+         Number? or String? or null? or undefined? or ===true or ===false ->
             false
          Array? ->
             if [not Array? b or a.length !== b.length]:
@@ -1341,6 +1341,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                   return false
             true
          when [Object.getPrototypeOf{a} === Object.prototype
+               \ and Object? b
                \ and Object.getPrototypeOf{b} === Object.prototype] ->
             ka = keys{a}
             if [not [ka.sort{} == keys{b}.sort{}]]:
@@ -1464,6 +1465,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          items{parent} each {key, value} ->
             child[key] = value
          child.prototype = Object.create{parent.prototype}
+         child.prototype.constructor = child
          child["::super"] = parent.prototype
          child
 
