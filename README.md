@@ -2,6 +2,15 @@
 Earl Grey
 =========
 
+In a nutshell,
+
+* Python-like syntax
+* Pattern matching
+* A powerful hygienic macro system
+* Compiles to JavaScript
+
+[Try it here!](http://breuleux.net/earl-grey/repl)
+
 
 Basics
 ------
