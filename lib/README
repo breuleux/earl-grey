@@ -1,0 +1,79 @@
+
+Source code organization
+------------------------
+
+location.eg
+  Defines the Source and Location classes and a bunch of utility
+  functions for highlighting.
+
+lex.eg
+  Defines the lexer.
+  lex.tokenize{Source} ==> list of tokens
+
+parse.eg
+  Operator precedence parsing.
+  Note that the following simplifications are applied in this phase:
+  * "a with b"      ==> a{b}
+  * "foo bar: baz"  ==> foo{bar, baz}
+  parse.parse{tokens} ==> raw AST (unexpanded)
+
+expand.eg
+  Defines the Scope, Env and Expander classes, which are the basis of
+  the macro expander. Core behavior like symbol resolution and
+  expansion of #multi and #data nodes are here.
+
+stdenv.eg
+  Defines most core macros and control structures.
+  * if, while, break, class, each, etc.
+  * Whitelist of global variables.
+  * Contains the code for a few required shims (e.g. Array.prototype["::check"])
+
+pattern.eg
+  Most of the code pertaining to pattern matching is here.
+
+translate-js.eg
+  Defines Translator, which takes an expanded AST and produces
+  JavaScript code.
+
+earl-grey.eg
+  Glues all the parts together in a coherent interface, Generator.
+
+run.eg
+  Defines the command-line interface of the earl utility.
+  Entry point is the run function.
+
+register.eg
+  Import to register earl grey as an extension.
+
+
+util.eg
+  Miscellaneous utilities.
+
+opt.eg
+  Defines the hoist function, a minor optimization.
+
+pp.eg
+  Pretty-printing, to be removed (probably).
+
+
+Notes
+-----
+
+AST nodes are plain arrays, so you won't find a formal definition
+anywhere. Essentially:
+
+Core nodes (produced by parse.parse):
+  #symbol{String?}  ==> symbol
+  #value{v}         ==> literals (numbers, strings, etc.)
+  #multi{...}       ==> [a, b, ...] (at least two elements in []s)
+  #data{...}        ==> {...}
+  #send{obj, msg}   ==> function calls, field accesses, etc.
+
+Processed nodes (produced during macro expansion in addition to core nodes):
+  #array{...}                  ==> create an array
+  #object{#array{k1, v1}, ...} ==> create an object from key/value pairs
+  #if{test, x, y}              ==> conditionals
+  #scope{vars, body}           ==> variable declaration
+  #lambda{args, body}          ==> function definitionw
+  #js_while, #js_for, etc.     ==> javascript-specific control structures
+
