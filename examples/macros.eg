@@ -21,7 +21,7 @@ macro forever{context, scope, form, #data{body}}:
    ;; visibility. form.env.convert will stamp our freshly
    ;; created label with the environment where forever was
    ;; used :)
-   lbl = form.env.convert{#value{scope.gensym{}}}
+   lbl = form.env.mark{#value{scope.gensym{}}}
    'while[^lbl]{1, ^body}
 
 1..4 each i ->
@@ -34,7 +34,7 @@ macro forever{context, scope, form, #data{body}}:
 ;; variable $ holding the first argument
 
 macro [~]{context, scope, form, #data{#void{}, body}}:
-   dolla = form.env.convert{'$}
+   dolla = form.env.mark{'$}
    ' | {^dolla} -> ^body
 
 add10 = ~[$ + 10]

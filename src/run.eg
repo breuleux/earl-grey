@@ -6,7 +6,7 @@ require:
    "./location" ->
       Source
       display_error
-   fs, path, vm, module
+   fs, path
 
 provide:
    run
@@ -119,37 +119,6 @@ gen{text, file, noboil = false} =
    g = eg.Generator{}
    g.generate{Source{text, path.resolve{file}}, not noboil}
 
-
-evaluator{options} =
-
-   paths = module._nodeModulePaths{options.cwd}
-
-   e_module = new module{options.showname}
-   e_module &: {
-      filename = options.filename
-      paths = paths
-   }
-
-   e_require{path} =
-      module._load{path, e_module, true}
-   e_require &: {
-      main = e_module
-      resolve{path} =
-         module._resolveFileName{path, e_module}
-      paths = paths
-      cache = require.cache
-   }
-
-   global &: {
-      __filename = options.filename
-      __dirname = path.dirname{options.filename}
-      module = e_module
-      require = e_require
-   }
-
-   {code} ->
-      script = vm.createScript{code, options.showname}
-      script.runInThisContext{}
 
 
 interactive{g, e} =
@@ -278,7 +247,7 @@ _run{match, opts} =
 
       process.argv = {"earl-run", file} ++ rest
 
-      e = evaluator with {
+      e = eg.evaluator with {
          filename = file
          showname = file
          cwd = file

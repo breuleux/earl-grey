@@ -4,6 +4,8 @@ require:
       <<:, ++:
 
 provide:
+   OperatorGroups
+   SimplePriority
    parse
    ;; order
    oparse
@@ -188,6 +190,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       obrack = {"(_Y", "[_Y", "{_Y"}
       cbrack = {"X_)", "X_]", "X_}"}
 
+      "withp" = {"with Y"}
       "with" = {"X with Y"}
       lowprio = {"X each Y", "X each? Y", "X where Y"
                  "X !! Y"
@@ -227,6 +230,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       cbrack  = {#all{1}, #all{MAX}}
 
       "with"  = {#all{1999}, #all{10}}
+      ;; "with"  = {#all{11}, #all{10}}
       lowprio = {#all{11}, #all{10}}
       "when"  = {#all{100}, #all{101}}
       "or"    = {#all{110}, #all{111}}
@@ -252,6 +256,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       pfx     = {#all{MAX}, #all{3000}}
       pp      = {#all{MAX}, #all{5}}
       when2   = {#all{MAX}, #all{101}}
+      withp   = {#all{MAX}, #all{10}}
 
       pipe    = {#pipe{550}, #pipe{551}}
 

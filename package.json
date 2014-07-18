@@ -1,8 +1,11 @@
 {
   "name": "earl-grey",
   "version": "0.0.0",
-  "description": "Programming language compiling to JavaScript, featuring macros, typing annotations and pattern matching.",
-  "main": "earl-grey.js",
+  "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
+  "main": "lib/earl-grey.js",
+  "bin": {
+    "earl": "bin/earl"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,5 +19,5 @@
     "Pattern matching"
   ],
   "author": "Olivier Breuleux",
-  "license": "BSD"
+  "license": "BSD-3-Clause"
 }

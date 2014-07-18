@@ -12,14 +12,53 @@ require:
    "./stdenv" as std
    "./expand" as exp
    "./opt" as opt
+   vm, module, path
 
 provide:
+   evaluator
    Source, Location, highlight_locations
    tokenize, parse
    Generator, generate
    version
 
 version = "zero"
+
+
+evaluator{match options} =
+
+   when module._nodeModulePaths ->
+      paths = module._nodeModulePaths{options.cwd}
+
+      e_module = new module{options.showname}
+      e_module &: {
+         filename = options.filename
+         paths = paths
+      }
+
+      e_require{path} =
+         module._load{path, e_module, true}
+      e_require &: {
+         main = e_module
+         resolve{path} =
+            module._resolveFileName{path, e_module}
+         paths = paths
+         cache = require.cache
+      }
+
+      global &: {
+         __filename = options.filename
+         __dirname = path.dirname{options.filename}
+         module = e_module
+         require = e_require
+      }
+
+      {code} ->
+         script = vm.createScript{code, options.showname}
+         script.runInThisContext{}
+
+   else ->
+      {code} -> eval{code}
+
 
 generate_from_ast{ast} =
    var ex = std.expand{#top
@@ -34,7 +73,13 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
    {context, scope, form, match} ->
       #data{#send{name and #symbol{sym}, arguments}, ast} ->
          {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
-         mac = eval{prep + ";("+code+")"}
+         file = form.location.source.url
+         ev = evaluator with {
+            filename = file
+            showname = file
+            cwd = file
+         }
+         mac = ev{prep + ";("+code+")"}
          mac2{c, s, f, e} =
             ;; ;; We bind the macro's name in the environment of what it
             ;; ;; returns; that way it can call itself recursively
@@ -64,10 +109,13 @@ generate{source} =
    Generator{}.generate{source}
 
 class Generator:
+
    constructor{interactive = false} =
       @tr = Translator{std.stdprelude}
       @env = std.stdenv.fork{}
       @interactive = interactive
+      @_eval = null
+
    generate{source, dump = true} =
       t = tokenize{source}
       p = parse{t}
@@ -91,4 +139,15 @@ class Generator:
       if dump:
          then: @tr.dump_store{} + rval
          else: rval
+
+   evaluate{source} =
+      if [not @_eval]:
+         file = source.url
+         @_eval = evaluator with {
+            filename = file
+            showname = file
+            cwd = file
+         }
+      @_eval{@generate{source}}
+
 

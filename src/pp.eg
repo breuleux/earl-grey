@@ -69,31 +69,28 @@ HTML{match, default_tag} =
       [...].join{""} with
          children each child -> HTML{child, default_tag}
 
-   Node? {=> classes, => children} ->
+   Node? {=> tags, => props, => children} ->
       var tag = default_tag or "span"
-      _classes = {}
+      classes = {}
       var id = null
       kv = {}
       sub = {}
-      classes each
-         #assoc{k, v} ->
-            kv.push with {k, v}
-         #assoc{k} ->
-            kv.push with {k, undefined}
-         R'[start, "+", {*any}]! {_, m} ->
-            set tag = m
-         R'[start, "#", {*any}]! {_, m} ->
-            set id = m
-         String? s ->
-            _classes.push with s
+      tags each
+         R"^\\.(.*)"! {_, cls} ->
+            classes.push with cls
+         other ->
+            tag = other
+
+      items{props} each {k, v} ->
+         kv.push with {k, v}
 
       var accum = if{tag === .raw, {}, {"<", tag}}
       if id:
          set accum = accum.concat with
             " id=\"", id, "\""
-      if _classes.length:
+      if classes.length:
          set accum = accum.concat with
-            " class=\"", quotify{_classes.join{" "}}, "\""
+            " class=\"", quotify{classes.join{" "}}, "\""
       if kv:
          kv each {k, v} ->
             set accum = accum.concat with
@@ -113,6 +110,52 @@ HTML{match, default_tag} =
          other ->
             accum.concat{x}.join{""} where x =
                {">", *children2, "</", tag, ">"}
+
+
+   ;; Node? {=> classes, => children} ->
+   ;;    var tag = default_tag or "span"
+   ;;    _classes = {}
+   ;;    var id = null
+   ;;    kv = {}
+   ;;    sub = {}
+   ;;    classes each
+   ;;       #assoc{k, v} ->
+   ;;          kv.push with {k, v}
+   ;;       #assoc{k} ->
+   ;;          kv.push with {k, undefined}
+   ;;       R'[start, "+", {*any}]! {_, m} ->
+   ;;          set tag = m
+   ;;       R'[start, "#", {*any}]! {_, m} ->
+   ;;          set id = m
+   ;;       String? s ->
+   ;;          _classes.push with s
+
+   ;;    var accum = if{tag === .raw, {}, {"<", tag}}
+   ;;    if id:
+   ;;       set accum = accum.concat with
+   ;;          " id=\"", id, "\""
+   ;;    if _classes.length:
+   ;;       set accum = accum.concat with
+   ;;          " class=\"", quotify{_classes.join{" "}}, "\""
+   ;;    if kv:
+   ;;       kv each {k, v} ->
+   ;;          set accum = accum.concat with
+   ;;             if [v !== null]:
+   ;;                then: {" ", k, "=\"", quotify{v}, "\""}
+   ;;                else: {" ", k}
+
+   ;;    children2 = match tag:
+   ;;       .raw -> children each
+   ;;          String? s -> s
+   ;;          c -> HTML{c, default_tag}
+   ;;       other -> children each c -> HTML{c, default_tag}
+
+   ;;    match tag:
+   ;;       .raw ->
+   ;;          accum.concat{children2}.join{""}
+   ;;       other ->
+   ;;          accum.concat{x}.join{""} where x =
+   ;;             {">", *children2, "</", tag, ">"}
 
    other ->
       HTML{String! other, default_tag}

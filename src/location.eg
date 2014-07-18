@@ -44,6 +44,12 @@ class Location:
    text{} =
       @source.text.slice{@start, @end}
 
+   at_start{} =
+      Location{@source, @start, @start}
+
+   at_end{} =
+      Location{@source, @end, @end}
+
    linerange{} =
       match @linecol{}:
          {{l1, _}, match} ->
@@ -82,7 +88,8 @@ highlight{text, spans, offset = 0} =
    % | morsel{spans} each {start, end, attributes} ->
         xstart = Math.max{start - offset, 0}
         xend = Math.min{end - offset, text.length}
-        Node{attributes.slice{0, 1}, {text.slice{xstart, xend}}}
+        ;; Node{"." + attributes.slice{0, 1}, {=}, {text.slice{xstart, xend}}}
+        ^["." + attributes.slice{0, 1}] % text.slice{xstart, xend}
 
 highlight_lines{text, linelocs, {l1, l2}, spans} =
    span %
@@ -176,7 +183,9 @@ highlight_locations_same_source{locations, context = 0} =
    div.location %
       div.source %
          .sourcefile % src.url or "???"
-         locations each {loc, cls} -> Node{{cls, .sourcepos}, loc.ref{}}
+         locations each {loc, cls} ->
+            ^["." + cls] .sourcepos % loc.ref{}
+            ;; Node{{"." + cls, ".sourcepos"}, {=}, loc.ref{}}
       src.highlight_lines with
          first, last
          locations each {loc, cls} -> {loc.start, loc.end, {cls}}

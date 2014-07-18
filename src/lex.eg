@@ -5,6 +5,10 @@ require:
 
 provide:
    tokenize
+   process_indent
+   disambiguate_fixity
+   alternate_operators
+   fill_locations
 
 
 special_ops = {
@@ -43,8 +47,7 @@ regexps = {
   ;; ex. abc, Abc123, _x, $, a$b$c
   id = R'
      start
-     in "a-zA-Z$_"
-     * in "a-zA-Z$_0-9"
+     [in "a-zA-Z$_", * in "a-zA-Z$_0-9"] or "..."
 
   id_f = {m} -> #ID{m[0]}
 

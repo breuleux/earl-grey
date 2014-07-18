@@ -1067,34 +1067,77 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #data{#multi! {*stmts}} ->
             helper{#symbol{scope.gensym{}}, null, stmts}
 
-   "%"{context, scope, form, #data{descr, var contents}} =
-      tags = #data{}
+   ;; "%"{context, scope, form, #data{descr, var contents}} =
+   ;;    tags = #data{}
 
-      parse{match toparse} =
+   ;;    parse{match toparse} =
+   ;;       #void{} -> null
+   ;;       #symbol{s} -> tags.push with #value{"+" + s}
+   ;;       #value{x} ->
+   ;;          tags.push with #value{"+" + x}
+   ;;       #send{#symbol{"."}, #data{#void{}, #symbol{x} or #value{x}}} ->
+   ;;          tags.push with #value{x}
+   ;;       #send{#symbol{"#"}, #data{#void{}, #symbol{x} or #value{x}}} ->
+   ;;          tags.push with #value{"#" + x}
+   ;;       #send{#symbol{"="}, #data{#symbol{prop} or #value{prop}, value}} ->
+   ;;          tags.push with '[#assoc{^=prop, ^value}]
+   ;;       ;; '[^k = ^v] ->
+   ;;       ;;    tags.push with toparse
+   ;;       #send{expr, rest} ->
+   ;;          parse{expr}, parse{rest}
+   ;;       #multi{*args} or #data{*args} ->
+   ;;          args.forEach{parse}
+
+   ;;    parse{descr}
+   ;;    contents ?=
+   ;;       #void{} -> #data{}
+   ;;       #multi{*args} -> #data{*args}
+   ;;       x -> x
+
+   ;;    'Node{^tags, ^contents}
+
+
+   "%"{context, scope, {=> env}, #data{descr, var contents}} =
+      var tags = #data{}
+      kv = '{=}
+
+      parse{match whole} =
          #void{} -> null
-         #symbol{s} -> tags.push with #value{"+" + s}
-         #value{x} ->
-            tags.push with #value{"+" + x}
-         #send{#symbol{"."}, #data{#void{}, #symbol{x} or #value{x}}} ->
+         #symbol{s} ->
+            tags.push with #value{s}
+         #value{String! x} ->
             tags.push with #value{x}
-         #send{#symbol{"#"}, #data{#void{}, #symbol{x} or #value{x}}} ->
-            tags.push with #value{"#" + x}
-         #send{#symbol{"="}, #data{#symbol{prop} or #value{prop}, value}} ->
-            tags.push with '[#assoc{^=prop, ^value}]
-         ;; '[^k = ^v] ->
-         ;;    tags.push with toparse
+         '[. ^[#symbol{x} or #value{String! x}]] ->
+            tags.push with #value{"." + x}
+         #send{#symbol{"^"}, #data{#void{}, expr}} ->
+            tags.push with expr
+         '[^_ = ^_] ->
+            kv.push with whole
          #send{expr, rest} ->
             parse{expr}, parse{rest}
          #multi{*args} or #data{*args} ->
-            args.forEach{parse}
+            args each arg -> parse{arg}
 
       parse{descr}
+
       contents ?=
-         #void{} -> #data{}
-         #multi{*args} -> #data{*args}
+         #void{} -> #array{}
+         #multi{*args} ->
+            xs = {}
+            args each
+               pair and '[^k = ^v] ->
+                  kv.push with pair
+               spl and '[** ^_] ->
+                  kv.push with spl
+               other ->
+                  xs.push with other
+            #array{*xs}
+         pair and '[^k = ^v] ->
+            kv.push with pair
+            #array{}
          x -> x
 
-      'Node{^tags, ^contents}
+      'Node{^tags, ^kv, ^contents}
 
 
    "globals"{context, scope, form, #data{#multi! {*vars}}} =
@@ -1497,22 +1540,56 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
             e.args
 
 
+   ;; "Node" => Embedded with '
+   ;;    class:
+   ;;       static:
+   ;;          "::check"{x} =
+   ;;             x and x.classes and x.children
+   ;;          "::deconstruct"{x} =
+   ;;             {x.classes, x.children}
+
+   ;;       constructor{Array! classes, Array! children} =
+   ;;          @classes = classes.sort{}
+   ;;          @children = children
+
+   ;;       "::check"{n} =
+   ;;          @classes each? c when n.classes.indexOf{c} === -1 ->
+   ;;             return false
+   ;;          true
+
+
    "Node" => Embedded with '
       class:
          static:
             "::check"{x} =
-               x and x.classes and x.children
-            "::deconstruct"{x} =
-               {x.classes, x.children}
+               x and x.tags and x.props and x.children
+            ":::project"{match} =
+               {=> tags, => props, => children} ->
+                  {true, {tags, props, children}}
+               else ->
+                  {false, null}
 
-         constructor{Array! classes, Array! children} =
-            @classes = classes.sort{}
-            @children = children
+         constructor{Array! @tags, @props, Array! @children} =
+            pass
 
-         "::check"{n} =
-            @classes each? c when n.classes.indexOf{c} === -1 ->
-               return false
-            true
+         "::check"{match} =
+            Node? n ->
+               @tags each? c when n.tags.indexOf{c} === -1 ->
+                  return false
+               true
+            else ->
+               false
+
+         ":::project"{match} =
+            [@]? n ->
+               {true, {n.tags, n.props, n.children}}
+            else ->
+               {false, null}
+
+            ;; if [not n]: return {false, null}
+            ;; @tags each? c when n.tags.indexOf{c} === -1 ->
+            ;;    return {false, null}
+            ;; {true, {n.tags, n.props, n.children}}
 
 
 stdprelude = Embedded with '
