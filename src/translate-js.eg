@@ -288,7 +288,7 @@ class Translator:
 
          #lambda{bindings, body} ->
             name = if{R"^[$_a-zA-Z]*$"? expr.name, expr.name + " ", ""}
-            @expr{"function"+name+"("+a+"){"+b+"}", mode} where
+            @expr{"(function"+name+"("+a+"){"+b+"})", mode} where
                a = [bindings each x -> @translate{x, .expr}].join{","}
                b = @body{body, .return}
 

@@ -2,7 +2,7 @@
   "name": "earl-grey",
   "version": "0.0.0",
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
-  "main": "lib/earl-grey.js",
+  "main": "./lib/earl-grey.js",
   "bin": {
     "earl": "bin/earl"
   },

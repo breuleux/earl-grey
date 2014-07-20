@@ -5,7 +5,9 @@ require:
       <>
    "./location" ->
       Source
-      display_error
+      format_error
+      highlight_locations
+      ;; display_error
    fs, path
 
 provide:
@@ -43,6 +45,46 @@ Global options:
   -h  --help      Print this message.
   -v  --version   Print the version
 "
+
+
+display_error{match e} =
+   E.syntax? {args => {args}} ->
+      console.error{String{e}}
+      hls = {.hl1, .hl2, .hl3, .hl4}
+      locs = enumerate{items{args}} each?
+         {i, {key, arg}} when arg and arg.location ->
+            {arg.location, hls[i mod 4]}
+      var accum = "\n"
+      pr{highlight_locations{locs, 0}} where pr{match} =
+         String? s ->
+            accum += s
+         Node? n ->
+            {var pre, var post} = match n:
+               [.hl1 %]? -> {"\x1B[1;32m", "\x1B[0m"}
+               [.hl2 %]? -> {"\x1B[1;33m", "\x1B[0m"}
+               [.hl3 %]? -> {"\x1B[1;36m", "\x1B[0m"}
+               [.hl4 %]? -> {"\x1B[1;35m", "\x1B[0m"}
+               [.lineno %]? ->
+                  {"\x1B[1m" + Array{3 - l}.join{" "}
+                   ":\x1B[0m "} where
+                     l = Math.floor{Math.log{n.children[0]} / Math.log{10}}
+               else -> {"", ""}
+            if [.sourcepos %]? n:
+               pre += " "
+            accum += pre
+            n.children each child -> pr{child}
+            accum += post
+            if [div %]? n and [accum[accum.length - 1] != "\n"]:
+               accum += "\n"
+         Array? a ->
+            a each child -> pr{child}
+         other ->
+            accum += String{other}
+      console.error{accum}
+
+   else ->
+      console.error{e.stack or String{e}}
+
 
 usage_error{message} =
    console.error{usage}
