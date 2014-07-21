@@ -164,10 +164,7 @@ class SimplePriority:
       {_, {code1, ord1}} = @prio[i1]
       {{code2, ord2}, _} = @prio[i2]
       match:
-         when [[code1 &. code2] === 0] ->
-            throw E.syntax.order{...} with
-               "Cannot mix operators in the given order"
-               {left = op1, right = op2}
+         when [[code1 &. code2] === 0] -> NONE
          when [ord1 > ord2]  -> LEFT
          when [ord1 < ord2]  -> RIGHT
          when [ord1 === ord2] -> BOTH
@@ -430,15 +427,18 @@ oparse{next, order, finalize} =
             set between = finalize{next{}}
             set right_op = next{}
 
-         [=== BOTH] ->
+         [=== BOTH] or [=== NONE] ->
             current[0].push{right_op}
             current.push{between}
             set left_op = right_op
             set between = finalize{next{}}
             set right_op = next{}
+            if [o === NONE]:
+               current.tainted = true
 
-         ;; [=== NONE] ->
-         ;;    throw ["Undefined priority between " + left_op + " and " + right_op]
+            ;; throw E.syntax.order{...} with
+            ;;    "Cannot mix operators in the given order"
+            ;;    {left = left_op, right = right_op}
 
          other ->
             throw E.should_never_happen{
@@ -467,16 +467,21 @@ oparse{next, order, finalize} =
 finalize{match token} =
 
    #ID{value} -> #symbol{value} <<: token
+   #ILLEGAL{value} -> #char{value} <<: token
    #NUM{value} -> #value{value} <<: token
    #STR{value} -> #value{value} <<: token
    #VOID{} -> #void{} <<: token
 
    {var ops, *[var args]} ->
       var sumloc = ops[0].location
-      ops.slice{1} each op ->
-         set sumloc = sumloc ++: op
-      args each arg ->
-         set sumloc = sumloc ++: arg
+      ops.slice{1} each
+         op ->
+            set sumloc = sumloc ++: op
+      args each
+         #void{} ->
+            pass
+         arg ->
+            set sumloc = sumloc ++: arg
 
       orig_ops = ops
       set ops = ops each o -> o[2]
@@ -570,10 +575,12 @@ finalize{match token} =
                rval
 
          {op_strings, args} ->
-            throw E.syntax.mismatch{msg, tokens} where
-               tokens = object with enumerate{orig_ops} each {i, op} ->
-                  {"token" + String{i + 1}, op}
-               msg = "Mismatched/missing brackets/tokens"
+            #mismix{orig_ops each op -> #symbol{op[2]} <<: op, *args} <<: sumloc
+
+            ;; throw E.syntax.mismatch{msg, tokens} where
+            ;;    tokens = object with enumerate{orig_ops} each {i, op} ->
+            ;;       {"token" + String{i + 1}, op}
+            ;;    msg = "Mismatched/missing brackets/tokens"
 
    other ->
       throw E.should_never_happen{

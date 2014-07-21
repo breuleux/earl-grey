@@ -429,8 +429,8 @@ alternate_operators{stream} =
                   #VOID{}
                set last_op = false
 
-      #ILLEGAL ->
-         throw E.syntax.illegal{"unknown character", {chr = token}}
+      ;; #ILLEGAL ->
+      ;;    throw E.syntax.illegal{"unknown character", {chr = token}}
 
       token ->
          if [not last_op]:

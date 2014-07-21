@@ -1204,6 +1204,7 @@ qqstruct{name, args} =
 
 qq{match expr} =
    #symbol{s} -> qqstruct{.symbol, {#value{s}}}
+   #char{s} -> qqstruct{.char, {#value{s}}}
    #void{} -> qqstruct{.void, {}}
    #value{v} ->
       qqstruct{.value, {expr}}
@@ -1213,6 +1214,10 @@ qq{match expr} =
       qqstruct{.value, {insert}}
    #send{#symbol{"^*"}, #data{#void{}, insert}} ->
       '[* ^insert]
+   #mismix{ops, *args} ->
+      qqstruct{.mismix
+               {#data{*[ops each op -> qq{op}]}
+                *[args each arg -> qq{arg}]}}
    {name, *args} ->
       qqstruct{name, args each arg -> qq{arg}}
 

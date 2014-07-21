@@ -496,7 +496,18 @@ class Expander:
                {type} ++
                   args each arg ->
                      helper{#expr{.expr}, scope, arg}
-   
+
+            #mismix{ops, *args} ->
+               throw E.syntax.mismatch{msg, tokens} where
+                  tokens = object with enumerate{ops} each {i, op} ->
+                     {"token" + String{i + 1}, op}
+                  msg = "These operators or brackets cannot be mixed together."
+
+            #char{c} ->
+               throw E.syntax.illegal_character with
+                  "An illegal character was found."
+                  {node = expr}
+
             other ->
                throw E.syntax.illegal_node with
                   "An illegal node was found."
