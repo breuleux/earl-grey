@@ -9,6 +9,7 @@ provide:
    construct
    mkset
    product
+   Body
 
 
 GenSym{prefix} =
@@ -152,3 +153,9 @@ mkset{xs} =
    xs each x ->
       rval[x] = true
    rval
+
+
+Body{match x} =
+   #multi{*xs} -> xs
+   else -> {x}
+

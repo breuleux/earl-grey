@@ -8,6 +8,7 @@ require:
       GenSym
       neighbours
       classify_contiguous
+      Body
    "./pattern" ->
       PatternParser, PatternProcessor
       parse_pattern, parse_clauses
@@ -444,7 +445,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             {#symbol{k} or #value{k}, rhs} ->
                #assoc{#value{k}, rhs}
       #test ->
-         #multi! {*stmts} = rhs
+         Body! {*stmts} = rhs
          #blocktest{lhs, stmts}
       other ->
          #assoc{lhs, rhs}
@@ -568,8 +569,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          opt = util.mkset{flags}
          to_match = #symbol{scope.gensym{.m}} & {single_assignment = true}
          {value, body} = match expr:
-            #data{#multi! {*b}} -> {#value{null}, b}
-            #data{v, #multi! {*b}} -> {v, b}
+            #data{Body! {*b}} -> {#value{null}, b}
+            #data{v, Body! {*b}} -> {v, b}
          '[let [^to_match = ^value]: ^mbody] where mbody =
             parse_clauses with
                scope, to_match, body
@@ -582,7 +583,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                }
 
 
-   "each"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
+   "each"{match, scope, form and {=> env}, #data{li, Body! {*clauses}}} =
 
       do:
          var ends_with_test = false
@@ -623,7 +624,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
 
 
-   "each?"{match, scope, form and {=> env}, #data{li, #multi! {*clauses}}} =
+   "each?"{match, scope, form and {=> env}, #data{li, Body! {*clauses}}} =
 
       #test ->
          #test_factory{li, clauses} & {env = env}
@@ -650,7 +651,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                     {x} -> 'acc.push{^x}, '[var acc = {}], 'acc
                     {fallback = {target} -> 'false}}
 
-   "try"{match, scope, form, #data{#multi! {*parts}}} =
+   "try"{match, scope, form, #data{Body! {*parts}}} =
       do:
          grouped = classify_contiguous{parts} with {match} ->
             '[finally: ^b] -> .finally
@@ -690,7 +691,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                            {wrap = {x} -> '[set rval = ^x]}
               rval
 
-   "!!"{match, scope, form, #data{expr, #multi! {*clauses}}} =
+   "!!"{match, scope, form, #data{expr, Body! {*clauses}}} =
       #expr{.multi} ->
          #nostep{form}
       #expr{.ignore} ->
@@ -714,7 +715,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "@" => var_operator{expander.gensym{"it"}}
 
-   expr_mac! "chain"{scope, form, #data{defn and {=> env}, #multi! {*body}}} =
+   expr_mac! "chain"{scope, form, #data{defn and {=> env}, Body! {*body}}} =
       it = '[@] & {env = env}
       construct{match} =
          {x} -> x
@@ -732,7 +733,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #clause ->
          #block{body}
       #test ->
-         #multi! {*stmts} = body
+         Body! {*stmts} = body
          #do{#splice{*stmts}}
       #expr ->
          #multi{body}
@@ -752,7 +753,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    expr_mac! "if"{scope, form, match} =
       #data{test, a, b} ->
          #if{test, a, b}
-      #data{test, #multi! {*match}} ->
+      #data{test, Body! {*match}} ->
          {'then{^a}} ->
             #if{test, a, #value{undefined}}
          {'then{^a}, 'else{^b}} ->
@@ -796,7 +797,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #mode{.let, argument}
       other ->
          match argument:
-            #data{#multi! {*bindings}, body} ->
+            #data{Body! {*bindings}, body} ->
                construct{match} =
                   {} -> body
                   ;; {x, *xs} ->
@@ -806,7 +807,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                construct{bindings}
                ;; #multi{*bindings, body} & {nonrecursive = true}
 
-   expr_mac! "letrec"{scope, form, #data{#multi! {*bindings}, body}} =
+   expr_mac! "letrec"{scope, form, #data{Body! {*bindings}, body}} =
       #multi{*let_bindings, body} where
          let_bindings = bindings each '[^b = ^v] -> '[let ^b = ^v]
 
@@ -832,7 +833,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       other ->
          #js_delete{other}
 
-   "splice"{context, scope, form, #data{#multi! {*stmts}}} =
+   "splice"{context, scope, form, #data{Body! {*stmts}}} =
       #splice{*stmts}
 
    "?"{context, scope, form, match} =
@@ -975,7 +976,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       arg ->
          #send{#variable{.require}, arg}
 
-   "provide"{context, scope, form, #data{#multi! {*expr}}} =
+   "provide"{context, scope, form, #data{Body! {*expr}}} =
       #sink with
          #multi ++
             expr each
@@ -993,7 +994,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          var statics = #data{'[=]}
          var ctor = {#data{}, #multi{} & {env = env}}
          new_stmts = stmts each
-            #send{'static, #data{#multi! {*methods}}} ->
+            #send{'static, #data{Body! {*methods}}} ->
                statics ++= methods
             '[constructor[^args] = ^body] or '[constructor = ^args -> ^body] ->
                set ctor = {args, body}
@@ -1059,12 +1060,12 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             other -> #multi{node}
 
       match expr:
-         #data{match, #multi! {*stmts}} ->
+         #data{match, Body! {*stmts}} ->
             '[^name {^super}] ->
                helper{name, super, stmts}
             name ->
                helper{name, null, stmts}
-         #data{#multi! {*stmts}} ->
+         #data{Body! {*stmts}} ->
             helper{#symbol{scope.gensym{}}, null, stmts}
 
    ;; "%"{context, scope, form, #data{descr, var contents}} =
@@ -1140,7 +1141,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       'Node{^tags, ^kv, ^contents}
 
 
-   "globals"{context, scope, form, #data{#multi! {*vars}}} =
+   "globals"{context, scope, form, #data{Body! {*vars}}} =
       #splice{*[...]} with
          vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}
 
@@ -1191,10 +1192,10 @@ blocktest_mac{scope, tests} =
 stdenv.bind{topscope, "blocktest", #macro{...}} with
    {context, scope, form, #data{*args}} ->
       match args:
-         {#multi! {*tests}} ->
+         {Body! {*tests}} ->
             ' | label = {}
               | ^blocktest_mac{scope, tests}
-         {labels, #multi! {*tests}} ->
+         {labels, Body! {*tests}} ->
             ' | label = Array! ^labels
               | ^blocktest_mac{scope, tests}
 
@@ -1625,10 +1626,19 @@ stdprelude = Embedded with '
          then:
             for [i = 0, i < this.length, i++]:
                if [this[i] !== value[i]]:
-                  return {true, {value}}
-            {true, value.slice{this.length}}
+                  return {true, this ++ {value}}
+            {true, value}
          else:
-            {true, {value}}
+            {true, this ++ {value}}
+
+      ;; if [instanceof]{value, Array}:
+      ;;    then:
+      ;;       for [i = 0, i < this.length, i++]:
+      ;;          if [this[i] !== value[i]]:
+      ;;             return {true, {value}}
+      ;;       {true, value.slice{this.length}}
+      ;;    else:
+      ;;       {true, {value}}
 
    Array.prototype["::serialize_ast"]{} =
       #array{*this.map{___serialize_ast}}

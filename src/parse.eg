@@ -2,6 +2,8 @@
 require:
    "./location" ->
       <<:, ++:
+   "./util" ->
+      Body
 
 provide:
    OperatorGroups
@@ -495,7 +497,7 @@ finalize{match token} =
          {{":"}, {f, body}} ->
             #send{f, #data{body} <<: body} <<: sumloc
 
-         {{"with"}, {target, _b and #multi! {*body}}} ->
+         {{"with"}, {target, _b and Body! {*body}}} ->
 
             var inserted = false
             result = transform{target} with {match expr} ->

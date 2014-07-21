@@ -12,6 +12,7 @@ require:
    "./stdenv" as std
    "./expand" as exp
    "./opt" as opt
+   "./util" -> Body
    vm, module, path
 
 provide:
@@ -131,7 +132,7 @@ class Generator:
       } where stmt =
          if @interactive:
             then:
-               #multi! {*args} = p
+               Body! {*args} = p
                #interactive{*args}
             else: #multi{p}
       set ex = opt.hoist{ex}

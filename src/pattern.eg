@@ -9,6 +9,7 @@ require:
       neighbours
       classify, classify_contiguous
       identity
+      Body
    "./expand" ->
       checker_db
 
@@ -457,7 +458,7 @@ parse_clauses{scope, target, stmts, opt} =
                if placeholder:
                   then:
                      parse_clauses with
-                        scope, placeholder, [#multi! body]
+                        scope, placeholder, [Body! body]
                         opt
                   else: if{opt.wrap, opt.wrap{body}, body}
 
@@ -542,7 +543,7 @@ weave_clauses{parts} =
       {} ->
          #multi{}
 
-      {#block{#multi! {*body}}, *rest} ->
+      {#block{Body! {*body}}, *rest} ->
          '[^*body, ^helper{rest}]
 
       {#clause{vars, varsd, blocks, body}, *rest} ->

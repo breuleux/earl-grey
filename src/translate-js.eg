@@ -1,7 +1,7 @@
 
 require:
    "./util" ->
-      gensym
+      gensym, Body
    "./pp" ->
       <>
 
@@ -147,7 +147,7 @@ class Translator:
       r.join{""}
 
    body{orig, mode} =
-      #multi! {*b} = orig
+      Body! {*b} = orig
       trst{stmt} = @translate{stmt, .stmt}
       match mode:
          .expr ->
