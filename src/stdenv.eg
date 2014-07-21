@@ -78,6 +78,7 @@ topscope = Scope{null, .top, expander}
    .console, .process, .eval
 
    .setTimeout, .clearTimeout
+   .setInterval, .clearInterval
 
    .___js_fetch, .___node
 
@@ -1354,21 +1355,27 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
          results
 
    "dir" => Embedded with '
-      {match} ->
-         Number? n -> dir{Number.prototype}
-         String? s -> dir{String.prototype}
-         === true or === false ->
-            dir{Boolean.prototype}
-         obj ->
-            var curr = obj
-            var results = {}
-            while [curr and [obj === Object or curr !== Object]]:
-               results ++=
-                  Object.getOwnPropertyNames{curr} each
-                     k when not R"^toString$|^__|^::"? k ->
-                        {k, obj[k]}
-               curr = Object.getPrototypeOf{curr}
-            object{results.sort{}}
+      {arg} ->
+         rec{arg} where rec{match} =
+            Number? n -> rec{Number.prototype}
+            String? s -> rec{String.prototype}
+            === true or === false ->
+               rec{Boolean.prototype}
+            obj ->
+               var curr = obj
+               var results = {}
+               while [curr and [obj === Object or curr !== Object]]:
+                  results ++=
+                     Object.getOwnPropertyNames{curr} each
+                        k when not RegExp{"^toString$|^__|^::"}? k ->
+                           {k, obj[k]}
+                  curr = Object.getPrototypeOf{curr}
+               rval = {=}
+               results.sort{} each {k, v} ->
+                  rval[k] = v
+               rval
+               
+               ;; object{results.sort{}}
 
    "keys" => Embedded with 'Object.keys
 
