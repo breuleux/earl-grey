@@ -1145,10 +1145,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #splice{*[...]} with
          vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}
 
+
    "S"{context, scope, form, arg} =
       #value with
          match arg.location.text{}:
-            R"^\[.*\]$"? text -> text.substring{1, text.length - 1}
+            R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
             text -> text
 
 
