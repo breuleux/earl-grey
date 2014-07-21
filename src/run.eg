@@ -111,12 +111,12 @@ extract_options{clone! argv, opttable, optmessage} =
    while argv.length:
       arg = argv.shift{}
       match arg:
-         R"^--([a-zA-Z_\\-]+)=(.*)"! {_, opt, value} ->
+         R"^--([a-zA-Z_\-]+)=(.*)"! {_, opt, value} ->
             process_option{arg, opt, true}
             results[associate] = value
             associate = null
 
-         R"^--([a-zA-Z_\\-]+)"! {_, opt} ->
+         R"^--([a-zA-Z_\-]+)"! {_, opt} ->
             process_option{arg, opt, true}
 
          R"^-([a-zA-Z_]+)"! {_, opts} ->

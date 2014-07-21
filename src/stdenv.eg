@@ -1145,6 +1145,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       #splice{*[...]} with
          vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}
 
+   "S"{context, scope, form, arg} =
+      #value with
+         match arg.location.text{}:
+            R"^\[.*\]$"? text -> text.substring{1, text.length - 1}
+            text -> text
 
 
 blocktest_wrap{expr} =
@@ -1299,13 +1304,15 @@ class RegexBuilder:
 build_regexp{x} = RegexBuilder{}.build{x}
 
 stdenv.bind{topscope, "R", #macro{accum_flags{mac, false}}} where
-   mac{context, scope, form, match, flags} =
+   mac{context, scope, form, match arg, flags} =
       #value{String? v} ->
-         'RegExp{^=v, ^=[flags.join{""}]}
+         text =
+            match arg.location.text{}:
+               R"^\".*\"$"? text -> text.substring{1, text.length - 1}
+               text -> text
+         'RegExp{^=text, ^=[flags.join{""}]}
       #send{#symbol{"'"}, #data{#void{}, arg}} ->
          'RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}
-         ;; #value{rx} where
-         ;;    rx = RegExp{build_regexp{arg}, [flags.join{""}]}
 
 
 errf_macro{tags}{context, scope, form, match} =
@@ -1345,13 +1352,22 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                results.push with {k, obj[k]}
          results
 
-   ;; "keys" => Embedded with '
-   ;;    {obj} ->
-   ;;       results = {}
-   ;;       for [k in obj]:
-   ;;          if Object.prototype.hasOwnProperty.call{obj, k}:
-   ;;             results.push with k
-   ;;       results
+   "dir" => Embedded with '
+      {match} ->
+         Number? n -> dir{Number.prototype}
+         String? s -> dir{String.prototype}
+         === true or === false ->
+            dir{Boolean.prototype}
+         obj ->
+            var curr = obj
+            var results = {}
+            while [curr and [obj === Object or curr !== Object]]:
+               results ++=
+                  Object.getOwnPropertyNames{curr} each
+                     k when not R"^toString$|^__|^::"? k ->
+                        {k, obj[k]}
+               curr = Object.getPrototypeOf{curr}
+            object{results.sort{}}
 
    "keys" => Embedded with 'Object.keys
 
@@ -1608,57 +1624,70 @@ stdprelude = Embedded with '
       Array? -> {true, value}
       _ -> {true, {value}}
 
-   Array.prototype["::check"]{value} =
-      if [instanceof]{value, Array}:
-         then:
-            for [i = 0, i < this.length, i++]:
-               if [this[i] !== value[i]]:
-                  return false
-            true
-         else:
+   __array_methods = {
+      "::check"{value} =
+         if [instanceof]{value, Array}:
+            then:
+               for [i = 0, i < this.length, i++]:
+                  if [this[i] !== value[i]]:
+                     return false
+               true
+            else:
+               false
+
+      "::clone"{} =
+         this.slice{0} &: this
+
+      ":::project"{value} =
+         if [instanceof]{value, Array}:
+            then:
+               for [i = 0, i < this.length, i++]:
+                  if [this[i] !== value[i]]:
+                     return {true, this ++ {value}}
+               {true, value}
+            else:
+               {true, this ++ {value}}
+
+      "::serialize_ast"{} =
+         #array{*this.map{___serialize_ast}}
+   }
+
+   items{__array_methods} each {k, v} ->
+      if [not Array.prototype[k]]:
+         Object.defineProperty{Array.prototype, k} with {
+            enumerable = false
+            value = v
+         }
+
+   __re_methods = {
+      "::check"{match} =
+         String? value ->
+            if{value.match{this}, true, false}
+         other ->
             false
 
-   Array.prototype["::clone"]{} =
-      this.slice{0} &: this
+      ":::project"{match} =
+         String? value ->
+            match value.match{this}:
+               null? m -> {false, null}
+               m -> {true, m}
+         other ->
+            {false, null}
+   }
 
-   Array.prototype[":::project"]{value} =
-      if [instanceof]{value, Array}:
-         then:
-            for [i = 0, i < this.length, i++]:
-               if [this[i] !== value[i]]:
-                  return {true, this ++ {value}}
-            {true, value}
-         else:
-            {true, this ++ {value}}
+   items{__re_methods} each {k, v} ->
+      if [not RegExp.prototype[k]]:
+         Object.defineProperty{RegExp.prototype, k} with {
+            enumerable = false
+            value = v
+         }
 
-      ;; if [instanceof]{value, Array}:
-      ;;    then:
-      ;;       for [i = 0, i < this.length, i++]:
-      ;;          if [this[i] !== value[i]]:
-      ;;             return {true, {value}}
-      ;;       {true, value.slice{this.length}}
-      ;;    else:
-      ;;       {true, {value}}
-
-   Array.prototype["::serialize_ast"]{} =
-      #array{*this.map{___serialize_ast}}
-
-   RegExp.prototype["::check"]{match} =
-      String? value ->
-         if{value.match{this}, true, false}
-      other ->
-         false
-
-   RegExp.prototype[":::project"]{match} =
-      String? value ->
-         match value.match{this}:
-            null? m -> {false, null}
-            m -> {true, m}
-      other ->
-         {false, null}
-
-   Function.prototype["::send"]{args} =
-      this.apply{this, args}
+   if [not Function.prototype["::send"]]:
+      Object.defineProperty{Function.prototype, "::send"} with {
+         enumerable = false
+         value{args} =
+            this.apply{this, args}
+      }
 
    ;; Error.prototype["::clone"] := {} ->
    ;;    e = Error{this.message}

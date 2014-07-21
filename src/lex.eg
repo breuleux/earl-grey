@@ -112,9 +112,9 @@ regexps = {
         t = String.fromCharCode{9}
      }
      r = m[1].replace{rx, f} where
-        rx = R.g"\\\\u[0-9A-Fa-f]{4}|\\\\x[0-9A-Fa-f]{2}|\\\\."
+        rx = R.g"\\u[0-9A-Fa-f]{4}|\\x[0-9A-Fa-f]{2}|\\."
         f{match} =
-           R"^(?:\\\\u|\\\\x)(.*)"! {_, digits} ->
+           R"^(?:\\u|\\x)(.*)"! {_, digits} ->
               String.fromCharCode{parseInt{digits, 16}}
            R"^.(.)"! {_, chr} ->
               repl[chr] or chr

@@ -57,7 +57,7 @@ escape_html{String! s} =
    s.replace{R.g"[&<>]", {x} -> repl[x]}
 
 quotify{String! s} =
-   s.replace{R.g"[\"\\\\]", {x} -> "\\" + x}
+   s.replace{R.g"[\"\\]", {x} -> "\\" + x}
 
 
 HTML{match, default_tag} =
@@ -76,7 +76,7 @@ HTML{match, default_tag} =
       kv = {}
       sub = {}
       tags each
-         R"^\\.(.*)"! {_, cls} ->
+         R"^\.(.*)"! {_, cls} ->
             classes.push with cls
          other ->
             tag = other
