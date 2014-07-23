@@ -1370,12 +1370,7 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
                         k when not RegExp{"^toString$|^__|^::"}? k ->
                            {k, obj[k]}
                   curr = Object.getPrototypeOf{curr}
-               rval = {=}
-               results.sort{} each {k, v} ->
-                  rval[k] = v
-               rval
-               
-               ;; object{results.sort{}}
+               object{results.sort{}}
 
    "keys" => Embedded with 'Object.keys
 

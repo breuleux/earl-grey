@@ -99,9 +99,15 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
          #declare_raw{name, #macro{mac2}}
 
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
-   {context, scope, {=> env}, #data{body}} ->
+   {context, scope, form and {=> env}, #data{body}} ->
       {prep, code} = generate_from_ast{body}
-      the_macros = eval{prep + ";(" + code + ")"}
+      file = form.location.source.url
+      ev = evaluator with {
+         filename = file
+         showname = file
+         cwd = file
+      }
+      the_macros = ev{prep + ";(" + code + ")"}
       #splice{*[...]} with
          items{the_macros} each {k, v} ->
             #declare_raw{#symbol{k} &: {env = env}, #macro{v}}
