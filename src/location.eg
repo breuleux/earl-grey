@@ -75,7 +75,7 @@ class Location:
                   when l1 === l2 ->
                      l1 + ":" + c1 + "-" + c2
                   otherwise ->
-                     l1 + ":" + c1 + "-" + l1 + ":" + c2
+                     l1 + ":" + c1 + "-" + l2 + ":" + c2
 
    highlight{cls = .hl1, context = 0} =
       highlight_locations{{{@, cls}}, context}
