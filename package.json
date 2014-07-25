@@ -1,5 +1,5 @@
 {
-  "name": "earl-grey",
+  "name": "earlgrey",
   "version": "0.0.0",
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
   "main": "./lib/earl-grey.js",
@@ -19,5 +19,5 @@
     "Pattern matching"
   ],
   "author": "Olivier Breuleux",
-  "license": "BSD-3-Clause"
+  "license": "MIT"
 }
