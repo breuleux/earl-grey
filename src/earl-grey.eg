@@ -58,7 +58,8 @@ evaluator{match options} =
          script.runInThisContext{}
 
    else ->
-      {code} -> eval{code}
+      __eval = eval
+      {code} -> __eval{code}
 
 
 generate_from_ast{ast} =
