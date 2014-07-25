@@ -9,6 +9,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "homepage": "http://breuleux.github.io/earl-grey/repl",
   "repository": {
     "type": "git",
     "url": "https://github.com/breuleux/earl-grey"

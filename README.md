@@ -9,7 +9,7 @@ In a nutshell,
 * A powerful hygienic macro system
 * Compiles to JavaScript
 
-[Try it here!](http://breuleux.net/earl-grey/repl)
+[Try it here!](http://breuleux.github.io/earl-grey/repl)
 
 
 Basics
