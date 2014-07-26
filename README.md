@@ -12,6 +12,17 @@ In a nutshell,
 [Try it here!](http://breuleux.github.io/earl-grey/repl)
 
 
+Install
+-------
+
+    npm install -g earlgrey
+
+This will install the `earl` command. Run `earl` with no arguments to
+start an interactive interpreter, or run an EG program as:
+
+    earl run file.eg
+
+
 Basics
 ------
 
