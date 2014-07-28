@@ -1,0 +1,40 @@
+
+.cm-s-repl .cm-keyword {color: #708; font-weight: bold}
+.cm-s-repl .cm-open {color: #000; font-weight: bold}
+.cm-s-repl .cm-close {color: #000; font-weight: bold}
+.cm-s-repl .cm-punctuation {color: #000; font-weight: bold}
+.cm-s-repl .cm-wordop {color: #000; font-weight: bold}
+
+.cm-s-repl .cm-atom {color: #219;}
+.cm-s-repl .cm-number {color: #164;}
+.cm-s-repl .cm-def {color: #00f;}
+.cm-s-repl .cm-variable {color: black;}
+.cm-s-repl .cm-variable-2 {color: #05a;}
+.cm-s-repl .cm-variable-3 {color: #085;}
+.cm-s-repl .cm-property {color: black;}
+.cm-s-repl .cm-operator {color: black;}
+.cm-s-repl .cm-comment {color: #a50;}
+.cm-s-repl .cm-string {color: #a11;}
+.cm-s-repl .cm-string-2 {color: #f50;}
+.cm-s-repl .cm-meta {color: #555;}
+.cm-s-repl .cm-qualifier {color: #555;}
+.cm-s-repl .cm-builtin {color: #30a;}
+.cm-s-repl .cm-bracket {color: #997;}
+.cm-s-repl .cm-tag {color: #170;}
+.cm-s-repl .cm-attribute {color: #00c;}
+.cm-s-repl .cm-header {color: blue;}
+.cm-s-repl .cm-quote {color: #090;}
+.cm-s-repl .cm-hr {color: #999;}
+.cm-s-repl .cm-link {color: #00c;}
+.cm-s-repl .cm-error {color: #f00;}
+
+.cm-s-repl .cm-ellipsis {background-color: #ddd;}
+.cm-s-repl .cm-sep {background-color: #ddd;}
+
+#box .cm-s-repl {
+    background-color: #eee;
+}
+
+#box .entry .cm-s-repl {
+    padding: 4px;
+}
