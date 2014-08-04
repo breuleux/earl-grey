@@ -401,7 +401,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "."{context, scope, form, #data{#void{}, expr}} =
       f{expr} where f{match} =
-         #symbol{x} or #value{x} ->
+         #symbol{x} ->
             #value{x}
          #data{*args} ->
             #data{*[args each arg -> f{arg}]}

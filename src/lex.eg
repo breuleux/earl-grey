@@ -39,6 +39,7 @@ regexps = {
    {op2,    op_f}
    {op4,    op_f}
    {indent, indent_f}
+   {indent2, indent2_f}
    {cmnt,   cmnt_f}
    {unkn,   unkn_f}
 } where
@@ -47,9 +48,12 @@ regexps = {
   ;; ex. abc, Abc123, _x, $, a$b$c
   id = R'
      start
-     [in "a-zA-Z$_", * in "a-zA-Z$_0-9"] or "..."
+     "..." or
+        in "a-zA-Z$_" or ["\\_", any]
+        * [in "a-zA-Z$_0-9" or ["\\_", any]]
 
-  id_f = {m} -> #ID{m[0]}
+  id_f = {m} ->
+     #ID{m[0].replace{R.g"\\_(.)", {_, x} -> x}}
 
 
   ;; Numbers with arbitrary radii
@@ -175,6 +179,15 @@ regexps = {
      #INDENT{ilen}
 
 
+  ;; Indent 2
+  indent2 = R'
+     start
+     "\\\\"
+
+  indent2_f = {m, column} ->
+     #INDENT{column - 2}
+     
+
   ;; Comment
   cmnt = R'
      start
@@ -195,7 +208,7 @@ regexps = {
 
 
 ;; TODO: ignore blank lines before continuation
-ws_re = R'[start, *" ", *["\n", *" ", "\\", *" "]]
+ws_re = R'[start, *" ", *["\n", *" ", "\\ ", *" "]]
 eol_re = R'[start, *" ", "\n" or end]
 
 

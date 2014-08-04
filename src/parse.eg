@@ -93,51 +93,51 @@ parse_op_description{match} =
          "Invalid operator description: " + other
 
 
-;; POSSIBLE BUG: do all JS engines preserve the order of properties?
-;; If they don't, custom might be triggered before pfx/sfx and that
-;; would be a problem.
-eg_groups = OperatorGroups with {
-    ;; High priority
-    tokenpfx = {".Y", "#Y", "@Y"}
-    sjuxt = {"XWHITEY"}
-    ifx = {{match} -> [#IFX{.short, _} -> true, _ -> false]}
-    pfx = {{match} -> [#PFX{.short, _} -> true, _ -> false]}
-    sfx = {{match} -> [#SFX{.short, _} -> true, _ -> false]}
+;; ;; POSSIBLE BUG: do all JS engines preserve the order of properties?
+;; ;; If they don't, custom might be triggered before pfx/sfx and that
+;; ;; would be a problem.
+;; eg_groups = OperatorGroups with {
+;;     ;; High priority
+;;     tokenpfx = {".Y", "#Y", "@Y"}
+;;     sjuxt = {"XWHITEY"}
+;;     ifx = {{match} -> [#IFX{.short, _} -> true, _ -> false]}
+;;     pfx = {{match} -> [#PFX{.short, _} -> true, _ -> false]}
+;;     sfx = {{match} -> [#SFX{.short, _} -> true, _ -> false]}
 
-    ;; Arithmetic
-    pow = {"X ** Y"}
-    mul = {"X * Y", "X / Y", "X // Y", "X mod Y", "+ Y", "- Y"}
-    add = {"X + Y", "X - Y"}
-    cmp = {"X < Y", "X <= Y", "X == Y"
-           "X > Y", "X >= Y", "X != Y"}
+;;     ;; Arithmetic
+;;     pow = {"X ** Y"}
+;;     mul = {"X * Y", "X / Y", "X // Y", "X mod Y", "+ Y", "- Y"}
+;;     add = {"X + Y", "X - Y"}
+;;     cmp = {"X < Y", "X <= Y", "X == Y"
+;;            "X > Y", "X >= Y", "X != Y"}
 
-    ;; Collection
-    cat = {"X ++ Y"}
-    union = {"X & Y"}
-    range = {"X .. Y", "X ..", ".. Y"}
-    [in] = {"X in Y"}
+;;     ;; Collection
+;;     cat = {"X ++ Y"}
+;;     union = {"X & Y"}
+;;     range = {"X .. Y", "X ..", ".. Y"}
+;;     [in] = {"X in Y"}
 
-    ;; Other
-    wjuxt = {"X WHITE Y"}
-    colon = {"X_:_Y"}
+;;     ;; Other
+;;     wjuxt = {"X WHITE Y"}
+;;     colon = {"X_:_Y"}
 
-    ;; Logic
-    [and] = ["X and Y"]
-    [or] = ["X or Y"]
-    [not] = ["not Y"]
+;;     ;; Logic
+;;     [and] = ["X and Y"]
+;;     [or] = ["X or Y"]
+;;     [not] = ["not Y"]
 
-    ;; Low priority
-    "with" = {"X with Y"}
-    decl = {"X -> Y", "X = Y", "X := Y", "X => Y", "X where Y", "X when Y", "X each Y"}
+;;     ;; Low priority
+;;     "with" = {"X with Y"}
+;;     decl = {"X -> Y", "X = Y", "X := Y", "X => Y", "X where Y", "X when Y", "X each Y"}
 
-    ;; Brackets
-    brack = {"X_,_Y"
-             "(_Y", "[_Y", "{_Y"
-             "X_)", "X_]", "X_}"}
+;;     ;; Brackets
+;;     brack = {"X_,_Y"
+;;              "(_Y", "[_Y", "{_Y"
+;;              "X_)", "X_]", "X_}"}
 
-    ;; Custom
-    custom = {{x} -> true}
-}
+;;     ;; Custom
+;;     custom = {{x} -> true}
+;; }
 
 
 class SimplePriority:
