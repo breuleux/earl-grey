@@ -229,7 +229,9 @@ class Translator:
                when [[typeof{s} === "string"]
                      \ and s.match{R'[start, + in "a-zA-Z_$", end]}] ->
                   @expr{trf + "." + trmsg, mode} where
-                     trf = @translate{f, .expr}
+                     trf = match @translate{f, .expr}:
+                        R"^\d+$"? x -> "(" + x + ")"
+                        x -> x
                      trmsg = @translate{#symbol{s}, .expr}
                otherwise ->
                   @expr{trf + "[" + trmsg + "]", mode} where
