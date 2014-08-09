@@ -192,35 +192,35 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "withp" = {"with Y"}
       "with" = {"X with Y"}
       lowprio = {"X each Y", "X each? Y", "X where Y"
-                 "X !! Y"
-                 "X -> Y", "X => Y", "X = Y"
-                 "X := Y", "X += Y", "X -= Y", "X *= Y", "X /= Y"
-                 "X <<= Y", "X >>= Y", "X >>>= Y", "X ++= Y", "X ?= Y"
-                 "X or= Y", "X and= Y", "X each= Y"
-                 "X % Y"}
-      "when" = {"X when Y"}
-      "or" = {"X or Y"}
-      "and" = {"X and Y"}
-      "not" = {"not Y"}
-      cmp = {"X == Y", "X != Y"
-             "X >= Y", "X <= Y"
-             "X > Y", "X < Y"}
-      binxor = {"X ^. Y"}
-      binor = {"X |. Y"}
-      binand = {"X &. Y"}
-      shift = {"X << Y", "X >> Y", "X >>> Y"}
-      add = {"X + Y", "X - Y"}
-      mul = {"X * Y", "X / Y", "X // Y", "X mod Y"}
-      exp = {"X ** Y"}
+                 "X_!!_Y"
+                 "X_->_Y", "X_=>_Y", "X_=_Y"
+                 "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y"
+                 "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y"
+                 "X_or=_Y", "X_and=_Y", "X_each=_Y"
+                 "X_%_Y"}
+      "when" = {"X_when_Y"}
+      "or" = {"X_or_Y"}
+      "and" = {"X_and_Y"}
+      "not" = {"not_Y"}
+      cmp = {"X_==_Y", "X_!=_Y"
+             "X_>=_Y", "X_<=_Y"
+             "X_>_Y", "X_<_Y"}
+      binxor = {"X_^._Y"}
+      binor = {"X_|._Y"}
+      binand = {"X_&._Y"}
+      shift = {"X_<<_Y", "X_>>_Y", "X_>>>_Y"}
+      add = {"X_+_Y", "X_-_Y"}
+      mul = {"X_*_Y", "X_/_Y", "X_//_Y", "X_mod_Y"}
+      exp = {"X_**_Y"}
       sjuxt = {"XWHITEY"}
       wjuxt = {"X WHITE Y"}
       colon = {"X_:_Y"}
 
       pfx = {"._Y", "#_Y", "@_Y"}
       when2 = {"when Y"}
-      pp = {"<> Y"}
+      pp = {"<>_Y"}
 
-      pipe = {"X |> Y"}
+      pipe = {"X_|>_Y"}
 
 
    eg_prio = {...} with
