@@ -395,7 +395,12 @@ class Translator:
          #js_delete{value} ->
             if [mode === "expr"]:
                then: throw "Invalid delete in ctx"
-               else: "delete " + @translate{value, .expr} + ";"
+               else:
+                  match value:
+                     #send{x, y} ->
+                        "delete " + @translate{x, .expr} + "[" + @translate{y, .expr} + "];"
+                     else ->
+                        throw E.translate.delete{"Invalid argument for delete"}
 
          #js_throw{value} ->
             if [mode === "expr"]:
