@@ -1043,9 +1043,13 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          ;;         ^ctor_body
          ;;         ^it
 
-         #symbol{name_str} = name
-         statics.push with
-            '["::name" = ^=name_str]
+         match name:
+            #symbol{name_str} ->
+               statics.push with
+                  '["::name" = ^=name_str]
+            else ->
+               pass
+
          statics.push with
             '["::egclass" = true]
 
