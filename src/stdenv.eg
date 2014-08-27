@@ -978,16 +978,28 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          #send{#variable{.require}, arg}
 
    "provide"{context, scope, form, #data{Body! {*expr}}} =
+      exp = form.env.mark{'exports}
       #sink with
          #multi ++
             expr each
                s and #symbol{name} ->
-                  '[exports[^=name] = ^s]
+                  '[[^exp][^=name] = ^s]
                '[^s as ^[#symbol{name} or #value{name}]] ->
-                  '[exports[^=name] = ^s]
+                  '[[^exp][^=name] = ^s]
                other ->
                   throw E.syntax.provide with
                      "Each clause of provide must be 'sym' or 'sym as name'"
+
+   "inject"{context, scope, form, #data{Body! {*expr}}} =
+      #restmacro with {stmts} ->
+         exp = form.env.mark{'exports}
+         {'[
+             globals: module
+             module.exports{^*expr} =
+                var ^exp = {=}
+                ^[#multi{*stmts}]
+                ^exp
+          ]}
 
    "class"{context, scope, {=> env}, expr} =
 
@@ -1390,6 +1402,17 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
       {xs, ys} ->
          enumerate{xs} each {i, x} ->
             {x, ys[i]}
+
+   "neighbours" => Embedded with '
+      {match} ->
+         ;; Takes an array and returns an array of pairs of consecutive elements.
+         ;; Example:
+         ;;   neighbours{{1, 7, 10, 3, 7}}
+         ;;     ==> {{1, 7}, {7, 10}, {10, 3}, {3, 7}}
+         {} -> {}
+         {x} -> {}
+         {x, y, *rest} ->
+            {{x, y}} ++ neighbours{{y} ++ rest}
 
    "predicate" => Embedded with '
       {f} ->
