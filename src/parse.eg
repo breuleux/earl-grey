@@ -202,6 +202,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "or" = {"X_or_Y"}
       "and" = {"X_and_Y"}
       "not" = {"not_Y"}
+      type = {"X_!_Y", "X_?_Y"}
       cmp = {"X_==_Y", "X_!=_Y"
              "X_>=_Y", "X_<=_Y"
              "X_>_Y", "X_<_Y"}
@@ -235,6 +236,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "or"    = {#all{110}, #all{111}}
       "and"   = {#all{120}, #all{121}}
       "not"   = {#all{MAX}, #all{131}}
+      type    = {#all{141}, #all{140}}
       cmp     = {#all{200}, #all{201}}
       binxor  = {#all{400}, #all{401}}
       binor   = {#all{410}, #all{411}}

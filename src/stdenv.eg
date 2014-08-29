@@ -1033,6 +1033,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                            other
                      success{_} = #splice{}
                   }
+            when false -> pass
 
          {ctor_args, ctor_body} = ctor
          ctor_expr =
@@ -1067,20 +1068,28 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
          node =
             #splice with
-               ' | ^name = ^ctor_expr
-               ;; ' | ^name = ^ctor_args -> ^ctor_body
+               ' | let ^name = ^ctor_expr
                ' | ^*new_stmts
                ' | [^name] &: ^statics
                ' | ^name
+
          match context:
             #expr{.multi} -> node
             other -> #multi{node}
+
+         ;; '[
+         ;;    ^name =
+         ;;        var ^name = ^ctor_expr
+         ;;        ^*new_stmts
+         ;;        [^name] &: ^statics
+         ;;        ^name
+         ;; ]
 
       match expr:
          #data{match, Body! {*stmts}} ->
             '[^name {^super}] ->
                helper{name, super, stmts}
-            name ->
+            '[^name {}] or [#symbol{_} and name] ->
                helper{name, null, stmts}
          #data{Body! {*stmts}} ->
             helper{#symbol{scope.gensym{}}, null, stmts}
