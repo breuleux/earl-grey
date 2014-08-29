@@ -259,6 +259,8 @@ class Expander:
             #sink{stmt} ->
                post ++= @step_all{context, scope, {stmt}}
             #restmacro{m} ->
+               ;; We have to mark each resulting statement in case
+               ;; it contains generated code.
                e = @mkenv{}
                set stmts = m{stmts} each
                   stmt -> e.mark{stmt}

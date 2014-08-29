@@ -751,18 +751,63 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    ;;       <> other
    ;;       yes
 
-   expr_mac! "if"{scope, form, match} =
+   ;; expr_mac! "if"{scope, form, match} =
+   ;;    #data{test, a, b} ->
+   ;;       #if{test, a, b}
+   ;;    #data{test, Body! {*match}} ->
+   ;;       {'then{^a}} ->
+   ;;          #if{test, a, #value{undefined}}
+   ;;       {'then{^a}, 'else{^b}} ->
+   ;;          #if{test, a, b}
+   ;;       {*s1, 'else{^b}} ->
+   ;;          #if{test, #multi{*s1}, b}
+   ;;       other ->
+   ;;          #if{test, #multi{*other}, #value{undefined}}
+
+   "if"{ctx, scope, form, match} =
+
       #data{test, a, b} ->
          #if{test, a, b}
-      #data{test, Body! {*match}} ->
+
+      #data{test, #multi! #multi{*match}} ->
          {'then{^a}} ->
             #if{test, a, #value{undefined}}
          {'then{^a}, 'else{^b}} ->
             #if{test, a, b}
          {*s1, 'else{^b}} ->
             #if{test, #multi{*s1}, b}
-         other ->
-            #if{test, #multi{*other}, #value{undefined}}
+
+         ;; other ->
+         ;;    #if{test, #multi{*other}, #value{undefined}}
+
+         body ->
+            piece_together{conditions} =
+               var rval = #value{undefined}
+               conditions.reverse{} each {match, bod} ->
+                  null? ->
+                     rval = bod
+                  test ->
+                     rval = #if{test, bod, rval}
+               rval
+
+            conditions = {{test, #multi{*body}}}
+
+            match ctx:
+               #expr{.multi} ->
+                  #restmacro with {stmts} ->
+                     while stmts.length:
+                        match stmts.shift{}:
+                           'elif{^cond, ^body} ->
+                              conditions.push with {cond, body}
+                           'else{^body} ->
+                              conditions.push with {null, body}
+                           x ->
+                              stmts.unshift{x}
+                              break
+                     {piece_together{conditions}} ++ stmts
+
+               else ->
+                  piece_together{conditions}
 
    expr_mac! "while"{scope, form, match {=> env}} =
       '[. ^[#symbol{label}]] or #value{label} ->
