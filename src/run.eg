@@ -9,6 +9,7 @@ require:
       highlight_locations
       ;; display_error
    fs, path
+   "earlgrey-runtime"
 
 provide:
    run
@@ -167,7 +168,7 @@ interactive{g, e} =
    require: repl
    g.interactive = true
    settings = {
-      prompt = "<> "
+      prompt = "<*> "
       ignoreUndefined = true
       eval{input, context, filename, callback} =
          result = [execute{} !! e -> handle{e}] where

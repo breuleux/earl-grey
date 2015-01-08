@@ -3,17 +3,19 @@ require:
    "./location" ->
       Source, Location
       highlight_locations
+      <<:
    "./lex" ->
       tokenize
    "./parse" ->
       parse
    "./translate-js" ->
-      translate, Translator
+      Translator
    "./stdenv" as std
    "./expand" as exp
    "./opt" as opt
    "./util" -> Body
    vm, module, path
+   "6to5" as to5
 
 provide:
    evaluator
@@ -99,6 +101,46 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
 
          #declare_raw{name, #macro{mac2}}
 
+
+std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
+   {context, scope, form, match} ->
+      #data{#send{name and #symbol{sym}, arguments}, ast} ->
+         {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
+         file = form.location.source.url
+         ev = evaluator with {
+            filename = file
+            showname = file
+            cwd = file
+         }
+         mac = ev{prep + ";("+code+")"}
+         mac2{c, s, f, e} =
+            ;; console.log with e
+            bindings = form.env.list_bindings{scope}
+            env = exp.Env{}
+            env.scopes[std.topscope.name] = bindings
+            r = match c:
+               ;; when e == #void ->
+               ;;    throw "noo"
+               #project{match} ->
+                  #pattern ->
+                     #data{subp} = e
+                     #project{#macro{mac3}, p} where
+                        p = if{subp == #void, #ignore, subp}
+                        mac3{c, s, f, #data{e}} =
+                           '{true, ^r} where r = match e:
+                              #use{env, x} ->
+                                 #use{env, mac{#data{x} <<: e}}
+                              x ->
+                                 mac{#data{x} <<: x}
+                  else ->
+                     mac{e}
+               #expr ->
+                  mac{e}
+            env.mark{r}
+
+         #declare_raw{name, #macro{mac2}}
+
+
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
    {context, scope, form and {=> env}, #data{body}} ->
       {prep, code} = generate_from_ast{body}
@@ -144,9 +186,11 @@ class Generator:
             else: #multi{p}
       set ex = opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
-      if dump:
-         then: @tr.dump_store{} + rval
-         else: rval
+      ;; to5.transform{r} where r =
+      r where r =
+         if dump:
+            then: @tr.dump_store{} + rval
+            else: rval
 
    evaluate{source} =
       if [not @_eval]:

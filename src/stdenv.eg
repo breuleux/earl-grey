@@ -68,10 +68,10 @@ topscope = Scope{null, .top, expander}
    "in", "instanceof", "--"
    "++"
 
-   .true, .false, .null, .undefined
+   ;;.true, .false, .undefined, ;; .null
 
    .typeof
-   .String, .Array, .Number, .Boolean, .Object
+   .String, .Array, .Number, .Boolean, .Object, .Symbol
    .RegExp, .Function, .Date
    .parseInt, .parseFloat, .Math
    .Error, .TypeError, .ReferenceError
@@ -83,6 +83,20 @@ topscope = Scope{null, .top, expander}
    .___js_fetch, .___node
 
    .arguments, .this, .exports
+
+   .object, .keys, .items, .enumerate
+   .zip, .neighbours
+   .predicate
+   "==", "!=", "&", "&:"
+   ;; .__equal____equal__, .__bang____equal__
+   ;; .__amp__, .__amp____colon__
+   .clone, .dir
+   .getProjector, .getChecker
+   .ErrorFactory, .Node
+
+   .___build_array, .___hasprop, .___extend
+   .___match_error, .___serialize_ast
+
    .global
 
 stdenv.bind{topscope, .pass, #variable{.undefined}}
@@ -114,6 +128,24 @@ expr_mac{f}{match, scope, form, arg} =
       f{scope, form, arg}
    otherwise ->
       #nostep{form}
+
+
+_default_proj{name}{x} = '[throw E.project{"Cannot project a value with '" + ^=name + "!'"}]
+value_mac{name, chk, proj = _default_proj{name}}{match, scope, form, arg} =
+   #check{match} ->
+      #pattern ->
+         #check{#macro{m}, arg[1]} where m{*, #data{x}} = chk{x}
+      else ->
+         chk{x} where #data{x} = arg
+   #project{match} ->
+      #pattern ->
+         #project{#macro{m}, arg[1]} where m{*, #data{x}} = proj{x}
+      else ->
+         proj{x} where #data{x} = arg
+   else ->
+      match arg:
+         #void -> #variable{name}
+         else -> #send{#variable{name}, arg}
 
 
 overridable{f}{match context, scope, form, arg} =
@@ -314,8 +346,10 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "===" => partial_pattern{"==="}
    "!==" => partial_pattern{"!=="}
-   "==" => partial_pattern{#symbol{"___equal"}}
-   "!=" => partial_pattern{#symbol{"___nequal"}}
+   ;; "==" => partial_pattern{#symbol{"___equal"}}
+   ;; "!=" => partial_pattern{#symbol{"___nequal"}}
+   "==" => partial_pattern{"=="}
+   "!=" => partial_pattern{"!="}
    "<=" => partial_pattern{"<="}
    ">=" => partial_pattern{">="}
    "<" => partial_pattern{"<"}
@@ -519,47 +553,11 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          match expr:
             #data{args, body} ->
                '_lambda{^args, ^=null, ^body, ^=null}
-
-            ;; #data{#data{*args} and arg, rhs} ->
-            ;;    pp = PatternParser{scope, arg, {...}} with
-            ;;       indexable = true
-            ;;       allow_nested = true
-            ;;    match pp.pattern:
-            ;;       #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
-            ;;          decls = if{pp.specials.match, {#declare{'ph}}, {}}
-            ;;          newargs = zip{fw, args} each {match, arg} ->
-            ;;             #assign{expr and #symbol{v}} ->
-            ;;                expr
-            ;;             other ->
-            ;;                newv = #symbol{scope.gensym{.temp}} & {env = stdenv}
-            ;;                decls.push with
-            ;;                   parse_pattern{scope, arg, newv} with
-            ;;                      pattern_handlers.declare_variables & {
-            ;;                         tags = {declare_mode = .let}
-            ;;                         special = {#special{match} and expr, value} ->
-            ;;                            .match ->
-            ;;                               #assign{'ph}
-            ;;                            other ->
-            ;;                               throw E.syntax.pattern.special with
-            ;;                                  "Special token cannot be used here"
-            ;;                                  {special = expr}
-            ;;                      }
-            ;;                newv
-            ;;          #lambda{newargs, #multi{*decls, ...}} with
-            ;;             if pp.specials.match:
-            ;;                then: '[match ph: ^rhs]
-            ;;                else: rhs
-            ;;       other ->
-            ;;          a = 'arguments <<: arg
-            ;;          #lambda{{}, body} where
-            ;;             body = ' | match.indexable [^a]:
-            ;;                         ^arg -> ^rhs
-
-            ;; #data{#data{*args}, rhs} ->
-            ;;    #lambda{args, rhs}
-
             other ->
                throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
+
+   ;; "gen"{match, scope, form, expr} =
+
 
    "match" => accum_flags with {match, scope, form, expr, flags} ->
       #pattern ->
@@ -864,6 +862,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "continue" => continue_mac{null}
 
+   expr_mac! "yield"{scope, form, arg} =
+      #js_yield{arg}
+
    expr_mac! "throw"{scope, form, arg} =
       #js_throw{arg}
 
@@ -882,76 +883,124 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "splice"{context, scope, form, #data{Body! {*stmts}}} =
       #splice{*stmts}
 
-   "?"{context, scope, form, match} =
+   ;; "null" = value_mac{.null, chk, proj} where
+   ;;    chk{x} = '[^x === null]
+   ;;    proj{x} = '[throw E.project{"Cannot project: null"}]
 
-      #data{expr, #void{}} ->
-         checker = match expr:
-            'String -> checker_db.String
-            'Number -> checker_db.Number
-            'true -> checker_db.true
-            'false -> checker_db.false
-            'null -> checker_db.null
-            'undefined -> checker_db.undefined
-            other -> '___checker{^expr}
+   "null" = value_mac{.null, chk} where
+      chk{x} = '[^x === ^=null]
+   "undefined" = value_mac{.undefined, chk} where
+      chk{x} = '[^x === ^=undefined]
+   "true" = value_mac{.true, chk} where
+      chk{x} = 'if{^x, true, false}
+   "false" = value_mac{.false, chk} where
+      chk{x} = '[not ^x]
+   "String" = value_mac{.String, chk, proj} where
+      chk{x} = '[typeof{^x} === .string]
+      proj{x} = '{true, String{^x}}
+   "Number" = value_mac{.Number, chk, proj} where
+      chk{x} = '[typeof{^x} === .number]
+      proj{x} = '{true, parseFloat{^x}}
+   "Boolean" = value_mac{.Boolean, chk, proj} where
+      chk{x} = '[typeof{^x} === .boolean]
+      proj{x} = '{true, Boolean{^x}}
 
-         #macro{...} with {match, env, form, expr} ->
-            #pattern ->
-               match expr:
-                  #void{} ->
-                     #check{checker, #ignore{}}
-                  other ->
-                     #check{checker, expr}
-            other -> '[^checker]{^expr}
+   "?"{match context, scope, form, #data{chk, target}} =
+      do:
+         arg = #send{chk, #data{target}}
+         checker = scope.step{#check{context}, arg}
+      #pattern ->
+         ;; console.log with #goddamn{checker, arg, target}
+         if [checker === arg]:
+            #check{'getChecker{^chk}, target}
+         else:
+            checker
+      other ->
+         checker
 
-      #data{chk, target} ->
-         checker = match chk:
-            'String -> checker_db.String
-            'Number -> checker_db.Number
-            'true -> checker_db.true
-            'false -> checker_db.false
-            'null -> checker_db.null
-            'undefined -> checker_db.undefined
-            other -> '___checker{^chk}
-         match context:
-            #pattern ->
-               match target:
-                  #void{} ->
-                     #check{checker, #ignore{}}
-                  other ->
-                     #check{checker, target}
-            other -> '[^checker]{^target}
+   "!"{match context, scope, form, #data{proj, target}} =
+      do:
+         arg = #send{proj, #data{target}}
+         projector = scope.step{#project{context}, arg}
+      #pattern ->
+         if [projector === arg]:
+            #project{'getProjector{^proj}, target}
+         else:
+            projector
+      other ->
+         projector
 
-   "!"{context, scope, form, match} =
 
-      #data{expr, #void{}} ->
-         projector = match expr:
-            'String -> mac1 with {x} -> '{true, String{^x}}
-            'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
-            other -> '___projector{^expr}
+   ;; "?"{context, scope, form, match} =
 
-         #macro{...} with {match, env, form, expr} ->
-            #pattern ->
-               match expr:
-                  #void{} ->
-                     #project{projector, #ignore{}}
-                  other ->
-                     #project{projector, expr}
-            other -> '[^projector]{^expr}[1]
+   ;;    #data{expr, #void{}} ->
+   ;;       checker = match expr:
+   ;;          'String -> checker_db.String
+   ;;          'Number -> checker_db.Number
+   ;;          'true -> checker_db.true
+   ;;          'false -> checker_db.false
+   ;;          'null -> checker_db.null
+   ;;          'undefined -> checker_db.undefined
+   ;;          other -> 'getChecker{^expr}
 
-      #data{prj, target} ->
-         projector = match prj:
-            'String -> mac1 with {x} -> '{true, String{^x}}
-            'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
-            other -> '___projector{^prj}
+   ;;       #macro{...} with {match, env, form, expr} ->
+   ;;          #pattern ->
+   ;;             match expr:
+   ;;                #void{} ->
+   ;;                   #check{checker, #ignore{}}
+   ;;                other ->
+   ;;                   #check{checker, expr}
+   ;;          other -> '[^checker]{^expr}
 
-         match context:
-            #pattern ->
-               match target:
-                  #void{} ->
-                     #project{projector, #ignore{}}
-                  other ->
-                     #project{projector, target}
-            other -> '[^projector]{^target}[1]
+   ;;    #data{chk, target} ->
+   ;;       checker = match chk:
+   ;;          'String -> checker_db.String
+   ;;          'Number -> checker_db.Number
+   ;;          'true -> checker_db.true
+   ;;          'false -> checker_db.false
+   ;;          'null -> checker_db.null
+   ;;          'undefined -> checker_db.undefined
+   ;;          other -> 'getChecker{^chk}
+   ;;       match context:
+   ;;          #pattern ->
+   ;;             match target:
+   ;;                #void{} ->
+   ;;                   #check{checker, #ignore{}}
+   ;;                other ->
+   ;;                   #check{checker, target}
+   ;;          other -> '[^checker]{^target}
+
+   ;; "!"{context, scope, form, match} =
+
+   ;;    #data{expr, #void{}} ->
+   ;;       projector = match expr:
+   ;;          'String -> mac1 with {x} -> '{true, String{^x}}
+   ;;          'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+   ;;          other -> 'getProjector{^expr}
+
+   ;;       #macro{...} with {match, env, form, expr} ->
+   ;;          #pattern ->
+   ;;             match expr:
+   ;;                #void{} ->
+   ;;                   #project{projector, #ignore{}}
+   ;;                other ->
+   ;;                   #project{projector, expr}
+   ;;          other -> '[^projector]{^expr}[1]
+
+   ;;    #data{prj, target} ->
+   ;;       projector = match prj:
+   ;;          'String -> mac1 with {x} -> '{true, String{^x}}
+   ;;          'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+   ;;          other -> 'getProjector{^prj}
+
+   ;;       match context:
+   ;;          #pattern ->
+   ;;             match target:
+   ;;                #void{} ->
+   ;;                   #project{projector, #ignore{}}
+   ;;                other ->
+   ;;                   #project{projector, target}
+   ;;          other -> '[^projector]{^target}[1]
 
 
    "#"{context, scope, form, #data{#void{}, #symbol{var tag}}} =
@@ -1087,7 +1136,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             cls =
                ' | _lambda with
                     ^ctor_args
-                    ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
+                    ^it = if{not instanceof{this, ^name}, Object.create{[^name].prototype}, this}
                     ^ctor_body
                     ^it
             if super:
@@ -1403,247 +1452,247 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
 [items{{...}} each {k, v} -> stdenv.bind{topscope, k, #value{v}}] with
 
-   "___build_array" => Embedded with '
-      {arrays} ->
-         var results = {}
-         arrays each a -> set results = results.concat{a}
-         results
+   ;; "___build_array" => Embedded with '
+   ;;    {arrays} ->
+   ;;       var results = {}
+   ;;       arrays each a -> set results = results.concat{a}
+   ;;       results
 
-   "object" => Embedded with '
-      {pairs} ->
-         rval = {=}
-         pairs each {k, v} ->
-            rval[k] = v
-         rval
+   ;; "object" => Embedded with '
+   ;;    {pairs} ->
+   ;;       rval = {=}
+   ;;       pairs each {k, v} ->
+   ;;          rval[k] = v
+   ;;       rval
 
-   "items" => Embedded with '
-      {obj} ->
-         results = {}
-         for [k in obj]:
-            if Object.prototype.hasOwnProperty.call{obj, k}:
-               results.push with {k, obj[k]}
-         results
+   ;; "items" => Embedded with '
+   ;;    {obj} ->
+   ;;       results = {}
+   ;;       for [k in obj]:
+   ;;          if Object.prototype.hasOwnProperty.call{obj, k}:
+   ;;             results.push with {k, obj[k]}
+   ;;       results
 
-   "dir" => Embedded with '
-      {arg} ->
-         rec{arg} where rec{match} =
-            Number? n -> rec{Number.prototype}
-            String? s -> rec{String.prototype}
-            === true or === false ->
-               rec{Boolean.prototype}
-            obj ->
-               var curr = obj
-               var results = {}
-               while [curr and [obj === Object or curr !== Object]]:
-                  results ++=
-                     Object.getOwnPropertyNames{curr} each
-                        k when not RegExp{"^toString$|^__|^::"}? k ->
-                           {k, obj[k]}
-                  curr = Object.getPrototypeOf{curr}
-               object{results.sort{}}
+   ;; "dir" => Embedded with '
+   ;;    {arg} ->
+   ;;       rec{arg} where rec{match} =
+   ;;          Number? n -> rec{Number.prototype}
+   ;;          String? s -> rec{String.prototype}
+   ;;          === true or === false ->
+   ;;             rec{Boolean.prototype}
+   ;;          obj ->
+   ;;             var curr = obj
+   ;;             var results = {}
+   ;;             while [curr and [obj === Object or curr !== Object]]:
+   ;;                results ++=
+   ;;                   Object.getOwnPropertyNames{curr} each
+   ;;                      k when not RegExp{"^toString$|^__|^::"}? k ->
+   ;;                         {k, obj[k]}
+   ;;                curr = Object.getPrototypeOf{curr}
+   ;;             object{results.sort{}}
 
-   "keys" => Embedded with 'Object.keys
+   ;; "keys" => Embedded with 'Object.keys
 
-   "enumerate" => Embedded with '
-      {arr} ->
-         results = {}
-         l = arr.length
-         for [i = 0, i < l, i++]:
-            results.push with {i, arr[i]}
-         results
+   ;; "enumerate" => Embedded with '
+   ;;    {arr} ->
+   ;;       results = {}
+   ;;       l = arr.length
+   ;;       for [i = 0, i < l, i++]:
+   ;;          results.push with {i, arr[i]}
+   ;;       results
 
-   "zip" => Embedded with '
-      {xs, ys} ->
-         enumerate{xs} each {i, x} ->
-            {x, ys[i]}
+   ;; "zip" => Embedded with '
+   ;;    {xs, ys} ->
+   ;;       enumerate{xs} each {i, x} ->
+   ;;          {x, ys[i]}
 
-   "neighbours" => Embedded with '
-      {match} ->
-         ;; Takes an array and returns an array of pairs of consecutive elements.
-         ;; Example:
-         ;;   neighbours{{1, 7, 10, 3, 7}}
-         ;;     ==> {{1, 7}, {7, 10}, {10, 3}, {3, 7}}
-         {} -> {}
-         {x} -> {}
-         {x, y, *rest} ->
-            {{x, y}} ++ neighbours{{y} ++ rest}
+   ;; "neighbours" => Embedded with '
+   ;;    {match} ->
+   ;;       ;; Takes an array and returns an array of pairs of consecutive elements.
+   ;;       ;; Example:
+   ;;       ;;   neighbours{{1, 7, 10, 3, 7}}
+   ;;       ;;     ==> {{1, 7}, {7, 10}, {10, 3}, {3, 7}}
+   ;;       {} -> {}
+   ;;       {x} -> {}
+   ;;       {x, y, *rest} ->
+   ;;          {{x, y}} ++ neighbours{{y} ++ rest}
 
-   "predicate" => Embedded with '
-      {f} ->
-         f["::check"] = f
-         f
+   ;; "predicate" => Embedded with '
+   ;;    {f} ->
+   ;;       f["::check"] = f
+   ;;       f
 
-   "___nequal" => Embedded with '
-      {x, y} -> not [x == y]
+   ;; "___nequal" => Embedded with '
+   ;;    {x, y} -> not [x == y]
 
-   "___equal" => Embedded with '
-      {match a, b} ->
-         === b ->
-            true
-         Number? or String? or null? or undefined? or ===true or ===false ->
-            false
-         Array? ->
-            if [not Array? b or a.length !== b.length]:
-               return false
-            for [i = 0, i < a.length, i++]:
-               if [not [___js_fetch{a, i} == ___js_fetch{b, i}]]:
-                  return false
-            true
-         when [Object.getPrototypeOf{a} === Object.prototype
-               \ and Object? b
-               \ and Object.getPrototypeOf{b} === Object.prototype] ->
-            ka = keys{a}
-            if [not [ka.sort{} == keys{b}.sort{}]]:
-               return false
-            ka each k ->
-               if [not [___js_fetch{a, k} == ___js_fetch{b, k}]]:
-                  return false
-            true
-         {"::serialize" => _} ->
-            match b:
-               {"::serialize" => _} ->
-                  a["::serialize"]{} == b["::serialize"]{}
-               otherwise ->
-                  false
-         otherwise ->
-            false
+   ;; "___equal" => Embedded with '
+   ;;    {match a, b} ->
+   ;;       === b ->
+   ;;          true
+   ;;       Number? or String? or null? or undefined? or ===true or ===false ->
+   ;;          false
+   ;;       Array? ->
+   ;;          if [not Array? b or a.length !== b.length]:
+   ;;             return false
+   ;;          for [i = 0, i < a.length, i++]:
+   ;;             if [not [___js_fetch{a, i} == ___js_fetch{b, i}]]:
+   ;;                return false
+   ;;          true
+   ;;       when [Object.getPrototypeOf{a} === Object.prototype
+   ;;             \ and Object? b
+   ;;             \ and Object.getPrototypeOf{b} === Object.prototype] ->
+   ;;          ka = keys{a}
+   ;;          if [not [ka.sort{} == keys{b}.sort{}]]:
+   ;;             return false
+   ;;          ka each k ->
+   ;;             if [not [___js_fetch{a, k} == ___js_fetch{b, k}]]:
+   ;;                return false
+   ;;          true
+   ;;       {"::serialize" => _} ->
+   ;;          match b:
+   ;;             {"::serialize" => _} ->
+   ;;                a["::serialize"]{} == b["::serialize"]{}
+   ;;             otherwise ->
+   ;;                false
+   ;;       otherwise ->
+   ;;          false
 
-   "&:" => Embedded with '
-      {dest, values} ->
-         for [k in values]:
-            if values.hasOwnProperty{k}:
-               dest[k] = ___js_fetch{values, k}
-         dest
+   ;; "&:" => Embedded with '
+   ;;    {dest, values} ->
+   ;;       for [k in values]:
+   ;;          if values.hasOwnProperty{k}:
+   ;;             dest[k] = ___js_fetch{values, k}
+   ;;       dest
+
+   ;; ;; "&+" => Embedded with '
+   ;; ;;    {a, b} ->
+   ;; ;;       dest = {=}
+   ;; ;;       for [k in a]:
+   ;; ;;          if a.hasOwnProperty{k}:
+   ;; ;;             dest[k] := ___js_fetch{a, k}
+   ;; ;;       for [k in b]:
+   ;; ;;          if b.hasOwnProperty{k}:
+   ;; ;;             dest[k] := ___js_fetch{b, k}
+   ;; ;;       dest
+
+   ;; "&" => Embedded with '
+   ;;    {a, b} ->
+   ;;       dest = clone{a}
+   ;;       for [k in b]:
+   ;;          if Object.prototype.hasOwnProperty.call{b, k}:
+   ;;             dest[k] = ___js_fetch{b, k}
+   ;;       dest
 
    ;; "&+" => Embedded with '
    ;;    {a, b} ->
-   ;;       dest = {=}
-   ;;       for [k in a]:
-   ;;          if a.hasOwnProperty{k}:
-   ;;             dest[k] := ___js_fetch{a, k}
+   ;;       dest = clone{a}
    ;;       for [k in b]:
-   ;;          if b.hasOwnProperty{k}:
-   ;;             dest[k] := ___js_fetch{b, k}
+   ;;          if Object.prototype.hasOwnProperty.call{b, k}:
+   ;;             dest[k] = ___js_fetch{b, k}
    ;;       dest
 
-   "&" => Embedded with '
-      {a, b} ->
-         dest = clone{a}
-         for [k in b]:
-            if Object.prototype.hasOwnProperty.call{b, k}:
-               dest[k] = ___js_fetch{b, k}
-         dest
+   ;; "|>" => Embedded with '
+   ;;    {f, g} -> {x} ->
+   ;;       g{f{x}}
 
-   "&+" => Embedded with '
-      {a, b} ->
-         dest = clone{a}
-         for [k in b]:
-            if Object.prototype.hasOwnProperty.call{b, k}:
-               dest[k] = ___js_fetch{b, k}
-         dest
+   ;; "clone" => Embedded with '
+   ;;    {match x} ->
+   ;;       undefined? or null? or String? or Number? ->
+   ;;          x
+   ;;       {"::clone" => _} ->
+   ;;          x["::clone"]{}
+   ;;       when Object.getPrototypeOf{x} === Object.prototype ->
+   ;;          dest = {=}
+   ;;          for [k in x]:
+   ;;             if Object.prototype.hasOwnProperty.call{x, k}:
+   ;;                dest[k] = ___js_fetch{x, k}
+   ;;          dest
+   ;;       other ->
+   ;;          throw E.clone{"Object cannot be cloned", {obj = x}}
 
-   "|>" => Embedded with '
-      {f, g} -> {x} ->
-         g{f{x}}
+   ;; "___checker" => Embedded with '
+   ;;    {type} ->
+   ;;       f = type["::check"]
+   ;;       if [f === undefined]:
+   ;;          then: {value} -> [instanceof]{value, type}
+   ;;          else: {value} -> f.call{type, value}
 
-   "clone" => Embedded with '
-      {match x} ->
-         undefined? or null? or String? or Number? ->
-            x
-         {"::clone" => _} ->
-            x["::clone"]{}
-         when Object.getPrototypeOf{x} === Object.prototype ->
-            dest = {=}
-            for [k in x]:
-               if Object.prototype.hasOwnProperty.call{x, k}:
-                  dest[k] = ___js_fetch{x, k}
-            dest
-         other ->
-            throw E.clone{"Object cannot be cloned", {obj = x}}
+   ;; "___projector" => Embedded with '
+   ;;    {type} -> {value} ->
+   ;;       var f = type[":::project"]
+   ;;       if [f === undefined]:
+   ;;          then:
+   ;;             set f = type["::project"]
+   ;;             if [f === undefined]:
+   ;;                then: {true, type{value}}
+   ;;                else: {true, f{value}} !! e -> {false, null}
+   ;;          else:
+   ;;             f.call{type, value}
 
-   "___checker" => Embedded with '
-      {type} ->
-         f = type["::check"]
-         if [f === undefined]:
-            then: {value} -> [instanceof]{value, type}
-            else: {value} -> f.call{type, value}
+   ;; "___hasprop" => Embedded with '
+   ;;    {match, key} ->
+   ;;       null? or undefined? -> false
+   ;;       String? x -> key in String.prototype
+   ;;       Number? x -> key in Number.prototype
+   ;;       x -> key in x
 
-   "___projector" => Embedded with '
-      {type} -> {value} ->
-         var f = type[":::project"]
-         if [f === undefined]:
-            then:
-               set f = type["::project"]
-               if [f === undefined]:
-                  then: {true, type{value}}
-                  else: {true, f{value}} !! e -> {false, null}
-            else:
-               f.call{type, value}
+   ;; "range" => Embedded with '
+   ;;    {from, to} ->
+   ;;       rval = {}
+   ;;       for [i = from, i <= to, i++]:
+   ;;          rval.push{i}
+   ;;       rval
 
-   "___hasprop" => Embedded with '
-      {match, key} ->
-         null? or undefined? -> false
-         String? x -> key in String.prototype
-         Number? x -> key in Number.prototype
-         x -> key in x
+   ;; "___serialize_ast" => Embedded with '
+   ;;    {match} ->
+   ;;       String? x or Number? x ->
+   ;;          #value{x}
+   ;;       other ->
+   ;;          other["::serialize_ast"]{}
 
-   "range" => Embedded with '
-      {from, to} ->
-         rval = {}
-         for [i = from, i <= to, i++]:
-            rval.push{i}
-         rval
+   ;; "___match_error" => Embedded with '
+   ;;    {value, url, start, end} ->
+   ;;       err = E.match{"Could not find a match for value", {value = value}}
+   ;;       if url:
+   ;;          err.location = #location{url, start, end}
+   ;;       throw err
 
-   "___serialize_ast" => Embedded with '
-      {match} ->
-         String? x or Number? x ->
-            #value{x}
-         other ->
-            other["::serialize_ast"]{}
+   ;; "___extend" => Embedded with '
+   ;;    {child, parent} ->
+   ;;       ;; copy static fields
+   ;;       items{parent} each {key, value} ->
+   ;;          child[key] = value
+   ;;       child.prototype = Object.create{parent.prototype}
+   ;;       child.prototype.constructor = child
+   ;;       child["::super"] = parent.prototype
+   ;;       child
 
-   "___match_error" => Embedded with '
-      {value, url, start, end} ->
-         err = E.match{"Could not find a match for value", {value = value}}
-         if url:
-            err.location = #location{url, start, end}
-         throw err
+   ;; "ErrorFactory" => Embedded with '
+   ;;    class:
 
-   "___extend" => Embedded with '
-      {child, parent} ->
-         ;; copy static fields
-         items{parent} each {key, value} ->
-            child[key] = value
-         child.prototype = Object.create{parent.prototype}
-         child.prototype.constructor = child
-         child["::super"] = parent.prototype
-         child
+   ;;       constructor{tags} =
+   ;;          @tags = tags
 
-   "ErrorFactory" => Embedded with '
-      class:
+   ;;       create{message = "", *args} =
+   ;;          e = Error{message}
+   ;;          e["::tags"] = @tags
+   ;;          e.args = args
+   ;;          enumerate{args} each {i, arg} ->
+   ;;             e[i] = arg
+   ;;          e.length = args.length
+   ;;          e.name = [{.E} ++ @tags].join{"."}
+   ;;          e
 
-         constructor{tags} =
-            @tags = tags
+   ;;       "::check"{e} =
+   ;;          if [not e or not instanceof{e, Error}]:
+   ;;             return false
+   ;;          tags = e["::tags"] or {}
+   ;;          @tags each? tag when tags.indexOf{tag} === -1 ->
+   ;;             return false
+   ;;          true
 
-         create{message = "", *args} =
-            e = Error{message}
-            e["::tags"] = @tags
-            e.args = args
-            enumerate{args} each {i, arg} ->
-               e[i] = arg
-            e.length = args.length
-            e.name = [{.E} ++ @tags].join{"."}
-            e
-
-         "::check"{e} =
-            if [not e or not Error? e]:
-               return false
-            tags = e["::tags"] or {}
-            @tags each? tag when tags.indexOf{tag} === -1 ->
-               return false
-            true
-
-         "::deconstruct"{e} =
-            e.args
+   ;;       "::deconstruct"{e} =
+   ;;          e.args
 
 
    ;; "Node" => Embedded with '
@@ -1664,123 +1713,125 @@ stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
    ;;          true
 
 
-   "Node" => Embedded with '
-      class:
-         static:
-            "::check"{x} =
-               x and x.tags and x.props and x.children
-            ":::project"{match} =
-               {=> tags, => props, => children} ->
-                  {true, {tags, props, children}}
-               else ->
-                  {false, null}
+   ;; "Node" => Embedded with '
+   ;;    class:
+   ;;       static:
+   ;;          "::check"{x} =
+   ;;             x and x.tags and x.props and x.children
+   ;;          ":::project"{match} =
+   ;;             {=> tags, => props, => children} ->
+   ;;                {true, {tags, props, children}}
+   ;;             else ->
+   ;;                {false, null}
 
-         constructor{Array! @tags, @props, Array! @children} =
-            pass
+   ;;       constructor{Array! @tags, @props, Array! @children} =
+   ;;          pass
 
-         "::check"{match} =
-            Node? n ->
-               @tags each? c when n.tags.indexOf{c} === -1 ->
-                  return false
-               true
-            else ->
-               false
+   ;;       "::check"{match} =
+   ;;          Node? n ->
+   ;;             @tags each? c when n.tags.indexOf{c} === -1 ->
+   ;;                return false
+   ;;             true
+   ;;          else ->
+   ;;             false
 
-         ":::project"{match} =
-            [@]? n ->
-               {true, {n.tags, n.props, n.children}}
-            else ->
-               {false, null}
+   ;;       ":::project"{match} =
+   ;;          [@]? n ->
+   ;;             {true, {n.tags, n.props, n.children}}
+   ;;          else ->
+   ;;             {false, null}
 
-            ;; if [not n]: return {false, null}
-            ;; @tags each? c when n.tags.indexOf{c} === -1 ->
-            ;;    return {false, null}
-            ;; {true, {n.tags, n.props, n.children}}
+   ;;          ;; if [not n]: return {false, null}
+   ;;          ;; @tags each? c when n.tags.indexOf{c} === -1 ->
+   ;;          ;;    return {false, null}
+   ;;          ;; {true, {n.tags, n.props, n.children}}
 
 
-stdprelude = Embedded with '
+stdprelude = Embedded with 'undefined
 
-   send{obj, match msg} =
-      [String? or Number?] -> ___js_fetch{obj, msg}
-      other -> obj["::send"]{msg}
+;; stdprelude = Embedded with '
 
-   Array[":::project"]{match value} =
-      Array? -> {true, value}
-      _ -> {true, {value}}
+;;    send{obj, match msg} =
+;;       [String? or Number?] -> ___js_fetch{obj, msg}
+;;       other -> obj["::send"]{msg}
 
-   __array_methods = {
-      "::check"{value} =
-         if [instanceof]{value, Array}:
-            then:
-               for [i = 0, i < this.length, i++]:
-                  if [this[i] !== value[i]]:
-                     return false
-               true
-            else:
-               false
+;;    Array[":::project"]{match value} =
+;;       Array? -> {true, value}
+;;       _ -> {true, {value}}
 
-      "::clone"{} =
-         this.slice{0} &: this
+;;    __array_methods = {
+;;       "::check"{value} =
+;;          if [instanceof]{value, Array}:
+;;             then:
+;;                for [i = 0, i < this.length, i++]:
+;;                   if [this[i] !== value[i]]:
+;;                      return false
+;;                true
+;;             else:
+;;                false
 
-      ":::project"{value} =
-         if [instanceof]{value, Array}:
-            then:
-               for [i = 0, i < this.length, i++]:
-                  if [this[i] !== value[i]]:
-                     return {true, this ++ {value}}
-               {true, value}
-            else:
-               {true, this ++ {value}}
+;;       "::clone"{} =
+;;          this.slice{0} &: this
 
-      "::serialize_ast"{} =
-         #array{*this.map{___serialize_ast}}
-   }
+;;       ":::project"{value} =
+;;          if [instanceof]{value, Array}:
+;;             then:
+;;                for [i = 0, i < this.length, i++]:
+;;                   if [this[i] !== value[i]]:
+;;                      return {true, this ++ {value}}
+;;                {true, value}
+;;             else:
+;;                {true, this ++ {value}}
 
-   items{__array_methods} each {k, v} ->
-      if [not Array.prototype[k]]:
-         Object.defineProperty{Array.prototype, k} with {
-            enumerable = false
-            value = v
-         }
+;;       "::serialize_ast"{} =
+;;          #array{*this.map{___serialize_ast}}
+;;    }
 
-   __re_methods = {
-      "::check"{match} =
-         String? value ->
-            if{value.match{this}, true, false}
-         other ->
-            false
+;;    items{__array_methods} each {k, v} ->
+;;       if [not Array.prototype[k]]:
+;;          Object.defineProperty{Array.prototype, k} with {
+;;             enumerable = false
+;;             value = v
+;;          }
 
-      ":::project"{match} =
-         String? value ->
-            match value.match{this}:
-               null? m -> {false, null}
-               m -> {true, m}
-         other ->
-            {false, null}
-   }
+;;    __re_methods = {
+;;       "::check"{match} =
+;;          String? value ->
+;;             if{value.match{this}, true, false}
+;;          other ->
+;;             false
 
-   items{__re_methods} each {k, v} ->
-      if [not RegExp.prototype[k]]:
-         Object.defineProperty{RegExp.prototype, k} with {
-            enumerable = false
-            value = v
-         }
+;;       ":::project"{match} =
+;;          String? value ->
+;;             match value.match{this}:
+;;                null? m -> {false, null}
+;;                m -> {true, m}
+;;          other ->
+;;             {false, null}
+;;    }
 
-   if [not Function.prototype["::send"]]:
-      Object.defineProperty{Function.prototype, "::send"} with {
-         enumerable = false
-         value{args} =
-            this.apply{this, args}
-      }
+;;    items{__re_methods} each {k, v} ->
+;;       if [not RegExp.prototype[k]]:
+;;          Object.defineProperty{RegExp.prototype, k} with {
+;;             enumerable = false
+;;             value = v
+;;          }
 
-   ;; Error.prototype["::clone"] := {} ->
-   ;;    e = Error{this.message}
-   ;;    e.message := this.message
-   ;;    e.stack := this.stack
-   ;;    e.name := this.name
-   ;;    items{this} each {k, v} ->
-   ;;       e[k] := v
-   ;;    e
+;;    if [not Function.prototype["::send"]]:
+;;       Object.defineProperty{Function.prototype, "::send"} with {
+;;          enumerable = false
+;;          value{args} =
+;;             this.apply{this, args}
+;;       }
+
+;;    ;; Error.prototype["::clone"] := {} ->
+;;    ;;    e = Error{this.message}
+;;    ;;    e.message := this.message
+;;    ;;    e.stack := this.stack
+;;    ;;    e.name := this.name
+;;    ;;    items{this} each {k, v} ->
+;;    ;;       e[k] := v
+;;    ;;    e
 
 
 expander.utils = {

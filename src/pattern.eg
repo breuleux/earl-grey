@@ -81,6 +81,9 @@ class PatternParser:
          #test{condition, subp} ->
             #test{condition, @expand{scope, subp, tags, toplevel, false}}
          #project{projector, subp} ->
+            ;; console.log with projector
+            ;; #project{scope.step{#project, projector}
+            ;;          @expand{scope, subp, tags, toplevel, true}}
             #project{projector, @expand{scope, subp, tags, toplevel, true}}
          #check{checker, subp} ->
             #check{checker, @expand{scope, subp, tags, toplevel, true}}

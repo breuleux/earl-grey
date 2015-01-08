@@ -22,8 +22,8 @@ js_op_table2 = {
    "and" => "&&"
    "or" => "||"
    "not" => "!"
-   "==" => "==="
-   "!=" => "!=="
+   ;; "==" => "==="
+   ;; "!=" => "!=="
    "===" => "==="
    "!==" => "!=="
    "<" => "<"
@@ -290,7 +290,8 @@ class Translator:
 
          #lambda{bindings, body} ->
             name = if{R"^[$_a-zA-Z]*$"? expr.name, expr.name + " ", ""}
-            @expr{"(function"+name+"("+a+"){"+b+"})", mode} where
+            @expr{"(function"+star+name+"("+a+"){"+b+"})", mode} where
+               star = if{expr.generator, "*", ""}
                a = [bindings each x -> @translate{x, .expr}].join{","}
                b = @body{body, .return}
 
@@ -391,6 +392,9 @@ class Translator:
             if [mode === "expr"]:
                then: throw "Invalid return in ctx"
                else: "return " + @translate{value, .expr} + ";"
+
+         #js_yield{value} ->
+               "yield " + @translate{value, .expr} + ";"
 
          #js_delete{value} ->
             if [mode === "expr"]:
