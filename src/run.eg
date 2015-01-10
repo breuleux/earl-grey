@@ -9,6 +9,7 @@ require:
       highlight_locations
       ;; display_error
    fs, path
+   "earlgrey-runtime"
 
 provide:
    run
@@ -204,6 +205,8 @@ compile_path{p, opts} =
                   from = path.join{p, x}
                   to = path.join{out, name + ".js"}
                   data = fs.readFileSync{from, .utf8}
+                  if opts.verbose:
+                     console.log{"Compiling:", from}
                   fs.writeFileSync{to} with
                      gen{data, from, opts.noboil} + "\n"
                when not opts.output ->
@@ -316,6 +319,9 @@ _run{match, opts} =
 
          n = #flag{.noboil}
          noboil = #flag{.noboil}
+
+         v = #flag{.verbose}
+         verbose = #flag{.verbose}
       }
 
       match rest:

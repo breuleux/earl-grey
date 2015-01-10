@@ -3,12 +3,13 @@ require:
    "./location" ->
       Source, Location
       highlight_locations
+      <<:
    "./lex" ->
       tokenize
    "./parse" ->
       parse
    "./translate-js" ->
-      translate, Translator
+      Translator
    "./stdenv" as std
    "./expand" as exp
    "./opt" as opt
@@ -98,6 +99,42 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
             env.mark{r}
 
          #declare_raw{name, #macro{mac2}}
+
+
+std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
+   {context, scope, form, match} ->
+      #data{#send{name and #symbol{sym}, arguments}, ast} ->
+         {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
+         file = form.location.source.url
+         ev = evaluator with {
+            filename = file
+            showname = file
+            cwd = file
+         }
+         mac = ev{prep + ";("+code+")"}
+         mac2{c, s, f, e} =
+            ;; console.log with e
+            bindings = form.env.list_bindings{scope}
+            env = exp.Env{}
+            env.scopes[std.topscope.name] = bindings
+            r = match c:
+               #project{match} ->
+                  #pattern ->
+                     #nostep{#macro{mac3}} where
+                        mac3{c, s, f, #data{e}} =
+                           '{true, ^r} where r = match e:
+                              #use{env, x} ->
+                                 #use{env, mac{#data{x} <<: e}}
+                              x ->
+                                 mac{#data{x} <<: x}
+                  else ->
+                     mac{e}
+               #expr ->
+                  mac{e}
+            env.mark{r}
+
+         #declare_raw{name, #macro{mac2}}
+
 
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
    {context, scope, form and {=> env}, #data{body}} ->
