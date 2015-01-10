@@ -284,7 +284,7 @@ class Translator:
                         a + ":" + b
                else:
                   v = gensym{}
-                  ["(function(){" + "var " + v + "={};" + args.map{f}.join{""} + ";return " + v + ";}())"] where
+                  ["(function(){" + "let " + v + "={};" + args.map{f}.join{""} + ";return " + v + ";}())"] where
                      f{#array{x, y}} =
                         a = @translate{x, .expr}
                         b = @translate{y, .expr}
@@ -319,14 +319,14 @@ class Translator:
             match mode:
                [.expr or .return] -> throw "Invalid in expr ctx"
                other ->
-                  ["var " + a + ";"] where
+                  ["let " + a + ";"] where
                      a = @translate{binding, .expr}
 
          #declare{binding, value} ->
             match mode:
                [.expr or .return] -> throw "Invalid in expr ctx"
                other ->
-                  ["var " + a + "=" + b + ";"] where
+                  ["let " + a + "=" + b + ";"] where
                      a = @translate{binding, .expr}
                      b = @translate{value, .expr}
 

@@ -101,6 +101,8 @@ topscope = Scope{null, .top, expander}
    .___match_error
    .___serialize_ast
 
+   .Buffer
+
    .global
 
 stdenv.bind{topscope, .pass, #variable{.undefined}}
