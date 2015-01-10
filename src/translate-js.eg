@@ -291,9 +291,10 @@ class Translator:
                         v + "[" + a + "]=" + b + ";"
             @expr{r, mode}
 
-         #lambda{bindings, body} ->
+         #lambda{bindings, body, #value{generator} = #value{false}} ->
             name = if{R"^[$_a-zA-Z]*$"? expr.name, expr.name + " ", ""}
-            @expr{"(function"+name+"("+a+"){"+b+"})", mode} where
+            star = if{generator, "*", ""}
+            @expr{"(function"+name+star+"("+a+"){"+b+"})", mode} where
                a = [bindings each x -> @translate{x, .expr}].join{","}
                b = @body{body, .return}
 
@@ -395,6 +396,9 @@ class Translator:
                then: throw "Invalid return in ctx"
                else: "return " + @translate{value, .expr} + ";"
 
+         #js_yield{value} ->
+            @expr{"yield " + @translate{value, .expr}, mode}
+
          #js_delete{value} ->
             if [mode === "expr"]:
                then: throw "Invalid delete in ctx"
@@ -407,7 +411,7 @@ class Translator:
 
          #js_throw{value} ->
             if [mode === "expr"]:
-               then: "function(){throw " + @translate{value, .expr} + ";}()"
+               then: "(function(){throw " + @translate{value, .expr} + ";})()"
                else: "throw " + @translate{value, .expr} + ";"
 
          #js_label{#value{label}, body} ->
@@ -449,7 +453,16 @@ class Translator:
                      b = @translate{y, .expr}
                      c = @translate{body, .stmt}
 
-         #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body}, finally} ->
+         #js_for_of{x, y, body} ->
+            match mode:
+               .expr -> @body{expr, .expr}
+               other ->
+                  ["for("+a+" of "+b+"){"+c+"}"] where
+                     a = @translate{x, .expr}
+                     b = @translate{y, .expr}
+                     c = @translate{body, .stmt}
+
+         #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body, _}, finally} ->
             r = match mode:
                .expr -> @body{expr, .expr}
                other ->

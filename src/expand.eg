@@ -347,6 +347,7 @@ class Expander:
                               #splice{}
                            else:
                               v = #variable{@gensym{s}} <<: variable
+                              ;; v = #variable{s} <<: variable
                               v &: {mutable = expr.all_mutable or variable.mutable}
                               env.bind{newscope, s} with v
                               set changes = true
@@ -464,18 +465,20 @@ class Expander:
                #assign{t} with
                   helper{#expr{.expr}, scope, value}
    
-            #lambda{bindings, body} ->
+            #lambda{bindings, body, generator} ->
                newscope = Scope{scope}
                #lambda with
                   bindings each
                      #symbol{b} and {=> env} ->
                         [env.bind{newscope, b, v}, v] where
                            v = #variable{@gensym{b}}
+                           ;; v = #variable{b}
                      #variable and v ->
                         v
                      other ->
                         throw E.syntax.lambda.binding{"Not a valid binding.", {node = other}}
                   helper{#expr{.expr}, newscope, body}
+                  generator
    
             #use{match, x} ->
                String? name ->

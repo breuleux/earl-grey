@@ -16,6 +16,7 @@ hoistable = {
    .if, .assign
    .js_break, .js_continue, .js_return
    .js_delete, .js_throw, .js_try, .js_new
+   .js_yield
 }
 
 ;; Nodes over which we will *not* hoist declarations. For instance,
@@ -24,7 +25,7 @@ hoistable = {
 
 not_hoistable = {
    .void
-   .js_while, .js_for, .js_for_in, .js_label
+   .js_while, .js_for, .js_for_in, .js_for_of, .js_label
 }
 
 hoist_helper{match expr} =
@@ -53,11 +54,11 @@ hoist_helper{match expr} =
       {newbody, inner} = hoist_helper{body}
       {newbody, inner ++ vars}
 
-   #lambda{vars, body} ->
+   #lambda{vars, body, generator} ->
       ;; Can't hoist past this! We create a #scope to hold the
       ;; variables hoisted from body.
       {newbody, inner} = hoist_helper{body}
-      {#lambda{vars, #scope{inner, newbody}}, {}}
+      {#lambda{vars, #scope{inner, newbody}, generator}, {}}
 
    {type, *args} when hoistable.indexOf{type} !== -1 ->
       ;; Hoistable nodes. We assume that all the members of the node

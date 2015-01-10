@@ -26,9 +26,10 @@ provide:
 
 generic_nodes = {
    .if
-   .js_while, .js_for, .js_for_in, .js_label
+   .js_while, .js_for, .js_for_in, .js_for_of, .js_label
    .js_break, .js_continue, .js_return
    .js_delete, .js_throw, .js_try, .js_new
+   .js_yield
 }
 
 
@@ -510,7 +511,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "each=" => make_assigner{"each"}
 
 
-   "_lambda"{context, scope, form, #data{#data{*args} and arg, pre, body, post}} =
+   "_lambda"{context, scope, form
+             #data{#data{*args} and arg, pre, body, post
+                   generator = #value{false}}} =
       wrap{body2} =
          if{pre == #value{null}, body3, #multi{pre, body3}} where
             body3 = if{post == #value{null}, body2, #multi{body2, post}}
@@ -538,16 +541,21 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                                     {special = expr}
                         }
                   newv
-            #lambda{newargs, wrap{#multi{*decls, ...}}} with
+            #lambda{newargs, wrap{#multi{*decls, ...}}, generator} with
                if pp.specials.match:
                   then: '[match ph: ^body]
                   else: body
          other ->
             a = 'arguments <<: arg
-            #lambda{{}, wrap{body2}} where
+            #lambda{{}, wrap{body2}, generator} where
                body2 = ' | match.indexable [^a]:
                             ^arg -> ^body
 
+   "-->"{ctx, scope, form, match} =
+      #data{args, body} ->
+         '_lambda{^args, ^=null, ^body, ^=null, ^=true}
+      other ->
+         throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
    "->"{match, scope, form, expr} =
       do:
@@ -867,6 +875,10 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             #multi with
                #declare{a, #value{null}} ;; this is to show the symbol as resolved
                setup_label{label, env, #js_for_in{a, b, body}}
+         '[of]{^a, ^b} ->
+            #multi with
+               #declare{a, #value{null}} ;; this is to show the symbol as resolved
+               setup_label{label, env, #js_for_of{a, b, body}}
       '[. ^[#symbol{label}]] or #value{label} ->
          #macro with {context, scope, form, #data{spec, body}} ->
             setup_for{label, expr.env, spec, body}
@@ -904,6 +916,9 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "break" => break_mac{null}
 
    "continue" => continue_mac{null}
+
+   expr_mac! "yield"{scope, form, arg} =
+      #js_yield{arg}
 
    expr_mac! "throw"{scope, form, arg} =
       #js_throw{arg}
