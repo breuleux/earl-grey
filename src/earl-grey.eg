@@ -15,6 +15,7 @@ require:
    "./opt" as opt
    "./util" -> Body
    vm, module, path
+   "6to5" as to5
 
 provide:
    evaluator
@@ -181,9 +182,11 @@ class Generator:
             else: #multi{p}
       set ex = opt.hoist{ex}
       rval = @tr.translate{ex, .stmt}
-      if dump:
-         then: @tr.dump_store{} + rval
-         else: rval
+      ;; to5.transform{r}.code where r =
+      r where r =
+         if dump:
+            then: @tr.dump_store{} + rval
+            else: rval
 
    evaluate{source} =
       if [not @_eval]:

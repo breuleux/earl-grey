@@ -531,6 +531,11 @@ checker_db{match} =
    ===true -> checker_db.true
    ===false -> checker_db.false
    Number? n ->
+      ;; I believe that the reason why we are caching these macros is
+      ;; so that they can be compared with ==. This is done when
+      ;; optimizing patterns for example. I wrote this way after the
+      ;; fact, so I'm not 100% sure, but that's the only explanation I
+      ;; can think of. There's probably a better way to do all this.
       if [__chk_ncache[n]]:
          then: __chk_ncache[n]
          else:

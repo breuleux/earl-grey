@@ -67,10 +67,11 @@ topscope = Scope{null, .top, expander}
    "in", "instanceof", "--"
    "++"
 
-   .true, .false, .null, .undefined
+   ;; .true, .false, .null, .undefined
 
    .typeof
-   .String, .Array, .Number, .Boolean, .Object
+   ;; .String, .Number, .Boolean
+   .Array, .Object
    .RegExp, .Function, .Date
    .parseInt, .parseFloat, .Math
    .Error, .TypeError, .ReferenceError
@@ -131,6 +132,21 @@ expr_mac{f}{match, scope, form, arg} =
       f{scope, form, arg}
    otherwise ->
       #nostep{form}
+
+
+_default_proj{name}{x} =
+   '[throw E.project{"Cannot project a value with '" + ^=name + "!'"}]
+value_mac{name, chk, proj = _default_proj{name}}{match ctx, scope, form, arg} =
+   #check ->
+      #nostep{#macro{m}} where
+         m{*, #data{x}} = chk{x}
+   #project ->
+      #nostep{#macro{m}} where
+         m{*, #data{x}} = proj{x}
+   ctx ->
+      match arg:
+         #void -> #variable{name}
+         else -> #send{#variable{name}, arg}
 
 
 overridable{f}{match context, scope, form, arg} =
@@ -395,18 +411,24 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
             msg = "'else' should be found inside an 'if' block"
 
    "not"{match, scope, form, #data{#void{}, rhs} and arg} =
+      #check or #project ->
+         #nostep{form}
       #pattern ->
          #neg{rhs}
       other ->
          #send{#variable{"not"}, arg}
 
    "and"{match, scope, form, #data{lhs, rhs} and arg} =
+      #check or #project ->
+         #nostep{form}
       #pattern ->
          #all{lhs, rhs}
       other ->
          #send{#variable{"and"}, arg}
 
    "or"{match, scope, form, #data{lhs, rhs} and arg} =
+      #check or #project ->
+         #nostep{form}
       #pattern ->
          #any{lhs, rhs}
       other ->
@@ -899,76 +921,132 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    "splice"{context, scope, form, #data{Body! {*stmts}}} =
       #splice{*stmts}
 
-   "?"{context, scope, form, match} =
 
-      #data{expr, #void{}} ->
-         checker = match expr:
-            'String -> checker_db.String
-            'Number -> checker_db.Number
-            'true -> checker_db.true
-            'false -> checker_db.false
-            'null -> checker_db.null
-            'undefined -> checker_db.undefined
-            other -> 'getChecker{^expr}
+   "null" = value_mac{.null, chk} where
+      chk{x} = '[^x === ^=null]
+   "undefined" = value_mac{.undefined, chk} where
+      chk{x} = '[^x === ^=undefined]
+   "true" = value_mac{.true, chk} where
+      chk{x} = 'if{^x, true, false}
+   "false" = value_mac{.false, chk} where
+      chk{x} = '[not ^x]
+   "String" = value_mac{.String, chk, proj} where
+      chk{x} = '[typeof{^x} === .string]
+      proj{x} = '{true, String{^x}}
+   "Number" = value_mac{.Number, chk, proj} where
+      chk{x} = '[typeof{^x} === .number]
+      proj{x} = '{true, parseFloat{^x}}
+   "Boolean" = value_mac{.Boolean, chk, proj} where
+      chk{x} = '[typeof{^x} === .boolean]
+      proj{x} = '{true, Boolean{^x}}
 
-         #macro{...} with {match, env, form, expr} ->
-            #pattern ->
-               match expr:
-                  #void{} ->
-                     #check{checker, #ignore{}}
-                  other ->
-                     #check{checker, expr}
-            other -> '[^checker]{^expr}
 
-      #data{chk, target} ->
-         checker = match chk:
-            'String -> checker_db.String
-            'Number -> checker_db.Number
-            'true -> checker_db.true
-            'false -> checker_db.false
-            'null -> checker_db.null
-            'undefined -> checker_db.undefined
-            other -> 'getChecker{^chk}
-         match context:
-            #pattern ->
-               match target:
-                  #void{} ->
-                     #check{checker, #ignore{}}
-                  other ->
-                     #check{checker, target}
-            other -> '[^checker]{^target}
 
-   "!"{context, scope, form, match} =
+   "?"{match context, scope, form, #data{chk, target}} =
+      do:
+         checker = match scope.step{#check{context}, chk}:
+            === chk -> 'getChecker{^chk}
+            checker -> checker
+      #pattern ->
+         subp = if{target == #void, #ignore, target}
+         match checker:
+            #raw{projector} ->
+               checker
+            else ->
+               #check{checker, subp}
+      when target == #void ->
+         checker
+      other ->
+         '[^checker]{^target}
 
-      #data{expr, #void{}} ->
-         projector = match expr:
-            'String -> mac1 with {x} -> '{true, String{^x}}
-            'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
-            other -> 'getProjector{^expr}
+   "!"{match context, scope, form, #data{proj, target}} =
+      do:
+         projector = match scope.step{#project{context}, proj}:
+            === proj -> 'getProjector{^proj}
+            projector -> projector
+      #pattern ->
+         subp = if{target == #void, #ignore, target}
+         match projector:
+            #raw{projector} ->
+               projector
+            else ->
+               #project{projector, subp}
+      when target == #void ->
+         '[{x} -> [^projector]{x}[1]]
+      other ->
+         '[^projector]{^target}[1]
 
-         #macro{...} with {match, env, form, expr} ->
-            #pattern ->
-               match expr:
-                  #void{} ->
-                     #project{projector, #ignore{}}
-                  other ->
-                     #project{projector, expr}
-            other -> '[^projector]{^expr}[1]
 
-      #data{prj, target} ->
-         projector = match prj:
-            'String -> mac1 with {x} -> '{true, String{^x}}
-            'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
-            other -> 'getProjector{^prj}
+   ;; "?"{context, scope, form, match} =
 
-         match context:
-            #pattern ->
-               match target:
-                  #void{} ->
-                     #project{projector, #ignore{}}
-                  other ->
-                     #project{projector, target}
-            other -> '[^projector]{^target}[1]
+   ;;    ;; #data{expr, #void{}} ->
+   ;;    ;;    checker = match expr:
+   ;;    ;;       'String -> checker_db.String
+   ;;    ;;       'Number -> checker_db.Number
+   ;;    ;;       'true -> checker_db.true
+   ;;    ;;       'false -> checker_db.false
+   ;;    ;;       'null -> checker_db.null
+   ;;    ;;       'undefined -> checker_db.undefined
+   ;;    ;;       other -> 'getChecker{^expr}
+
+   ;;    ;;    #macro{...} with {match, env, form, expr} ->
+   ;;    ;;       #pattern ->
+   ;;    ;;          match expr:
+   ;;    ;;             #void{} ->
+   ;;    ;;                #check{checker, #ignore{}}
+   ;;    ;;             other ->
+   ;;    ;;                #check{checker, expr}
+   ;;    ;;       other -> '[^checker]{^expr}
+
+   ;;    #data{chk, target} ->
+   ;;       checker = match chk:
+   ;;          'String -> checker_db.String
+   ;;          'Number -> checker_db.Number
+   ;;          'true -> checker_db.true
+   ;;          'false -> checker_db.false
+   ;;          'null -> checker_db.null
+   ;;          'undefined -> checker_db.undefined
+   ;;          other -> 'getChecker{^chk}
+   ;;       match context:
+   ;;          #pattern ->
+   ;;             match target:
+   ;;                #void{} ->
+   ;;                   #check{checker, #ignore{}}
+   ;;                other ->
+   ;;                   #check{checker, target}
+   ;;          other -> '[^checker]{^target}
+
+   ;; "!"{context, scope, form, match} =
+
+   ;;    ;; #data{expr, #void{}} ->
+   ;;    ;;    projector = match expr:
+   ;;    ;;       'String -> mac1 with {x} -> '{true, String{^x}}
+   ;;    ;;       'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+   ;;    ;;       other -> 'getProjector{^expr}
+
+   ;;    ;;    #macro{...} with {match, env, form, expr} ->
+   ;;    ;;       #pattern ->
+   ;;    ;;          match expr:
+   ;;    ;;             #void{} ->
+   ;;    ;;                #project{projector, #ignore{}}
+   ;;    ;;             other ->
+   ;;    ;;                #project{projector, expr}
+   ;;    ;;       other -> '[^projector]{^expr}[1]
+
+   ;;    #data{prj, target} ->
+   ;;       projector = match prj:
+   ;;          'String -> mac1 with {x} -> '{true, String{^x}}
+   ;;          'Number -> mac1 with {x} -> '{true, parseFloat{^x}}
+   ;;          other -> 'getProjector{^prj}
+
+   ;;       match context:
+   ;;          #pattern ->
+   ;;             match target:
+   ;;                #void{} ->
+   ;;                   #project{projector, #ignore{}}
+   ;;                other ->
+   ;;                   #project{projector, target}
+   ;;          other -> '[^projector]{^target}[1]
 
 
    "#"{context, scope, form, #data{#void{}, #symbol{var tag}}} =
@@ -982,6 +1060,10 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                #data{*subp} -> '{^tag, ^*subp}
                #void{} -> #check{checker_mac, #ignore{}}
                other -> #check{checker_mac, expr}
+         #check ->
+            'getChecker{{^tag}}
+         #project ->
+            'getProjector{{^tag}}
          _ ->
             match expr:
                #void{} ->
@@ -1186,7 +1268,12 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
    ;;    'Node{^tags, ^contents}
 
 
-   "%"{context, scope, {=> env}, #data{descr, var contents}} =
+   "%"{context, scope, form and {=> env}, #data{descr, var contents}} =
+      match context:
+         #check or #project ->
+            return #nostep{form}
+         else -> pass
+
       var tags = #data{}
       kv = '{=}
 
@@ -1393,24 +1480,31 @@ class RegexBuilder:
 build_regexp{x} = RegexBuilder{}.build{x}
 
 stdenv.bind{topscope, "R", #macro{accum_flags{mac, false}}} where
-   mac{context, scope, form, match arg, flags} =
-      #value{String? v} ->
-         text =
-            match arg.location.text{}:
-               R"^\".*\"$"? text -> text.substring{1, text.length - 1}
-               text -> text
-         'RegExp{^=text, ^=[flags.join{""}]}
-      #send{#symbol{"'"}, #data{#void{}, arg}} ->
-         'RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}
+   mac{match, scope, form, arg, flags} =
+      #check or #project ->
+         #nostep{form}
+      else ->
+         match arg:
+            #value{String? v} ->
+               text =
+                  match arg.location.text{}:
+                     R"^\".*\"$"? text -> text.substring{1, text.length - 1}
+                     text -> text
+               'RegExp{^=text, ^=[flags.join{""}]}
+            #send{#symbol{"'"}, #data{#void{}, arg}} ->
+               'RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}
 
 
-errf_macro{tags}{context, scope, form, match} =
-   #void{} ->
-      'ErrorFactory{{^*tags}}
-   #data{*args} ->
-      'ErrorFactory{{^*tags}}.create{^*args}
-   other ->
-      #macro with errf_macro{tags ++ {other}}
+errf_macro{tags}{match, scope, form, expr} =
+   #check or #project -> #nostep{form}
+   ctx ->
+      match expr:
+         #void{} ->
+            'ErrorFactory{{^*tags}}
+         #data{*args} ->
+            'ErrorFactory{{^*tags}}.create{^*args}
+         other ->
+            #macro with errf_macro{tags ++ {other}}
 
 stdenv.bind{topscope, "E", #macro{errf_macro{{}}}}
 
