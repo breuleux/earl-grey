@@ -551,7 +551,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                body2 = ' | match.indexable [^a]:
                             ^arg -> ^body
 
-   "-->"{ctx, scope, form, match} =
+   "*->"{ctx, scope, form, match} =
       #data{args, body} ->
          '_lambda{^args, ^=null, ^body, ^=null, ^=true}
       other ->

@@ -72,19 +72,23 @@ generate_from_ast{ast} =
    set ex = opt.hoist{ex}
    tr = Translator{}
    rval = tr.translate{ex, .expr}
-   {tr.dump_store{}, rval}
+   prep = tr.dump_store{}
+   to5.compile{r, {}} where r =
+      prep + ";(" + rval + ")"
 
 std.stdenv.bind{std.topscope, "macro", #macro{...}} with
    {context, scope, form, match} ->
       #data{#send{name and #symbol{sym}, arguments}, ast} ->
-         {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
+         ;; {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
+         code = generate_from_ast{'[^arguments -> ^ast]}
          file = form.location.source.url
          ev = evaluator with {
             filename = file
             showname = file
             cwd = file
          }
-         mac = ev{prep + ";("+code+")"}
+         ;; mac = ev{prep + ";("+code+")"}
+         mac = ev{code}
          mac2{c, s, f, e} =
             ;; ;; We bind the macro's name in the environment of what it
             ;; ;; returns; that way it can call itself recursively
@@ -105,15 +109,17 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
 
 std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
    {context, scope, form, match} ->
-      #data{#send{name and #symbol{sym}, arguments}, ast} ->
-         {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
+      #data{#send{name and #symbol{sym}, argument}, ast} ->
+         ;; {prep, code} = generate_from_ast{'[{^argument} -> ^ast]}
+         code = generate_from_ast{'[{^argument} -> ^ast]}
          file = form.location.source.url
          ev = evaluator with {
             filename = file
             showname = file
             cwd = file
          }
-         mac = ev{prep + ";("+code+")"}
+         ;; mac = ev{prep + ";("+code+")"}
+         mac = ev{code}
          mac2{c, s, f, e} =
             ;; console.log with e
             bindings = form.env.list_bindings{scope}
@@ -140,14 +146,16 @@ std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
 
 std.stdenv.bind{std.topscope, "macros", #macro{...}} with
    {context, scope, form and {=> env}, #data{body}} ->
-      {prep, code} = generate_from_ast{body}
+      ;; {prep, code} = generate_from_ast{body}
+      code = generate_from_ast{body}
       file = form.location.source.url
       ev = evaluator with {
          filename = file
          showname = file
          cwd = file
       }
-      the_macros = ev{prep + ";(" + code + ")"}
+      ;; the_macros = ev{prep + ";(" + code + ")"}
+      the_macros = ev{code}
       #splice{*[...]} with
          items{the_macros} each {k, v} ->
             #declare_raw{#symbol{k} &: {env = env}, #macro{v}}

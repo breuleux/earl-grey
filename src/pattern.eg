@@ -155,7 +155,7 @@ class PatternParser:
             @expand{scope, subp, tags & {declare_mode = mode}, toplevel, checked}
 
          other ->
-            throw E.syntax.pattern{"Illegal pattern", {node = other}}
+            throw E.syntax.pattern{"Illegal pattern: " + other, {node = other}}
 
       [@opt.wrap_pattern or identity]{rval <<: pattern, toplevel}
 
