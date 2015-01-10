@@ -6,7 +6,7 @@ require:
       [<<:]
    "./util" as util ->
       GenSym, gensym
-      neighbours
+      ;; _neighbours
       classify, classify_contiguous
       identity
       Body

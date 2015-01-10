@@ -4,7 +4,7 @@ provide:
    identity
    binsearch
    classify, classify_contiguous
-   neighbours
+   ;; _neighbours
    partition
    construct
    mkset
@@ -107,16 +107,16 @@ classify_contiguous{xs, classifier} =
    groups
 
 
-neighbours{match} =
-   ;; Takes an array and returns an array of pairs of consecutive elements.
-   ;; Example:
-   ;;   neighbours{{1, 7, 10, 3, 7}}
-   ;;     ==> {{1, 7}, {7, 10}, {10, 3}, {3, 7}}
+;; _neighbours{match} =
+;;    ;; Takes an array and returns an array of pairs of consecutive elements.
+;;    ;; Example:
+;;    ;;   neighbours{{1, 7, 10, 3, 7}}
+;;    ;;     ==> {{1, 7}, {7, 10}, {10, 3}, {3, 7}}
 
-   {} -> {}
-   {x} -> {}
-   {x, y, *rest} ->
-      {{x, y}} ++ neighbours{{y} ++ rest}
+;;    {} -> {}
+;;    {x} -> {}
+;;    {x, y, *rest} ->
+;;       {{x, y}} ++ _neighbours{{y} ++ rest}
 
 
 partition{xs, predicate} =

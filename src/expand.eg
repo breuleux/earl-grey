@@ -6,7 +6,6 @@ require:
       <<:
    "./util" as util ->
       classify
-      neighbours
       GenSym, gensym
    "./pattern" ->
       PatternParser, PatternProcessor
@@ -507,12 +506,12 @@ class Expander:
 
             #char{c} ->
                throw E.syntax.illegal_character with
-                  "An illegal character was found."
+                  "An illegal character was found: " + c
                   {node = expr}
 
             other ->
                throw E.syntax.illegal_node with
-                  "An illegal node was found."
+                  "An illegal node was found: " + other
                   {node = other, context = context}
 
       helper{context, scope, expr}

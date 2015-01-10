@@ -119,7 +119,7 @@ generate{source} =
 class Generator:
 
    constructor{interactive = false} =
-      @tr = Translator{std.stdprelude}
+      @tr = Translator{"require(\"earlgrey-runtime\");"}
       @env = std.stdenv.fork{}
       @interactive = interactive
       @_eval = null

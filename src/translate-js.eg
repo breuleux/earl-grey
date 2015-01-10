@@ -77,9 +77,12 @@ class Translator:
    constructor{prelude = null} =
       @cache = {=}
       @prepend = {}
-      if prelude:
-         @prepend.push with
-            @translate{___serialize_ast{prelude}, .stmt}
+      match prelude:
+         null? -> pass
+         String? -> @prepend.push{prelude}
+         else ->
+            @prepend.push with
+               @translate{___serialize_ast{prelude}, .stmt}
 
    register_value{v, id} =
       match @cache[id]:
