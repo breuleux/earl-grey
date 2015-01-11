@@ -300,7 +300,11 @@ class Translator:
 
          #if{test, pos, #value{undefined?}} ->
             match mode:
-               .expr -> @body{expr, .expr}
+               ;; .expr -> @body{expr, .expr}
+               .expr ->
+                  @expr{"(" + a + "?" + b + ":undefined)", .expr} where
+                     a = @translate{test, .expr}
+                     b = @translate{pos, .expr}
                other ->
                   ["if(" + a + "){" + b + "}"] where
                      a = @translate{test, .expr}
@@ -308,7 +312,12 @@ class Translator:
 
          #if{test, pos, neg} ->
             match mode:
-               .expr -> @body{expr, .expr}
+               ;; .expr -> @body{expr, .expr}
+               .expr ->
+                  @expr{"(" + a + "?" + b + ":" + c + ")", .expr} where
+                     a = @translate{test, .expr}
+                     b = @translate{pos, .expr}
+                     c = @translate{neg, .expr}
                other ->
                   ["if(" + a + "){" + b + "}else{" + c + "}"] where
                      a = @translate{test, .expr}
