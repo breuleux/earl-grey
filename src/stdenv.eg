@@ -939,8 +939,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
       arg -> #js_yield{arg, #value{false}}
 
    expr_mac! "await"{scope, form, match} =
-      ;; same as yield
-      'all[^arg] -> #js_yield{arg, #value{true}}
+      'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
+      'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
       arg -> #js_yield{arg, #value{false}}
 
    expr_mac2! "gen"{match} =
