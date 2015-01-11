@@ -396,8 +396,9 @@ class Translator:
                then: throw "Invalid return in ctx"
                else: "return " + @translate{value, .expr} + ";"
 
-         #js_yield{value} ->
-            @expr{"yield " + @translate{value, .expr}, mode}
+         #js_yield{value, #value{all}} ->
+            @expr{"(yield" + star + " " + @translate{value, .expr} + ")", mode} where
+               star = if{all, "*", ""}
 
          #js_delete{value} ->
             if [mode === "expr"]:

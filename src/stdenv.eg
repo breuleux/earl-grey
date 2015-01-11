@@ -102,6 +102,8 @@ topscope = Scope{null, .top, expander}
    .___match_error
    .___serialize_ast
 
+   .Promise, .promisify, .spawn
+
    .Buffer
 
    .global
@@ -135,6 +137,21 @@ expr_mac{f}{match, scope, form, arg} =
       f{scope, form, arg}
    otherwise ->
       #nostep{form}
+
+expr_mac2{mac}{match, s, f, e} =
+   #project{match} ->
+      #pattern ->
+         #unconditional{#macro{mac3}} where
+            mac3{c, s, f, #data{match}} =
+               #use{env, x} ->
+                  #use{env, mac{#data{x} <<: e}}
+               x ->
+                  mac{#data{x} <<: x}
+      else ->
+         mac{e}
+   #expr ->
+      mac{e}
+
 
 
 _default_proj{name}{x} =
@@ -917,8 +934,27 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
 
    "continue" => continue_mac{null}
 
-   expr_mac! "yield"{scope, form, arg} =
-      #js_yield{arg}
+   expr_mac! "yield"{scope, form, match} =
+      'all[^arg] -> #js_yield{arg, #value{true}}
+      arg -> #js_yield{arg, #value{false}}
+
+   expr_mac! "await"{scope, form, match} =
+      ;; same as yield
+      'all[^arg] -> #js_yield{arg, #value{true}}
+      arg -> #js_yield{arg, #value{false}}
+
+   expr_mac2! "gen"{match} =
+      '{^arg -> ^body} ->
+         '[^arg *-> ^body]
+      '{_lambda{^arg, ^pre, ^body, ^post, ^_}} ->
+         '_lambda{^arg, ^pre, ^body, ^post, ^=true}
+
+   expr_mac2! "async"{match} =
+      '{^arg -> ^body} ->
+         '[^arg -> spawn{{} *-> ^body}]
+      '{_lambda{^arg, ^pre, ^body, ^post, ^_}} ->
+         ;; TODO: this is wrong; post should be inside the spawn
+         '_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}
 
    expr_mac! "throw"{scope, form, arg} =
       #js_throw{arg}
@@ -986,6 +1022,8 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
          match projector:
             #raw{projector} ->
                projector
+            #unconditional{projector} ->
+               #project{projector, subp, true}
             else ->
                #project{projector, subp}
       when target == #void ->
@@ -1190,6 +1228,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                                 splice: [let ^it = this, let ^it2 = this]
                                 ^body
                                 ^=null
+                                ^=false
                         other ->
                            other
                      success{_} = #splice{}
@@ -1206,6 +1245,7 @@ make_assigner{op}{context, scope, form, #data{a, b}} =
                     ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
                     ^ctor_body
                     ^it
+                    ^=false
             if super:
                then: '___extend{^cls, ^super}
                else: cls

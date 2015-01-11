@@ -38,6 +38,8 @@ earl compile [options] [file... | dir]
                         No files are created.
     -e  --eval <code>   Compile the provided code instead of reading from a file.
     -n  --noboil        Don't produce boilerplate code (useful with -p)
+    -v  --verbose       Print information about the operations performed
+    -6  --es6           Generate EcmaScript v6
 
 earl
   Start an interactive session.
@@ -112,15 +114,15 @@ extract_options{clone! argv, opttable, optmessage} =
    while argv.length:
       arg = argv.shift{}
       match arg:
-         R"^--([a-zA-Z_\-]+)=(.*)"! {_, opt, value} ->
+         R"^--([a-zA-Z_0-9\-]+)=(.*)"! {_, opt, value} ->
             process_option{arg, opt, true}
             results[associate] = value
             associate = null
 
-         R"^--([a-zA-Z_\-]+)"! {_, opt} ->
+         R"^--([a-zA-Z_\-0-9]+)"! {_, opt} ->
             process_option{arg, opt, true}
 
-         R"^-([a-zA-Z_]+)"! {_, opts} ->
+         R"^-([a-zA-Z_0-9]+)"! {_, opts} ->
             opts each
                last ch ->
                   process_option{arg, ch, true}
@@ -158,9 +160,9 @@ copy{src, dest} =
    fs.writeFileSync{dest, data, .binary}
 
 
-gen{text, file, noboil = false} =
+_gen{text, file, noboil = false, to5 = true} =
    g = eg.Generator{}
-   g.generate{Source{text, path.resolve{file}}, not noboil}
+   g.generate{Source{text, path.resolve{file}}, not noboil, to5}
 
 
 
@@ -173,7 +175,9 @@ interactive{g, e} =
       eval{input, context, filename, callback} =
          result = [execute{} !! e -> handle{e}] where
             execute{} =
-               text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
+               var text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
+               if text == "\"use strict\";\n//# sourceURL=<compile-source>":
+                  text = ""
                e{text}
             handle{e} =
                display_error{e}
@@ -208,7 +212,7 @@ compile_path{p, opts} =
                   if opts.verbose:
                      console.log{"Compiling:", from}
                   fs.writeFileSync{to} with
-                     gen{data, from, opts.noboil} + "\n"
+                     _gen{data, from, opts.noboil, not opts.es6} + "\n"
                when not opts.output ->
                   null
                f ->
@@ -219,7 +223,7 @@ compile_path{p, opts} =
 
       else ->
          data = fs.readFileSync{p, .utf8}
-         code = gen{data, p, opts.noboil}
+         code = _gen{data, p, opts.noboil, not opts.es6}
          match:
             when opts.print ->
                require: "js-beautify" -> js as beaut
@@ -320,13 +324,16 @@ _run{match, opts} =
          n = #flag{.noboil}
          noboil = #flag{.noboil}
 
+         "6" => #flag{.es6}
+         es6 = #flag{.es6}
+
          v = #flag{.verbose}
          verbose = #flag{.verbose}
       }
 
       match rest:
          when o.evaluate ->
-            code = gen{o.evaluate, "<cli>", o.noboil}
+            code = _gen{o.evaluate, "<cli>", o.noboil}
             match:
                when o.output ->
                   fs.writeFileSync{o.output} with
@@ -365,7 +372,7 @@ _run{match, opts} =
                      to = path.join{out, name + ".js"}
                      data = fs.readFileSync{from, .utf8}
                      fs.writeFileSync{to} with
-                        gen{data, from} + "\n"
+                        _gen{data, from} + "\n"
                   f ->
                      from = path.join{file, f}
                      to = path.join{out, f}
@@ -374,12 +381,12 @@ _run{match, opts} =
          when out ->
             data = fs.readFileSync{file, .utf8}
             fs.writeFileSync{out} with
-               gen{data, file} + "\n"
+               _gen{data, file} + "\n"
 
          otherwise ->
             require: "js-beautify" -> js as beaut
             data = fs.readFileSync{file, .utf8}
-            console.log with beaut{gen{data, file}}
+            console.log with beaut{_gen{data, file}}
 
 
    {.tok, s} ->
@@ -427,13 +434,13 @@ _run{match, opts} =
    ;;    <> eval{code}
 
    ;; {.runs, data} ->
-   ;;    code = gen{data, "<command>"}
+   ;;    code = _gen{data, "<command>"}
    ;;    ;; console.log with code
    ;;    ;; console.log with eval{code}
    ;;    <> eval{code}
 
    ;; {.trs, data} ->
-   ;;    code = gen{data, "<command>"}
+   ;;    code = _gen{data, "<command>"}
    ;;    ;; console.log with code
    ;;    ;; console.log with eval{code}
    ;;    <> code

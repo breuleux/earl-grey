@@ -128,13 +128,12 @@ std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
             r = match c:
                #project{match} ->
                   #pattern ->
-                     #nostep{#macro{mac3}} where
-                        mac3{c, s, f, #data{e}} =
-                           '{true, ^r} where r = match e:
-                              #use{env, x} ->
-                                 #use{env, mac{#data{x} <<: e}}
-                              x ->
-                                 mac{#data{x} <<: x}
+                     #unconditional{#macro{mac3}} where
+                        mac3{c, s, f, #data{match}} =
+                           #use{env, x} ->
+                              #use{env, mac{#data{x} <<: e}}
+                           x ->
+                              mac{#data{x} <<: x}
                   else ->
                      mac{e}
                #expr ->
@@ -171,7 +170,7 @@ class Generator:
       @interactive = interactive
       @_eval = null
 
-   generate{source, dump = true} =
+   generate{source, dump = true, _to5 = true} =
       t = tokenize{source}
       p = parse{t}
       ;; #interactive forces declarations into the top scope, which
@@ -193,7 +192,7 @@ class Generator:
       rval = @tr.translate{ex, .stmt}
       ;; r where r =
       ;; to5.transform{r}.code where r =
-      to5.compile{r, {}} where r =
+      if{_to5, to5.compile{r, {}}, r} where r =
          if dump:
             then: @tr.dump_store{} + rval
             else: rval

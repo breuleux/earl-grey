@@ -80,8 +80,10 @@ class PatternParser:
 
          #test{condition, subp} ->
             #test{condition, @expand{scope, subp, tags, toplevel, false}}
-         #project{projector, subp} ->
-            #project{projector, @expand{scope, subp, tags, toplevel, true}}
+         #project{projector, subp, unconditional = false} ->
+            #project{projector
+                     @expand{scope, subp, tags, toplevel, true}
+                     unconditional}
          #check{checker, subp} ->
             #check{checker, @expand{scope, subp, tags, toplevel, true}}
 
@@ -206,10 +208,14 @@ class PatternProcessor:
             @check with '[^checker]{^t}
             @process{subp, t, fns}
 
-         #project{projector, subp} ->
-            t = @temp{'[^projector]{^rhs}}
-            @check with '[^t][0]
-            @process{subp, '[^t][1], fns}
+         #project{projector, subp, match unconditional} ->
+            true? ->
+               t = @temp{'[^projector]{^rhs}}
+               @process{subp, t, fns}
+            else ->
+               t = @temp{'[^projector]{^rhs}}
+               @check with '[^t][0]
+               @process{subp, '[^t][1], fns}
 
          #neg{patt} ->
             @check{'[not ^[...]]} with
@@ -384,7 +390,16 @@ parse_pattern{scope, pattern, rhs, opt} =
             *opt.declare{scope, parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
-               assemble_pattern{proc.parts, opt.success{target}, opt.failure{target}}
+               assemble_pattern{proc.parts, opt.success{target}, opt.failure{targ}} where
+                  ;; This is a hack to avoid injecting whole function
+                  ;; definitions in match errors (this can actually
+                  ;; cause compile errors if the function contains
+                  ;; yield, because target is unwrapped by
+                  ;; unconditional transformers)
+                  ;; FIX: apply unconditional projectors on target?
+                  targ = match target:
+                     '[^_ -> ^_] or '_lambda{^*_} -> '"<function>"
+                     else -> target
       else:
          {parse.vars, proc.temps, proc.parts}
 
