@@ -170,7 +170,7 @@ class Generator:
       @interactive = interactive
       @_eval = null
 
-   generate{source, dump = true, _to5 = true} =
+   generate{source, dump = not @interactive, _to5 = true} =
       t = tokenize{source}
       p = parse{t}
       ;; #interactive forces declarations into the top scope, which

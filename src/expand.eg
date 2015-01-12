@@ -1,14 +1,17 @@
 
 require:
-   "./pp" ->
-      <>
    "./location" ->
-      <<:
+      <<:, Source
    "./util" as util ->
       classify
       GenSym, gensym
    "./pattern" ->
       PatternParser, PatternProcessor
+   "./lex" ->
+      tokenize
+   "./parse" ->
+      parse
+
 
 
 provide:
@@ -219,7 +222,12 @@ class Expander:
                   #bounce with @run_macro{m, context, scope, expr, arg}
                other ->
                   expr
-   
+
+         #parse{code, url = null} ->
+            t = tokenize{Source{code, url}}
+            p = parse{t}
+            #bounce with helper{context, scope, expr.env.mark{p}}
+
          #nostep{x} ->
             x
    
