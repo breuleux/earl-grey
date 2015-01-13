@@ -26,12 +26,6 @@ provide:
 
 class Scope:
 
-   ;; constructor{parent = null, name = null, expander = null} =
-   ;;    @name = name or gensym{"scope"}
-   ;;    @parent = parent
-   ;;    @options = {=}
-   ;;    @expander = expander or parent.expander
-
    constructor{@parent = null
                @name = gensym{"scope"}
                @expander = @parent.expander} =
@@ -130,6 +124,25 @@ track_location{f} =
    f2
 
 
+class Context:
+
+   constructor{@context, @scope, @form, @expander} =
+      @env = @form.env
+
+   gettext{match} =
+      {=> location} -> location.text{}
+      else -> null
+
+   step{context, expr} =
+      @expander.step{context, @scope, expr}
+
+   step_all{context, exprs} =
+      @expander.step_all{context, @scope, exprs}
+
+   expand{context, expr} =
+      @expander.expand{context, @scope, expr}
+
+
 class Expander:
 
    constructor{env_factory, generic_nodes} =
@@ -138,12 +151,8 @@ class Expander:
       @generic_nodes = generic_nodes
 
    run_macro{m, context, scope, form, arg} =
-      data = {
-         scope = scope
-         form = form
-         env = form.env
-         expander = [@]
-      }
+      ctxobj = Context{context, scope, form, @}
+      ;; rval = m.call{data, context, ctxobj, form, arg} !!
       rval = m.call{data, context, scope, form, arg} !!
          E.match? {args => {{=> value}}} ->
             e = match value:
