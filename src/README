@@ -74,6 +74,12 @@ Processed nodes (produced during macro expansion in addition to core nodes):
   #object{#array{k1, v1}, ...} ==> create an object from key/value pairs
   #if{test, x, y}              ==> conditionals
   #scope{vars, body}           ==> variable declaration
-  #lambda{args, body}          ==> function definitionw
+  #lambda{args, body}          ==> function definition
   #js_while, #js_for, etc.     ==> javascript-specific control structures
 
+Temporary nodes/expansion control
+  #macro{fn}         ==> `fn` will be used to expand #send{#macro{fn}, arg}
+  #nostep{macro}     ==> Defer macro expansion to later
+                         (macro expansion may happen in multiple contexts)
+  #parse{str, url}   ==> Instruct EG's expander to parse the code string
+                         (useful to implement interpolation in strings)

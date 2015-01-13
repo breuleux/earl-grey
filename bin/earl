@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
 require("../lib/register")
-r = require("../lib/run.js")
+r = require("../lib/run")
 r.run(process.argv.slice(2))
 

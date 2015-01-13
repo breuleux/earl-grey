@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+r = require("../bootstrap/run.js")
+r.run(process.argv.slice(2))
