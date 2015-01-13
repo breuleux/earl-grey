@@ -117,6 +117,10 @@ X `if` in expressions should generate ?:
 * string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
 * x[1..10] instead of x.slice{1, 10}
 * add long strings: """xyz"""
+* fix nested each so that inner each is evaluated with #expr{.ignore}
+  if outer each is
+* remove the if{x, y, else{z}} form
+* remove `each?`
 
 * f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 * f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}

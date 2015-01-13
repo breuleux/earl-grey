@@ -138,7 +138,13 @@ class Expander:
       @generic_nodes = generic_nodes
 
    run_macro{m, context, scope, form, arg} =
-      rval = m{context, scope, form, arg} !!
+      data = {
+         scope = scope
+         form = form
+         env = form.env
+         expander = [@]
+      }
+      rval = m.call{data, context, scope, form, arg} !!
          E.match? {args => {{=> value}}} ->
             e = match value:
                === context ->
