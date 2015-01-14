@@ -92,6 +92,7 @@ X Make `each` iterate over iterables
 X x[1..10] instead of x.slice{1, 10}
 X print x
 X "::check" => Symbol.check, etc.
+X add long strings: """xyz"""
 
 
 * Make unconditional transformers for String!, Number! and Boolean!
@@ -121,7 +122,6 @@ X "::check" => Symbol.check, etc.
 * make it possible to do "earl compile src -o lib" instead of having
   to do "earl compile -o lib src"
 * string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
-* add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
 

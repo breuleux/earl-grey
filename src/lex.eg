@@ -34,6 +34,7 @@ regexps = {
    {id,     id_f}
    {numr,   numr_f}
    {num,    num_f}
+   {str2,   str_f}
    {str,    str_f}
    {op,     op_f}
    {op2,    op_f}
@@ -106,6 +107,9 @@ regexps = {
      "\""
      {*[["\\", any] or [not in "\""]]}
      "\""
+
+  ;; Strings (no interpolation)
+  str2 = R"[\"]{3,}((?:[\\.]|[^\"]|\"\"?[^\"])*)[\"]{3,}"
 
   str_f = {m} ->
      repl = {
