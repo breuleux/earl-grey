@@ -89,6 +89,7 @@ X FIX: f! x = g{y} will include the code for g{y} twice (once in the
 X Upgrade product to standard lib
 X timeit macro
 X Make `each` iterate over iterables
+X x[1..10] instead of x.slice{1, 10}
 
 
 * Make unconditional transformers for String!, Number! and Boolean!
@@ -119,7 +120,6 @@ X Make `each` iterate over iterables
   to do "earl compile -o lib src"
 * print x
 * string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
-* x[1..10] instead of x.slice{1, 10}
 * add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is

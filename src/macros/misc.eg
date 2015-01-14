@@ -92,6 +92,18 @@ mac{"S"}! S_mac{context, info, form, arg} =
          R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
          text -> text
 
+mac{"print"}! print_mac{context, info, form, match} =
+   #void{} ->
+      'console.log{}
+   arg ->
+      '[t = ^arg, console.log{t}, t]
+
+
+
+;;;;;;;;;;;
+;; CLASS ;;
+;;;;;;;;;;;
+
 mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
    helper{name, super, stmts} =
       var statics = #data{'[=]}

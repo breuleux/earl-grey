@@ -25,7 +25,7 @@ global_variables = {
 
    .typeof
    ;; .String, .Number, .Boolean
-   .Array, .Object
+   .Array, .Object, .Symbol
    .RegExp, .Function, .Date
    .parseInt, .parseFloat, .Math
    .Error, .TypeError, .ReferenceError
