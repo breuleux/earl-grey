@@ -140,6 +140,9 @@ class Info:
    gensym{name} =
       @expander.gensym{}
 
+   defer{} =
+      #nostep{@form}
+
    mkenv{} =
       @expander.mkenv{}
 
@@ -162,7 +165,33 @@ class Expander:
    constructor{@stdenv, @generic_nodes, @pipeline} =
       ;; @pipeline.expand = [@]
       ;; @gensym = gensym
-      @gensym = GenSym{"$"}
+
+      ;; @gensym = GenSym{"$"}
+
+      @nameusage = [object with jskw.split{R"[ \n]+"} each kw -> {kw, 0}] where
+         jskw = "abstract arguments boolean break byte
+                 case catch char class const
+                 continue debugger default delete do
+                 double else enum eval export
+                 extends false final finally float
+                 for function goto if implements
+                 import in instanceof int interface
+                 let long native new null
+                 package private protected public return
+                 short static super switch synchronized
+                 this throw throws transient true
+                 try typeof var void volatile
+                 while with yield"
+
+   gensym{match name} =
+      undefined? or null? ->
+         @gensym{""}
+      when Object.prototype.hasOwnProperty.call{@nameusage, name} ->
+         idx = [@nameusage[name] += 1]
+         name + "$" + String{idx}
+      else ->
+         @nameusage[name] = 0
+         name + "$0"
 
    mkenv{} =
       e = Env{}

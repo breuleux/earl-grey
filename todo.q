@@ -81,6 +81,8 @@ X investigate bug where some locations cannot be found
 X `if` in expressions should generate ?:
 X remove the if{x, y, else{z}} form
 X remove `each?`
+X improve gensym to be less heavy-handed; one counter per variable
+  name, perhaps
 
 
 * FIX: f! x = g{y} will include the code for g{y} twice (once in the
@@ -110,8 +112,6 @@ X remove `each?`
   idea: macro_require inserts also require(package), which is used to
         resolve symbols in the macro's namespace (requires what the macro
         is using to be provided, though)
-* improve gensym to be less heavy-handed; one counter per variable
-  name, perhaps
 * allow break/continue in list-building `each` by unhoisting the
   accum.push(...) as much as possible
 * experiment with changing the priority of wide juxtaposition
@@ -123,6 +123,7 @@ X remove `each?`
 * add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
+* "::check" => Symbol.check, etc.
 
 * f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 * f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}

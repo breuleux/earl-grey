@@ -111,13 +111,16 @@ expr_mac2{mac}{match, info, f, e} =
          #unconditional{#macro{mac3}} where
             mac3{c, info, f, #data{match}} =
                #use{env, x} ->
-                  #use{env, mac{#data{x} <<: e}}
+                  #use{env, mac.call{info, #data{x} <<: e}}
                x ->
-                  mac{#data{x} <<: x}
+                  mac.call{info, #data{x} <<: x}
       else ->
-         mac{e}
+         mac.call{info, e}
    #expr ->
-      mac{e}
+      mac.call{info, e}
+
+ctx_mac{mac}{ctx, info, f, e} =
+   mac.call{info, ctx, e}
 
 
 _default_proj{name}{x} =
@@ -1263,18 +1266,17 @@ accum_flagsf! mac{"R"}! regexp_mac{match, info, form, arg, flags} =
 ;; ERROR FACTORY ;;
 ;;;;;;;;;;;;;;;;;;;
 
-errf_macro{tags}{match, _, form, expr} =
-   #check or #project -> #nostep{form}
-   ctx ->
-      match expr:
-         #void{} ->
-            'ErrorFactory{{^*tags}}
-         #data{*args} ->
-            'ErrorFactory{{^*tags}}.create{^*args}
-         other ->
-            #macro with errf_macro{tags ++ {other}}
-
-mac{"E"}! E_mac = errf_macro{{}}
+mac{"E"}! E_mac = errf_macro{{}} where
+   errf_macro{tags}{match, _, form, expr} =
+      #check or #project -> #nostep{form}
+      ctx ->
+         match expr:
+            #void{} ->
+               'ErrorFactory{{^*tags}}
+            #data{*args} ->
+               'ErrorFactory{{^*tags}}.create{^*args}
+            other ->
+               #macro with errf_macro{tags ++ {other}}
 
 
 
@@ -1341,7 +1343,7 @@ wrap_macro{info, mac} =
       bindings = info.env.list_bindings{info.scope}
       env = Env{}
       env.scopes[topscope.name] = bindings
-      r = mac{c, s, f, e}
+      r = mac.call{info, c, s, f, e}
       env.mark{r}
    #macro{mac2}
 
@@ -1349,6 +1351,11 @@ mac{"macro"}! macro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, arguments}, ast} ->
       let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
       #declare_raw{name, wrap_macro{info, mac}}
+
+mac{"cmacro"}! cmacro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      #declare_raw{name, wrap_macro{info, ctx_mac{mac}}}
 
 mac{"emacro"}! emacro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, argument}, ast} ->
