@@ -152,6 +152,9 @@ class Info:
    expand{context, expr} =
       @expander.expand{context, @scope, expr}
 
+   go{x, start, end} =
+      @expander.pipeline.go{x, start, end}
+
 
 
 class Expander:

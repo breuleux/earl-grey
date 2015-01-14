@@ -1356,20 +1356,56 @@ mac{"blocktest"}! blocktest_mac{context, info, form, #data{*match}} =
         | ^_blocktest_mac{info, tests}
 
 
-stdenv = Env{}
+;;;;;;;;;;;;
+;; MACROS ;;
+;;;;;;;;;;;;
 
-;; mkstdenv{} =
-;;    e = Env{}
-;;    e.scopes[.top] = stdenv.scopes[.top]
-;;    e
+mac{"macro"}! macro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      mac2{c, s, f, e} =
+         bindings = form.env.list_bindings{info.scope}
+         env = Env{}
+         env.scopes[topscope.name] = bindings
+         r = mac{c, s, f, e}
+         env.mark{r}
+      #declare_raw{name, #macro{mac2}}
+
+mac{"emacro"}! emacro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, argument}, ast} ->
+      let mac = info.go{'[{^argument} -> ^ast], .parse, .eval}
+      mac2{c, s, f, e} =
+         bindings = form.env.list_bindings{info.scope}
+         env = Env{}
+         env.scopes[topscope.name] = bindings
+         r = match c:
+            #project{match} ->
+               #pattern ->
+                  #unconditional{#macro{mac3}} where
+                     mac3{c, s, f, #data{match}} =
+                        #use{env, x} ->
+                           #use{env, mac{#data{x} <<: e}}
+                        x ->
+                           mac{#data{x} <<: x}
+               else ->
+                  mac{e}
+            #expr ->
+               mac{e}
+         env.mark{r}
+
+      #declare_raw{name, #macro{mac2}}
+
+mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
+   the_macros = info.go{body, .parse, .eval}
+   #splice{*[...]} with
+      items{the_macros} each {k, v} ->
+         #declare_raw{#symbol{k} &: {env = env}, #macro{v}}
+
+
+stdenv = Env{}
 
 items{stdstore} each {k, v} ->
    stdenv.bind{topscope, k, v}
-
-;; expander.utils = {
-;;    var_operator = var_operator
-;; }
-
 
 make_expander{pipeline} =
    Expander{stdenv.fork{}, generic_nodes, pipeline} where
@@ -1380,5 +1416,3 @@ make_expander{pipeline} =
          .js_delete, .js_throw, .js_try, .js_new
          .js_yield
       }
-
-
