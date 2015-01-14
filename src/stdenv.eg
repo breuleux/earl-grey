@@ -19,26 +19,6 @@ require:
 provide:
    stdenv
    make_expander
-   ;; expander
-   ;; expand
-
-
-
-;;;;;;;;;;;;;
-;; HELPERS ;;
-;;;;;;;;;;;;;
-
-
-
-mkid = GenSym{"#"}
-
-
-;; class Embedded:
-;;    constructor{code} =
-;;       @code = mkstdenv{}.mark{code}
-;;       @"::id" = mkid{}
-;;    "::serialize_ast"{} =
-;;       expand{#top, topscope, @code}
 
 
 stdstore = {=}
@@ -115,13 +95,13 @@ match_error{match target} =
       '___match_error{^other}
 
 drop_ctx{f}{context, info, form, arg} =
-   f.call{this, context, info, form, arg} !!
+   f{context, info, form, arg} !!
       E.match? {args => {{value => [=== context and not #expr{.expr}]}}} ->
          #nostep{form}
 
 expr_mac{f}{match, info, form, arg} =
    #expr{.expr} or #expr{.head} ->
-      f.call{this, info, form, arg}
+      f{info, form, arg}
    otherwise ->
       #nostep{form}
 
@@ -131,14 +111,13 @@ expr_mac2{mac}{match, info, f, e} =
          #unconditional{#macro{mac3}} where
             mac3{c, info, f, #data{match}} =
                #use{env, x} ->
-                  #use{env, mac.call{this, #data{x} <<: e}}
+                  #use{env, mac{#data{x} <<: e}}
                x ->
-                  mac.call{this, #data{x} <<: x}
+                  mac{#data{x} <<: x}
       else ->
-         mac.call{this, e}
+         mac{e}
    #expr ->
-      mac.call{this, e}
-
+      mac{e}
 
 
 _default_proj{name}{x} =
@@ -162,7 +141,7 @@ overridable{f}{match context, info, form, arg} =
    #expr{.multi} ->
       #nostep{form}
    other ->
-      f.call{this, context, info, form, arg}
+      f{context, info, form, arg}
 
 protected_value{name, value}{match, _, form, arg} =
    #pattern ->
@@ -213,7 +192,7 @@ accum_flags{mac, also_values = true} =
       '[. ^[#symbol{flag}]] ->
          #macro{make{flags ++ {flag}}}
       other ->
-         mac.call{this, context, info, form, other, flags}
+         mac{context, info, form, other, flags}
    make{{}}
 
 pattern_constructors = {=}
@@ -1076,12 +1055,9 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
 
 mac{"S"}! S_mac{context, info, form, arg} =
    #value with
-      ;; match arg.location.text{}:
       match info.gettext{arg}:
          R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
          text -> text
-
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1360,40 +1336,24 @@ mac{"blocktest"}! blocktest_mac{context, info, form, #data{*match}} =
 ;; MACROS ;;
 ;;;;;;;;;;;;
 
+wrap_macro{info, mac} =
+   mac2{c, s, f, e} =
+      bindings = info.env.list_bindings{info.scope}
+      env = Env{}
+      env.scopes[topscope.name] = bindings
+      r = mac{c, s, f, e}
+      env.mark{r}
+   #macro{mac2}
+
 mac{"macro"}! macro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, arguments}, ast} ->
       let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
-      mac2{c, s, f, e} =
-         bindings = form.env.list_bindings{info.scope}
-         env = Env{}
-         env.scopes[topscope.name] = bindings
-         r = mac{c, s, f, e}
-         env.mark{r}
-      #declare_raw{name, #macro{mac2}}
+      #declare_raw{name, wrap_macro{info, mac}}
 
 mac{"emacro"}! emacro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, argument}, ast} ->
       let mac = info.go{'[{^argument} -> ^ast], .parse, .eval}
-      mac2{c, s, f, e} =
-         bindings = form.env.list_bindings{info.scope}
-         env = Env{}
-         env.scopes[topscope.name] = bindings
-         r = match c:
-            #project{match} ->
-               #pattern ->
-                  #unconditional{#macro{mac3}} where
-                     mac3{c, s, f, #data{match}} =
-                        #use{env, x} ->
-                           #use{env, mac{#data{x} <<: e}}
-                        x ->
-                           mac{#data{x} <<: x}
-               else ->
-                  mac{e}
-            #expr ->
-               mac{e}
-         env.mark{r}
-
-      #declare_raw{name, #macro{mac2}}
+      #declare_raw{name, wrap_macro{info, expr_mac2{mac}}}
 
 mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
    the_macros = info.go{body, .parse, .eval}
