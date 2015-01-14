@@ -259,9 +259,9 @@ class Translator:
          ;;       trmsg = @translate{msg, .expr}
 
          #send{f, msg} ->
-            #symbol{codevar} = @register_raw{code, "~send"} where code =
-               "(function(o,m){if(typeof(m)==='string'||typeof(m)==='number'){return o[m];}else{return o['::send'](m);}})"
-            ;; codevar = "send"
+            ;; #symbol{codevar} = @register_raw{code, "~send"} where code =
+            ;;    "(function(o,m){if(typeof(m)==='string'||typeof(m)==='number'){return o[m];}else{return o['::send'](m);}})"
+            codevar = "send"
             @expr{codevar + "(" + trf + "," + trmsg + ")", mode} where
                trf = @translate{f, .expr}
                trmsg = @translate{msg, .expr}

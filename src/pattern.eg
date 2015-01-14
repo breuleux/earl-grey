@@ -373,10 +373,6 @@ parse_pattern{info, pattern, rhs, opt} =
    [opt.wrap_target or identity]! target =
       if parse.arguments.length:
          then:
-            ;; <> rhs
-            ;; <> inject_below_uses{rhs} with {x} ->
-            ;;    util.construct{parse.arguments ++ {x}} with
-            ;;       {args, rest} -> '[^args -> ^rest]
             inject_below_uses{rhs} with {x} ->
                util.construct{parse.arguments ++ {x}} with
                   {args, rest} -> '[^args -> ^rest]

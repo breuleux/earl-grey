@@ -27,6 +27,7 @@ provide:
 
 version = "zero"
 
+expander = std.make_expander{}
 
 evaluator{match options} =
 
@@ -65,10 +66,16 @@ evaluator{match options} =
       {code} -> __eval{code}
 
 
+
 generate_from_ast{ast} =
-   var ex = std.expand{#top
-                       std.topscope
-                       std.stdenv.fork{}.mark{#multi{ast}}}
+   ;; var ex = std.expand{#top
+   ;;                     std.topscope
+   ;;                     std.stdenv.fork{}.mark{#multi{ast}}}
+   var ex = expander.expand{
+      #top
+      exp.topscope
+      std.stdenv.fork{}.mark{#multi{ast}}
+   }
    set ex = opt.hoist{ex}
    tr = Translator{}
    rval = tr.translate{ex, .expr}
@@ -76,7 +83,7 @@ generate_from_ast{ast} =
    to5.compile{r, {}} where r =
       prep + ";(" + rval + ")"
 
-std.stdenv.bind{std.topscope, "macro", #macro{...}} with
+std.stdenv.bind{exp.topscope, "macro", #macro{...}} with
    {context, info, form, match} ->
       #data{#send{name and #symbol{sym}, arguments}, ast} ->
          ;; {prep, code} = generate_from_ast{'[^arguments -> ^ast]}
@@ -100,14 +107,14 @@ std.stdenv.bind{std.topscope, "macro", #macro{...}} with
             bindings = form.env.list_bindings{info.scope}
             ;; console.log with bindings
             env = exp.Env{}
-            env.scopes[std.topscope.name] = bindings
+            env.scopes[exp.topscope.name] = bindings
             r = mac{c, s, f, e}
             env.mark{r}
 
          #declare_raw{name, #macro{mac2}}
 
 
-std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
+std.stdenv.bind{exp.topscope, "emacro", #macro{...}} with
    {context, info, form, match} ->
       #data{#send{name and #symbol{sym}, argument}, ast} ->
          ;; {prep, code} = generate_from_ast{'[{^argument} -> ^ast]}
@@ -124,7 +131,7 @@ std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
             ;; console.log with e
             bindings = form.env.list_bindings{info.scope}
             env = exp.Env{}
-            env.scopes[std.topscope.name] = bindings
+            env.scopes[exp.topscope.name] = bindings
             r = match c:
                #project{match} ->
                   #pattern ->
@@ -143,7 +150,7 @@ std.stdenv.bind{std.topscope, "emacro", #macro{...}} with
          #declare_raw{name, #macro{mac2}}
 
 
-std.stdenv.bind{std.topscope, "macros", #macro{...}} with
+std.stdenv.bind{exp.topscope, "macros", #macro{...}} with
    {context, info, form and {=> env}, #data{body}} ->
       ;; {prep, code} = generate_from_ast{body}
       code = generate_from_ast{body}
@@ -159,6 +166,54 @@ std.stdenv.bind{std.topscope, "macros", #macro{...}} with
          items{the_macros} each {k, v} ->
             #declare_raw{#symbol{k} &: {env = env}, #macro{v}}
 
+
+class Pipeline:
+
+   constructor{} =
+      @_expander = std.make_expander{@}
+      @env = @_expander.mkenv{}
+
+   parse{source} =
+      t = tokenize{source}
+      parse{t}
+
+   expand{ast} =
+      @_expander.expand{#top, exp.topscope, @env.mark{ast}}
+
+   translate{ast} =
+      res = opt.hoist{ast}
+      tr = Translator{}
+      rval = tr.translate{res, .expr}
+      prep = tr.dump_store{}
+      {
+         code = to5.compile{r, {}}
+         location = ast.location
+      } where
+         r = prep + ";(" + rval + ")"
+
+   evaluate{src} =
+      loc = src.location or {source = {=}}
+      ev{src.code} where
+         ev = evaluator with {
+            filename = loc.source.url
+            showname = loc.source.url
+            cwd = loc.source.url
+         }
+
+   go{x, match start, end} =
+      when start === end or start === .eval ->
+         x
+      .source ->
+         @go{@parse{x}, .parse, end}
+      .parse ->
+         @go{@expand{x}, .expand, end}
+      .expand ->
+         @go{@translate{x}, .translate, end}
+      .eval ->
+         @go{@evaluate{x}, .eval, end}
+
+
+
 generate{source} =
    Generator{}.generate{source}
 
@@ -169,6 +224,8 @@ class Generator:
       @env = std.stdenv.fork{}
       @interactive = interactive
       @_eval = null
+      @pipeline = Pipeline{}
+      @expander = std.make_expander{@pipeline}
 
    generate{source, dump = not @interactive, _to5 = true} =
       t = tokenize{source}
@@ -178,9 +235,9 @@ class Generator:
       ;; variables set by the previous. It also makes all variables
       ;; declared in the top scope mutable (because that's more
       ;; practical in interactive mode)
-      var ex = std.expand{
+      var ex = @expander.expand{
          #top
-         std.topscope
+         exp.topscope
          @env.mark{stmt}
       } where stmt =
          if @interactive:
@@ -206,5 +263,3 @@ class Generator:
             cwd = file
          }
       @_eval{@generate{source}}
-
-

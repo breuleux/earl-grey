@@ -21,7 +21,7 @@ function rmrf(path) {
 var i = 0;
 var name = i == n ? "lib" : "temp_bootstrap_" + i;
 console.log("Making", name)
-r.run(["compile", "-vo", "temp_bootstrap_0", "src"]);
+r.run(["compile", "-vo", name, "src"]);
 while (i < n) {
     r = require("../" + name + "/run");
     i++;

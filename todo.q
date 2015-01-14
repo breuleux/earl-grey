@@ -79,8 +79,11 @@ X investigate bug where some locations cannot be found
   (may be related to a mixup with the new version of ! and ?)
   (well, it looks like... it fixed itself? can't reproduce it anymore)
 X `if` in expressions should generate ?:
+X remove the if{x, y, else{z}} form
 
 
+* FIX: f! x = g{y} will include the code for g{y} twice (once in the
+  success branch, once in the failure branch)
 
 * Upgrade product to standard lib
 * maybe use \ for unquote?
@@ -119,7 +122,6 @@ X `if` in expressions should generate ?:
 * add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
-* remove the if{x, y, else{z}} form
 * remove `each?`
 
 * f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1

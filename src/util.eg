@@ -24,7 +24,7 @@ GenSym{prefix} =
       r
 
 ;; gensym = GenSym{"ȣ"}
-gensym = GenSym{"$"}
+gensym = GenSym{"$$"}
 
 
 identity{x} = x
