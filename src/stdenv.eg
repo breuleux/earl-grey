@@ -2,8 +2,6 @@
 require:
    "./expand" as mt ->
       Env, Expander, topscope
-   "./macros/helpers" ->
-      protected_value
 
 
 provide:

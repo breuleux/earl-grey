@@ -1,916 +1,996 @@
 "use strict";
 require("earlgrey-runtime");
-var $8104 = (function(o, m) {
-  if (typeof(m) === 'string' || typeof(m) === 'number') {
-    return o[m];
+var $targ$42;
+var accum$0;
+var $targ$43;
+var accum$1;
+var $targ$83;
+var accum$2;
+var $targ$84;
+var accum$3;
+var $targ$209;
+var $targ$210;
+var $targ$211;
+var $targ$212;
+var $targ$213;
+var $targ$214;
+var $targ$215;
+var $targ$216;
+var $targ$217;
+var $0$0;
+var binsearch$0;
+var $1$0;
+var __lt____gt__$0;
+var repr$0;
+var fs$0;
+var Source$0;
+var $targ$6;
+var $targ$7;
+var Location$0;
+var $targ$9;
+var $targ$10;
+var $targ$11;
+var $targ$12;
+var $targ$13;
+var $targ$14;
+var $targ$15;
+var highlight$0;
+var highlight_lines$0;
+var clamp$0;
+var morsel$0;
+var highlight_locations$0;
+var highlight_locations_same_source$0;
+var merge_locations$0;
+var __lt____lt____colon__$0;
+var __plus____plus____colon__$0;
+var format_error$0;
+var display_error$0;
+$0$0 = require("./util");
+binsearch$0 = $0$0.binsearch;
+$1$0 = require("./pp");
+__lt____gt__$0 = $1$0["<>"];
+repr$0 = $1$0.repr;
+fs$0 = require("fs");
+Source$0 = (function() {
+  var m$1;
+  var $targ$31;
+  var $targ$33;
+  var $targ$34;
+  var curr$0;
+  var $targ$35;
+  var t0$0;
+  var text$0;
+  var $targ$32;
+  var m$0$0;
+  var $it$0;
+  $it$0 = ((!getChecker(Source$0)(this)) ? Object.create(Source$0.prototype) : this);
+  m$0$0 = arguments;
+  t0$0 = m$0$0.length;
+  if (((t0$0 >= 1) && (t0$0 <= 2))) {
+    text$0 = m$0$0[0];
+    $targ$32 = ((1 >= t0$0) ? false : m$0$0[1]);
+    $targ$31 = text$0;
+    ($it$0["text"] = $targ$31);
+    ($it$0["url"] = $targ$32);
+    $targ$33 = [];
+    ($it$0["counts"] = $targ$33);
+    $targ$34 = 0;
+    curr$0 = $targ$34;
+    m$1 = null;
+    $2: for (var $__0 = text$0.split("\n")[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$1 = $__1.value;
+      {
+        var line$0;
+        line$0 = m$1;
+        $it$0.counts.push(curr$0);
+        curr$0 = (curr$0 + (line$0.length + 1));
+      }
+    }
+    $it$0.counts.push(curr$0);
+    $targ$35 = ($it$0.counts.length - 1);
+    ($it$0["nlines"] = $targ$35);
   } else {
-    return o['::send'](m);
+    ___match_error(m$0$0);
+  }
+  return $it$0;
+});
+$targ$6 = (function(pos$0) {
+  var line$1;
+  var col$0;
+  var $it$1;
+  var self$0;
+  $it$1 = this;
+  self$0 = this;
+  line$1 = binsearch$0($it$1.counts, pos$0);
+  col$0 = (pos$0 - send($it$1.counts, (line$1 - 1)));
+  return [line$1, col$0];
+});
+(Source$0.prototype["linecol"] = $targ$6);
+$targ$7 = (function(l1$0, l2$0, spans$0) {
+  var $it$2;
+  var self$1;
+  $it$2 = this;
+  self$1 = this;
+  return highlight_lines$0($it$2.text, $it$2.counts, [(l1$0 - 1), (l2$0 - 1)], spans$0);
+});
+(Source$0.prototype["highlight_lines"] = $targ$7);
+__amp____colon__(Source$0, __amp____colon__((($targ$42 = "Source"), (accum$0 = ({})), (accum$0["::name"] = $targ$42), accum$0), (($targ$43 = true), (accum$1 = ({})), (accum$1["::egclass"] = $targ$43), accum$1)));
+Source$0;
+Location$0 = (function(source$0, start$0, end$0) {
+  var $targ$45;
+  var $targ$46;
+  var $targ$47;
+  var $it$3;
+  $it$3 = ((!getChecker(Location$0)(this)) ? Object.create(Location$0.prototype) : this);
+  $targ$45 = (source$0 || Source$0("", null));
+  ($it$3["source"] = $targ$45);
+  $targ$46 = start$0;
+  ($it$3["start"] = $targ$46);
+  $targ$47 = end$0;
+  ($it$3["end"] = $targ$47);
+  return $it$3;
+});
+$targ$9 = (function() {
+  var $it$4;
+  var self$2;
+  $it$4 = this;
+  self$2 = this;
+  return $it$4.source.text.slice($it$4.start, $it$4.end);
+});
+(Location$0.prototype["text"] = $targ$9);
+$targ$10 = (function() {
+  var $it$5;
+  var self$3;
+  $it$5 = this;
+  self$3 = this;
+  return Location$0($it$5.source, $it$5.start, $it$5.start);
+});
+(Location$0.prototype["at_start"] = $targ$10);
+$targ$11 = (function() {
+  var $it$6;
+  var self$4;
+  $it$6 = this;
+  self$4 = this;
+  return Location$0($it$6.source, $it$6.end, $it$6.end);
+});
+(Location$0.prototype["at_end"] = $targ$11);
+$targ$12 = (function() {
+  var t2$0;
+  var t1$0;
+  var t0$1;
+  var t1$1;
+  var t0$2;
+  var l2$1;
+  var l1$1;
+  var ph$0$0;
+  var m$2$0;
+  var $it$7;
+  var self$5;
+  $it$7 = this;
+  self$5 = this;
+  m$2$0 = $it$7.linecol();
+  if (((m$2$0 instanceof Array) && ((t0$1 = m$2$0.length), ((t0$1 === 2) && ((t1$0 = m$2$0[0]), ((t1$0 instanceof Array) && ((t2$0 = t1$0.length), (t2$0 === 2)))))))) {
+    l1$1 = t1$0[0];
+    t1$0[1];
+    ph$0$0 = m$2$0[1];
+    if ((ph$0$0 === null)) {
+      return [l1$1, l1$1];
+    } else {
+      t0$2 = ph$0$0;
+      if (((t0$2 instanceof Array) && ((t1$1 = t0$2.length), (t1$1 === 2)))) {
+        l2$1 = t0$2[0];
+        t0$2[1];
+        return [l1$1, l2$1];
+      } else {
+        return ___match_error(ph$0$0, "/home/olivier/git/earl-grey/src/location.eg", 1080, 1085);
+      }
+    }
+  } else {
+    return ___match_error(m$2$0);
   }
 });
-var accum$6083;
-var accum$6087;
-var accum$6447;
-var accum$6451;
-var $5871$5901;
-var binsearch$5902;
-var $5872$5903;
-var __lt____gt__$5904;
-var repr$5905;
-var fs$5906;
-var Source$5907;
-var Location$5908;
-var highlight$5909;
-var highlight_lines$5910;
-var clamp$5911;
-var morsel$5912;
-var highlight_locations$5913;
-var highlight_locations_same_source$5914;
-var merge_locations$5915;
-var __lt____lt____colon__$5916;
-var __plus____plus____colon__$5917;
-var format_error$5918;
-var display_error$5919;
-($5871$5901 = require("./util"));
-(binsearch$5902 = $5871$5901.binsearch);
-($5872$5903 = require("./pp"));
-(__lt____gt__$5904 = $5872$5903["<>"]);
-(repr$5905 = $5872$5903.repr);
-(fs$5906 = require("fs"));
-(Source$5907 = (function() {
-  var $index$6007;
-  var $length$6001;
-  var temp$5995;
-  var curr$5976;
-  var text$5962;
-  var url$5963;
-  var t0$5958;
-  var $5949$5953;
-  var it$0$5944;
-  (it$0$5944 = ((!getChecker(Source$5907)(this)) ? Object.create(Source$5907.prototype) : this));
-  ($5949$5953 = arguments);
-  (t0$5958 = $5949$5953.length);
-  if (((t0$5958 >= 1) && (t0$5958 <= 2))) {
-    (text$5962 = $5949$5953[0]);
-    (url$5963 = ((1 >= t0$5958) ? false : $5949$5953[1]));
-    (it$0$5944["text"] = text$5962);
-    (it$0$5944["url"] = url$5963);
-    (it$0$5944["counts"] = []);
-    (curr$5976 = 0);
-    (temp$5995 = text$5962.split("\n"));
-    ($length$6001 = temp$5995.length);
-    ($index$6007 = 0);
-    $5977: for (; ($index$6007 < $length$6001); ($index$6007++)) {
-      var line$6024;
-      var m$6016;
-      (m$6016 = temp$5995[$index$6007]);
-      (line$6024 = m$6016);
-      it$0$5944.counts.push(curr$5976);
-      (curr$5976 = (curr$5976 + (line$6024.length + 1)));
-    }
-    it$0$5944.counts.push(curr$5976);
-    (it$0$5944["nlines"] = (it$0$5944.counts.length - 1));
-  } else {
-    ___match_error($5949$5953);
-  }
-  return it$0$5944;
-}));
-(Source$5907.prototype["linecol"] = (function(pos$6037) {
-  var line$6053;
-  var col$6054;
-  var it$0$6041;
-  var self$6042;
-  (it$0$6041 = this);
-  (self$6042 = this);
-  (line$6053 = binsearch$5902(it$0$6041.counts, pos$6037));
-  (col$6054 = (pos$6037 - $8104(it$0$6041.counts, (line$6053 - 1))));
-  return [line$6053, col$6054];
-}));
-(Source$5907.prototype["highlight_lines"] = (function(l1$6065, l2$6066, spans$6067) {
-  var it$0$6071;
-  var self$6072;
-  (it$0$6071 = this);
-  (self$6072 = this);
-  return highlight_lines$5910(it$0$6071.text, it$0$6071.counts, [(l1$6065 - 1), (l2$6066 - 1)], spans$6067);
-}));
-__amp____colon__(Source$5907, __amp____colon__(((accum$6083 = ({})), ((accum$6083["::name"] = "Source"), accum$6083)), ((accum$6087 = ({})), ((accum$6087["::egclass"] = true), accum$6087))));
-Source$5907;
-(Location$5908 = (function(source$6094, start$6095, end$6096) {
-  var it$0$6099;
-  (it$0$6099 = ((!getChecker(Location$5908)(this)) ? Object.create(Location$5908.prototype) : this));
-  (it$0$6099["source"] = (source$6094 || Source$5907("", null)));
-  (it$0$6099["start"] = start$6095);
-  (it$0$6099["end"] = end$6096);
-  return it$0$6099;
-}));
-(Location$5908.prototype["text"] = (function() {
-  var it$0$6126;
-  var self$6127;
-  (it$0$6126 = this);
-  (self$6127 = this);
-  return it$0$6126.source.text.slice(it$0$6126.start, it$0$6126.end);
-}));
-(Location$5908.prototype["at_start"] = (function() {
-  var it$0$6142;
-  var self$6143;
-  (it$0$6142 = this);
-  (self$6143 = this);
-  return Location$5908(it$0$6142.source, it$0$6142.start, it$0$6142.start);
-}));
-(Location$5908.prototype["at_end"] = (function() {
-  var it$0$6158;
-  var self$6159;
-  (it$0$6158 = this);
-  (self$6159 = this);
-  return Location$5908(it$0$6158.source, it$0$6158.end, it$0$6158.end);
-}));
-(Location$5908.prototype["linerange"] = (function() {
-  var l2$6230;
-  var t0$6221;
-  var t1$6222;
-  var l1$6201;
-  var $6185$6202;
-  var t0$6195;
-  var t1$6196;
-  var t2$6197;
-  var $6183$6190;
-  var it$0$6174;
-  var self$6175;
-  (it$0$6174 = this);
-  (self$6175 = this);
-  ($6183$6190 = it$0$6174.linecol());
-  if ((($6183$6190 instanceof Array) && (((t0$6195 = $6183$6190.length)), ((t0$6195 === 2) && (((t1$6196 = $6183$6190[0])), ((t1$6196 instanceof Array) && (((t2$6197 = t1$6196.length)), (t2$6197 === 2)))))))) {
-    (l1$6201 = t1$6196[0]);
-    t1$6196[1];
-    ($6185$6202 = $6183$6190[1]);
-    if (($6185$6202 === null)) {
-      return [l1$6201, l1$6201];
+(Location$0.prototype["linerange"] = $targ$12);
+$targ$13 = (function() {
+  var start$1;
+  var end$1;
+  var $it$8;
+  var self$6;
+  $it$8 = this;
+  self$6 = this;
+  start$1 = $it$8.source.linecol($it$8.start);
+  end$1 = (($it$8.start === $it$8.end) ? null : $it$8.source.linecol(($it$8.end - 1)));
+  return [start$1, end$1];
+});
+(Location$0.prototype["linecol"] = $targ$13);
+$targ$14 = (function() {
+  var t4$0;
+  var t3$0;
+  var t2$1;
+  var t1$2;
+  var t0$3;
+  var t3$1;
+  var t2$2;
+  var t1$3;
+  var otherwise$0;
+  var $$4471$0;
+  var m$4$0;
+  var t0$4;
+  var l2$2;
+  var c2$0;
+  var l1$2;
+  var c1$0;
+  var ph$1$0;
+  var m$3$0;
+  var $it$9;
+  var self$7;
+  $it$9 = this;
+  self$7 = this;
+  m$3$0 = $it$9.linecol();
+  if (((m$3$0 instanceof Array) && ((t0$3 = m$3$0.length), ((t0$3 === 2) && ((t1$2 = m$3$0[0]), ((t1$2 instanceof Array) && ((t2$1 = t1$2.length), ((t2$1 === 2) && ((t3$0 = [true, String(t1$2[0])]), (t3$0[0] && ((l1$2 = t3$0[1]), (t4$0 = [true, String(t1$2[1])]), t4$0[0]))))))))))) {
+    c1$0 = t4$0[1];
+    ph$1$0 = m$3$0[1];
+    if ((ph$1$0 === null)) {
+      return ((l1$2 + ":") + c1$0);
     } else {
-      (t0$6221 = $6185$6202);
-      if (((t0$6221 instanceof Array) && (((t1$6222 = t0$6221.length)), (t1$6222 === 2)))) {
-        (l2$6230 = t0$6221[0]);
-        t0$6221[1];
-        return [l1$6201, l2$6230];
-      } else {
-        ___match_error($6185$6202, "/home/olivier/git/earl-grey/src/location.eg", 1080, 1085);
-      }
-    }
-  } else {
-    ___match_error($6183$6190);
-  }
-}));
-(Location$5908.prototype["linecol"] = (function() {
-  var start$6265;
-  var end$6266;
-  var it$0$6253;
-  var self$6254;
-  (it$0$6253 = this);
-  (self$6254 = this);
-  (start$6265 = it$0$6253.source.linecol(it$0$6253.start));
-  (end$6266 = ((it$0$6253.start === it$0$6253.end) ? null : it$0$6253.source.linecol((it$0$6253.end - 1))));
-  return [start$6265, end$6266];
-}));
-(Location$5908.prototype["ref"] = (function() {
-  var otherwise$6400;
-  var $6380$6389;
-  var $6376$6383;
-  var l2$6352;
-  var c2$6353;
-  var t0$6341;
-  var t1$6342;
-  var t2$6343;
-  var t3$6344;
-  var l1$6309;
-  var c1$6310;
-  var $6291$6311;
-  var t0$6301;
-  var t1$6302;
-  var t2$6303;
-  var t3$6304;
-  var t4$6305;
-  var $6289$6296;
-  var it$0$6280;
-  var self$6281;
-  (it$0$6280 = this);
-  (self$6281 = this);
-  ($6289$6296 = it$0$6280.linecol());
-  if ((($6289$6296 instanceof Array) && (((t0$6301 = $6289$6296.length)), ((t0$6301 === 2) && (((t1$6302 = $6289$6296[0])), ((t1$6302 instanceof Array) && (((t2$6303 = t1$6302.length)), ((t2$6303 === 2) && (((t3$6304 = [true, String(t1$6302[0])])), (t3$6304[0] && ((l1$6309 = t3$6304[1]), (((t4$6305 = [true, String(t1$6302[1])])), t4$6305[0])))))))))))) {
-    (c1$6310 = t4$6305[1]);
-    ($6291$6311 = $6289$6296[1]);
-    if (($6291$6311 === null)) {
-      return ((l1$6309 + ":") + c1$6310);
-    } else {
-      (t0$6341 = $6291$6311);
-      if (((t0$6341 instanceof Array) && (((t1$6342 = t0$6341.length)), ((t1$6342 === 2) && (((t2$6343 = [true, String(t0$6341[0])])), (t2$6343[0] && ((l2$6352 = t2$6343[1]), (((t3$6344 = [true, String(t0$6341[1])])), t3$6344[0])))))))) {
-        (c2$6353 = t3$6344[1]);
-        ($6376$6383 = null);
-        $6376$6383;
-        if (((l1$6309 === l2$6352) && (c1$6310 === c2$6353))) {
-          return ((l1$6309 + ":") + c1$6310);
+      t0$4 = ph$1$0;
+      if (((t0$4 instanceof Array) && ((t1$3 = t0$4.length), ((t1$3 === 2) && ((t2$2 = [true, String(t0$4[0])]), (t2$2[0] && ((l2$2 = t2$2[1]), (t3$1 = [true, String(t0$4[1])]), t3$1[0]))))))) {
+        c2$0 = t3$1[1];
+        m$4$0 = null;
+        m$4$0;
+        if (((l1$2 === l2$2) && (c1$0 === c2$0))) {
+          return ((l1$2 + ":") + c1$0);
         } else {
-          if ((l1$6309 === l2$6352)) {
-            return ((((l1$6309 + ":") + c1$6310) + "-") + c2$6353);
+          if ((l1$2 === l2$2)) {
+            return ((((l1$2 + ":") + c1$0) + "-") + c2$0);
           } else {
-            (otherwise$6400 = $6376$6383);
-            return ((((((l1$6309 + ":") + c1$6310) + "-") + l2$6352) + ":") + c2$6353);
+            otherwise$0 = m$4$0;
+            return ((((((l1$2 + ":") + c1$0) + "-") + l2$2) + ":") + c2$0);
           }
         }
       } else {
-        ___match_error($6291$6311, "/home/olivier/git/earl-grey/src/location.eg", 1422, 1427);
+        return ___match_error(ph$1$0, "/home/olivier/git/earl-grey/src/location.eg", 1422, 1427);
       }
     }
   } else {
-    ___match_error($6289$6296);
+    return ___match_error(m$3$0);
   }
-}));
-(Location$5908.prototype["highlight"] = (function() {
-  var cls$6434;
-  var context$6435;
-  var t0$6430;
-  var $6413$6425;
-  var it$0$6415;
-  var self$6416;
-  (it$0$6415 = this);
-  (self$6416 = this);
-  ($6413$6425 = arguments);
-  (t0$6430 = $6413$6425.length);
-  if (((t0$6430 >= 0) && (t0$6430 <= 2))) {
-    (cls$6434 = ((0 >= t0$6430) ? "hl1" : $6413$6425[0]));
-    (context$6435 = ((1 >= t0$6430) ? 0 : $6413$6425[1]));
-    return highlight_locations$5913([[it$0$6415, cls$6434]], context$6435);
+});
+(Location$0.prototype["ref"] = $targ$14);
+$targ$15 = (function() {
+  var t0$5;
+  var cls$0;
+  var context$0;
+  var m$5$0;
+  var $it$10;
+  var self$8;
+  $it$10 = this;
+  self$8 = this;
+  m$5$0 = arguments;
+  t0$5 = m$5$0.length;
+  if (((t0$5 >= 0) && (t0$5 <= 2))) {
+    cls$0 = ((0 >= t0$5) ? "hl1" : m$5$0[0]);
+    context$0 = ((1 >= t0$5) ? 0 : m$5$0[1]);
+    return highlight_locations$0([[$it$10, cls$0]], context$0);
   } else {
-    ___match_error($6413$6425);
+    return ___match_error(m$5$0);
   }
-}));
-__amp____colon__(Location$5908, __amp____colon__(((accum$6447 = ({})), ((accum$6447["::name"] = "Location"), accum$6447)), ((accum$6451 = ({})), ((accum$6451["::egclass"] = true), accum$6451))));
-Location$5908;
-(highlight$5909 = (function() {
-  var $index$6503;
-  var $length$6497;
-  var temp$6491;
-  var acc$6485;
-  var text$6471;
-  var spans$6472;
-  var offset$6473;
-  var t0$6467;
-  var $6458$6462;
-  ($6458$6462 = arguments);
-  (t0$6467 = $6458$6462.length);
-  if (((t0$6467 >= 2) && (t0$6467 <= 3))) {
-    (text$6471 = $6458$6462[0]);
-    (spans$6472 = $6458$6462[1]);
-    (offset$6473 = ((2 >= t0$6467) ? 0 : $6458$6462[2]));
-    return Node([], ({}), (((acc$6485 = [])), (((temp$6491 = morsel$5912(spans$6472))), ((($length$6497 = temp$6491.length)), ((($index$6503 = 0)), (function() {
-      $6480: for (; ($index$6503 < $length$6497); ($index$6503++)) {
-        var xstart$6540;
-        var xend$6541;
-        var start$6522;
-        var end$6523;
-        var attributes$6524;
-        var t0$6517;
-        var t1$6518;
-        var m$6512;
-        (m$6512 = temp$6491[$index$6503]);
-        (t0$6517 = m$6512);
-        if (((t0$6517 instanceof Array) && (((t1$6518 = t0$6517.length)), (t1$6518 === 3)))) {
-          (start$6522 = t0$6517[0]);
-          (end$6523 = t0$6517[1]);
-          (attributes$6524 = t0$6517[2]);
-          acc$6485.push((((xstart$6540 = Math.max((start$6522 - offset$6473), 0))), ((xend$6541 = Math.min((end$6523 - offset$6473), text$6471.length))), Node([("." + attributes$6524.slice(0, 1))], ({}), text$6471.slice(xstart$6540, xend$6541))));
-        } else {
-          ___match_error(m$6512, "/home/olivier/git/earl-grey/src/location.eg", 1972, 2262);
-        }
-      }
-    })()))), acc$6485));
-  } else {
-    ___match_error($6458$6462);
-  }
-}));
-(highlight_lines$5910 = (function(text$6559, linelocs$6560, $6556$6561, spans$6562) {
-  var t0$6567;
-  var t1$6568;
-  var $index$6604;
-  var $length$6598;
-  var temp$6592;
-  var acc$6586;
-  var l1$6564;
-  var l2$6565;
-  (t0$6567 = $6556$6561);
-  if (((t0$6567 instanceof Array) && (((t1$6568 = t0$6567.length)), (t1$6568 === 2)))) {
-    (l1$6564 = t0$6567[0]);
-    (l2$6565 = t0$6567[1]);
-  } else {
-    ___match_error($6556$6561);
-  }
-  return Node(["span"], ({}), (((acc$6586 = [])), (((temp$6592 = range(l1$6564, l2$6565))), ((($length$6598 = temp$6592.length)), ((($index$6604 = 0)), (function() {
-    $6581: for (; ($index$6604 < $length$6598); ($index$6604++)) {
-      var start$6627;
-      var end$6628;
-      var lineno$6621;
-      var m$6613;
-      (m$6613 = temp$6592[$index$6604]);
-      (lineno$6621 = m$6613);
-      acc$6586.push((((start$6627 = $8104(linelocs$6560, lineno$6621))), ((end$6628 = $8104(linelocs$6560, (lineno$6621 + 1)))), Node(["span"], ({}), [Node([".lineno"], ({}), (lineno$6621 + 1)), Node([".source"], ({}), highlight$5909(text$6559, [[start$6627, end$6628, []]].concat(clamp$5911(spans$6562, start$6627, end$6628))))])));
-    }
-  })()))), acc$6586));
-}));
-(clamp$5911 = (function(spans$6640, bot$6641, top$6642) {
-  var $index$6667;
-  var $length$6661;
-  var temp$6655;
-  var acc$6649;
-  (acc$6649 = []);
-  (temp$6655 = spans$6640);
-  ($length$6661 = temp$6655.length);
-  ($index$6667 = 0);
-  $6644: for (; ($index$6667 < $length$6661); ($index$6667++)) {
-    var start$6686;
-    var end$6687;
-    var attr$6688;
-    var t0$6681;
-    var t1$6682;
-    var m$6676;
-    (m$6676 = temp$6655[$index$6667]);
-    (t0$6681 = m$6676);
-    if (((t0$6681 instanceof Array) && (((t1$6682 = t0$6681.length)), ((t1$6682 === 3) && ((start$6686 = t0$6681[0]), ((end$6687 = t0$6681[1]), ((attr$6688 = t0$6681[2]), ((end$6687 >= bot$6641) && (start$6686 <= top$6642))))))))) {
-      acc$6649.push([Math.max(start$6686, bot$6641), Math.min(end$6687, top$6642), attr$6688]);
-    } else {
-      false;
-    }
-  }
-  return acc$6649;
-}));
-(morsel$5912 = (function(spans$6710) {
-  var jump$6717;
-  var jumptill$6718;
-  var process_elements$6719;
-  var thespans$6720;
-  (jump$6717 = (function(active$6725, bot$6726, top$6727) {
-    var $index$6763;
-    var $length$6757;
-    var temp$6751;
-    var acc$6745;
-    var $index$6816;
-    var $length$6810;
-    var temp$6804;
-    var e$6732;
-    var attributes$6733;
-    (e$6732 = $8104(Math.min, [top$6727].concat((((acc$6745 = [])), (((temp$6751 = active$6725)), ((($length$6757 = temp$6751.length)), ((($index$6763 = 0)), (function() {
-      $6740: for (; ($index$6763 < $length$6757); ($index$6763++)) {
-        var x$6782;
-        var t0$6777;
-        var t1$6778;
-        var m$6772;
-        (m$6772 = temp$6751[$index$6763]);
-        (t0$6777 = m$6772);
-        if (((t0$6777 instanceof Array) && (((t1$6778 = t0$6777.length)), (t1$6778 === 3)))) {
-          t0$6777[0];
-          (x$6782 = t0$6777[1]);
-          t0$6777[2];
-          acc$6745.push(x$6782);
-        } else {
-          ___match_error(m$6772, "/home/olivier/git/earl-grey/src/location.eg", 3595, 3628);
-        }
-      }
-    })()))), acc$6745))));
-    (attributes$6733 = []);
-    (temp$6804 = active$6725);
-    ($length$6810 = temp$6804.length);
-    ($index$6816 = 0);
-    $6734: for (; ($index$6816 < $length$6810); ($index$6816++)) {
-      var X$6835;
-      var t0$6830;
-      var t1$6831;
-      var m$6825;
-      (m$6825 = temp$6804[$index$6816]);
-      (t0$6830 = m$6825);
-      if (((t0$6830 instanceof Array) && (((t1$6831 = t0$6830.length)), (t1$6831 === 3)))) {
-        t0$6830[0];
-        t0$6830[1];
-        (X$6835 = t0$6830[2]);
-        (attributes$6733 = attributes$6733.concat(X$6835));
-      } else {
-        ___match_error(m$6825, "/home/olivier/git/earl-grey/src/location.eg", 3654, 3695);
-      }
-    }
-    return [e$6732, [bot$6726, e$6732, attributes$6733]];
-  }));
-  (jumptill$6718 = (function(active$6854, bot$6855, top$6856) {
-    var t0$6868;
-    var t1$6869;
-    var $index$6907;
-    var $length$6901;
-    var temp$6895;
-    var acc$6889;
-    var t0$6947;
-    var t1$6948;
-    var newbot$6862;
-    var span$6863;
-    var newactive$6864;
-    var spans$6865;
-    var remainder$6866;
-    if ((bot$6855 === top$6856)) {
-      return [[], active$6854];
-    } else {
-      (t0$6868 = jump$6717(active$6854, bot$6855, top$6856));
-      if (((t0$6868 instanceof Array) && (((t1$6869 = t0$6868.length)), (t1$6869 === 2)))) {
-        (newbot$6862 = t0$6868[0]);
-        (span$6863 = t0$6868[1]);
-      } else {
-        ___match_error(jump$6717(active$6854, bot$6855, top$6856), "/home/olivier/git/earl-grey/src/location.eg", 3931, 3953);
-      }
-      (newactive$6864 = (((acc$6889 = [])), (((temp$6895 = active$6854)), ((($length$6901 = temp$6895.length)), ((($index$6907 = 0)), (function() {
-        $6884: for (; ($index$6907 < $length$6901); ($index$6907++)) {
-          var x$6926;
-          var e$6927;
-          var attr$6928;
-          var t0$6921;
-          var t1$6922;
-          var m$6916;
-          (m$6916 = temp$6895[$index$6907]);
-          (t0$6921 = m$6916);
-          (x$6926 = t0$6921);
-          if (((t0$6921 instanceof Array) && (((t1$6922 = t0$6921.length)), ((t1$6922 === 3) && (t0$6921[0], ((e$6927 = t0$6921[1]), ((attr$6928 = t0$6921[2]), (e$6927 > newbot$6862)))))))) {
-            acc$6889.push(x$6926);
+});
+(Location$0.prototype["highlight"] = $targ$15);
+__amp____colon__(Location$0, __amp____colon__((($targ$83 = "Location"), (accum$2 = ({})), (accum$2["::name"] = $targ$83), accum$2), (($targ$84 = true), (accum$3 = ({})), (accum$3["::egclass"] = $targ$84), accum$3)));
+Location$0;
+highlight$0 = (function() {
+  var m$7;
+  var acc$0;
+  var t0$6;
+  var text$1;
+  var spans$1;
+  var offset$0;
+  var m$6$0;
+  m$6$0 = arguments;
+  t0$6 = m$6$0.length;
+  if (((t0$6 >= 2) && (t0$6 <= 3))) {
+    text$1 = m$6$0[0];
+    spans$1 = m$6$0[1];
+    offset$0 = ((2 >= t0$6) ? 0 : m$6$0[2]);
+    return Node([], ({}), ((acc$0 = []), (m$7 = null), (function() {
+      $3: for (var $__0 = morsel$0(spans$1)[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$7 = $__1.value;
+        {
+          var t1$4;
+          var xstart$0;
+          var xend$0;
+          var t0$7;
+          var start$2;
+          var end$2;
+          var attributes$0;
+          t0$7 = m$7;
+          if (((t0$7 instanceof Array) && ((t1$4 = t0$7.length), (t1$4 === 3)))) {
+            start$2 = t0$7[0];
+            end$2 = t0$7[1];
+            attributes$0 = t0$7[2];
+            acc$0.push(((xstart$0 = Math.max((start$2 - offset$0), 0)), (xend$0 = Math.min((end$2 - offset$0), text$1.length)), Node([("." + attributes$0.slice(0, 1))], ({}), text$1.slice(xstart$0, xend$0))));
           } else {
-            false;
+            ___match_error(m$7, "/home/olivier/git/earl-grey/src/location.eg", 1972, 2262);
           }
         }
-      })()))), acc$6889));
-      (t0$6947 = jumptill$6718(newactive$6864, newbot$6862, top$6856));
-      if (((t0$6947 instanceof Array) && (((t1$6948 = t0$6947.length)), (t1$6948 === 2)))) {
-        (spans$6865 = t0$6947[0]);
-        (remainder$6866 = t0$6947[1]);
-      } else {
-        ___match_error(jumptill$6718(newactive$6864, newbot$6862, top$6856), "/home/olivier/git/earl-grey/src/location.eg", 4080, 4112);
       }
-      return [[span$6863].concat(spans$6865), remainder$6866];
+    })(), acc$0));
+  } else {
+    return ___match_error(m$6$0);
+  }
+});
+highlight_lines$0 = (function(text$2, linelocs$0, temp$0$0, spans$2) {
+  var t1$5;
+  var t0$8;
+  var m$8;
+  var acc$1;
+  var l1$3;
+  var l2$3;
+  t0$8 = temp$0$0;
+  if (((t0$8 instanceof Array) && ((t1$5 = t0$8.length), (t1$5 === 2)))) {
+    l1$3 = t0$8[0];
+    l2$3 = t0$8[1];
+  } else {
+    ___match_error(temp$0$0);
+  }
+  return Node(["span"], ({}), ((acc$1 = []), (m$8 = null), (function() {
+    $4: for (var $__0 = range(l1$3, l2$3)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$8 = $__1.value;
+      {
+        var start$3;
+        var end$3;
+        var lineno$0;
+        lineno$0 = m$8;
+        acc$1.push(((start$3 = send(linelocs$0, lineno$0)), (end$3 = send(linelocs$0, (lineno$0 + 1))), Node(["span"], ({}), [Node([".lineno"], ({}), (lineno$0 + 1)), Node([".source"], ({}), highlight$0(text$2, [[start$3, end$3, []]].concat(clamp$0(spans$2, start$3, end$3))))])));
+      }
     }
-  }));
-  (process_elements$6719 = (function(start$6966, active$6967, rem$6968) {
-    var $index$7073;
-    var $length$7067;
-    var temp$7061;
-    var acc$7055;
-    var t0$7112;
-    var t1$7113;
-    var top$7045;
-    var bot$7046;
-    var spans$7047;
-    var t0$7165;
-    var t1$7166;
-    var spans$7162;
-    var newactive$7163;
-    var start$7128;
-    var active$7129;
-    var next$7130;
-    var target$7131;
-    var end$7132;
-    var attr$7133;
-    var rest$7134;
-    var start$7025;
-    var active$7026;
-    var $6974$6990;
-    var $6975$6991;
-    var $6976$6992;
-    var t0$6984;
-    var t1$6985;
-    var t2$6986;
-    var t3$6987;
-    var t4$6988;
-    var $6970$6979;
-    ($6970$6979 = [start$6966, active$6967, rem$6968]);
-    if ((($6974$6990 = ($6970$6979 instanceof Array)) && (((t0$6984 = $6970$6979.length)), (($6976$6992 = (t0$6984 === 3)) && ($6970$6979[0], (((t1$6985 = $6970$6979[1])), ((t1$6985 instanceof Array) && (((t2$6986 = t1$6985.length)), ((t2$6986 === 0) && (((t3$6987 = $6970$6979[2])), ((t3$6987 instanceof Array) && (((t4$6988 = t3$6987.length)), (t4$6988 === 0))))))))))))) {
-      return [];
+  })(), acc$1));
+});
+clamp$0 = (function(spans$3, bot$0, top$0) {
+  var m$9;
+  var acc$2;
+  acc$2 = [];
+  m$9 = null;
+  $5: for (var $__0 = spans$3[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$9 = $__1.value;
+    {
+      var t1$6;
+      var t0$9;
+      var start$4;
+      var end$4;
+      var attr$0;
+      t0$9 = m$9;
+      if (((t0$9 instanceof Array) && ((t1$6 = t0$9.length), ((t1$6 === 3) && ((start$4 = t0$9[0]), (end$4 = t0$9[1]), (attr$0 = t0$9[2]), ((end$4 >= bot$0) && (start$4 <= top$0))))))) {
+        acc$2.push([Math.max(start$4, bot$0), Math.min(end$4, top$0), attr$0]);
+      } else {
+        false;
+      }
+    }
+  }
+  return acc$2;
+});
+morsel$0 = (function(spans$4) {
+  var jump$0;
+  var jumptill$0;
+  var process_elements$0;
+  var thespans$0;
+  jump$0 = (function(active$0, bot$1, top$1) {
+    var m$10;
+    var acc$3;
+    var m$11;
+    var e$0;
+    var $targ$105;
+    var attributes$1;
+    e$0 = send(Math.min, [top$1].concat(((acc$3 = []), (m$10 = null), (function() {
+      $7: for (var $__0 = active$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$10 = $__1.value;
+        {
+          var t1$7;
+          var t0$10;
+          var x$0;
+          t0$10 = m$10;
+          if (((t0$10 instanceof Array) && ((t1$7 = t0$10.length), (t1$7 === 3)))) {
+            t0$10[0];
+            x$0 = t0$10[1];
+            t0$10[2];
+            acc$3.push(x$0);
+          } else {
+            ___match_error(m$10, "/home/olivier/git/earl-grey/src/location.eg", 3594, 3627);
+          }
+        }
+      }
+    })(), acc$3)));
+    $targ$105 = [];
+    attributes$1 = $targ$105;
+    m$11 = null;
+    $6: for (var $__0 = active$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$11 = $__1.value;
+      {
+        var t1$8;
+        var t0$11;
+        var X$0;
+        t0$11 = m$11;
+        if (((t0$11 instanceof Array) && ((t1$8 = t0$11.length), (t1$8 === 3)))) {
+          t0$11[0];
+          t0$11[1];
+          X$0 = t0$11[2];
+          attributes$1 = attributes$1.concat(X$0);
+        } else {
+          ___match_error(m$11, "/home/olivier/git/earl-grey/src/location.eg", 3653, 3694);
+        }
+      }
+    }
+    return [e$0, [bot$1, e$0, attributes$1]];
+  });
+  jumptill$0 = (function(active$1, bot$2, top$2) {
+    var t1$9;
+    var t0$12;
+    var m$12;
+    var acc$4;
+    var t1$11;
+    var t0$14;
+    var $targ$111;
+    var newbot$0;
+    var span$0;
+    var newactive$0;
+    var $targ$113;
+    var spans$5;
+    var remainder$0;
+    if ((bot$2 === top$2)) {
+      return [[], active$1];
     } else {
-      if (($6976$6992 && ((start$7025 = $6970$6979[0]), ((active$7026 = $6970$6979[1]), (((t1$6985 = $6970$6979[2])), ((t1$6985 instanceof Array) && (((t2$6986 = t1$6985.length)), (t2$6986 === 0)))))))) {
-        (top$7045 = $8104(Math.max, (((acc$7055 = [])), (((temp$7061 = active$7026)), ((($length$7067 = temp$7061.length)), ((($index$7073 = 0)), (function() {
-          $7050: for (; ($index$7073 < $length$7067); ($index$7073++)) {
-            var e$7092;
-            var t0$7087;
-            var t1$7088;
-            var m$7082;
-            (m$7082 = temp$7061[$index$7073]);
-            (t0$7087 = m$7082);
-            if (((t0$7087 instanceof Array) && (((t1$7088 = t0$7087.length)), (t1$7088 === 3)))) {
-              t0$7087[0];
-              (e$7092 = t0$7087[1]);
-              t0$7087[2];
-              acc$7055.push(e$7092);
+      $targ$111 = jump$0(active$1, bot$2, top$2);
+      t0$12 = $targ$111;
+      if (((t0$12 instanceof Array) && ((t1$9 = t0$12.length), (t1$9 === 2)))) {
+        newbot$0 = t0$12[0];
+        span$0 = t0$12[1];
+      } else {
+        ___match_error($targ$111);
+      }
+      newactive$0 = ((acc$4 = []), (m$12 = null), (function() {
+        $8: for (var $__0 = active$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__1; !($__1 = $__0.next()).done; ) {
+          m$12 = $__1.value;
+          {
+            var t1$10;
+            var t0$13;
+            var x$1;
+            var e$1;
+            var attr$1;
+            t0$13 = m$12;
+            x$1 = t0$13;
+            if (((t0$13 instanceof Array) && ((t1$10 = t0$13.length), ((t1$10 === 3) && (t0$13[0], (e$1 = t0$13[1]), (attr$1 = t0$13[2]), (e$1 > newbot$0)))))) {
+              acc$4.push(x$1);
             } else {
-              ___match_error(m$7082, "/home/olivier/git/earl-grey/src/location.eg", 4309, 4337);
+              false;
             }
           }
-        })()))), acc$7055)));
-        (bot$7046 = Math.min(start$7025, top$7045));
-        (t0$7112 = jumptill$6718(active$7026, start$7025, top$7045));
-        if (((t0$7112 instanceof Array) && (((t1$7113 = t0$7112.length)), (t1$7113 === 2)))) {
-          (spans$7047 = t0$7112[0]);
-          t0$7112[1];
-        } else {
-          ___match_error(jumptill$6718(active$7026, start$7025, top$7045), "/home/olivier/git/earl-grey/src/location.eg", 4400, 4428);
         }
-        return spans$7047;
+      })(), acc$4);
+      $targ$113 = jumptill$0(newactive$0, newbot$0, top$2);
+      t0$14 = $targ$113;
+      if (((t0$14 instanceof Array) && ((t1$11 = t0$14.length), (t1$11 === 2)))) {
+        spans$5 = t0$14[0];
+        remainder$0 = t0$14[1];
       } else {
-        if (($6976$6992 && ((start$7128 = $6970$6979[0]), ((active$7129 = $6970$6979[1]), (((t1$6985 = $6970$6979[2])), ((t1$6985 instanceof Array) && (((t2$6986 = t1$6985.length)), ((t2$6986 >= 1) && (((t3$6987 = t1$6985[0])), ((next$7130 = t3$6987), ((t3$6987 instanceof Array) && (((t4$6988 = t3$6987.length)), (t4$6988 === 3))))))))))))) {
-          (target$7131 = t3$6987[0]);
-          (end$7132 = t3$6987[1]);
-          (attr$7133 = t3$6987[2]);
-          (rest$7134 = Array.prototype.slice.call(t1$6985, 1));
-          (t0$7165 = jumptill$6718(active$7129, start$7128, target$7131));
-          if (((t0$7165 instanceof Array) && (((t1$7166 = t0$7165.length)), (t1$7166 === 2)))) {
-            (spans$7162 = t0$7165[0]);
-            (newactive$7163 = t0$7165[1]);
-          } else {
-            ___match_error(jumptill$6718(active$7129, start$7128, target$7131), "/home/olivier/git/earl-grey/src/location.eg", 4542, 4573);
+        ___match_error($targ$113);
+      }
+      return [[span$0].concat(spans$5), remainder$0];
+    }
+  });
+  process_elements$0 = (function(start$5, active$2, rem$0) {
+    var $targ$126;
+    var $targ$125;
+    var $targ$124;
+    var $targ$123;
+    var t0$15;
+    var $targ$128;
+    var $targ$127;
+    var m$14;
+    var acc$5;
+    var t1$14;
+    var t0$17;
+    var top$3;
+    var bot$3;
+    var $targ$131;
+    var spans$6;
+    var $targ$140;
+    var $targ$139;
+    var $targ$138;
+    var $targ$137;
+    var t1$15;
+    var t0$18;
+    var $targ$141;
+    var spans$7;
+    var newactive$1;
+    var start$7;
+    var active$4;
+    var next$0;
+    var target$0;
+    var end$5;
+    var attr$2;
+    var rest$0;
+    var start$6;
+    var active$3;
+    var $$4817$0;
+    var $$4818$0;
+    var $$4819$0;
+    var t1$12;
+    var t2$3;
+    var t3$2;
+    var t4$1;
+    var m$13$0;
+    m$13$0 = [start$5, active$2, rem$0];
+    if ((($$4817$0 = (m$13$0 instanceof Array)) && ((t0$15 = m$13$0.length), (($$4819$0 = (t0$15 === 3)) && (m$13$0[0], ($targ$123 = m$13$0[1]), (t1$12 = $targ$123), ((t1$12 instanceof Array) && (($targ$124 = t1$12.length), (t2$3 = $targ$124), ((t2$3 === 0) && (($targ$125 = m$13$0[2]), (t3$2 = $targ$125), ((t3$2 instanceof Array) && (($targ$126 = t3$2.length), (t4$1 = $targ$126), (t4$1 === 0)))))))))))) {
+      return [];
+    } else {
+      if (($$4819$0 && ((start$6 = m$13$0[0]), (active$3 = m$13$0[1]), ($targ$127 = m$13$0[2]), (t1$12 = $targ$127), ((t1$12 instanceof Array) && (($targ$128 = t1$12.length), (t2$3 = $targ$128), (t2$3 === 0)))))) {
+        top$3 = send(Math.max, ((acc$5 = []), (m$14 = null), (function() {
+          $9: for (var $__0 = active$3[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__1; !($__1 = $__0.next()).done; ) {
+            m$14 = $__1.value;
+            {
+              var t1$13;
+              var t0$16;
+              var e$2;
+              t0$16 = m$14;
+              if (((t0$16 instanceof Array) && ((t1$13 = t0$16.length), (t1$13 === 3)))) {
+                t0$16[0];
+                e$2 = t0$16[1];
+                t0$16[2];
+                acc$5.push(e$2);
+              } else {
+                ___match_error(m$14, "/home/olivier/git/earl-grey/src/location.eg", 4307, 4335);
+              }
+            }
           }
-          return spans$7162.concat(process_elements$6719(target$7131, [next$7130].concat(newactive$7163), rest$7134));
+        })(), acc$5));
+        bot$3 = Math.min(start$6, top$3);
+        $targ$131 = jumptill$0(active$3, start$6, top$3);
+        t0$17 = $targ$131;
+        if (((t0$17 instanceof Array) && ((t1$14 = t0$17.length), (t1$14 === 2)))) {
+          spans$6 = t0$17[0];
+          t0$17[1];
         } else {
-          ___match_error($6970$6979);
+          ___match_error($targ$131);
+        }
+        return spans$6;
+      } else {
+        if (($$4819$0 && ((start$7 = m$13$0[0]), (active$4 = m$13$0[1]), ($targ$137 = m$13$0[2]), (t1$12 = $targ$137), ((t1$12 instanceof Array) && (($targ$138 = t1$12.length), (t2$3 = $targ$138), ((t2$3 >= 1) && (($targ$139 = t1$12[0]), (t3$2 = $targ$139), (next$0 = t3$2), ((t3$2 instanceof Array) && (($targ$140 = t3$2.length), (t4$1 = $targ$140), (t4$1 === 3)))))))))) {
+          target$0 = t3$2[0];
+          end$5 = t3$2[1];
+          attr$2 = t3$2[2];
+          rest$0 = Array.prototype.slice.call(t1$12, 1);
+          $targ$141 = jumptill$0(active$4, start$7, target$0);
+          t0$18 = $targ$141;
+          if (((t0$18 instanceof Array) && ((t1$15 = t0$18.length), (t1$15 === 2)))) {
+            spans$7 = t0$18[0];
+            newactive$1 = t0$18[1];
+          } else {
+            ___match_error($targ$141);
+          }
+          return spans$7.concat(process_elements$0(target$0, [next$0].concat(newactive$1), rest$0));
+        } else {
+          return ___match_error(m$13$0);
         }
       }
+    }
+  });
+  thespans$0 = spans$4.sort((function(temp$1$0, temp$2$0) {
+    var t1$16;
+    var t0$19;
+    var t1$17;
+    var t0$20;
+    var s1$0;
+    var e1$0;
+    var s2$0;
+    var e2$0;
+    t0$19 = temp$1$0;
+    if (((t0$19 instanceof Array) && ((t1$16 = t0$19.length), (t1$16 === 3)))) {
+      s1$0 = t0$19[0];
+      e1$0 = t0$19[1];
+      t0$19[2];
+    } else {
+      ___match_error(temp$1$0);
+    }
+    t0$20 = temp$2$0;
+    if (((t0$20 instanceof Array) && ((t1$17 = t0$20.length), (t1$17 === 3)))) {
+      s2$0 = t0$20[0];
+      e2$0 = t0$20[1];
+      t0$20[2];
+    } else {
+      ___match_error(temp$2$0);
+    }
+    if ((s1$0 === s2$0)) {
+      return (e1$0 - e2$0);
+    } else {
+      return (s1$0 - s2$0);
     }
   }));
-  (thespans$6720 = spans$6710.sort((function($7185$7190, $7187$7191) {
-    var t0$7198;
-    var t1$7199;
-    var t0$7213;
-    var t1$7214;
-    var s1$7193;
-    var e1$7194;
-    var s2$7195;
-    var e2$7196;
-    (t0$7198 = $7185$7190);
-    if (((t0$7198 instanceof Array) && (((t1$7199 = t0$7198.length)), (t1$7199 === 3)))) {
-      (s1$7193 = t0$7198[0]);
-      (e1$7194 = t0$7198[1]);
-      t0$7198[2];
-    } else {
-      ___match_error($7185$7190);
-    }
-    (t0$7213 = $7187$7191);
-    if (((t0$7213 instanceof Array) && (((t1$7214 = t0$7213.length)), (t1$7214 === 3)))) {
-      (s2$7195 = t0$7213[0]);
-      (e2$7196 = t0$7213[1]);
-      t0$7213[2];
-    } else {
-      ___match_error($7187$7191);
-    }
-    if ((s1$7193 === s2$7195)) {
-      return (e1$7194 - e2$7196);
-    } else {
-      return (s1$7193 - s2$7195);
-    }
-  })));
-  return process_elements$6719(thespans$6720[0][0], [], thespans$6720);
-}));
-(highlight_locations$5913 = (function() {
-  var $index$7278;
-  var $length$7272;
-  var temp$7266;
-  var $index$7346;
-  var $length$7340;
-  var temp$7334;
-  var acc$7328;
-  var srcs$7256;
-  var locations$7246;
-  var context$7247;
-  var t0$7242;
-  var $7233$7237;
-  ($7233$7237 = arguments);
-  (t0$7242 = $7233$7237.length);
-  if (((t0$7242 >= 1) && (t0$7242 <= 2))) {
-    (locations$7246 = $7233$7237[0]);
-    (context$7247 = ((1 >= t0$7242) ? 0 : $7233$7237[1]));
-    (srcs$7256 = ({}));
-    (temp$7266 = locations$7246);
-    ($length$7272 = temp$7266.length);
-    ($index$7278 = 0);
-    $7257: for (; ($index$7278 < $length$7272); ($index$7278++)) {
-      var key$7312;
-      var loc$7297;
-      var cls$7298;
-      var t0$7292;
-      var t1$7293;
-      var m$7287;
-      (m$7287 = temp$7266[$index$7278]);
-      (t0$7292 = m$7287);
-      if (((t0$7292 instanceof Array) && (((t1$7293 = t0$7292.length)), (t1$7293 === 2)))) {
-        (loc$7297 = t0$7292[0]);
-        (cls$7298 = t0$7292[1]);
-        (key$7312 = String((loc$7297.source && loc$7297.source.url)));
-        if ((!$8104(srcs$7256, key$7312))) {
-          (srcs$7256[key$7312] = []);
-        }
-        $8104(srcs$7256, key$7312).push([loc$7297, cls$7298]);
-      } else {
-        ___match_error(m$7287, "/home/olivier/git/earl-grey/src/location.eg", 4929, 5098);
-      }
-    }
-    return Node(["div"], ({}), (((acc$7328 = [])), (((temp$7334 = items(srcs$7256))), ((($length$7340 = temp$7334.length)), ((($index$7346 = 0)), (function() {
-      $7323: for (; ($index$7346 < $length$7340); ($index$7346++)) {
-        var locs$7365;
-        var t0$7360;
-        var t1$7361;
-        var m$7355;
-        (m$7355 = temp$7334[$index$7346]);
-        (t0$7360 = m$7355);
-        if (((t0$7360 instanceof Array) && (((t1$7361 = t0$7360.length)), (t1$7361 === 2)))) {
-          t0$7360[0];
-          (locs$7365 = t0$7360[1]);
-          acc$7328.push(highlight_locations_same_source$5914(locs$7365, context$7247));
-        } else {
-          ___match_error(m$7355, "/home/olivier/git/earl-grey/src/location.eg", 5110, 5197);
-        }
-      }
-    })()))), acc$7328));
-  } else {
-    ___match_error($7233$7237);
-  }
-}));
-(highlight_locations_same_source$5914 = (function() {
-  var $index$7445;
-  var $length$7439;
-  var temp$7433;
-  var acc$7427;
-  var t0$7485;
-  var t1$7486;
-  var $index$7528;
-  var $length$7522;
-  var temp$7516;
-  var acc$7510;
-  var $index$7586;
-  var $length$7580;
-  var temp$7574;
-  var acc$7568;
-  var loc$7414;
-  var src$7415;
-  var l1$7416;
-  var l2$7417;
-  var first$7418;
-  var last$7419;
-  var locations$7400;
-  var context$7401;
-  var t0$7396;
-  var $7387$7391;
-  ($7387$7391 = arguments);
-  (t0$7396 = $7387$7391.length);
-  if (((t0$7396 >= 1) && (t0$7396 <= 2))) {
-    (locations$7400 = $7387$7391[0]);
-    (context$7401 = ((1 >= t0$7396) ? 0 : $7387$7391[1]));
-    (loc$7414 = merge_locations$5915((((acc$7427 = [])), (((temp$7433 = locations$7400)), ((($length$7439 = temp$7433.length)), ((($index$7445 = 0)), (function() {
-      $7422: for (; ($index$7445 < $length$7439); ($index$7445++)) {
-        var x$7464;
-        var cls$7465;
-        var t0$7459;
-        var t1$7460;
-        var m$7454;
-        (m$7454 = temp$7433[$index$7445]);
-        (t0$7459 = m$7454);
-        if (((t0$7459 instanceof Array) && (((t1$7460 = t0$7459.length)), (t1$7460 === 2)))) {
-          (x$7464 = t0$7459[0]);
-          (cls$7465 = t0$7459[1]);
-          acc$7427.push(x$7464);
-        } else {
-          ___match_error(m$7454, "/home/olivier/git/earl-grey/src/location.eg", 5280, 5308);
-        }
-      }
-    })()))), acc$7427)));
-    (src$7415 = loc$7414.source);
-    (t0$7485 = loc$7414.linerange());
-    if (((t0$7485 instanceof Array) && (((t1$7486 = t0$7485.length)), (t1$7486 === 2)))) {
-      (l1$7416 = t0$7485[0]);
-      (l2$7417 = t0$7485[1]);
-    } else {
-      ___match_error(loc$7414.linerange(), "/home/olivier/git/earl-grey/src/location.eg", 5344, 5359);
-    }
-    (first$7418 = Math.max(1, (l1$7416 - context$7401)));
-    (last$7419 = Math.min(src$7415.nlines, (l2$7417 + context$7401)));
-    return Node(["div", ".location"], ({}), [Node(["div", ".source"], ({}), [Node([".sourcefile"], ({}), (src$7415.url || "???")), (((acc$7510 = [])), (((temp$7516 = locations$7400)), ((($length$7522 = temp$7516.length)), ((($index$7528 = 0)), (function() {
-      $7505: for (; ($index$7528 < $length$7522); ($index$7528++)) {
-        var loc$7547;
-        var cls$7548;
-        var t0$7542;
-        var t1$7543;
-        var m$7537;
-        (m$7537 = temp$7516[$index$7528]);
-        (t0$7542 = m$7537);
-        if (((t0$7542 instanceof Array) && (((t1$7543 = t0$7542.length)), (t1$7543 === 2)))) {
-          (loc$7547 = t0$7542[0]);
-          (cls$7548 = t0$7542[1]);
-          acc$7510.push(Node([("." + cls$7548), ".sourcepos"], ({}), loc$7547.ref()));
-        } else {
-          ___match_error(m$7537, "/home/olivier/git/earl-grey/src/location.eg", 5528, 5674);
-        }
-      }
-    })()))), acc$7510)]), src$7415.highlight_lines(first$7418, last$7419, (((acc$7568 = [])), (((temp$7574 = locations$7400)), ((($length$7580 = temp$7574.length)), ((($index$7586 = 0)), (function() {
-      $7563: for (; ($index$7586 < $length$7580); ($index$7586++)) {
-        var loc$7605;
-        var cls$7606;
-        var t0$7600;
-        var t1$7601;
-        var m$7595;
-        (m$7595 = temp$7574[$index$7586]);
-        (t0$7600 = m$7595);
-        if (((t0$7600 instanceof Array) && (((t1$7601 = t0$7600.length)), (t1$7601 === 2)))) {
-          (loc$7605 = t0$7600[0]);
-          (cls$7606 = t0$7600[1]);
-          acc$7568.push([loc$7605.start, loc$7605.end, [cls$7606]]);
-        } else {
-          ___match_error(m$7595, "/home/olivier/git/earl-grey/src/location.eg", 5729, 5785);
-        }
-      }
-    })()))), acc$7568))]);
-  } else {
-    ___match_error($7387$7391);
-  }
-}));
-(merge_locations$5915 = (function($7627$7630) {
-  var $index$7702;
-  var $length$7696;
-  var temp$7690;
-  var acc$7684;
-  var $index$7748;
-  var $length$7742;
-  var temp$7736;
-  var acc$7730;
-  var start$7675;
-  var end$7676;
-  var locs$7669;
-  var loc$7664;
-  var $7636$7651;
-  var $7637$7652;
-  var t0$7649;
-  var $7632$7644;
-  var ph$7638;
-  (ph$7638 = $7627$7630);
-  ($7632$7644 = ph$7638);
-  if ((($7636$7651 = ($7632$7644 instanceof Array)) && (((t0$7649 = $7632$7644.length)), (t0$7649 === 0)))) {
-    return Location$5908(null, 0, 0);
-  } else {
-    if (($7636$7651 && (t0$7649 === 1))) {
-      (loc$7664 = $7632$7644[0]);
-      return loc$7664;
-    } else {
-      if (($7636$7651 && (t0$7649 >= 0))) {
-        (locs$7669 = Array.prototype.slice.call($7632$7644, 0));
-        (start$7675 = $8104(Math.min, (((acc$7684 = [])), (((temp$7690 = locs$7669)), ((($length$7696 = temp$7690.length)), ((($index$7702 = 0)), (function() {
-          $7679: for (; ($index$7702 < $length$7696); ($index$7702++)) {
-            var loc$7719;
-            var m$7711;
-            (m$7711 = temp$7690[$index$7702]);
-            (loc$7719 = m$7711);
-            acc$7684.push(loc$7719.start);
+  return process_elements$0(thespans$0[0][0], [], thespans$0);
+});
+highlight_locations$0 = (function() {
+  var m$16;
+  var m$17;
+  var acc$6;
+  var srcs$0;
+  var t0$21;
+  var locations$0;
+  var context$1;
+  var m$15$0;
+  m$15$0 = arguments;
+  t0$21 = m$15$0.length;
+  if (((t0$21 >= 1) && (t0$21 <= 2))) {
+    locations$0 = m$15$0[0];
+    context$1 = ((1 >= t0$21) ? 0 : m$15$0[1]);
+    srcs$0 = ({});
+    m$16 = null;
+    $10: for (var $__0 = locations$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$16 = $__1.value;
+      {
+        var t1$18;
+        var $targ$154;
+        var key$0;
+        var t0$22;
+        var loc$0;
+        var cls$1;
+        t0$22 = m$16;
+        if (((t0$22 instanceof Array) && ((t1$18 = t0$22.length), (t1$18 === 2)))) {
+          loc$0 = t0$22[0];
+          cls$1 = t0$22[1];
+          key$0 = String((loc$0.source && loc$0.source.url));
+          if ((!send(srcs$0, key$0))) {
+            $targ$154 = [];
+            (srcs$0[key$0] = $targ$154);
           }
-        })()))), acc$7684)));
-        (end$7676 = $8104(Math.max, (((acc$7730 = [])), (((temp$7736 = locs$7669)), ((($length$7742 = temp$7736.length)), ((($index$7748 = 0)), (function() {
-          $7725: for (; ($index$7748 < $length$7742); ($index$7748++)) {
-            var loc$7765;
-            var m$7757;
-            (m$7757 = temp$7736[$index$7748]);
-            (loc$7765 = m$7757);
-            acc$7730.push(loc$7765.end);
+          send(srcs$0, key$0).push([loc$0, cls$1]);
+        } else {
+          ___match_error(m$16, "/home/olivier/git/earl-grey/src/location.eg", 4927, 5096);
+        }
+      }
+    }
+    return Node(["div"], ({}), ((acc$6 = []), (m$17 = null), (function() {
+      $11: for (var $__2 = items(srcs$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__3; !($__3 = $__2.next()).done; ) {
+        m$17 = $__3.value;
+        {
+          var t1$19;
+          var t0$23;
+          var locs$0;
+          t0$23 = m$17;
+          if (((t0$23 instanceof Array) && ((t1$19 = t0$23.length), (t1$19 === 2)))) {
+            t0$23[0];
+            locs$0 = t0$23[1];
+            acc$6.push(highlight_locations_same_source$0(locs$0, context$1));
+          } else {
+            ___match_error(m$17, "/home/olivier/git/earl-grey/src/location.eg", 5108, 5195);
           }
-        })()))), acc$7730)));
-        return Location$5908(locs$7669[0].source, start$7675, end$7676);
+        }
+      }
+    })(), acc$6));
+  } else {
+    return ___match_error(m$15$0);
+  }
+});
+highlight_locations_same_source$0 = (function() {
+  var m$19;
+  var acc$7;
+  var t1$21;
+  var t0$26;
+  var m$20;
+  var acc$8;
+  var m$21;
+  var acc$9;
+  var loc$1;
+  var src$0;
+  var $targ$162;
+  var l1$4;
+  var l2$4;
+  var first$0;
+  var last$0;
+  var t0$24;
+  var locations$1;
+  var context$2;
+  var m$18$0;
+  m$18$0 = arguments;
+  t0$24 = m$18$0.length;
+  if (((t0$24 >= 1) && (t0$24 <= 2))) {
+    locations$1 = m$18$0[0];
+    context$2 = ((1 >= t0$24) ? 0 : m$18$0[1]);
+    loc$1 = merge_locations$0(((acc$7 = []), (m$19 = null), (function() {
+      $12: for (var $__0 = locations$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$19 = $__1.value;
+        {
+          var t1$20;
+          var t0$25;
+          var x$2;
+          var cls$2;
+          t0$25 = m$19;
+          if (((t0$25 instanceof Array) && ((t1$20 = t0$25.length), (t1$20 === 2)))) {
+            x$2 = t0$25[0];
+            cls$2 = t0$25[1];
+            acc$7.push(x$2);
+          } else {
+            ___match_error(m$19, "/home/olivier/git/earl-grey/src/location.eg", 5278, 5306);
+          }
+        }
+      }
+    })(), acc$7));
+    src$0 = loc$1.source;
+    $targ$162 = loc$1.linerange();
+    t0$26 = $targ$162;
+    if (((t0$26 instanceof Array) && ((t1$21 = t0$26.length), (t1$21 === 2)))) {
+      l1$4 = t0$26[0];
+      l2$4 = t0$26[1];
+    } else {
+      ___match_error($targ$162);
+    }
+    first$0 = Math.max(1, (l1$4 - context$2));
+    last$0 = Math.min(src$0.nlines, (l2$4 + context$2));
+    return Node(["div", ".location"], ({}), [Node(["div", ".source"], ({}), [Node([".sourcefile"], ({}), (src$0.url || "???")), ((acc$8 = []), (m$20 = null), (function() {
+      $13: for (var $__0 = locations$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$20 = $__1.value;
+        {
+          var t1$22;
+          var t0$27;
+          var loc$2;
+          var cls$3;
+          t0$27 = m$20;
+          if (((t0$27 instanceof Array) && ((t1$22 = t0$27.length), (t1$22 === 2)))) {
+            loc$2 = t0$27[0];
+            cls$3 = t0$27[1];
+            acc$8.push(Node([("." + cls$3), ".sourcepos"], ({}), loc$2.ref()));
+          } else {
+            ___match_error(m$20, "/home/olivier/git/earl-grey/src/location.eg", 5526, 5672);
+          }
+        }
+      }
+    })(), acc$8)]), src$0.highlight_lines(first$0, last$0, ((acc$9 = []), (m$21 = null), (function() {
+      $14: for (var $__0 = locations$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$21 = $__1.value;
+        {
+          var t1$23;
+          var t0$28;
+          var loc$3;
+          var cls$4;
+          t0$28 = m$21;
+          if (((t0$28 instanceof Array) && ((t1$23 = t0$28.length), (t1$23 === 2)))) {
+            loc$3 = t0$28[0];
+            cls$4 = t0$28[1];
+            acc$9.push([loc$3.start, loc$3.end, [cls$4]]);
+          } else {
+            ___match_error(m$21, "/home/olivier/git/earl-grey/src/location.eg", 5727, 5783);
+          }
+        }
+      }
+    })(), acc$9))]);
+  } else {
+    return ___match_error(m$18$0);
+  }
+});
+merge_locations$0 = (function(temp$3$0) {
+  var t0$29;
+  var m$23;
+  var acc$10;
+  var m$24;
+  var acc$11;
+  var start$8;
+  var end$6;
+  var locs$1;
+  var loc$4;
+  var $$5231$0;
+  var $$5232$0;
+  var m$22$0;
+  var ph$2;
+  ph$2 = temp$3$0;
+  m$22$0 = ph$2;
+  if ((($$5231$0 = (m$22$0 instanceof Array)) && ((t0$29 = m$22$0.length), (t0$29 === 0)))) {
+    return Location$0(null, 0, 0);
+  } else {
+    if (($$5231$0 && (t0$29 === 1))) {
+      loc$4 = m$22$0[0];
+      return loc$4;
+    } else {
+      if (($$5231$0 && (t0$29 >= 0))) {
+        locs$1 = Array.prototype.slice.call(m$22$0, 0);
+        start$8 = send(Math.min, ((acc$10 = []), (m$23 = null), (function() {
+          $15: for (var $__0 = locs$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__1; !($__1 = $__0.next()).done; ) {
+            m$23 = $__1.value;
+            {
+              var loc$5;
+              loc$5 = m$23;
+              acc$10.push(loc$5.start);
+            }
+          }
+        })(), acc$10));
+        end$6 = send(Math.max, ((acc$11 = []), (m$24 = null), (function() {
+          $16: for (var $__0 = locs$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__1; !($__1 = $__0.next()).done; ) {
+            m$24 = $__1.value;
+            {
+              var loc$6;
+              loc$6 = m$24;
+              acc$11.push(loc$6.end);
+            }
+          }
+        })(), acc$11));
+        return Location$0(locs$1[0].source, start$8, end$6);
       } else {
-        ___match_error($7632$7644);
+        return ___match_error(m$22$0);
       }
     }
   }
-}));
-(__lt____lt____colon__$5916 = (function(x$7776, y$7777) {
-  if ((!getChecker(Location$5908)(x$7776.location))) {
-    (x$7776["location"] = (((!y$7777) || getChecker(Location$5908)(y$7777)) ? y$7777 : y$7777.location));
+});
+__lt____lt____colon__$0 = (function(x$3, y$0) {
+  var $targ$182;
+  if ((!getChecker(Location$0)(x$3.location))) {
+    $targ$182 = (((!y$0) || getChecker(Location$0)(y$0)) ? y$0 : y$0.location);
+    (x$3["location"] = $targ$182);
   }
-  return x$7776;
-}));
-(__plus____plus____colon__$5917 = (function(x$7790, y$7791) {
-  var rval$7808;
-  var x2$7796;
-  var y2$7797;
-  (x2$7796 = (((!x$7790) || getChecker(Location$5908)(x$7790)) ? x$7790 : x$7790.location));
-  (y2$7797 = (((!y$7791) || getChecker(Location$5908)(y$7791)) ? y$7791 : y$7791.location));
-  (rval$7808 = false);
+  return x$3;
+});
+__plus____plus____colon__$0 = (function(x$4, y$1) {
+  var $targ$186;
+  var $targ$185;
+  var rval$0;
+  var x2$0;
+  var y2$0;
+  x2$0 = (((!x$4) || getChecker(Location$0)(x$4)) ? x$4 : x$4.location);
+  y2$0 = (((!y$1) || getChecker(Location$0)(y$1)) ? y$1 : y$1.location);
+  $targ$185 = false;
+  rval$0 = $targ$185;
   try {
-    (rval$7808 = merge_locations$5915([x2$7796, y2$7797]));
-  } catch (excv$7819) {
-    var e$7825;
-    (e$7825 = excv$7819);
-    (rval$7808 = undefined);
+    $targ$186 = merge_locations$0([x2$0, y2$0]);
+    rval$0 = $targ$186;
+  } catch (excv$0) {
+    var $targ$187;
+    var e$3;
+    e$3 = excv$0;
+    $targ$187 = undefined;
+    rval$0 = $targ$187;
   }
-  return rval$7808;
-}));
-(format_error$5918 = (function() {
-  var $index$7941;
-  var $length$7935;
-  var temp$7929;
-  var acc$7923;
-  var hls$7911;
-  var locs$7912;
-  var rval$8023;
-  var loc$8049;
-  var data$8016;
-  var other$8055;
-  var url$8004;
-  var start$8005;
-  var end$8006;
-  var loc$7994;
-  var args$7891;
-  var fmt_args$7881;
-  var $7843$7876;
-  var $7844$7877;
-  var $7845$7878;
-  var t0$7872;
-  var t1$7873;
-  var t2$7874;
-  var e$7858;
-  var context$7859;
-  var $7838$7860;
-  var t0$7853;
-  var t1$7854;
-  var $7836$7848;
-  ($7836$7848 = arguments);
-  (t0$7853 = $7836$7848.length);
-  if (((t0$7853 >= 1) && (t0$7853 <= 2))) {
-    (t1$7854 = $7836$7848[0]);
-    (e$7858 = t1$7854);
-    ($7838$7860 = t1$7854);
-    (context$7859 = ((1 >= t0$7853) ? 0 : $7836$7848[1]));
-    (fmt_args$7881 = (function(e$7886) {
-      if ((e$7886.args && e$7886.args.length)) {
-        return Node([".error_args"], ({}), repr$5905(e$7886.args));
+  return rval$0;
+});
+format_error$0 = (function() {
+  var $targ$194;
+  var $targ$193;
+  var m$26;
+  var acc$12;
+  var hls$0;
+  var locs$2;
+  var $targ$202;
+  var $targ$203;
+  var $targ$206;
+  var $targ$205;
+  var rval$1;
+  var loc$8;
+  var data$0;
+  var other$0;
+  var url$1;
+  var start$9;
+  var end$7;
+  var loc$7;
+  var t0$31;
+  var args$0;
+  var fmt_args$0;
+  var $$5358$0;
+  var $$5359$0;
+  var $$5360$0;
+  var t1$25;
+  var t2$4;
+  var t1$24;
+  var t0$30;
+  var e$4;
+  var context$3;
+  var ph$3$0;
+  var m$25$0;
+  m$25$0 = arguments;
+  t0$30 = m$25$0.length;
+  if (((t0$30 >= 1) && (t0$30 <= 2))) {
+    t1$24 = m$25$0[0];
+    e$4 = t1$24;
+    ph$3$0 = t1$24;
+    context$3 = ((1 >= t0$30) ? 0 : m$25$0[1]);
+    fmt_args$0 = (function(e$5) {
+      if ((e$5.args && e$5.args.length)) {
+        return Node([".error_args"], ({}), repr$0(e$5.args));
       } else {
         return "";
       }
-    }));
-    (t0$7872 = $7838$7860);
-    if ((getChecker(ErrorFactory(["syntax"]))(t0$7872) && (___hasprop(t0$7872, "args") && (((t1$7873 = t0$7872.args)), ((t1$7873 instanceof Array) && (((t2$7874 = t1$7873.length)), (t2$7874 === 1))))))) {
-      (args$7891 = t1$7873[0]);
-      (hls$7911 = ["hl1", "hl2", "hl3", "hl4"]);
-      (locs$7912 = (((acc$7923 = [])), (((temp$7929 = enumerate(items(args$7891)))), ((($length$7935 = temp$7929.length)), ((($index$7941 = 0)), (function() {
-        $7918: for (; ($index$7941 < $length$7935); ($index$7941++)) {
-          var i$7962;
-          var key$7963;
-          var arg$7964;
-          var t0$7955;
-          var t1$7956;
-          var t2$7957;
-          var t3$7958;
-          var m$7950;
-          (m$7950 = temp$7929[$index$7941]);
-          (t0$7955 = m$7950);
-          if (((t0$7955 instanceof Array) && (((t1$7956 = t0$7955.length)), ((t1$7956 === 2) && ((i$7962 = t0$7955[0]), (((t2$7957 = t0$7955[1])), ((t2$7957 instanceof Array) && (((t3$7958 = t2$7957.length)), ((t3$7958 === 2) && ((key$7963 = t2$7957[0]), ((arg$7964 = t2$7957[1]), (arg$7964 && arg$7964.location)))))))))))) {
-            acc$7923.push([arg$7964.location, $8104(hls$7911, (i$7962 % 4))]);
-          } else {
-            false;
+    });
+    t0$31 = ph$3$0;
+    if ((getChecker(ErrorFactory(["syntax"]))(t0$31) && (___hasprop(t0$31, "args") && (($targ$193 = t0$31.args), (t1$25 = $targ$193), ((t1$25 instanceof Array) && (($targ$194 = t1$25.length), (t2$4 = $targ$194), (t2$4 === 1))))))) {
+      args$0 = t1$25[0];
+      hls$0 = ["hl1", "hl2", "hl3", "hl4"];
+      locs$2 = ((acc$12 = []), (m$26 = null), (function() {
+        $17: for (var $__0 = enumerate(items(args$0))[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__1; !($__1 = $__0.next()).done; ) {
+          m$26 = $__1.value;
+          {
+            var t3$3;
+            var t2$5;
+            var t1$26;
+            var t0$32;
+            var i$0;
+            var key$1;
+            var arg$0;
+            t0$32 = m$26;
+            if (((t0$32 instanceof Array) && ((t1$26 = t0$32.length), ((t1$26 === 2) && ((i$0 = t0$32[0]), (t2$5 = t0$32[1]), ((t2$5 instanceof Array) && ((t3$3 = t2$5.length), ((t3$3 === 2) && ((key$1 = t2$5[0]), (arg$0 = t2$5[1]), (arg$0 && arg$0.location)))))))))) {
+              acc$12.push([arg$0.location, send(hls$0, (i$0 % 4))]);
+            } else {
+              false;
+            }
           }
         }
-      })()))), acc$7923));
-      return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$7858.name), Node([".error_message"], ({}), e$7858.message)]), Node([".error_args", ".syntax"], ({}), repr$5905(args$7891)), highlight_locations$5913(locs$7912, context$7859)]);
+      })(), acc$12);
+      return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$4.name), Node([".error_message"], ({}), e$4.message)]), Node([".error_args", ".syntax"], ({}), repr$0(args$0)), highlight_locations$0(locs$2, context$3)]);
     } else {
-      if ((($7844$7877 = ___hasprop(t0$7872, "location")) && (((t1$7873 = t0$7872.location)), getChecker(Location$5908)(t1$7873)))) {
-        (loc$7994 = t1$7873);
-        return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$7858.name), Node([".error_message"], ({}), e$7858.message)]), fmt_args$7881(e$7858), highlight_locations$5913([[loc$7994, "hl1"]], context$7859), Node([".traceback"], ({}), (e$7858.stack || ""))]);
+      if ((($$5359$0 = ___hasprop(t0$31, "location")) && (($targ$202 = t0$31.location), (t1$25 = $targ$202), getChecker(Location$0)(t1$25)))) {
+        loc$7 = t1$25;
+        return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$4.name), Node([".error_message"], ({}), e$4.message)]), fmt_args$0(e$4), highlight_locations$0([[loc$7, "hl1"]], context$3), Node([".traceback"], ({}), (e$4.stack || ""))]);
       } else {
-        if (($7844$7877 && ((t1$7873 instanceof Array) && (((t2$7874 = t1$7873.length)), ((t2$7874 === 4) && (t1$7873[0] === "location")))))) {
-          (url$8004 = t1$7873[1]);
-          (start$8005 = t1$7873[2]);
-          (end$8006 = t1$7873[3]);
-          (data$8016 = (((rval$8023 = false)), ((function() {
+        if (($$5359$0 && ((t1$25 instanceof Array) && (($targ$203 = t1$25.length), (t2$4 = $targ$203), ((t2$4 === 4) && (t1$25[0] === "location")))))) {
+          url$1 = t1$25[1];
+          start$9 = t1$25[2];
+          end$7 = t1$25[3];
+          data$0 = (($targ$205 = false), (rval$1 = $targ$205), (function() {
             try {
-              (rval$8023 = fs$5906.readFileSync(url$8004, "utf8"));
-            } catch (excv$8034) {
-              var e$8040;
-              (e$8040 = excv$8034);
-              (rval$8023 = null);
+              $targ$206 = fs$0.readFileSync(url$1, "utf8");
+              rval$1 = $targ$206;
+            } catch (excv$1) {
+              var $targ$207;
+              var e$6;
+              e$6 = excv$1;
+              $targ$207 = null;
+              rval$1 = $targ$207;
             }
-          })(), rval$8023)));
-          if (data$8016) {
-            (loc$8049 = Location$5908(Source$5907(data$8016, url$8004), start$8005, end$8006));
-            return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$7858.name), Node([".error_message"], ({}), e$7858.message)]), fmt_args$7881(e$7858), highlight_locations$5913([[loc$8049, "hl1"]], context$7859), Node([".traceback"], ({}), (Node([], ({}), e$7858.stack) || ""))]);
+          })(), rval$1);
+          if (data$0) {
+            loc$8 = Location$0(Source$0(data$0, url$1), start$9, end$7);
+            return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$4.name), Node([".error_message"], ({}), e$4.message)]), fmt_args$0(e$4), highlight_locations$0([[loc$8, "hl1"]], context$3), Node([".traceback"], ({}), (Node([], ({}), e$4.stack) || ""))]);
           } else {
-            return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$7858.name), Node([".error_message"], ({}), e$7858.message)]), fmt_args$7881(e$7858), Node([".traceback"], ({}), (Node([], ({}), e$7858.stack) || e$7858))]);
+            return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$4.name), Node([".error_message"], ({}), e$4.message)]), fmt_args$0(e$4), Node([".traceback"], ({}), (Node([], ({}), e$4.stack) || e$4))]);
           }
         } else {
-          (other$8055 = $7838$7860);
-          return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$7858.name), Node([".error_message"], ({}), e$7858.message)]), fmt_args$7881(e$7858), Node([".traceback"], ({}), Node([], ({}), e$7858.stack))]);
+          other$0 = ph$3$0;
+          return Node(["div"], ({}), [Node([".error"], ({}), [Node([".error_type"], ({}), e$4.name), Node([".error_message"], ({}), e$4.message)]), fmt_args$0(e$4), Node([".traceback"], ({}), Node([], ({}), e$4.stack))]);
         }
       }
     }
   } else {
-    ___match_error($7836$7848);
+    return ___match_error(m$25$0);
   }
-}));
-(display_error$5919 = (function(e$8064) {
-  return __lt____gt__$5904(null, format_error$5918(e$8064));
-}));
-(exports["Source"] = Source$5907);
-(exports["Location"] = Location$5908);
-(exports["highlight"] = highlight$5909);
-(exports["highlight_locations"] = highlight_locations$5913);
-(exports["merge_locations"] = merge_locations$5915);
-(exports["<<:"] = __lt____lt____colon__$5916);
-(exports["++:"] = __plus____plus____colon__$5917);
-(exports["format_error"] = format_error$5918);
-(exports["display_error"] = display_error$5919);
+});
+display_error$0 = (function(e$7) {
+  return __lt____gt__$0(null, format_error$0(e$7));
+});
+$targ$209 = Source$0;
+(exports["Source"] = $targ$209);
+$targ$210 = Location$0;
+(exports["Location"] = $targ$210);
+$targ$211 = highlight$0;
+(exports["highlight"] = $targ$211);
+$targ$212 = highlight_locations$0;
+(exports["highlight_locations"] = $targ$212);
+$targ$213 = merge_locations$0;
+(exports["merge_locations"] = $targ$213);
+$targ$214 = __lt____lt____colon__$0;
+(exports["<<:"] = $targ$214);
+$targ$215 = __plus____plus____colon__$0;
+(exports["++:"] = $targ$215);
+$targ$216 = format_error$0;
+(exports["format_error"] = $targ$216);
+$targ$217 = display_error$0;
+(exports["display_error"] = $targ$217);
 //# sourceURL=<compile-source>

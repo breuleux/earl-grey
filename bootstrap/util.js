@@ -1,295 +1,289 @@
 "use strict";
 require("earlgrey-runtime");
-var $33576 = (function(o, m) {
-  if (typeof(m) === 'string' || typeof(m) === 'number') {
-    return o[m];
-  } else {
-    return o['::send'](m);
-  }
-});
-var GenSym$32884;
-var gensym$32885;
-var identity$32886;
-var binsearch$32887;
-var classify$32888;
-var classify_contiguous$32889;
-var partition$32890;
-var product$32891;
-var construct$32892;
-var mkset$32893;
-var Body$32894;
-(GenSym$32884 = (function(prefix$32899) {
-  var id$32904;
-  (id$32904 = 0);
+var $targ$45;
+var $targ$46;
+var $targ$47;
+var $targ$48;
+var $targ$49;
+var $targ$50;
+var $targ$51;
+var $targ$52;
+var $targ$53;
+var $targ$54;
+var GenSym$0;
+var gensym$0;
+var identity$0;
+var binsearch$0;
+var classify$0;
+var classify_contiguous$0;
+var partition$0;
+var construct$0;
+var mkset$0;
+var Body$0;
+GenSym$0 = (function(prefix$0) {
+  var id$0;
+  id$0 = 0;
   return (function() {
-    var r$32931;
-    var pfx$32922;
-    var t0$32918;
-    var $32909$32913;
-    ($32909$32913 = arguments);
-    (t0$32918 = $32909$32913.length);
-    if (((t0$32918 >= 0) && (t0$32918 <= 1))) {
-      (pfx$32922 = ((0 >= t0$32918) ? "" : $32909$32913[0]));
-      (r$32931 = ((pfx$32922 + prefix$32899) + [true, String(id$32904)][1]));
-      (id$32904++);
-      return r$32931;
+    var r$0;
+    var t0$0;
+    var pfx$0;
+    var m$0$0;
+    m$0$0 = arguments;
+    t0$0 = m$0$0.length;
+    if (((t0$0 >= 0) && (t0$0 <= 1))) {
+      pfx$0 = ((0 >= t0$0) ? "" : m$0$0[0]);
+      r$0 = ((pfx$0 + prefix$0) + [true, String(id$0)][1]);
+      (id$0++);
+      return r$0;
     } else {
-      ___match_error($32909$32913);
+      return ___match_error(m$0$0);
     }
   });
-}));
-(gensym$32885 = GenSym$32884("$"));
-(identity$32886 = (function(x$32945) {
-  return x$32945;
-}));
-(binsearch$32887 = (function(xs$32952, x$32953) {
-  var lo$32958;
-  var hi$32959;
-  (lo$32958 = 0);
-  (hi$32959 = (xs$32952.length - 1));
-  $32966: while ((lo$32958 <= hi$32959)) {
-    var $32972$32986;
-    var mid$32976;
-    var v$32977;
-    (mid$32976 = (lo$32958 + ((hi$32959 - lo$32958) >> 1)));
-    (v$32977 = $33576(xs$32952, mid$32976));
-    ($32972$32986 = $33576(xs$32952, mid$32976));
-    if (($32972$32986 < x$32953)) {
-      (lo$32958 = (mid$32976 + 1));
+});
+gensym$0 = GenSym$0("$$");
+identity$0 = (function(x$0) {
+  return x$0;
+});
+binsearch$0 = (function(xs$0, x$1) {
+  var $targ$14;
+  var lo$0;
+  var $targ$15;
+  var hi$0;
+  $targ$14 = 0;
+  lo$0 = $targ$14;
+  $targ$15 = (xs$0.length - 1);
+  hi$0 = $targ$15;
+  $0: while ((lo$0 <= hi$0)) {
+    var $targ$19;
+    var $targ$20;
+    var m$1$0;
+    var mid$0;
+    var v$0;
+    mid$0 = (lo$0 + ((hi$0 - lo$0) >> 1));
+    v$0 = send(xs$0, mid$0);
+    m$1$0 = send(xs$0, mid$0);
+    if ((m$1$0 < x$1)) {
+      $targ$19 = (mid$0 + 1);
+      lo$0 = $targ$19;
     } else {
-      if (($32972$32986 > x$32953)) {
-        (hi$32959 = (mid$32976 - 1));
+      if ((m$1$0 > x$1)) {
+        $targ$20 = (mid$0 - 1);
+        hi$0 = $targ$20;
       } else {
-        $32972$32986;
-        return (mid$32976 + 1);
+        m$1$0;
+        return (mid$0 + 1);
       }
     }
   }
-  return lo$32958;
-}));
-(classify$32888 = (function() {
-  var $index$33061;
-  var $length$33055;
-  var temp$33049;
-  var results$33039;
-  var classes$33029;
-  var xs$33030;
-  var t0$33025;
-  var $33016$33020;
-  ($33016$33020 = arguments);
-  (t0$33025 = $33016$33020.length);
-  if ((t0$33025 >= 1)) {
-    (classes$33029 = Array.prototype.slice.call($33016$33020, 0, -1));
-    (xs$33030 = $33016$33020[(t0$33025 - 1)]);
-    (results$33039 = ({"rest": []}));
-    (temp$33049 = classes$33029);
-    ($length$33055 = temp$33049.length);
-    ($index$33061 = 0);
-    $33040: for (; ($index$33061 < $length$33055); ($index$33061++)) {
-      var cls$33078;
-      var m$33070;
-      (m$33070 = temp$33049[$index$33061]);
-      (cls$33078 = m$33070);
-      (results$33039[cls$33078] = []);
+  return lo$0;
+});
+classify$0 = (function() {
+  var m$3;
+  var results$0;
+  var t0$1;
+  var classes$0;
+  var xs$1;
+  var m$2$0;
+  m$2$0 = arguments;
+  t0$1 = m$2$0.length;
+  if ((t0$1 >= 1)) {
+    classes$0 = Array.prototype.slice.call(m$2$0, 0, -1);
+    xs$1 = m$2$0[(t0$1 - 1)];
+    results$0 = ({"rest": []});
+    m$3 = null;
+    $1: for (var $__0 = classes$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$3 = $__1.value;
+      {
+        var $targ$24;
+        var cls$0;
+        cls$0 = m$3;
+        $targ$24 = [];
+        (results$0[cls$0] = $targ$24);
+      }
     }
-    $33084: while (xs$33030.length) {
-      var x$33120;
-      var other$33140;
-      var cls$33127;
-      var x$33128;
-      var newxs$33103;
-      var t0$33099;
-      var $33087$33094;
-      ($33087$33094 = xs$33030.shift());
-      if ((($33087$33094 instanceof Array) && (((t0$33099 = $33087$33094.length)), ((t0$33099 >= 1) && ($33087$33094[0] === "splice"))))) {
-        (newxs$33103 = Array.prototype.slice.call($33087$33094, 1));
-        (xs$33030 = newxs$33103.concat(xs$33030));
+    $2: while (xs$1.length) {
+      var $targ$26;
+      var $targ$27;
+      var x$2;
+      var $targ$29;
+      var other$0;
+      var cls$1;
+      var x$3;
+      var newxs$0;
+      var t0$2;
+      var m$4$0;
+      m$4$0 = xs$1.shift();
+      if (((m$4$0 instanceof Array) && (($targ$26 = m$4$0.length), (t0$2 = $targ$26), ((t0$2 >= 1) && (m$4$0[0] === "splice"))))) {
+        newxs$0 = Array.prototype.slice.call(m$4$0, 1);
+        $targ$27 = newxs$0.concat(xs$1);
+        xs$1 = $targ$27;
       } else {
-        if ((((x$33120 = $33087$33094)), ((x$33120 instanceof Array) && (x$33120[0] === "ignore")))) {
+        if (((x$2 = m$4$0), ((x$2 instanceof Array) && (x$2[0] === "ignore")))) {
           null;
         } else {
-          if ((($33087$33094 instanceof Array) && (((t0$33099 = $33087$33094.length)), ((t0$33099 === 2) && ((cls$33127 = $33087$33094[0]), ((x$33128 = $33087$33094[1]), $33576(results$33039, cls$33127))))))) {
-            $33576(results$33039, cls$33127).push(x$33128);
+          if (((m$4$0 instanceof Array) && (($targ$29 = m$4$0.length), (t0$2 = $targ$29), ((t0$2 === 2) && ((cls$1 = m$4$0[0]), (x$3 = m$4$0[1]), send(results$0, cls$1)))))) {
+            send(results$0, cls$1).push(x$3);
           } else {
-            (other$33140 = $33087$33094);
-            results$33039.rest.push(other$33140);
+            other$0 = m$4$0;
+            results$0.rest.push(other$0);
           }
         }
       }
     }
-    return results$33039;
+    return results$0;
   } else {
-    ___match_error($33016$33020);
+    return ___match_error(m$2$0);
   }
-}));
-(classify_contiguous$32889 = (function(xs$33149, classifier$33150) {
-  var $index$33186;
-  var $length$33180;
-  var temp$33174;
-  var groups$33156;
-  var currcls$33157;
-  var curr$33158;
-  (groups$33156 = []);
-  (currcls$33157 = null);
-  (curr$33158 = null);
-  (temp$33174 = xs$33149);
-  ($length$33180 = temp$33174.length);
-  ($index$33186 = 0);
-  $33159: for (; ($index$33186 < $length$33180); ($index$33186++)) {
-    var cls$33207;
-    var x$33203;
-    var m$33195;
-    (m$33195 = temp$33174[$index$33186]);
-    (x$33203 = m$33195);
-    (cls$33207 = classifier$33150(x$33203));
-    if ((cls$33207 === currcls$33157)) {
-      curr$33158.push(x$33203);
-    } else {
-      if (curr$33158) {
-        groups$33156.push(curr$33158);
-      }
-      (curr$33158 = [cls$33207, x$33203]);
-      (currcls$33157 = cls$33207);
-    }
-  }
-  if (curr$33158) {
-    groups$33156.push(curr$33158);
-  }
-  return groups$33156;
-}));
-(partition$32890 = (function(xs$33227, predicate$33228) {
-  var $index$33260;
-  var $length$33254;
-  var temp$33248;
-  var t$33233;
-  var f$33234;
-  (t$33233 = []);
-  (f$33234 = []);
-  (temp$33248 = xs$33227);
-  ($length$33254 = temp$33248.length);
-  ($index$33260 = 0);
-  $33235: for (; ($index$33260 < $length$33254); ($index$33260++)) {
-    var x$33282;
-    var x$33277;
-    var m$33269;
-    (m$33269 = temp$33248[$index$33260]);
-    (x$33277 = m$33269);
-    if (predicate$33228(x$33277)) {
-      t$33233.push(x$33277);
-    } else {
-      (x$33282 = m$33269);
-      f$33234.push(x$33282);
-    }
-  }
-  return [t$33233, f$33234];
-}));
-(product$32891 = (function(a$33289, b$33290) {
-  var $index$33316;
-  var $length$33310;
-  var temp$33304;
-  var results$33294;
-  (results$33294 = []);
-  (temp$33304 = a$33289);
-  ($length$33310 = temp$33304.length);
-  ($index$33316 = 0);
-  var $__0 = function() {
-    var $index$33358;
-    var $length$33352;
-    var temp$33346;
-    var acc$33340;
-    var x$33333;
-    var m$33325;
-    (m$33325 = temp$33304[$index$33316]);
-    (x$33333 = m$33325);
-    (results$33294 = results$33294.concat((((acc$33340 = [])), (((temp$33346 = b$33290)), ((($length$33352 = temp$33346.length)), ((($index$33358 = 0)), (function() {
-      $33335: for (; ($index$33358 < $length$33352); ($index$33358++)) {
-        var y$33375;
-        var m$33367;
-        (m$33367 = temp$33346[$index$33358]);
-        (y$33375 = m$33367);
-        acc$33340.push([x$33333, y$33375]);
-      }
-    })()))), acc$33340)));
-  };
-  $33295: for (; ($index$33316 < $length$33310); ($index$33316++)) {
-    $__0();
-  }
-  return results$33294;
-}));
-(construct$32892 = (function($33382$33385, fn$33386, zero$33387) {
-  var x$33426;
-  var rest$33427;
-  var x$33421;
-  var $33393$33408;
-  var $33394$33409;
-  var t0$33406;
-  var $33389$33401;
-  var ph$33395;
-  (ph$33395 = $33382$33385);
-  ($33389$33401 = ph$33395);
-  if ((($33393$33408 = ($33389$33401 instanceof Array)) && (((t0$33406 = $33389$33401.length)), (t0$33406 === 0)))) {
-    return zero$33387;
-  } else {
-    if (($33393$33408 && (t0$33406 === 1))) {
-      (x$33421 = $33389$33401[0]);
-      return x$33421;
-    } else {
-      if (($33393$33408 && (t0$33406 >= 1))) {
-        (x$33426 = $33389$33401[0]);
-        (rest$33427 = Array.prototype.slice.call($33389$33401, 1));
-        return fn$33386(x$33426, construct$32892(rest$33427, fn$33386, zero$33387));
+});
+classify_contiguous$0 = (function(xs$2, classifier$0) {
+  var m$5;
+  var groups$0;
+  var $targ$31;
+  var currcls$0;
+  var $targ$32;
+  var curr$0;
+  groups$0 = [];
+  $targ$31 = null;
+  currcls$0 = $targ$31;
+  $targ$32 = null;
+  curr$0 = $targ$32;
+  m$5 = null;
+  $3: for (var $__0 = xs$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$5 = $__1.value;
+    {
+      var $targ$34;
+      var $targ$35;
+      var cls$2;
+      var x$4;
+      x$4 = m$5;
+      cls$2 = classifier$0(x$4);
+      if ((cls$2 === currcls$0)) {
+        curr$0.push(x$4);
       } else {
-        ___match_error($33389$33401);
+        if (curr$0) {
+          groups$0.push(curr$0);
+        }
+        $targ$34 = [cls$2, x$4];
+        curr$0 = $targ$34;
+        $targ$35 = cls$2;
+        currcls$0 = $targ$35;
       }
     }
   }
-}));
-(mkset$32893 = (function(xs$33437) {
-  var $index$33463;
-  var $length$33457;
-  var temp$33451;
-  var rval$33441;
-  (rval$33441 = ({}));
-  (temp$33451 = xs$33437);
-  ($length$33457 = temp$33451.length);
-  ($index$33463 = 0);
-  $33442: for (; ($index$33463 < $length$33457); ($index$33463++)) {
-    var x$33480;
-    var m$33472;
-    (m$33472 = temp$33451[$index$33463]);
-    (x$33480 = m$33472);
-    (rval$33441[x$33480] = true);
+  if (curr$0) {
+    groups$0.push(curr$0);
   }
-  return rval$33441;
-}));
-(Body$32894 = (function($33490$33493) {
-  var t0$33501;
-  var xs$33519;
-  var t0$33515;
-  var $33495$33510;
-  var ph$33498;
-  var x$33499;
-  (t0$33501 = $33490$33493);
-  (x$33499 = t0$33501);
-  (ph$33498 = t0$33501);
-  ($33495$33510 = ph$33498);
-  if ((($33495$33510 instanceof Array) && (((t0$33515 = $33495$33510.length)), ((t0$33515 >= 1) && ($33495$33510[0] === "multi"))))) {
-    (xs$33519 = Array.prototype.slice.call($33495$33510, 1));
-    return xs$33519;
+  return groups$0;
+});
+partition$0 = (function(xs$3, predicate$0) {
+  var m$6;
+  var t$0;
+  var f$0;
+  t$0 = [];
+  f$0 = [];
+  m$6 = null;
+  $4: for (var $__0 = xs$3[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$6 = $__1.value;
+    {
+      var x$6;
+      var x$5;
+      x$5 = m$6;
+      if (predicate$0(x$5)) {
+        t$0.push(x$5);
+      } else {
+        x$6 = m$6;
+        f$0.push(x$6);
+      }
+    }
+  }
+  return [t$0, f$0];
+});
+construct$0 = (function(temp$0$0, fn$0, zero$0) {
+  var t0$3;
+  var x$8;
+  var rest$0;
+  var x$7;
+  var $$23818$0;
+  var $$23819$0;
+  var m$7$0;
+  var ph$0;
+  ph$0 = temp$0$0;
+  m$7$0 = ph$0;
+  if ((($$23818$0 = (m$7$0 instanceof Array)) && ((t0$3 = m$7$0.length), (t0$3 === 0)))) {
+    return zero$0;
   } else {
-    $33495$33510;
-    return [x$33499];
+    if (($$23818$0 && (t0$3 === 1))) {
+      x$7 = m$7$0[0];
+      return x$7;
+    } else {
+      if (($$23818$0 && (t0$3 >= 1))) {
+        x$8 = m$7$0[0];
+        rest$0 = Array.prototype.slice.call(m$7$0, 1);
+        return fn$0(x$8, construct$0(rest$0, fn$0, zero$0));
+      } else {
+        return ___match_error(m$7$0);
+      }
+    }
   }
-}));
-(exports["GenSym"] = GenSym$32884);
-(exports["gensym"] = gensym$32885);
-(exports["identity"] = identity$32886);
-(exports["binsearch"] = binsearch$32887);
-(exports["classify"] = classify$32888);
-(exports["classify_contiguous"] = classify_contiguous$32889);
-(exports["partition"] = partition$32890);
-(exports["construct"] = construct$32892);
-(exports["mkset"] = mkset$32893);
-(exports["product"] = product$32891);
-(exports["Body"] = Body$32894);
+});
+mkset$0 = (function(xs$4) {
+  var m$8;
+  var rval$0;
+  rval$0 = ({});
+  m$8 = null;
+  $5: for (var $__0 = xs$4[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$8 = $__1.value;
+    {
+      var $targ$41;
+      var x$9;
+      x$9 = m$8;
+      $targ$41 = true;
+      (rval$0[x$9] = $targ$41);
+    }
+  }
+  return rval$0;
+});
+Body$0 = (function(temp$1$0) {
+  var t0$4;
+  var t0$5;
+  var xs$5;
+  var m$9$0;
+  var ph$1;
+  var x$10;
+  t0$4 = temp$1$0;
+  x$10 = t0$4;
+  ph$1 = t0$4;
+  m$9$0 = ph$1;
+  if (((m$9$0 instanceof Array) && ((t0$5 = m$9$0.length), ((t0$5 >= 1) && (m$9$0[0] === "multi"))))) {
+    xs$5 = Array.prototype.slice.call(m$9$0, 1);
+    return xs$5;
+  } else {
+    m$9$0;
+    return [x$10];
+  }
+});
+$targ$45 = GenSym$0;
+(exports["GenSym"] = $targ$45);
+$targ$46 = gensym$0;
+(exports["gensym"] = $targ$46);
+$targ$47 = identity$0;
+(exports["identity"] = $targ$47);
+$targ$48 = binsearch$0;
+(exports["binsearch"] = $targ$48);
+$targ$49 = classify$0;
+(exports["classify"] = $targ$49);
+$targ$50 = classify_contiguous$0;
+(exports["classify_contiguous"] = $targ$50);
+$targ$51 = partition$0;
+(exports["partition"] = $targ$51);
+$targ$52 = construct$0;
+(exports["construct"] = $targ$52);
+$targ$53 = mkset$0;
+(exports["mkset"] = $targ$53);
+$targ$54 = Body$0;
+(exports["Body"] = $targ$54);
 //# sourceURL=<compile-source>

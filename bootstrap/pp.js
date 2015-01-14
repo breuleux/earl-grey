@@ -1,130 +1,127 @@
 "use strict";
 require("earlgrey-runtime");
-var $15923 = (function(o, m) {
-  if (typeof(m) === 'string' || typeof(m) === 'number') {
-    return o[m];
+var $targ$50;
+var $targ$51;
+var $targ$52;
+var $targ$53;
+var pr_terminus$0;
+var pr$0;
+var __lt____gt__$0;
+var repr$0;
+var escape_html$0;
+var quotify$0;
+var HTML$0;
+pr_terminus$0 = (function(node$0) {
+  var r$0;
+  var pre$0;
+  var post$0;
+  r$0 = HTML$0(node$0, "span");
+  pre$0 = (String.fromCharCode(27) + "[?0;7y+h <div class=\"ug\">");
+  post$0 = ("</div>" + String.fromCharCode(7));
+  return console.log(((pre$0 + r$0) + post$0));
+});
+pr$0 = (function(temp$0$0, r$1) {
+  var x$0;
+  var n$0;
+  var m$0$0;
+  var ph$0;
+  ph$0 = temp$0$0;
+  m$0$0 = ph$0;
+  if (getChecker(Node)(m$0$0)) {
+    n$0 = m$0$0;
+    return pr_terminus$0(n$0);
   } else {
-    return o['::send'](m);
+    x$0 = m$0$0;
+    return pr_terminus$0((r$1 || repr$0)(x$0));
   }
 });
-var pr_terminus$15110;
-var pr$15111;
-var __lt____gt__$15112;
-var repr$15113;
-var escape_html$15114;
-var quotify$15115;
-var HTML$15116;
-(pr_terminus$15110 = (function(node$15121) {
-  var r$15127;
-  var pre$15128;
-  var post$15129;
-  (r$15127 = HTML$15116(node$15121, "span"));
-  (pre$15128 = (String.fromCharCode(27) + "[?0;7y+h <div class=\"ug\">"));
-  (post$15129 = ("</div>" + String.fromCharCode(7)));
-  return console.log(((pre$15128 + r$15127) + post$15129));
-}));
-(pr$15111 = (function($15143$15146, r$15147) {
-  var x$15171;
-  var n$15166;
-  var $15149$15158;
-  var ph$15152;
-  (ph$15152 = $15143$15146);
-  ($15149$15158 = ph$15152);
-  if (getChecker(Node)($15149$15158)) {
-    (n$15166 = $15149$15158);
-    return pr_terminus$15110(n$15166);
-  } else {
-    (x$15171 = $15149$15158);
-    return pr_terminus$15110((r$15147 || repr$15113)(x$15171));
+__lt____gt__$0 = (function(temp$1$0, x$1) {
+  if ((temp$1$0 === null)) {} else {
+    ___match_error(temp$1$0);
   }
-}));
-(__lt____gt__$15112 = (function($15177$15180, x$15181) {
-  if (($15177$15180 === null)) {} else {
-    ___match_error($15177$15180);
-  }
-  return pr$15111(x$15181);
-}));
-(repr$15113 = (function() {
-  var $index$15300;
-  var $length$15294;
-  var temp$15288;
-  var acc$15282;
-  var $index$15351;
-  var $length$15345;
-  var temp$15339;
-  var acc$15333;
-  var other$15388;
-  var entries$15270;
-  var $15205$15243;
-  var t0$15241;
-  var x$15219;
-  var recur$15220;
-  var $15194$15221;
-  var t0$15213;
-  var t1$15214;
-  var t2$15215;
-  var $15192$15208;
-  ($15192$15208 = arguments);
-  (t0$15213 = $15192$15208.length);
-  if ((((t0$15213 >= 1) && (t0$15213 <= 2)) && (((t1$15214 = $15192$15208[0])), ((x$15219 = t1$15214), (($15194$15221 = t1$15214), (((t2$15215 = ((1 >= t0$15213) ? repr$15113 : $15192$15208[1]))), getChecker(Function)(t2$15215))))))) {
-    (recur$15220 = t2$15215);
-    if (($15194$15221 === true)) {
+  return pr$0(x$1);
+});
+repr$0 = (function() {
+  var t2$0;
+  var t1$0;
+  var m$2;
+  var acc$0;
+  var m$3;
+  var acc$1;
+  var other$0;
+  var t0$1;
+  var entries$0;
+  var $$19844$0;
+  var t0$0;
+  var x$2;
+  var recur$0;
+  var ph$1$0;
+  var m$1$0;
+  m$1$0 = arguments;
+  t0$0 = m$1$0.length;
+  if ((((t0$0 >= 1) && (t0$0 <= 2)) && ((t1$0 = m$1$0[0]), (x$2 = t1$0), (ph$1$0 = t1$0), (t2$0 = ((1 >= t0$0) ? repr$0 : m$1$0[1])), getChecker(Function)(t2$0)))) {
+    recur$0 = t2$0;
+    if ((ph$1$0 === true)) {
       return Node([".special", ".true"], ({}), "true");
     } else {
-      if (($15194$15221 === false)) {
+      if ((ph$1$0 === false)) {
         return Node([".special", ".false"], ({}), "false");
       } else {
-        if (($15194$15221 === null)) {
+        if ((ph$1$0 === null)) {
           return Node([".special", ".nil"], ({}), "null");
         } else {
-          if (($15194$15221 === (void 0))) {
+          if ((ph$1$0 === (void 0))) {
             return Node([".special", ".nil"], ({}), "undefined");
           } else {
-            if ((typeof($15194$15221) === "number")) {
-              return Node([".num"], ({}), String(x$15219));
+            if ((typeof(ph$1$0) === "number")) {
+              return Node([".num"], ({}), String(x$2));
             } else {
-              if ((typeof($15194$15221) === "string")) {
-                return Node([".str"], ({}), x$15219);
+              if ((typeof(ph$1$0) === "string")) {
+                return Node([".str"], ({}), x$2);
               } else {
-                (t0$15241 = $15194$15221);
-                if (getChecker(Array)(t0$15241)) {
-                  (entries$15270 = t0$15241);
-                  return Node([".sequence"], ({}), (((acc$15282 = [])), (((temp$15288 = entries$15270)), ((($length$15294 = temp$15288.length)), ((($index$15300 = 0)), (function() {
-                    $15277: for (; ($index$15300 < $length$15294); ($index$15300++)) {
-                      var x$15317;
-                      var m$15309;
-                      (m$15309 = temp$15288[$index$15300]);
-                      (x$15317 = m$15309);
-                      acc$15282.push(recur$15220(x$15317, repr$15113));
+                t0$1 = ph$1$0;
+                if (getChecker(Array)(t0$1)) {
+                  entries$0 = t0$1;
+                  return Node([".sequence"], ({}), ((acc$0 = []), (m$2 = null), (function() {
+                    $0: for (var $__0 = entries$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                        $__1; !($__1 = $__0.next()).done; ) {
+                      m$2 = $__1.value;
+                      {
+                        var x$3;
+                        x$3 = m$2;
+                        acc$0.push(recur$0(x$3, repr$0));
+                      }
                     }
-                  })()))), acc$15282));
+                  })(), acc$0));
                 } else {
-                  $15194$15221;
-                  if (x$15219["::repr"]) {
-                    return x$15219["::repr"](recur$15220);
+                  ph$1$0;
+                  if (x$2["::repr"]) {
+                    return x$2["::repr"](recur$0);
                   } else {
-                    if ((Object.getPrototypeOf(x$15219) === Object.prototype)) {
-                      return Node(["table", ".object"], ({}), (((acc$15333 = [])), (((temp$15339 = items(x$15219))), ((($length$15345 = temp$15339.length)), ((($index$15351 = 0)), (function() {
-                        $15328: for (; ($index$15351 < $length$15345); ($index$15351++)) {
-                          var k$15370;
-                          var v$15371;
-                          var t0$15365;
-                          var t1$15366;
-                          var m$15360;
-                          (m$15360 = temp$15339[$index$15351]);
-                          (t0$15365 = m$15360);
-                          if (((t0$15365 instanceof Array) && (((t1$15366 = t0$15365.length)), (t1$15366 === 2)))) {
-                            (k$15370 = t0$15365[0]);
-                            (v$15371 = t0$15365[1]);
-                            acc$15333.push(Node(["tr"], ({}), [Node(["th"], ({}), recur$15220(k$15370, repr$15113)), Node(["td"], ({}), recur$15220(v$15371, repr$15113))]));
-                          } else {
-                            ___match_error(m$15360, "/home/olivier/git/earl-grey/src/pp.eg", 924, 1244);
+                    if ((Object.getPrototypeOf(x$2) === Object.prototype)) {
+                      return Node(["table", ".object"], ({}), ((acc$1 = []), (m$3 = null), (function() {
+                        $1: for (var $__0 = items(x$2)[$traceurRuntime.toProperty(Symbol.iterator)](),
+                            $__1; !($__1 = $__0.next()).done; ) {
+                          m$3 = $__1.value;
+                          {
+                            var t1$1;
+                            var t0$2;
+                            var k$0;
+                            var v$0;
+                            t0$2 = m$3;
+                            if (((t0$2 instanceof Array) && ((t1$1 = t0$2.length), (t1$1 === 2)))) {
+                              k$0 = t0$2[0];
+                              v$0 = t0$2[1];
+                              acc$1.push(Node(["tr"], ({}), [Node(["th"], ({}), recur$0(k$0, repr$0)), Node(["td"], ({}), recur$0(v$0, repr$0))]));
+                            } else {
+                              ___match_error(m$3, "/home/olivier/git/earl-grey/src/pp.eg", 924, 1244);
+                            }
                           }
                         }
-                      })()))), acc$15333));
+                      })(), acc$1));
                     } else {
-                      (other$15388 = $15194$15221);
-                      return Node([".unknown"], ({}), other$15388.toString());
+                      other$0 = ph$1$0;
+                      return Node([".unknown"], ({}), other$0.toString());
                     }
                   }
                 }
@@ -135,221 +132,228 @@ var HTML$15116;
       }
     }
   } else {
-    ___match_error($15192$15208);
+    return ___match_error(m$1$0);
   }
-}));
-(escape_html$15114 = (function($15396$15399) {
-  var t0$15403;
-  var repl$15413;
-  var s$15401;
-  (t0$15403 = [true, String($15396$15399)]);
-  if (t0$15403[0]) {
-    (s$15401 = t0$15403[1]);
+});
+escape_html$0 = (function(temp$2$0) {
+  var t0$3;
+  var repl$0;
+  var s$0;
+  t0$3 = [true, String(temp$2$0)];
+  if (t0$3[0]) {
+    s$0 = t0$3[1];
   } else {
-    ___match_error($15396$15399);
+    ___match_error(temp$2$0);
   }
-  (repl$15413 = ({
+  repl$0 = ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;"
+  });
+  return s$0.replace(RegExp("[&<>]", "g"), (function(x$4) {
+    return send(repl$0, x$4);
   }));
-  return s$15401.replace(RegExp("[&<>]", "g"), (function(x$15419) {
-    return $15923(repl$15413, x$15419);
-  }));
-}));
-(quotify$15115 = (function($15425$15428) {
-  var t0$15432;
-  var s$15430;
-  (t0$15432 = [true, String($15425$15428)]);
-  if (t0$15432[0]) {
-    (s$15430 = t0$15432[1]);
+});
+quotify$0 = (function(temp$3$0) {
+  var t0$4;
+  var s$1;
+  t0$4 = [true, String(temp$3$0)];
+  if (t0$4[0]) {
+    s$1 = t0$4[1];
   } else {
-    ___match_error($15425$15428);
+    ___match_error(temp$3$0);
   }
-  return s$15430.replace(RegExp("[\\\"\\\\]", "g"), (function(x$15442) {
-    return ("\\" + x$15442);
+  return s$1.replace(RegExp("[\\\"\\\\]", "g"), (function(x$5) {
+    return ("\\" + x$5);
   }));
-}));
-(HTML$15116 = (function($15448$15451, default_tag$15452) {
-  var $index$15505;
-  var $length$15499;
-  var temp$15493;
-  var acc$15487;
-  var $index$15589;
-  var $length$15583;
-  var temp$15577;
-  var $index$15649;
-  var $length$15643;
-  var temp$15637;
-  var $index$15720;
-  var $length$15714;
-  var temp$15708;
-  var acc$15702;
-  var $index$15800;
-  var $length$15794;
-  var temp$15788;
-  var acc$15782;
-  var $index$15858;
-  var $length$15852;
-  var temp$15846;
-  var acc$15840;
-  var other$15833;
-  var $15761$15766;
-  var x$15897;
-  var other$15893;
-  var $15542$15881;
-  var tag$15545;
-  var classes$15546;
-  var id$15547;
-  var kv$15548;
-  var sub$15549;
-  var accum$15550;
-  var children2$15551;
-  var other$15903;
-  var tags$15527;
-  var props$15528;
-  var children$15529;
-  var children$15478;
-  var s$15473;
-  var $15454$15465;
-  var ph$15459;
-  (ph$15459 = $15448$15451);
-  ($15454$15465 = ph$15459);
-  if ((typeof($15454$15465) === "string")) {
-    (s$15473 = $15454$15465);
-    return escape_html$15114(s$15473);
+});
+HTML$0 = (function(temp$4$0, default_tag$0) {
+  var m$5;
+  var acc$2;
+  var m$7;
+  var m$8;
+  var $targ$38;
+  var $targ$39;
+  var m$9;
+  var acc$3;
+  var m$11;
+  var acc$4;
+  var m$12;
+  var acc$5;
+  var other$2;
+  var m$10$0;
+  var x$6;
+  var other$3;
+  var m$6$0;
+  var $targ$25;
+  var tag$0;
+  var classes$0;
+  var id$0;
+  var kv$0;
+  var sub$0;
+  var $targ$30;
+  var accum$0;
+  var children2$0;
+  var other$4;
+  var tags$0;
+  var props$0;
+  var children$1;
+  var children$0;
+  var s$2;
+  var m$4$0;
+  var ph$2;
+  ph$2 = temp$4$0;
+  m$4$0 = ph$2;
+  if ((typeof(m$4$0) === "string")) {
+    s$2 = m$4$0;
+    return escape_html$0(s$2);
   } else {
-    if (getChecker(Array)($15454$15465)) {
-      (children$15478 = $15454$15465);
-      return (((acc$15487 = [])), (((temp$15493 = children$15478)), ((($length$15499 = temp$15493.length)), ((($index$15505 = 0)), (function() {
-        $15482: for (; ($index$15505 < $length$15499); ($index$15505++)) {
-          var child$15522;
-          var m$15514;
-          (m$15514 = temp$15493[$index$15505]);
-          (child$15522 = m$15514);
-          acc$15487.push(HTML$15116(child$15522, default_tag$15452));
+    if (getChecker(Array)(m$4$0)) {
+      children$0 = m$4$0;
+      return ((acc$2 = []), (m$5 = null), (function() {
+        $2: for (var $__0 = children$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__1; !($__1 = $__0.next()).done; ) {
+          m$5 = $__1.value;
+          {
+            var child$0;
+            child$0 = m$5;
+            acc$2.push(HTML$0(child$0, default_tag$0));
+          }
         }
-      })()))), acc$15487).join("");
+      })(), acc$2).join("");
     } else {
-      if ((getChecker(Node)($15454$15465) && (___hasprop($15454$15465, "tags") && ((tags$15527 = $15454$15465.tags), (___hasprop($15454$15465, "props") && ((props$15528 = $15454$15465.props), ___hasprop($15454$15465, "children"))))))) {
-        (children$15529 = $15454$15465.children);
-        (tag$15545 = (default_tag$15452 || "span"));
-        (classes$15546 = []);
-        (id$15547 = null);
-        (kv$15548 = []);
-        (sub$15549 = []);
-        (temp$15577 = tags$15527);
-        ($length$15583 = temp$15577.length);
-        ($index$15589 = 0);
-        $15552: for (; ($index$15589 < $length$15583); ($index$15589++)) {
-          var other$15628;
-          var cls$15609;
-          var t0$15603;
-          var t1$15604;
-          var t2$15605;
-          var m$15598;
-          (m$15598 = temp$15577[$index$15589]);
-          (t0$15603 = getProjector(RegExp("^\\.(.*)", ""))(m$15598));
-          if ((t0$15603[0] && (((t1$15604 = t0$15603[1])), (((t2$15605 = t1$15604.length)), (t2$15605 === 2))))) {
-            t1$15604[0];
-            (cls$15609 = t1$15604[1]);
-            classes$15546.push(cls$15609);
-          } else {
-            (other$15628 = m$15598);
-            (tag$15545 = other$15628);
-          }
-        }
-        (temp$15637 = items(props$15528));
-        ($length$15643 = temp$15637.length);
-        ($index$15649 = 0);
-        $15556: for (; ($index$15649 < $length$15643); ($index$15649++)) {
-          var k$15668;
-          var v$15669;
-          var t0$15663;
-          var t1$15664;
-          var m$15658;
-          (m$15658 = temp$15637[$index$15649]);
-          (t0$15663 = m$15658);
-          if (((t0$15663 instanceof Array) && (((t1$15664 = t0$15663.length)), (t1$15664 === 2)))) {
-            (k$15668 = t0$15663[0]);
-            (v$15669 = t0$15663[1]);
-            kv$15548.push([k$15668, v$15669]);
-          } else {
-            ___match_error(m$15658, "/home/olivier/git/earl-grey/src/pp.eg", 1953, 2017);
-          }
-        }
-        (accum$15550 = ((tag$15545 === "raw") ? [] : ["<", tag$15545]));
-        if (id$15547) {
-          (accum$15550 = accum$15550.concat(" id=\"", id$15547, "\""));
-        }
-        if (classes$15546.length) {
-          (accum$15550 = accum$15550.concat(" class=\"", quotify$15115(classes$15546.join(" ")), "\""));
-        }
-        if (kv$15548) {
-          (acc$15702 = []);
-          (temp$15708 = kv$15548);
-          ($length$15714 = temp$15708.length);
-          ($index$15720 = 0);
-          $15697: for (; ($index$15720 < $length$15714); ($index$15720++)) {
-            var k$15739;
-            var v$15740;
-            var t0$15734;
-            var t1$15735;
-            var m$15729;
-            (m$15729 = temp$15708[$index$15720]);
-            (t0$15734 = m$15729);
-            if (((t0$15734 instanceof Array) && (((t1$15735 = t0$15734.length)), (t1$15735 === 2)))) {
-              (k$15739 = t0$15734[0]);
-              (v$15740 = t0$15734[1]);
-              acc$15702.push(((accum$15550 = accum$15550.concat(((v$15740 !== null) ? [" ", k$15739, "=\"", quotify$15115(v$15740), "\""] : [" ", k$15739])))));
+      if ((getChecker(Node)(m$4$0) && (___hasprop(m$4$0, "tags") && ((tags$0 = m$4$0.tags), (___hasprop(m$4$0, "props") && ((props$0 = m$4$0.props), ___hasprop(m$4$0, "children"))))))) {
+        children$1 = m$4$0.children;
+        $targ$25 = (default_tag$0 || "span");
+        tag$0 = $targ$25;
+        classes$0 = [];
+        id$0 = null;
+        kv$0 = [];
+        sub$0 = [];
+        m$7 = null;
+        $3: for (var $__0 = tags$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__1; !($__1 = $__0.next()).done; ) {
+          m$7 = $__1.value;
+          {
+            var t2$1;
+            var t1$2;
+            var $targ$35;
+            var t0$5;
+            var cls$0;
+            t0$5 = getProjector(RegExp("^\\.(.*)", ""))(m$7);
+            if ((t0$5[0] && ((t1$2 = t0$5[1]), (t2$1 = t1$2.length), (t2$1 === 2)))) {
+              t1$2[0];
+              cls$0 = t1$2[1];
+              classes$0.push(cls$0);
             } else {
-              ___match_error(m$15729, "/home/olivier/git/earl-grey/src/pp.eg", 2289, 2479);
+              $targ$35 = m$7;
+              tag$0 = $targ$35;
             }
           }
-          acc$15702;
         }
-        (children2$15551 = ((($15761$15766 = tag$15545)), (($15761$15766 === "raw") ? (((acc$15782 = [])), (((temp$15788 = children$15529)), ((($length$15794 = temp$15788.length)), ((($index$15800 = 0)), (function() {
-          $15776: for (; ($index$15800 < $length$15794); ($index$15800++)) {
-            var c$15828;
-            var s$15818;
-            var t0$15814;
-            var m$15809;
-            (m$15809 = temp$15788[$index$15800]);
-            (t0$15814 = m$15809);
-            if ((typeof(t0$15814) === "string")) {
-              (s$15818 = t0$15814);
-              acc$15782.push(s$15818);
+        m$8 = null;
+        $4: for (var $__2 = items(props$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__3; !($__3 = $__2.next()).done; ) {
+          m$8 = $__3.value;
+          {
+            var t1$3;
+            var t0$6;
+            var k$1;
+            var v$1;
+            t0$6 = m$8;
+            if (((t0$6 instanceof Array) && ((t1$3 = t0$6.length), (t1$3 === 2)))) {
+              k$1 = t0$6[0];
+              v$1 = t0$6[1];
+              kv$0.push([k$1, v$1]);
             } else {
-              (c$15828 = m$15809);
-              acc$15782.push(HTML$15116(c$15828, default_tag$15452));
+              ___match_error(m$8, "/home/olivier/git/earl-grey/src/pp.eg", 1953, 2017);
             }
           }
-        })()))), acc$15782) : ((other$15833 = $15761$15766), (((acc$15840 = [])), (((temp$15846 = children$15529)), ((($length$15852 = temp$15846.length)), ((($index$15858 = 0)), (function() {
-          $15835: for (; ($index$15858 < $length$15852); ($index$15858++)) {
-            var c$15875;
-            var m$15867;
-            (m$15867 = temp$15846[$index$15858]);
-            (c$15875 = m$15867);
-            acc$15840.push(HTML$15116(c$15875, default_tag$15452));
+        }
+        $targ$30 = ((tag$0 === "raw") ? [] : ["<", tag$0]);
+        accum$0 = $targ$30;
+        if (id$0) {
+          $targ$38 = accum$0.concat(" id=\"", id$0, "\"");
+          accum$0 = $targ$38;
+        }
+        if (classes$0.length) {
+          $targ$39 = accum$0.concat(" class=\"", quotify$0(classes$0.join(" ")), "\"");
+          accum$0 = $targ$39;
+        }
+        if (kv$0) {
+          acc$3 = [];
+          m$9 = null;
+          $5: for (var $__4 = kv$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__5; !($__5 = $__4.next()).done; ) {
+            m$9 = $__5.value;
+            {
+              var t1$4;
+              var $targ$43;
+              var t0$7;
+              var k$2;
+              var v$2;
+              t0$7 = m$9;
+              if (((t0$7 instanceof Array) && ((t1$4 = t0$7.length), (t1$4 === 2)))) {
+                k$2 = t0$7[0];
+                v$2 = t0$7[1];
+                acc$3.push((($targ$43 = accum$0.concat(((v$2 !== null) ? [" ", k$2, "=\"", quotify$0(v$2), "\""] : [" ", k$2]))), (accum$0 = $targ$43)));
+              } else {
+                ___match_error(m$9, "/home/olivier/git/earl-grey/src/pp.eg", 2289, 2479);
+              }
+            }
           }
-        })()))), acc$15840)))));
-        ($15542$15881 = tag$15545);
-        if (($15542$15881 === "raw")) {
-          return accum$15550.concat(children2$15551).join("");
+          acc$3;
+        }
+        children2$0 = ((m$10$0 = tag$0), ((m$10$0 === "raw") ? ((acc$4 = []), (m$11 = null), (function() {
+          $6: for (var $__6 = children$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__7; !($__7 = $__6.next()).done; ) {
+            m$11 = $__7.value;
+            {
+              var c$0;
+              var t0$8;
+              var s$3;
+              t0$8 = m$11;
+              if ((typeof(t0$8) === "string")) {
+                s$3 = t0$8;
+                acc$4.push(s$3);
+              } else {
+                c$0 = m$11;
+                acc$4.push(HTML$0(c$0, default_tag$0));
+              }
+            }
+          }
+        })(), acc$4) : ((other$2 = m$10$0), (acc$5 = []), (m$12 = null), (function() {
+          $7: for (var $__6 = children$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__7; !($__7 = $__6.next()).done; ) {
+            m$12 = $__7.value;
+            {
+              var c$1;
+              c$1 = m$12;
+              acc$5.push(HTML$0(c$1, default_tag$0));
+            }
+          }
+        })(), acc$5)));
+        m$6$0 = tag$0;
+        if ((m$6$0 === "raw")) {
+          return accum$0.concat(children2$0).join("");
         } else {
-          (other$15893 = $15542$15881);
-          (x$15897 = [">"].concat(children2$15551).concat(["</", tag$15545, ">"]));
-          return accum$15550.concat(x$15897).join("");
+          other$3 = m$6$0;
+          x$6 = [">"].concat(children2$0).concat(["</", tag$0, ">"]);
+          return accum$0.concat(x$6).join("");
         }
       } else {
-        (other$15903 = $15454$15465);
-        return HTML$15116([true, String(other$15903)][1], default_tag$15452);
+        other$4 = m$4$0;
+        return HTML$0([true, String(other$4)][1], default_tag$0);
       }
     }
   }
-}));
-(exports["pr_terminus"] = pr_terminus$15110);
-(exports["pr"] = pr$15111);
-(exports["<>"] = __lt____gt__$15112);
-(exports["repr"] = repr$15113);
+});
+$targ$50 = pr_terminus$0;
+(exports["pr_terminus"] = $targ$50);
+$targ$51 = pr$0;
+(exports["pr"] = $targ$51);
+$targ$52 = __lt____gt__$0;
+(exports["<>"] = $targ$52);
+$targ$53 = repr$0;
+(exports["repr"] = $targ$53);
 //# sourceURL=<compile-source>

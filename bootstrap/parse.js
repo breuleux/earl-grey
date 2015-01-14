@@ -1,149 +1,180 @@
 "use strict";
 require("earlgrey-runtime");
-var $11136 = (function(o, m) {
-  if (typeof(m) === 'string' || typeof(m) === 'number') {
-    return o[m];
-  } else {
-    return o['::send'](m);
-  }
-});
-var accum$9065;
-var accum$9069;
-var accum$9717;
-var accum$9721;
-var accum$9947;
-var accum$9951;
-var accum$9955;
-var accum$9959;
-var accum$9963;
-var accum$9967;
-var accum$9979;
-var accum$9983;
-var accum$9987;
-var accum$9991;
-var accum$9995;
-var eg_groups$9732;
-var eg_prio$9733;
-var $8473$8497;
-var __lt____lt____colon__$8498;
-var __plus____plus____colon__$8499;
-var $8474$8500;
-var Body$8501;
-var transform$8502;
-var OperatorGroups$8503;
-var parse_op_description$8504;
-var SimplePriority$8505;
-var MAX$8506;
-var eg_order$8507;
-var DONE$8508;
-var NONE$8509;
-var LEFT$8510;
-var RIGHT$8511;
-var BOTH$8512;
-var oparse$8513;
-var finalize$8514;
-var parse$8515;
-($8473$8497 = require("./location"));
-(__lt____lt____colon__$8498 = $8473$8497["<<:"]);
-(__plus____plus____colon__$8499 = $8473$8497["++:"]);
-($8474$8500 = require("./util"));
-(Body$8501 = $8474$8500.Body);
-(transform$8502 = (function(expr$8535, cb$8536) {
-  var rval$8556;
-  var tr$8541;
-  var result$8542;
-  (tr$8541 = (function(x$8547) {
-    return transform$8502(x$8547, cb$8536);
-  }));
-  (result$8542 = (((rval$8556 = false)), ((function() {
+var $targ$58;
+var accum$0;
+var $targ$59;
+var accum$1;
+var $targ$108;
+var accum$2;
+var $targ$109;
+var accum$3;
+var $targ$112;
+var accum$4;
+var $targ$113;
+var accum$5;
+var $targ$114;
+var accum$6;
+var $targ$115;
+var accum$7;
+var $targ$116;
+var accum$8;
+var $targ$117;
+var accum$9;
+var $targ$130;
+var accum$10;
+var $targ$131;
+var accum$11;
+var $targ$132;
+var accum$12;
+var $targ$133;
+var accum$13;
+var $targ$134;
+var accum$14;
+var eg_groups$0;
+var eg_prio$0;
+var $targ$230;
+var $targ$231;
+var $targ$232;
+var $targ$233;
+var $targ$234;
+var $targ$235;
+var $targ$236;
+var $targ$237;
+var $targ$238;
+var $targ$239;
+var $0$0;
+var __lt____lt____colon__$0;
+var __plus____plus____colon__$0;
+var $1$0;
+var Body$0;
+var transform$0;
+var OperatorGroups$0;
+var $targ$6;
+var $targ$7;
+var parse_op_description$0;
+var SimplePriority$0;
+var $targ$10;
+var MAX$0;
+var eg_order$0;
+var DONE$0;
+var NONE$0;
+var LEFT$0;
+var RIGHT$0;
+var BOTH$0;
+var oparse$0;
+var finalize$0;
+var parse$0;
+$0$0 = require("./location");
+__lt____lt____colon__$0 = $0$0["<<:"];
+__plus____plus____colon__$0 = $0$0["++:"];
+$1$0 = require("./util");
+Body$0 = $1$0.Body;
+transform$0 = (function(expr$0, cb$0) {
+  var $targ$25;
+  var $targ$24;
+  var rval$0;
+  var tr$0;
+  var result$0;
+  tr$0 = (function(x$0) {
+    return transform$0(x$0, cb$0);
+  });
+  result$0 = (($targ$24 = false), (rval$0 = $targ$24), (function() {
     try {
-      (rval$8556 = cb$8536.call(tr$8541, expr$8535));
-    } catch (excv$8567) {
-      var name$8619;
-      var args$8620;
-      var v$8614;
-      var s$8609;
-      var $8583$8595;
-      var $8584$8596;
-      var $8585$8597;
-      var t0$8593;
-      var $8578$8588;
-      var e$8573;
-      (e$8573 = excv$8567);
-      (rval$8556 = ((($8578$8588 = expr$8535)), ((($8583$8595 = ($8578$8588 instanceof Array)) && (((t0$8593 = $8578$8588.length)), ((t0$8593 === 1) && ($8578$8588[0] === "void")))) ? ["void"] : (($8583$8595 && (($8585$8597 = (t0$8593 === 2)) && ($8578$8588[0] === "symbol"))) ? ((s$8609 = $8578$8588[1]), expr$8535) : (($8585$8597 && ($8578$8588[0] === "value")) ? ((v$8614 = $8578$8588[1]), expr$8535) : (($8583$8595 && (t0$8593 >= 1)) ? ((name$8619 = $8578$8588[0]), (args$8620 = Array.prototype.slice.call($8578$8588, 1)), [name$8619].concat(args$8620.map(tr$8541))) : (___match_error($8578$8588))))))));
+      $targ$25 = cb$0.call(tr$0, expr$0);
+      rval$0 = $targ$25;
+    } catch (excv$0) {
+      var t0$0;
+      var name$0;
+      var args$0;
+      var v$0;
+      var s$0;
+      var $$15604$0;
+      var $$15605$0;
+      var $$15606$0;
+      var m$0$0;
+      var $targ$26;
+      var e$0;
+      e$0 = excv$0;
+      $targ$26 = ((m$0$0 = expr$0), ((($$15604$0 = (m$0$0 instanceof Array)) && ((t0$0 = m$0$0.length), ((t0$0 === 1) && (m$0$0[0] === "void")))) ? ["void"] : (($$15604$0 && (($$15606$0 = (t0$0 === 2)) && (m$0$0[0] === "symbol"))) ? ((s$0 = m$0$0[1]), expr$0) : (($$15606$0 && (m$0$0[0] === "value")) ? ((v$0 = m$0$0[1]), expr$0) : (($$15604$0 && (t0$0 >= 1)) ? ((name$0 = m$0$0[0]), (args$0 = Array.prototype.slice.call(m$0$0, 1)), [name$0].concat(args$0.map(tr$0))) : ___match_error(m$0$0))))));
+      rval$0 = $targ$26;
     }
-  })(), rval$8556)));
-  return __lt____lt____colon__$8498(result$8542, expr$8535);
-}));
-(OperatorGroups$8503 = (function(groups$8632) {
-  var $index$8679;
-  var $length$8673;
-  var temp$8667;
-  var acc$8661;
-  var $index$8739;
-  var $length$8733;
-  var temp$8727;
-  var acc$8721;
-  var $index$8844;
-  var $length$8838;
-  var temp$8832;
-  var acc$8826;
-  var itg$8647;
-  var it$0$8635;
-  (it$0$8635 = ((!getChecker(OperatorGroups$8503)(this)) ? Object.create(OperatorGroups$8503.prototype) : this));
-  (itg$8647 = items(groups$8632));
-  (it$0$8635["gnames"] = (((acc$8661 = [])), (((temp$8667 = itg$8647)), ((($length$8673 = temp$8667.length)), ((($index$8679 = 0)), (function() {
-    $8656: for (; ($index$8679 < $length$8673); ($index$8679++)) {
-      var name$8698;
-      var t0$8693;
-      var t1$8694;
-      var m$8688;
-      (m$8688 = temp$8667[$index$8679]);
-      (t0$8693 = m$8688);
-      if (((t0$8693 instanceof Array) && (((t1$8694 = t0$8693.length)), (t1$8694 === 2)))) {
-        (name$8698 = t0$8693[0]);
-        t0$8693[1];
-        acc$8661.push(name$8698);
-      } else {
-        ___match_error(m$8688, "/home/olivier/git/earl-grey/src/parse.eg", 565, 591);
+  })(), rval$0);
+  return __lt____lt____colon__$0(result$0, expr$0);
+});
+OperatorGroups$0 = (function(groups$0) {
+  var m$1;
+  var acc$0;
+  var m$2;
+  var acc$1;
+  var m$4;
+  var acc$3;
+  var itg$0;
+  var $targ$31;
+  var $targ$32;
+  var $targ$33;
+  var $targ$34;
+  var $it$0;
+  $it$0 = ((!getChecker(OperatorGroups$0)(this)) ? Object.create(OperatorGroups$0.prototype) : this);
+  itg$0 = items(groups$0);
+  $targ$31 = ((acc$0 = []), (m$1 = null), (function() {
+    $3: for (var $__0 = itg$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$1 = $__1.value;
+      {
+        var t1$0;
+        var t0$1;
+        var name$1;
+        t0$1 = m$1;
+        if (((t0$1 instanceof Array) && ((t1$0 = t0$1.length), (t1$0 === 2)))) {
+          name$1 = t0$1[0];
+          t0$1[1];
+          acc$0.push(name$1);
+        } else {
+          ___match_error(m$1, "/home/olivier/git/earl-grey/src/parse.eg", 565, 591);
+        }
       }
     }
-  })()))), acc$8661));
-  (it$0$8635["groups"] = (((acc$8721 = [])), (((temp$8727 = itg$8647)), ((($length$8733 = temp$8727.length)), ((($index$8739 = 0)), (function() {
-    var $__0 = function() {
-      var $index$8795;
-      var $length$8789;
-      var temp$8783;
-      var acc$8777;
-      var name$8758;
-      var descrs$8759;
-      var t0$8753;
-      var t1$8754;
-      var m$8748;
-      (m$8748 = temp$8727[$index$8739]);
-      (t0$8753 = m$8748);
-      if (((t0$8753 instanceof Array) && (((t1$8754 = t0$8753.length)), (t1$8754 === 2)))) {
-        (name$8758 = t0$8753[0]);
-        (descrs$8759 = t0$8753[1]);
-        acc$8721.push(___build_array((((acc$8777 = [])), (((temp$8783 = descrs$8759)), ((($length$8789 = temp$8783.length)), ((($index$8795 = 0)), (function() {
-          $8772: for (; ($index$8795 < $length$8789); ($index$8795++)) {
-            var descr$8812;
-            var m$8804;
-            (m$8804 = temp$8783[$index$8795]);
-            (descr$8812 = m$8804);
-            acc$8777.push(parse_op_description$8504(descr$8812));
-          }
-        })()))), acc$8777)));
-      } else {
-        ___match_error(m$8748, "/home/olivier/git/earl-grey/src/parse.eg", 608, 705);
+  })(), acc$0);
+  ($it$0["gnames"] = $targ$31);
+  $targ$32 = ((acc$1 = []), (m$2 = null), (function() {
+    var $__6 = function() {
+      m$2 = $__1.value;
+      {
+        var t1$1;
+        var m$3;
+        var acc$2;
+        var t0$2;
+        var name$2;
+        var descrs$0;
+        t0$2 = m$2;
+        if (((t0$2 instanceof Array) && ((t1$1 = t0$2.length), (t1$1 === 2)))) {
+          name$2 = t0$2[0];
+          descrs$0 = t0$2[1];
+          acc$1.push(___build_array(((acc$2 = []), (m$3 = null), (function() {
+            $5: for (var $__0 = descrs$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__1; !($__1 = $__0.next()).done; ) {
+              m$3 = $__1.value;
+              {
+                var descr$0;
+                descr$0 = m$3;
+                acc$2.push(parse_op_description$0(descr$0));
+              }
+            }
+          })(), acc$2)));
+        } else {
+          ___match_error(m$2, "/home/olivier/git/earl-grey/src/parse.eg", 608, 705);
+        }
       }
     };
-    $8716: for (; ($index$8739 < $length$8733); ($index$8739++)) {
-      $__0();
+    $4: for (var $__0 = itg$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      $__6();
     }
-  })()))), acc$8721));
-  (it$0$8635["fns"] = []);
-  (it$0$8635["to_gid"] = ({
+  })(), acc$1);
+  ($it$0["groups"] = $targ$32);
+  $targ$33 = [];
+  ($it$0["fns"] = $targ$33);
+  $targ$34 = ({
     "IFX": ({
       "wide": ({}),
       "short": ({})
@@ -156,444 +187,427 @@ var parse$8515;
       "wide": ({}),
       "short": ({})
     })
-  }));
-  (acc$8826 = []);
-  (temp$8832 = enumerate(it$0$8635.groups));
-  ($length$8838 = temp$8832.length);
-  ($index$8844 = 0);
-  var $__1 = function() {
-    var $index$8901;
-    var $length$8895;
-    var temp$8889;
-    var acc$8883;
-    var i$8863;
-    var group$8864;
-    var t0$8858;
-    var t1$8859;
-    var m$8853;
-    (m$8853 = temp$8832[$index$8844]);
-    (t0$8858 = m$8853);
-    if (((t0$8858 instanceof Array) && (((t1$8859 = t0$8858.length)), (t1$8859 === 2)))) {
-      (i$8863 = t0$8858[0]);
-      (group$8864 = t0$8858[1]);
-      acc$8826.push((((acc$8883 = [])), (((temp$8889 = group$8864)), ((($length$8895 = temp$8889.length)), ((($index$8901 = 0)), (function() {
-        $8877: for (; ($index$8901 < $length$8895); ($index$8901++)) {
-          var f$8941;
-          var fixity$8920;
-          var width$8921;
-          var name$8922;
-          var t0$8915;
-          var t1$8916;
-          var m$8910;
-          (m$8910 = temp$8889[$index$8901]);
-          (t0$8915 = m$8910);
-          if (((t0$8915 instanceof Array) && (((t1$8916 = t0$8915.length)), (t1$8916 === 3)))) {
-            (fixity$8920 = t0$8915[0]);
-            (width$8921 = t0$8915[1]);
-            (name$8922 = t0$8915[2]);
-            acc$8883.push((($11136($11136(it$0$8635.to_gid, fixity$8920), width$8921)[name$8922] = i$8863)));
-          } else {
-            (f$8941 = m$8910);
-            acc$8883.push(it$0$8635.fns.push([f$8941, i$8863]));
+  });
+  ($it$0["to_gid"] = $targ$34);
+  acc$3 = [];
+  m$4 = null;
+  var $__7 = function() {
+    m$4 = $__1.value;
+    {
+      var t1$2;
+      var m$5;
+      var acc$4;
+      var t0$3;
+      var i$0;
+      var group$0;
+      t0$3 = m$4;
+      if (((t0$3 instanceof Array) && ((t1$2 = t0$3.length), (t1$2 === 2)))) {
+        i$0 = t0$3[0];
+        group$0 = t0$3[1];
+        acc$3.push(((acc$4 = []), (m$5 = null), (function() {
+          $6: for (var $__0 = group$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__1; !($__1 = $__0.next()).done; ) {
+            m$5 = $__1.value;
+            {
+              var t1$3;
+              var $targ$48;
+              var f$0;
+              var t0$4;
+              var fixity$0;
+              var width$0;
+              var name$3;
+              t0$4 = m$5;
+              if (((t0$4 instanceof Array) && ((t1$3 = t0$4.length), (t1$3 === 3)))) {
+                fixity$0 = t0$4[0];
+                width$0 = t0$4[1];
+                name$3 = t0$4[2];
+                acc$4.push((($targ$48 = i$0), (send(send($it$0.to_gid, fixity$0), width$0)[name$3] = $targ$48)));
+              } else {
+                f$0 = m$5;
+                acc$4.push($it$0.fns.push([f$0, i$0]));
+              }
+            }
           }
-        }
-      })()))), acc$8883));
-    } else {
-      ___match_error(m$8853, "/home/olivier/git/earl-grey/src/parse.eg", 870, 1071);
+        })(), acc$4));
+      } else {
+        ___match_error(m$4, "/home/olivier/git/earl-grey/src/parse.eg", 870, 1071);
+      }
     }
   };
-  $8648: for (; ($index$8844 < $length$8838); ($index$8844++)) {
-    $__1();
+  $2: for (var $__0 = enumerate($it$0.groups)[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    $__7();
   }
-  acc$8826;
-  return it$0$8635;
-}));
-(OperatorGroups$8503.prototype["get_name"] = (function(o$8951) {
-  var it$0$8955;
-  var self$8956;
-  (it$0$8955 = this);
-  (self$8956 = this);
-  return $11136(it$0$8955.gnames, it$0$8955.get(o$8951));
-}));
-(OperatorGroups$8503.prototype["get"] = (function($8967$8970) {
-  var t0$8988;
-  var t1$8989;
-  var $index$9027;
-  var $length$9021;
-  var temp$9015;
-  var attempt$9004;
-  var o$8983;
-  var fixity$8984;
-  var width$8985;
-  var name$8986;
-  var it$0$8974;
-  var self$8975;
-  (it$0$8974 = this);
-  (self$8975 = this);
-  (t0$8988 = $8967$8970);
-  (o$8983 = t0$8988);
-  if (((t0$8988 instanceof Array) && (((t1$8989 = t0$8988.length)), (t1$8989 === 3)))) {
-    (fixity$8984 = t0$8988[0]);
-    (width$8985 = t0$8988[1]);
-    (name$8986 = t0$8988[2]);
+  acc$3;
+  return $it$0;
+});
+$targ$6 = (function(o$0) {
+  var $it$1;
+  var self$0;
+  $it$1 = this;
+  self$0 = this;
+  return send($it$1.gnames, $it$1.get(o$0));
+});
+(OperatorGroups$0.prototype["get_name"] = $targ$6);
+$targ$7 = (function(temp$0$0) {
+  var t1$4;
+  var t0$5;
+  var m$6;
+  var attempt$0;
+  var o$1;
+  var fixity$1;
+  var width$1;
+  var name$4;
+  var $it$2;
+  var self$1;
+  $it$2 = this;
+  self$1 = this;
+  t0$5 = temp$0$0;
+  o$1 = t0$5;
+  if (((t0$5 instanceof Array) && ((t1$4 = t0$5.length), (t1$4 === 3)))) {
+    fixity$1 = t0$5[0];
+    width$1 = t0$5[1];
+    name$4 = t0$5[2];
   } else {
-    ___match_error($8967$8970);
+    ___match_error(temp$0$0);
   }
-  (attempt$9004 = $11136($11136($11136(it$0$8974.to_gid, fixity$8984), width$8985), name$8986));
-  if ((attempt$9004 === (void 0))) {
-    (temp$9015 = it$0$8974.fns);
-    ($length$9021 = temp$9015.length);
-    ($index$9027 = 0);
-    $9009: for (; ($index$9027 < $length$9021); ($index$9027++)) {
-      var f$9046;
-      var i$9047;
-      var t0$9041;
-      var t1$9042;
-      var m$9036;
-      (m$9036 = temp$9015[$index$9027]);
-      (t0$9041 = m$9036);
-      if (((t0$9041 instanceof Array) && (((t1$9042 = t0$9041.length)), (t1$9042 === 2)))) {
-        (f$9046 = t0$9041[0]);
-        (i$9047 = t0$9041[1]);
-        if (f$9046(o$8983)) {
-          return i$9047;
-        }
-      } else {
-        ___match_error(m$9036, "/home/olivier/git/earl-grey/src/parse.eg", 1250, 1333);
-      }
-    }
-    throw ErrorFactory(["syntax", "unknown_operator"]).create(("Unknown operator: " + [true, String(o$8983)][1]), ({"operator": o$8983}));
-  } else {
-    return attempt$9004;
-  }
-}));
-__amp____colon__(OperatorGroups$8503, __amp____colon__(((accum$9065 = ({})), ((accum$9065["::name"] = "OperatorGroups"), accum$9065)), ((accum$9069 = ({})), ((accum$9069["::egclass"] = true), accum$9069))));
-OperatorGroups$8503;
-(parse_op_description$8504 = (function($9075$9078) {
-  var otherwise$9168;
-  var $9148$9157;
-  var $9144$9151;
-  var otherwise$9202;
-  var $9182$9191;
-  var $9178$9185;
-  var t0$9138;
-  var t1$9139;
-  var fixity$9135;
-  var short$9136;
-  var other$9206;
-  var x$9112;
-  var w1$9113;
-  var op$9114;
-  var w2$9115;
-  var y$9116;
-  var f$9107;
-  var rx$9101;
-  var t0$9095;
-  var t1$9096;
-  var t2$9097;
-  var $9080$9090;
-  var ph$9084;
-  (ph$9084 = $9075$9078);
-  ($9080$9090 = ph$9084);
-  (rx$9101 = RegExp("(?:^((?:X?))((?:[ _]?))((?:[^ _Y]*))((?:[ _]?))((?:Y?))$)", ""));
-  if (getChecker(Function)($9080$9090)) {
-    (f$9107 = $9080$9090);
-    return f$9107;
-  } else {
-    (t0$9095 = getProjector(rx$9101)($9080$9090));
-    if ((t0$9095[0] && (((t1$9096 = t0$9095[1])), (((t2$9097 = t1$9096.length)), (t2$9097 === 6))))) {
-      t1$9096[0];
-      (x$9112 = t1$9096[1]);
-      (w1$9113 = t1$9096[2]);
-      (op$9114 = t1$9096[3]);
-      (w2$9115 = t1$9096[4]);
-      (y$9116 = t1$9096[5]);
-      (t0$9138 = ((($9144$9151 = null)), ($9144$9151, ((x$9112 === "") ? ["PFX", (w2$9115 === "")] : ((y$9116 === "") ? ["SFX", (w1$9113 === "")] : ((otherwise$9168 = $9144$9151), ["IFX", ((w1$9113 === "") || (w2$9115 === ""))]))))));
-      if (((t0$9138 instanceof Array) && (((t1$9139 = t0$9138.length)), (t1$9139 === 2)))) {
-        (fixity$9135 = t0$9138[0]);
-        (short$9136 = t0$9138[1]);
-      } else {
-        ___match_error(((($9178$9185 = null)), ($9178$9185, ((x$9112 === "") ? ["PFX", (w2$9115 === "")] : ((y$9116 === "") ? ["SFX", (w1$9113 === "")] : ((otherwise$9202 = $9178$9185), ["IFX", ((w1$9113 === "") || (w2$9115 === ""))]))))), "/home/olivier/git/earl-grey/src/parse.eg", 1714, 1922);
-      }
-      if (((w1$9113 === "_") || (w2$9115 === "_"))) {
-        return [[fixity$9135, "short", op$9114], [fixity$9135, "wide", op$9114]];
-      } else {
-        return [[fixity$9135, (short$9136 ? "short" : "wide"), op$9114]];
-      }
-    } else {
-      (other$9206 = $9080$9090);
-      throw ErrorFactory(["invalid_op_description"]).create(("Invalid operator description: " + other$9206));
-    }
-  }
-}));
-(SimplePriority$8505 = (function(groups$9213, priorities$9214) {
-  var $index$9264;
-  var $length$9258;
-  var temp$9252;
-  var acc$9246;
-  var _i$9228;
-  var tracks$9229;
-  var it$0$9217;
-  (it$0$9217 = ((!getChecker(SimplePriority$8505)(this)) ? Object.create(SimplePriority$8505.prototype) : this));
-  (it$0$9217["groups"] = groups$9213);
-  (_i$9228 = 0);
-  (tracks$9229 = ({}));
-  (it$0$9217["prio"] = (((acc$9246 = [])), (((temp$9252 = groups$9213.gnames)), ((($length$9258 = temp$9252.length)), ((($index$9264 = 0)), (function() {
-    var $__2 = function() {
-      var t0$9294;
-      var t1$9295;
-      var t2$9296;
-      var t3$9297;
-      var t4$9298;
-      var t5$9299;
-      var t6$9300;
-      var t7$9301;
-      var $index$9376;
-      var $length$9370;
-      var temp$9364;
-      var acc$9358;
-      var $index$9498;
-      var $length$9492;
-      var temp$9486;
-      var acc$9480;
-      var t0$9347;
-      var t1$9348;
-      var ltracks$9287;
-      var lp$9288;
-      var rtracks$9289;
-      var rp$9290;
-      var lt$9291;
-      var rt$9292;
-      var name$9281;
-      var m$9273;
-      (m$9273 = temp$9252[$index$9264]);
-      (name$9281 = m$9273);
-      acc$9246.push(((((t0$9294 = $11136(priorities$9214, name$9281))), (((t0$9294 instanceof Array) && (((t1$9295 = t0$9294.length)), ((t1$9295 === 2) && (((t2$9296 = t0$9294[0])), ((t2$9296 instanceof Array) && (((t3$9297 = t2$9296.length)), ((t3$9297 === 2) && (((t4$9298 = getProjector(Array)(t2$9296[0]))), (t4$9298[0] && ((ltracks$9287 = t4$9298[1]), ((lp$9288 = t2$9296[1]), (((t5$9299 = t0$9294[1])), ((t5$9299 instanceof Array) && (((t6$9300 = t5$9299.length)), ((t6$9300 === 2) && (((t7$9301 = getProjector(Array)(t5$9299[0]))), t7$9301[0])))))))))))))))) ? ((rtracks$9289 = t7$9301[1]), (rp$9290 = t5$9299[1])) : ___match_error($11136(priorities$9214, name$9281), "/home/olivier/git/earl-grey/src/parse.eg", 3721, 3737))), (((t0$9347 = (((acc$9358 = [])), (((temp$9364 = [ltracks$9287, rtracks$9289])), ((($length$9370 = temp$9364.length)), ((($index$9376 = 0)), (function() {
-        var $__3 = function() {
-          var $index$9422;
-          var $length$9416;
-          var temp$9410;
-          var rval$9398;
-          var tr$9393;
-          var m$9385;
-          (m$9385 = temp$9364[$index$9376]);
-          (tr$9393 = m$9385);
-          acc$9358.push((((rval$9398 = 0)), (((temp$9410 = tr$9393)), ((($length$9416 = temp$9410.length)), ((($index$9422 = 0)), (function() {
-            $9399: for (; ($index$9422 < $length$9416); ($index$9422++)) {
-              var t$9461;
-              var t$9447;
-              var m$9431;
-              (m$9431 = temp$9410[$index$9422]);
-              if ((m$9431 === "all")) {
-                (rval$9398 = (Math.pow(2, 31) - 1));
-              } else {
-                (t$9447 = m$9431);
-                if ((!$11136(tracks$9229, t$9447))) {
-                  (rval$9398 = (rval$9398 | Math.pow(2, _i$9228)));
-                  (tracks$9229[t$9447] = (_i$9228++));
-                } else {
-                  (t$9461 = m$9431);
-                  (rval$9398 = (rval$9398 | Math.pow(2, $11136(tracks$9229, t$9461))));
-                }
-              }
-            }
-          })()))), rval$9398));
-        };
-        $9353: for (; ($index$9376 < $length$9370); ($index$9376++)) {
-          $__3();
-        }
-      })()))), acc$9358))), (((t0$9347 instanceof Array) && (((t1$9348 = t0$9347.length)), (t1$9348 === 2))) ? ((lt$9291 = t0$9347[0]), (rt$9292 = t0$9347[1])) : ___match_error((((acc$9480 = [])), (((temp$9486 = [ltracks$9287, rtracks$9289])), ((($length$9492 = temp$9486.length)), ((($index$9498 = 0)), (function() {
-        var $__4 = function() {
-          var $index$9544;
-          var $length$9538;
-          var temp$9532;
-          var rval$9520;
-          var tr$9515;
-          var m$9507;
-          (m$9507 = temp$9486[$index$9498]);
-          (tr$9515 = m$9507);
-          acc$9480.push((((rval$9520 = 0)), (((temp$9532 = tr$9515)), ((($length$9538 = temp$9532.length)), ((($index$9544 = 0)), (function() {
-            $9521: for (; ($index$9544 < $length$9538); ($index$9544++)) {
-              var t$9583;
-              var t$9569;
-              var m$9553;
-              (m$9553 = temp$9532[$index$9544]);
-              if ((m$9553 === "all")) {
-                (rval$9520 = (Math.pow(2, 31) - 1));
-              } else {
-                (t$9569 = m$9553);
-                if ((!$11136(tracks$9229, t$9569))) {
-                  (rval$9520 = (rval$9520 | Math.pow(2, _i$9228)));
-                  (tracks$9229[t$9569] = (_i$9228++));
-                } else {
-                  (t$9583 = m$9553);
-                  (rval$9520 = (rval$9520 | Math.pow(2, $11136(tracks$9229, t$9583))));
-                }
-              }
-            }
-          })()))), rval$9520));
-        };
-        $9475: for (; ($index$9498 < $length$9492); ($index$9498++)) {
-          $__4();
-        }
-      })()))), acc$9480), "/home/olivier/git/earl-grey/src/parse.eg", 3758, 4078))), [[lt$9291, lp$9288], [rt$9292, rp$9290]]));
-    };
-    $9241: for (; ($index$9264 < $length$9258); ($index$9264++)) {
-      $__2();
-    }
-  })()))), acc$9246));
-  return it$0$9217;
-}));
-(SimplePriority$8505.prototype["compare"] = (function(op1$9595, op2$9596) {
-  var t0$9633;
-  var t1$9634;
-  var t2$9635;
-  var t3$9636;
-  var t0$9661;
-  var t1$9662;
-  var t2$9663;
-  var t3$9664;
-  var $9619$9695;
-  var $9614$9689;
-  var i1$9620;
-  var i2$9621;
-  var code1$9622;
-  var ord1$9623;
-  var code2$9624;
-  var ord2$9625;
-  var it$0$9600;
-  var self$9601;
-  (it$0$9600 = this);
-  (self$9601 = this);
-  (i1$9620 = it$0$9600.groups.get(op1$9595));
-  (i2$9621 = it$0$9600.groups.get(op2$9596));
-  (t0$9633 = $11136(it$0$9600.prio, i1$9620));
-  if (((t0$9633 instanceof Array) && (((t1$9634 = t0$9633.length)), ((t1$9634 === 2) && (t0$9633[0], (((t2$9635 = t0$9633[1])), ((t2$9635 instanceof Array) && (((t3$9636 = t2$9635.length)), (t3$9636 === 2))))))))) {
-    (code1$9622 = t2$9635[0]);
-    (ord1$9623 = t2$9635[1]);
-  } else {
-    ___match_error($11136(it$0$9600.prio, i1$9620), "/home/olivier/git/earl-grey/src/parse.eg", 4205, 4215);
-  }
-  (t0$9661 = $11136(it$0$9600.prio, i2$9621));
-  if (((t0$9661 instanceof Array) && (((t1$9662 = t0$9661.length)), ((t1$9662 === 2) && (((t2$9663 = t0$9661[0])), ((t2$9663 instanceof Array) && (((t3$9664 = t2$9663.length)), (t3$9664 === 2)))))))) {
-    (code2$9624 = t2$9663[0]);
-    (ord2$9625 = t2$9663[1]);
-    t0$9661[1];
-  } else {
-    ___match_error($11136(it$0$9600.prio, i2$9621), "/home/olivier/git/earl-grey/src/parse.eg", 4242, 4252);
-  }
-  ($9614$9689 = null);
-  $9614$9689;
-  if (((code1$9622 & code2$9624) === 0)) {
-    return NONE$8509;
-  } else {
-    if ((ord1$9623 > ord2$9625)) {
-      return LEFT$8510;
-    } else {
-      if ((ord1$9623 < ord2$9625)) {
-        return RIGHT$8511;
-      } else {
-        if ((ord1$9623 === ord2$9625)) {
-          return BOTH$8512;
+  attempt$0 = send(send(send($it$2.to_gid, fixity$1), width$1), name$4);
+  if ((attempt$0 === (void 0))) {
+    m$6 = null;
+    $7: for (var $__0 = $it$2.fns[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$6 = $__1.value;
+      {
+        var t1$5;
+        var t0$6;
+        var f$1;
+        var i$1;
+        t0$6 = m$6;
+        if (((t0$6 instanceof Array) && ((t1$5 = t0$6.length), (t1$5 === 2)))) {
+          f$1 = t0$6[0];
+          i$1 = t0$6[1];
+          if (f$1(o$1)) {
+            return i$1;
+          }
         } else {
-          ___match_error($9614$9689);
+          ___match_error(m$6, "/home/olivier/git/earl-grey/src/parse.eg", 1250, 1333);
+        }
+      }
+    }
+    throw ErrorFactory(["syntax", "unknown_operator"]).create(("Unknown operator: " + [true, String(o$1)][1]), ({"operator": o$1}));
+  } else {
+    return attempt$0;
+  }
+});
+(OperatorGroups$0.prototype["get"] = $targ$7);
+__amp____colon__(OperatorGroups$0, __amp____colon__((($targ$58 = "OperatorGroups"), (accum$0 = ({})), (accum$0["::name"] = $targ$58), accum$0), (($targ$59 = true), (accum$1 = ({})), (accum$1["::egclass"] = $targ$59), accum$1)));
+OperatorGroups$0;
+parse_op_description$0 = (function(temp$1$0) {
+  var t2$0;
+  var t1$6;
+  var otherwise$0;
+  var $$15930$0;
+  var m$8$0;
+  var t1$7;
+  var t0$8;
+  var $targ$65;
+  var fixity$2;
+  var short$1;
+  var other$0;
+  var t0$7;
+  var x$1;
+  var w1$0;
+  var op$0;
+  var w2$0;
+  var y$0;
+  var f$2;
+  var rx$0;
+  var m$7$0;
+  var ph$0;
+  ph$0 = temp$1$0;
+  m$7$0 = ph$0;
+  rx$0 = RegExp("(?:^((?:X?))((?:[ _]?))((?:[^ _Y]*))((?:[ _]?))((?:Y?))$)", "");
+  if (getChecker(Function)(m$7$0)) {
+    f$2 = m$7$0;
+    return f$2;
+  } else {
+    t0$7 = getProjector(rx$0)(m$7$0);
+    if ((t0$7[0] && ((t1$6 = t0$7[1]), (t2$0 = t1$6.length), (t2$0 === 6)))) {
+      t1$6[0];
+      x$1 = t1$6[1];
+      w1$0 = t1$6[2];
+      op$0 = t1$6[3];
+      w2$0 = t1$6[4];
+      y$0 = t1$6[5];
+      $targ$65 = ((m$8$0 = null), m$8$0, ((x$1 === "") ? ["PFX", (w2$0 === "")] : ((y$0 === "") ? ["SFX", (w1$0 === "")] : ((otherwise$0 = m$8$0), ["IFX", ((w1$0 === "") || (w2$0 === ""))]))));
+      t0$8 = $targ$65;
+      if (((t0$8 instanceof Array) && ((t1$7 = t0$8.length), (t1$7 === 2)))) {
+        fixity$2 = t0$8[0];
+        short$1 = t0$8[1];
+      } else {
+        ___match_error($targ$65);
+      }
+      if (((w1$0 === "_") || (w2$0 === "_"))) {
+        return [[fixity$2, "short", op$0], [fixity$2, "wide", op$0]];
+      } else {
+        return [[fixity$2, (short$1 ? "short" : "wide"), op$0]];
+      }
+    } else {
+      other$0 = m$7$0;
+      throw ErrorFactory(["invalid_op_description"]).create(("Invalid operator description: " + other$0));
+    }
+  }
+});
+SimplePriority$0 = (function(groups$1, priorities$0) {
+  var m$9;
+  var acc$5;
+  var $targ$70;
+  var _i$0;
+  var tracks$0;
+  var $targ$73;
+  var $it$3;
+  $it$3 = ((!getChecker(SimplePriority$0)(this)) ? Object.create(SimplePriority$0.prototype) : this);
+  $targ$70 = groups$1;
+  ($it$3["groups"] = $targ$70);
+  _i$0 = 0;
+  tracks$0 = ({});
+  $targ$73 = ((acc$5 = []), (m$9 = null), (function() {
+    var $__8 = function() {
+      m$9 = $__1.value;
+      {
+        var t7$0;
+        var t6$0;
+        var t5$0;
+        var t4$0;
+        var t3$0;
+        var t2$1;
+        var t1$8;
+        var t0$9;
+        var m$10;
+        var acc$6;
+        var t1$9;
+        var t0$10;
+        var $targ$75;
+        var ltracks$0;
+        var lp$0;
+        var rtracks$0;
+        var rp$0;
+        var $targ$76;
+        var lt$0;
+        var rt$0;
+        var name$5;
+        name$5 = m$9;
+        acc$5.push((($targ$75 = send(priorities$0, name$5)), (t0$9 = $targ$75), (((t0$9 instanceof Array) && ((t1$8 = t0$9.length), ((t1$8 === 2) && ((t2$1 = t0$9[0]), ((t2$1 instanceof Array) && ((t3$0 = t2$1.length), ((t3$0 === 2) && ((t4$0 = getProjector(Array)(t2$1[0])), (t4$0[0] && ((ltracks$0 = t4$0[1]), (lp$0 = t2$1[1]), (t5$0 = t0$9[1]), ((t5$0 instanceof Array) && ((t6$0 = t5$0.length), ((t6$0 === 2) && ((t7$0 = getProjector(Array)(t5$0[0])), t7$0[0])))))))))))))) ? ((rtracks$0 = t7$0[1]), (rp$0 = t5$0[1])) : ___match_error($targ$75)), ($targ$76 = ((acc$6 = []), (m$10 = null), (function() {
+          var $__9 = function() {
+            m$10 = $__1.value;
+            {
+              var m$11;
+              var $targ$86;
+              var rval$1;
+              var tr$1;
+              tr$1 = m$10;
+              acc$6.push((($targ$86 = 0), (rval$1 = $targ$86), (m$11 = null), (function() {
+                $10: for (var $__0 = tr$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                    $__1; !($__1 = $__0.next()).done; ) {
+                  m$11 = $__1.value;
+                  {
+                    var $targ$87;
+                    var $targ$88;
+                    var $targ$89;
+                    var $targ$90;
+                    var t$1;
+                    var t$0;
+                    if ((m$11 === "all")) {
+                      $targ$87 = (Math.pow(2, 31) - 1);
+                      rval$1 = $targ$87;
+                    } else {
+                      t$0 = m$11;
+                      if ((!send(tracks$0, t$0))) {
+                        $targ$88 = (rval$1 | Math.pow(2, _i$0));
+                        rval$1 = $targ$88;
+                        $targ$89 = (_i$0++);
+                        (tracks$0[t$0] = $targ$89);
+                      } else {
+                        t$1 = m$11;
+                        $targ$90 = (rval$1 | Math.pow(2, send(tracks$0, t$1)));
+                        rval$1 = $targ$90;
+                      }
+                    }
+                  }
+                }
+              })(), rval$1));
+            }
+          };
+          $9: for (var $__0 = [ltracks$0, rtracks$0][$traceurRuntime.toProperty(Symbol.iterator)](),
+              $__1; !($__1 = $__0.next()).done; ) {
+            $__9();
+          }
+        })(), acc$6)), (t0$10 = $targ$76), (((t0$10 instanceof Array) && ((t1$9 = t0$10.length), (t1$9 === 2))) ? ((lt$0 = t0$10[0]), (rt$0 = t0$10[1])) : ___match_error($targ$76)), [[lt$0, lp$0], [rt$0, rp$0]]));
+      }
+    };
+    $8: for (var $__0 = groups$1.gnames[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      $__8();
+    }
+  })(), acc$5);
+  ($it$3["prio"] = $targ$73);
+  return $it$3;
+});
+$targ$10 = (function(op1$0, op2$0) {
+  var t3$1;
+  var t2$2;
+  var t1$10;
+  var t0$11;
+  var t3$2;
+  var t2$3;
+  var t1$11;
+  var t0$12;
+  var $$16145$0;
+  var m$12$0;
+  var i1$0;
+  var i2$0;
+  var $targ$97;
+  var code1$0;
+  var ord1$0;
+  var $targ$98;
+  var code2$0;
+  var ord2$0;
+  var $it$4;
+  var self$2;
+  $it$4 = this;
+  self$2 = this;
+  i1$0 = $it$4.groups.get(op1$0);
+  i2$0 = $it$4.groups.get(op2$0);
+  $targ$97 = send($it$4.prio, i1$0);
+  t0$11 = $targ$97;
+  if (((t0$11 instanceof Array) && ((t1$10 = t0$11.length), ((t1$10 === 2) && (t0$11[0], (t2$2 = t0$11[1]), ((t2$2 instanceof Array) && ((t3$1 = t2$2.length), (t3$1 === 2)))))))) {
+    code1$0 = t2$2[0];
+    ord1$0 = t2$2[1];
+  } else {
+    ___match_error($targ$97);
+  }
+  $targ$98 = send($it$4.prio, i2$0);
+  t0$12 = $targ$98;
+  if (((t0$12 instanceof Array) && ((t1$11 = t0$12.length), ((t1$11 === 2) && ((t2$3 = t0$12[0]), ((t2$3 instanceof Array) && ((t3$2 = t2$3.length), (t3$2 === 2)))))))) {
+    code2$0 = t2$3[0];
+    ord2$0 = t2$3[1];
+    t0$12[1];
+  } else {
+    ___match_error($targ$98);
+  }
+  m$12$0 = null;
+  m$12$0;
+  if (((code1$0 & code2$0) === 0)) {
+    return NONE$0;
+  } else {
+    if ((ord1$0 > ord2$0)) {
+      return LEFT$0;
+    } else {
+      if ((ord1$0 < ord2$0)) {
+        return RIGHT$0;
+      } else {
+        if ((ord1$0 === ord2$0)) {
+          return BOTH$0;
+        } else {
+          return ___match_error(m$12$0);
         }
       }
     }
   }
-}));
-__amp____colon__(SimplePriority$8505, __amp____colon__(((accum$9717 = ({})), ((accum$9717["::name"] = "SimplePriority"), accum$9717)), ((accum$9721 = ({})), ((accum$9721["::egclass"] = true), accum$9721))));
-SimplePriority$8505;
-(MAX$8506 = (1 / 0));
-(eg_order$8507 = (((eg_groups$9732 = OperatorGroups$8503(__amp____colon__(({
-  "sh_ifx": [(function($9743$9746) {
-    var t0$9762;
-    var $9748$9757;
-    var ph$9751;
-    (ph$9751 = $9743$9746);
-    ($9748$9757 = ph$9751);
-    if ((($9748$9757 instanceof Array) && (((t0$9762 = $9748$9757.length)), ((t0$9762 === 3) && (($9748$9757[0] === "IFX") && ($9748$9757[1] === "short")))))) {
-      $9748$9757[2];
+});
+(SimplePriority$0.prototype["compare"] = $targ$10);
+__amp____colon__(SimplePriority$0, __amp____colon__((($targ$108 = "SimplePriority"), (accum$2 = ({})), (accum$2["::name"] = $targ$108), accum$2), (($targ$109 = true), (accum$3 = ({})), (accum$3["::egclass"] = $targ$109), accum$3)));
+SimplePriority$0;
+MAX$0 = (1 / 0);
+eg_order$0 = ((eg_groups$0 = OperatorGroups$0(__amp____colon__(({
+  "sh_ifx": [(function(temp$2$0) {
+    var t0$13;
+    var m$13$0;
+    var ph$1;
+    ph$1 = temp$2$0;
+    m$13$0 = ph$1;
+    if (((m$13$0 instanceof Array) && ((t0$13 = m$13$0.length), ((t0$13 === 3) && ((m$13$0[0] === "IFX") && (m$13$0[1] === "short")))))) {
+      m$13$0[2];
       return true;
     } else {
-      $9748$9757;
+      m$13$0;
       return false;
     }
   })],
-  "sh_pfx": [(function($9777$9780) {
-    var t0$9796;
-    var $9782$9791;
-    var ph$9785;
-    (ph$9785 = $9777$9780);
-    ($9782$9791 = ph$9785);
-    if ((($9782$9791 instanceof Array) && (((t0$9796 = $9782$9791.length)), ((t0$9796 === 3) && (($9782$9791[0] === "PFX") && ($9782$9791[1] === "short")))))) {
-      $9782$9791[2];
+  "sh_pfx": [(function(temp$3$0) {
+    var t0$14;
+    var m$14$0;
+    var ph$2;
+    ph$2 = temp$3$0;
+    m$14$0 = ph$2;
+    if (((m$14$0 instanceof Array) && ((t0$14 = m$14$0.length), ((t0$14 === 3) && ((m$14$0[0] === "PFX") && (m$14$0[1] === "short")))))) {
+      m$14$0[2];
       return true;
     } else {
-      $9782$9791;
+      m$14$0;
       return false;
     }
   })],
-  "sh_sfx": [(function($9811$9814) {
-    var t0$9830;
-    var $9816$9825;
-    var ph$9819;
-    (ph$9819 = $9811$9814);
-    ($9816$9825 = ph$9819);
-    if ((($9816$9825 instanceof Array) && (((t0$9830 = $9816$9825.length)), ((t0$9830 === 3) && (($9816$9825[0] === "SFX") && ($9816$9825[1] === "short")))))) {
-      $9816$9825[2];
+  "sh_sfx": [(function(temp$4$0) {
+    var t0$15;
+    var m$15$0;
+    var ph$3;
+    ph$3 = temp$4$0;
+    m$15$0 = ph$3;
+    if (((m$15$0 instanceof Array) && ((t0$15 = m$15$0.length), ((t0$15 === 3) && ((m$15$0[0] === "SFX") && (m$15$0[1] === "short")))))) {
+      m$15$0[2];
       return true;
     } else {
-      $9816$9825;
+      m$15$0;
       return false;
     }
   })],
-  "wi_ifx": [(function($9845$9848) {
-    var t0$9864;
-    var $9850$9859;
-    var ph$9853;
-    (ph$9853 = $9845$9848);
-    ($9850$9859 = ph$9853);
-    if ((($9850$9859 instanceof Array) && (((t0$9864 = $9850$9859.length)), ((t0$9864 === 3) && (($9850$9859[0] === "IFX") && ($9850$9859[1] === "wide")))))) {
-      $9850$9859[2];
+  "wi_ifx": [(function(temp$5$0) {
+    var t0$16;
+    var m$16$0;
+    var ph$4;
+    ph$4 = temp$5$0;
+    m$16$0 = ph$4;
+    if (((m$16$0 instanceof Array) && ((t0$16 = m$16$0.length), ((t0$16 === 3) && ((m$16$0[0] === "IFX") && (m$16$0[1] === "wide")))))) {
+      m$16$0[2];
       return true;
     } else {
-      $9850$9859;
+      m$16$0;
       return false;
     }
   })],
-  "wi_pfx": [(function($9879$9882) {
-    var t0$9898;
-    var $9884$9893;
-    var ph$9887;
-    (ph$9887 = $9879$9882);
-    ($9884$9893 = ph$9887);
-    if ((($9884$9893 instanceof Array) && (((t0$9898 = $9884$9893.length)), ((t0$9898 === 3) && (($9884$9893[0] === "PFX") && ($9884$9893[1] === "wide")))))) {
-      $9884$9893[2];
+  "wi_pfx": [(function(temp$6$0) {
+    var t0$17;
+    var m$17$0;
+    var ph$5;
+    ph$5 = temp$6$0;
+    m$17$0 = ph$5;
+    if (((m$17$0 instanceof Array) && ((t0$17 = m$17$0.length), ((t0$17 === 3) && ((m$17$0[0] === "PFX") && (m$17$0[1] === "wide")))))) {
+      m$17$0[2];
       return true;
     } else {
-      $9884$9893;
+      m$17$0;
       return false;
     }
   })],
-  "wi_sfx": [(function($9913$9916) {
-    var t0$9932;
-    var $9918$9927;
-    var ph$9921;
-    (ph$9921 = $9913$9916);
-    ($9918$9927 = ph$9921);
-    if ((($9918$9927 instanceof Array) && (((t0$9932 = $9918$9927.length)), ((t0$9932 === 3) && (($9918$9927[0] === "SFX") && ($9918$9927[1] === "wide")))))) {
-      $9918$9927[2];
+  "wi_sfx": [(function(temp$7$0) {
+    var t0$18;
+    var m$18$0;
+    var ph$6;
+    ph$6 = temp$7$0;
+    m$18$0 = ph$6;
+    if (((m$18$0 instanceof Array) && ((t0$18 = m$18$0.length), ((t0$18 === 3) && ((m$18$0[0] === "SFX") && (m$18$0[1] === "wide")))))) {
+      m$18$0[2];
       return true;
     } else {
-      $9918$9927;
+      m$18$0;
       return false;
     }
   })],
   "comma": ["X_,_Y"],
   "obrack": ["(_Y", "[_Y", "{_Y"],
   "cbrack": ["X_)", "X_]", "X_}"]
-}), __amp____colon__(((accum$9947 = ({})), ((accum$9947["withp"] = ["with Y"]), accum$9947)), __amp____colon__(((accum$9951 = ({})), ((accum$9951["with"] = ["X with Y"]), accum$9951)), __amp____colon__(({"lowprio": ["X each Y", "X each? Y", "X where Y", "X_!!_Y", "X_->_Y", "X_=>_Y", "X_=_Y", "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y", "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y", "X_or=_Y", "X_and=_Y", "X_each=_Y", "X_%_Y"]}), __amp____colon__(((accum$9955 = ({})), ((accum$9955["when"] = ["X_when_Y"]), accum$9955)), __amp____colon__(((accum$9959 = ({})), ((accum$9959["or"] = ["X_or_Y"]), accum$9959)), __amp____colon__(((accum$9963 = ({})), ((accum$9963["and"] = ["X_and_Y"]), accum$9963)), __amp____colon__(((accum$9967 = ({})), ((accum$9967["not"] = ["not_Y"]), accum$9967)), ({
+}), __amp____colon__((($targ$112 = ["with Y"]), (accum$4 = ({})), (accum$4["withp"] = $targ$112), accum$4), __amp____colon__((($targ$113 = ["X with Y"]), (accum$5 = ({})), (accum$5["with"] = $targ$113), accum$5), __amp____colon__(({"lowprio": ["X each Y", "X where Y", "X_!!_Y", "X_->_Y", "X_=>_Y", "X_=_Y", "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y", "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y", "X_or=_Y", "X_and=_Y", "X_each=_Y", "X_%_Y"]}), __amp____colon__((($targ$114 = ["X_when_Y"]), (accum$6 = ({})), (accum$6["when"] = $targ$114), accum$6), __amp____colon__((($targ$115 = ["X_or_Y"]), (accum$7 = ({})), (accum$7["or"] = $targ$115), accum$7), __amp____colon__((($targ$116 = ["X_and_Y"]), (accum$8 = ({})), (accum$8["and"] = $targ$116), accum$8), __amp____colon__((($targ$117 = ["not_Y"]), (accum$9 = ({})), (accum$9["not"] = $targ$117), accum$9), ({
   "type": ["X_!_Y", "X_?_Y"],
   "cmp": ["X_==_Y", "X_!=_Y", "X_>=_Y", "X_<=_Y", "X_>_Y", "X_<_Y"],
   "binxor": ["X_^._Y"],
@@ -610,11 +624,11 @@ SimplePriority$8505;
   "when2": ["when Y"],
   "pp": ["<>_Y"],
   "pipe": ["X_|>_Y"]
-})))))))))))), ((eg_prio$9733 = __amp____colon__(({
+}))))))))))), (eg_prio$0 = __amp____colon__(({
   "comma": [["all", 1], ["all", 1]],
-  "obrack": [["all", MAX$8506], ["all", 1]],
-  "cbrack": [["all", 1], ["all", MAX$8506]]
-}), __amp____colon__(((accum$9979 = ({})), ((accum$9979["with"] = [["all", 1999], ["all", 10]]), accum$9979)), __amp____colon__(({"lowprio": [["all", 11], ["all", 10]]}), __amp____colon__(((accum$9983 = ({})), ((accum$9983["when"] = [["all", 100], ["all", 101]]), accum$9983)), __amp____colon__(((accum$9987 = ({})), ((accum$9987["or"] = [["all", 110], ["all", 111]]), accum$9987)), __amp____colon__(((accum$9991 = ({})), ((accum$9991["and"] = [["all", 120], ["all", 121]]), accum$9991)), __amp____colon__(((accum$9995 = ({})), ((accum$9995["not"] = [["all", MAX$8506], ["all", 131]]), accum$9995)), ({
+  "obrack": [["all", MAX$0], ["all", 1]],
+  "cbrack": [["all", 1], ["all", MAX$0]]
+}), __amp____colon__((($targ$130 = [["all", 1999], ["all", 10]]), (accum$10 = ({})), (accum$10["with"] = $targ$130), accum$10), __amp____colon__(({"lowprio": [["all", 11], ["all", 10]]}), __amp____colon__((($targ$131 = [["all", 100], ["all", 101]]), (accum$11 = ({})), (accum$11["when"] = $targ$131), accum$11), __amp____colon__((($targ$132 = [["all", 110], ["all", 111]]), (accum$12 = ({})), (accum$12["or"] = $targ$132), accum$12), __amp____colon__((($targ$133 = [["all", 120], ["all", 121]]), (accum$13 = ({})), (accum$13["and"] = $targ$133), accum$13), __amp____colon__((($targ$134 = [["all", MAX$0], ["all", 131]]), (accum$14 = ({})), (accum$14["not"] = $targ$134), accum$14), ({
   "type": [["all", 141], ["all", 140]],
   "cmp": [["all", 200], ["all", 201]],
   "binxor": [["all", 400], ["all", 401]],
@@ -627,433 +641,495 @@ SimplePriority$8505;
   "wjuxt": [["wjuxt", 13], ["all", 12]],
   "colon": [["all", 12], ["all", 10]],
   "sjuxt": [["all", 2000], ["all", 2001]],
-  "pfx": [["all", MAX$8506], ["all", 3000]],
-  "pp": [["all", MAX$8506], ["all", 5]],
-  "when2": [["all", MAX$8506], ["all", 101]],
-  "withp": [["all", MAX$8506], ["all", 10]],
+  "pfx": [["all", MAX$0], ["all", 3000]],
+  "pp": [["all", MAX$0], ["all", 5]],
+  "when2": [["all", MAX$0], ["all", 101]],
+  "withp": [["all", MAX$0], ["all", 10]],
   "pipe": [["pipe", 550], ["pipe", 551]],
   "sh_ifx": [["all", 1800], ["all", 1801]],
-  "sh_pfx": [["all", MAX$8506], ["all", 1901]],
-  "sh_sfx": [["all", 1900], ["all", MAX$8506]],
+  "sh_pfx": [["all", MAX$0], ["all", 1901]],
+  "sh_sfx": [["all", 1900], ["all", MAX$0]],
   "wi_ifx": [["customl", 900], ["customr", 901]],
-  "wi_pfx": [["all", MAX$8506], ["all", 901]],
-  "wi_sfx": [["all", 900], ["all", MAX$8506]]
-})))))))))), SimplePriority$8505(eg_groups$9732, eg_prio$9733)));
-(DONE$8508 = -1);
-(NONE$8509 = 0);
-(LEFT$8510 = 1);
-(RIGHT$8511 = 2);
-(BOTH$8512 = 3);
-(oparse$8513 = (function(next$10019, order$10020, finalize$10021) {
-  var between$10029;
-  var right_op$10030;
-  var stack$10031;
-  var left_op$10032;
-  var current$10033;
-  (between$10029 = finalize$10021(next$10019()));
-  (right_op$10030 = next$10019());
-  (stack$10031 = []);
-  (left_op$10032 = null);
-  (current$10033 = null);
-  $10034: while (true) {
-    var v$10087;
-    var other$10149;
-    var bridge$10059$10072;
-    var $10054$10067;
-    var o$10061;
-    (o$10061 = (((!left_op$10032) && (!right_op$10030)) ? DONE$8508 : ((((!left_op$10032) && RIGHT$8511) || ((!right_op$10030) && LEFT$8510)) || order$10020(left_op$10032, right_op$10030))));
-    ($10054$10067 = o$10061);
-    if (($10054$10067 === DONE$8508)) {
-      return between$10029;
+  "wi_pfx": [["all", MAX$0], ["all", 901]],
+  "wi_sfx": [["all", 900], ["all", MAX$0]]
+}))))))))), SimplePriority$0(eg_groups$0, eg_prio$0));
+DONE$0 = -1;
+NONE$0 = 0;
+LEFT$0 = 1;
+RIGHT$0 = 2;
+BOTH$0 = 3;
+oparse$0 = (function(next$0, order$0, finalize$1) {
+  var $targ$135;
+  var between$0;
+  var $targ$136;
+  var right_op$0;
+  var stack$0;
+  var $targ$138;
+  var left_op$0;
+  var $targ$139;
+  var current$0;
+  $targ$135 = finalize$1(next$0());
+  between$0 = $targ$135;
+  $targ$136 = next$0();
+  right_op$0 = $targ$136;
+  stack$0 = [];
+  $targ$138 = null;
+  left_op$0 = $targ$138;
+  $targ$139 = null;
+  current$0 = $targ$139;
+  $11: while (true) {
+    var $targ$142;
+    var v$1;
+    var $targ$144;
+    var $targ$145;
+    var $targ$146;
+    var $targ$147;
+    var $targ$148;
+    var $targ$149;
+    var $targ$154;
+    var $targ$151;
+    var $targ$152;
+    var $targ$153;
+    var other$1;
+    var bridge$$16492$0;
+    var m$19$0;
+    var o$2;
+    o$2 = (((!left_op$0) && (!right_op$0)) ? DONE$0 : ((((!left_op$0) && RIGHT$0) || ((!right_op$0) && LEFT$0)) || order$0(left_op$0, right_op$0)));
+    m$19$0 = o$2;
+    if ((m$19$0 === DONE$0)) {
+      return between$0;
     } else {
-      if (($10054$10067 === LEFT$8510)) {
-        current$10033.push(between$10029);
-        (between$10029 = finalize$10021(current$10033));
-        (v$10087 = stack$10031.pop());
-        (left_op$10032 = v$10087[0]);
-        (current$10033 = v$10087[1]);
+      if ((m$19$0 === LEFT$0)) {
+        current$0.push(between$0);
+        $targ$142 = finalize$1(current$0);
+        between$0 = $targ$142;
+        v$1 = stack$0.pop();
+        $targ$144 = v$1[0];
+        left_op$0 = $targ$144;
+        $targ$145 = v$1[1];
+        current$0 = $targ$145;
       } else {
-        if (($10054$10067 === RIGHT$8511)) {
-          stack$10031.push([left_op$10032, current$10033]);
-          (left_op$10032 = right_op$10030);
-          (current$10033 = [[right_op$10030], between$10029]);
-          (between$10029 = finalize$10021(next$10019()));
-          (right_op$10030 = next$10019());
+        if ((m$19$0 === RIGHT$0)) {
+          stack$0.push([left_op$0, current$0]);
+          $targ$146 = right_op$0;
+          left_op$0 = $targ$146;
+          $targ$147 = [[right_op$0], between$0];
+          current$0 = $targ$147;
+          $targ$148 = finalize$1(next$0());
+          between$0 = $targ$148;
+          $targ$149 = next$0();
+          right_op$0 = $targ$149;
         } else {
-          (bridge$10059$10072 = $10054$10067);
-          if (((bridge$10059$10072 === BOTH$8512) || (bridge$10059$10072 === NONE$8509))) {
-            current$10033[0].push(right_op$10030);
-            current$10033.push(between$10029);
-            (left_op$10032 = right_op$10030);
-            (between$10029 = finalize$10021(next$10019()));
-            (right_op$10030 = next$10019());
-            if ((o$10061 === NONE$8509)) {
-              (current$10033["tainted"] = true);
+          bridge$$16492$0 = m$19$0;
+          if (((bridge$$16492$0 === BOTH$0) || (bridge$$16492$0 === NONE$0))) {
+            current$0[0].push(right_op$0);
+            current$0.push(between$0);
+            $targ$151 = right_op$0;
+            left_op$0 = $targ$151;
+            $targ$152 = finalize$1(next$0());
+            between$0 = $targ$152;
+            $targ$153 = next$0();
+            right_op$0 = $targ$153;
+            if ((o$2 === NONE$0)) {
+              $targ$154 = true;
+              (current$0["tainted"] = $targ$154);
             }
           } else {
-            (other$10149 = $10054$10067);
+            other$1 = m$19$0;
             throw ErrorFactory(["should_never_happen"]).create("undefined priority", ({
-              "left": left_op$10032,
-              "right": right_op$10030
+              "left": left_op$0,
+              "right": right_op$0
             }));
           }
         }
       }
     }
   }
-}));
-(finalize$8514 = (function($10155$10158) {
-  var t0$10174;
-  var $index$10285;
-  var $length$10279;
-  var temp$10273;
-  var $index$10323;
-  var $length$10317;
-  var temp$10311;
-  var $index$10389;
-  var $length$10383;
-  var temp$10377;
-  var acc$10371;
-  var other$10751;
-  var args$10746;
-  var f$10722;
-  var orig_args$10723;
-  var args$10724;
-  var $10692$10705;
-  var $10693$10706;
-  var t0$10701;
-  var t1$10702;
-  var t2$10703;
-  var $10686$10696;
-  var inserted$10528;
-  var result$10529;
-  var t0$10763;
-  var f$10790;
-  var other$10871;
-  var x$10860;
-  var $10836$10847;
-  var $10837$10848;
-  var t0$10845;
-  var $10832$10840;
-  var result$10780;
-  var f$10897;
-  var oloc$11002;
-  var abloc$11003;
-  var oabloc$11004;
-  var rval$11005;
-  var a$10992;
-  var b$10993;
-  var $10245$10953;
-  var $10246$10954;
-  var $10247$10955;
-  var $10248$10956;
-  var t0$10946;
-  var t1$10947;
-  var t2$10948;
-  var t3$10949;
-  var t4$10950;
-  var t5$10951;
-  var $index$11052;
-  var $length$11046;
-  var temp$11040;
-  var acc$11034;
-  var op_strings$11025;
-  var args$11026;
-  var $10242$10942;
-  var commas$10876;
-  var commas$10755;
-  var target$10488;
-  var _b$10489;
-  var body$10490;
-  var f$10472;
-  var body$10473;
-  var f$10440;
-  var arg$10441;
-  var body$10442;
-  var $10250$10431;
-  var $10251$10432;
-  var $10252$10433;
-  var $10253$10434;
-  var $10254$10435;
-  var $10255$10436;
-  var $10256$10437;
-  var t0$10420;
-  var t1$10421;
-  var t2$10422;
-  var t3$10423;
-  var t4$10424;
-  var t5$10425;
-  var t6$10426;
-  var t7$10427;
-  var t8$10428;
-  var bridge$10238$10429;
-  var $10233$10415;
-  var sumloc$10257;
-  var orig_ops$10258;
-  var op$10259;
-  var other$11076;
-  var ops$10224;
-  var args$10225;
-  var value$10215;
-  var value$10210;
-  var value$10205;
-  var value$10195;
-  var $10168$10190;
-  var $10169$10191;
-  var $10170$10192;
-  var t0$10188;
-  var $10160$10183;
-  var ph$10171;
-  var token$10172;
-  (t0$10174 = $10155$10158);
-  (token$10172 = t0$10174);
-  (ph$10171 = t0$10174);
-  ($10160$10183 = ph$10171);
-  if ((($10168$10190 = ($10160$10183 instanceof Array)) && (((t0$10188 = $10160$10183.length)), (($10170$10192 = (t0$10188 === 2)) && ($10160$10183[0] === "ID"))))) {
-    (value$10195 = $10160$10183[1]);
-    return __lt____lt____colon__$8498(["symbol", value$10195], token$10172);
+});
+finalize$0 = (function(temp$8$0) {
+  var t0$19;
+  var t0$20;
+  var m$22;
+  var m$23;
+  var m$24;
+  var acc$7;
+  var $targ$172;
+  var $targ$171;
+  var $targ$170;
+  var $targ$169;
+  var t0$22;
+  var $targ$174;
+  var $targ$173;
+  var t8$0;
+  var t7$1;
+  var t6$1;
+  var t5$1;
+  var $targ$176;
+  var $targ$175;
+  var $targ$197;
+  var t2$6;
+  var t1$16;
+  var $targ$198;
+  var other$3;
+  var args$4;
+  var f$6;
+  var orig_args$0;
+  var args$3;
+  var $$16920$0;
+  var $$16921$0;
+  var t0$26;
+  var m$27$0;
+  var $targ$181;
+  var inserted$0;
+  var result$1;
+  var t0$27;
+  var bridge$$16637$0;
+  var $targ$205;
+  var f$7;
+  var t0$29;
+  var $targ$211;
+  var other$5;
+  var x$4;
+  var $$17030$0;
+  var $$17031$0;
+  var m$29$0;
+  var $targ$203;
+  var result$2;
+  var $targ$213;
+  var $targ$212;
+  var f$8;
+  var t5$2;
+  var t4$2;
+  var t3$4;
+  var t2$7;
+  var t1$17;
+  var oloc$0;
+  var abloc$0;
+  var oabloc$0;
+  var rval$2;
+  var $targ$227;
+  var a$1;
+  var b$1;
+  var t0$31;
+  var $$16643$0;
+  var $$16644$0;
+  var $$16645$0;
+  var $$16646$0;
+  var m$31;
+  var acc$8;
+  var op_strings$0;
+  var args$5;
+  var ph$8$0;
+  var commas$1;
+  var commas$0;
+  var target$0;
+  var _b$0;
+  var body$2;
+  var f$4;
+  var body$1;
+  var f$3;
+  var arg$1;
+  var body$0;
+  var $$16648$0;
+  var $$16649$0;
+  var $$16650$0;
+  var $$16651$0;
+  var $$16652$0;
+  var $$16653$0;
+  var $$16654$0;
+  var t1$13;
+  var t2$4;
+  var t3$3;
+  var t4$1;
+  var m$21$0;
+  var $targ$158;
+  var sumloc$0;
+  var orig_ops$0;
+  var $targ$160;
+  var op$1;
+  var other$7;
+  var ops$0;
+  var args$1;
+  var value$3;
+  var value$2;
+  var value$1;
+  var value$0;
+  var $$16588$0;
+  var $$16589$0;
+  var $$16590$0;
+  var m$20$0;
+  var ph$7;
+  var token$0;
+  t0$19 = temp$8$0;
+  token$0 = t0$19;
+  ph$7 = t0$19;
+  m$20$0 = ph$7;
+  if ((($$16588$0 = (m$20$0 instanceof Array)) && ((t0$20 = m$20$0.length), (($$16590$0 = (t0$20 === 2)) && (m$20$0[0] === "ID"))))) {
+    value$0 = m$20$0[1];
+    return __lt____lt____colon__$0(["symbol", value$0], token$0);
   } else {
-    if (($10170$10192 && ($10160$10183[0] === "ILLEGAL"))) {
-      (value$10205 = $10160$10183[1]);
-      return __lt____lt____colon__$8498(["char", value$10205], token$10172);
+    if (($$16590$0 && (m$20$0[0] === "ILLEGAL"))) {
+      value$1 = m$20$0[1];
+      return __lt____lt____colon__$0(["char", value$1], token$0);
     } else {
-      if (($10170$10192 && ($10160$10183[0] === "NUM"))) {
-        (value$10210 = $10160$10183[1]);
-        return __lt____lt____colon__$8498(["value", value$10210], token$10172);
+      if (($$16590$0 && (m$20$0[0] === "NUM"))) {
+        value$2 = m$20$0[1];
+        return __lt____lt____colon__$0(["value", value$2], token$0);
       } else {
-        if (($10170$10192 && ($10160$10183[0] === "STR"))) {
-          (value$10215 = $10160$10183[1]);
-          return __lt____lt____colon__$8498(["value", value$10215], token$10172);
+        if (($$16590$0 && (m$20$0[0] === "STR"))) {
+          value$3 = m$20$0[1];
+          return __lt____lt____colon__$0(["value", value$3], token$0);
         } else {
-          if (($10168$10190 && ((t0$10188 === 1) && ($10160$10183[0] === "VOID")))) {
-            return __lt____lt____colon__$8498(["void"], token$10172);
+          if (($$16588$0 && ((t0$20 === 1) && (m$20$0[0] === "VOID")))) {
+            return __lt____lt____colon__$0(["void"], token$0);
           } else {
-            if (($10168$10190 && (t0$10188 >= 1))) {
-              (ops$10224 = $10160$10183[0]);
-              (args$10225 = Array.prototype.slice.call($10160$10183, 1));
-              (sumloc$10257 = ops$10224[0].location);
-              (temp$10273 = ops$10224.slice(1));
-              ($length$10279 = temp$10273.length);
-              ($index$10285 = 0);
-              $10260: for (; ($index$10285 < $length$10279); ($index$10285++)) {
-                var op$10302;
-                var m$10294;
-                (m$10294 = temp$10273[$index$10285]);
-                (op$10302 = m$10294);
-                (sumloc$10257 = __plus____plus____colon__$8499(sumloc$10257, op$10302));
-              }
-              (temp$10311 = args$10225);
-              ($length$10317 = temp$10311.length);
-              ($index$10323 = 0);
-              $10263: for (; ($index$10323 < $length$10317); ($index$10323++)) {
-                var arg$10355;
-                var t0$10337;
-                var t1$10338;
-                var m$10332;
-                (m$10332 = temp$10311[$index$10323]);
-                (t0$10337 = m$10332);
-                if (((t0$10337 instanceof Array) && (((t1$10338 = t0$10337.length)), ((t1$10338 === 1) && (t0$10337[0] === "void"))))) {
-                  undefined;
-                } else {
-                  (arg$10355 = m$10332);
-                  (sumloc$10257 = __plus____plus____colon__$8499(sumloc$10257, arg$10355));
+            if (($$16588$0 && (t0$20 >= 1))) {
+              ops$0 = m$20$0[0];
+              args$1 = Array.prototype.slice.call(m$20$0, 1);
+              $targ$158 = ops$0[0].location;
+              sumloc$0 = $targ$158;
+              m$22 = null;
+              $12: for (var $__0 = ops$0.slice(1)[$traceurRuntime.toProperty(Symbol.iterator)](),
+                  $__1; !($__1 = $__0.next()).done; ) {
+                m$22 = $__1.value;
+                {
+                  var $targ$162;
+                  var op$2;
+                  op$2 = m$22;
+                  $targ$162 = __plus____plus____colon__$0(sumloc$0, op$2);
+                  sumloc$0 = $targ$162;
                 }
               }
-              (orig_ops$10258 = ops$10224);
-              (ops$10224 = (((acc$10371 = [])), (((temp$10377 = ops$10224)), ((($length$10383 = temp$10377.length)), ((($index$10389 = 0)), (function() {
-                $10366: for (; ($index$10389 < $length$10383); ($index$10389++)) {
-                  var o$10406;
-                  var m$10398;
-                  (m$10398 = temp$10377[$index$10389]);
-                  (o$10406 = m$10398);
-                  acc$10371.push(o$10406[2]);
+              m$23 = null;
+              $13: for (var $__2 = args$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                  $__3; !($__3 = $__2.next()).done; ) {
+                m$23 = $__3.value;
+                {
+                  var t1$12;
+                  var $targ$165;
+                  var arg$0;
+                  var t0$21;
+                  t0$21 = m$23;
+                  if (((t0$21 instanceof Array) && ((t1$12 = t0$21.length), ((t1$12 === 1) && (t0$21[0] === "void"))))) {
+                    undefined;
+                  } else {
+                    arg$0 = m$23;
+                    $targ$165 = __plus____plus____colon__$0(sumloc$0, arg$0);
+                    sumloc$0 = $targ$165;
+                  }
                 }
-              })()))), acc$10371));
-              (op$10259 = ops$10224[0]);
-              ($10233$10415 = [ops$10224, args$10225]);
-              if ((($10250$10431 = ($10233$10415 instanceof Array)) && (((t0$10420 = $10233$10415.length)), (($10252$10433 = (t0$10420 === 2)) && (((t1$10421 = $10233$10415[0])), (($10254$10435 = (t1$10421 instanceof Array)) && (((t2$10422 = t1$10421.length)), ((t2$10422 === 2) && ((t1$10421[0] === "WHITE") && ((t1$10421[1] === ":") && (((t3$10423 = $10233$10415[1])), ((t3$10423 instanceof Array) && (((t4$10424 = t3$10423.length)), (t4$10424 === 3)))))))))))))) {
-                (f$10440 = t3$10423[0]);
-                (arg$10441 = t3$10423[1]);
-                (body$10442 = t3$10423[2]);
-                return __lt____lt____colon__$8498(["send", f$10440, __lt____lt____colon__$8498(["data", arg$10441, body$10442], __plus____plus____colon__$8499(arg$10441, body$10442))], sumloc$10257);
+              }
+              orig_ops$0 = ops$0;
+              $targ$160 = ((acc$7 = []), (m$24 = null), (function() {
+                $14: for (var $__4 = ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                    $__5; !($__5 = $__4.next()).done; ) {
+                  m$24 = $__5.value;
+                  {
+                    var o$3;
+                    o$3 = m$24;
+                    acc$7.push(o$3[2]);
+                  }
+                }
+              })(), acc$7);
+              ops$0 = $targ$160;
+              op$1 = ops$0[0];
+              m$21$0 = [ops$0, args$1];
+              if ((($$16648$0 = (m$21$0 instanceof Array)) && ((t0$22 = m$21$0.length), (($$16650$0 = (t0$22 === 2)) && (($targ$169 = m$21$0[0]), (t1$13 = $targ$169), (($$16652$0 = (t1$13 instanceof Array)) && (($targ$170 = t1$13.length), (t2$4 = $targ$170), ((t2$4 === 2) && ((t1$13[0] === "WHITE") && ((t1$13[1] === ":") && (($targ$171 = m$21$0[1]), (t3$3 = $targ$171), ((t3$3 instanceof Array) && (($targ$172 = t3$3.length), (t4$1 = $targ$172), (t4$1 === 3)))))))))))))) {
+                f$3 = t3$3[0];
+                arg$1 = t3$3[1];
+                body$0 = t3$3[2];
+                return __lt____lt____colon__$0(["send", f$3, __lt____lt____colon__$0(["data", arg$1, body$0], __plus____plus____colon__$0(arg$1, body$0))], sumloc$0);
               } else {
-                if (($10254$10435 && (($10256$10437 = (t2$10422 === 1)) && ((t1$10421[0] === ":") && (((t3$10423 = $10233$10415[1])), ((t3$10423 instanceof Array) && (((t4$10424 = t3$10423.length)), (t4$10424 === 2)))))))) {
-                  (f$10472 = t3$10423[0]);
-                  (body$10473 = t3$10423[1]);
-                  return __lt____lt____colon__$8498(["send", f$10472, __lt____lt____colon__$8498(["data", body$10473], body$10473)], sumloc$10257);
+                if (($$16652$0 && (($$16654$0 = (t2$4 === 1)) && ((t1$13[0] === ":") && (($targ$173 = m$21$0[1]), (t3$3 = $targ$173), ((t3$3 instanceof Array) && (($targ$174 = t3$3.length), (t4$1 = $targ$174), (t4$1 === 2)))))))) {
+                  f$4 = t3$3[0];
+                  body$1 = t3$3[1];
+                  return __lt____lt____colon__$0(["send", f$4, __lt____lt____colon__$0(["data", body$1], body$1)], sumloc$0);
                 } else {
-                  if (($10256$10437 && ((t1$10421[0] === "with") && (((t3$10423 = $10233$10415[1])), ((t3$10423 instanceof Array) && (((t4$10424 = t3$10423.length)), ((t4$10424 === 2) && ((target$10488 = t3$10423[0]), (((t5$10425 = t3$10423[1])), ((_b$10489 = t5$10425), (((t6$10426 = getProjector(Body$8501)(t5$10425))), (t6$10426[0] && (((t7$10427 = t6$10426[1])), (((t8$10428 = t7$10427.length)), (t8$10428 >= 0))))))))))))))) {
-                    (body$10490 = Array.prototype.slice.call(t7$10427, 0));
-                    (inserted$10528 = false);
-                    (result$10529 = transform$8502(target$10488, (function($10536$10539) {
-                      var t0$10548;
-                      var $index$10644;
-                      var $length$10638;
-                      var temp$10632;
-                      var tr$10617;
-                      var res$10618;
-                      var args$10606;
-                      var x$10582;
-                      var f$10583;
-                      var a$10584;
-                      var b$10585;
-                      var t0$10562;
-                      var t1$10563;
-                      var t2$10564;
-                      var $10541$10557;
-                      var ph$10545;
-                      var expr$10546;
-                      (t0$10548 = $10536$10539);
-                      (expr$10546 = t0$10548);
-                      (ph$10545 = t0$10548);
-                      ($10541$10557 = ph$10545);
-                      if ((($10541$10557 instanceof Array) && (((t0$10562 = $10541$10557.length)), ((t0$10562 === 2) && (($10541$10557[0] === "symbol") && ($10541$10557[1] === "...")))))) {
-                        (inserted$10528 = true);
-                        return __lt____lt____colon__$8498(["multi"].concat(body$10490), _b$10489);
+                  if (($$16654$0 && ((t1$13[0] === "with") && (($targ$175 = m$21$0[1]), (t3$3 = $targ$175), ((t3$3 instanceof Array) && (($targ$176 = t3$3.length), (t4$1 = $targ$176), ((t4$1 === 2) && ((target$0 = t3$3[0]), (t5$1 = t3$3[1]), (_b$0 = t5$1), (t6$1 = getProjector(Body$0)(t5$1)), (t6$1[0] && ((t7$1 = t6$1[1]), (t8$0 = t7$1.length), (t8$0 >= 0))))))))))) {
+                    body$2 = Array.prototype.slice.call(t7$1, 0);
+                    $targ$181 = false;
+                    inserted$0 = $targ$181;
+                    result$1 = transform$0(target$0, (function(temp$9$0) {
+                      var t0$23;
+                      var $targ$185;
+                      var $targ$186;
+                      var t2$5;
+                      var t1$14;
+                      var $targ$187;
+                      var $targ$190;
+                      var m$26;
+                      var tr$2;
+                      var $targ$192;
+                      var res$0;
+                      var args$2;
+                      var x$2;
+                      var f$5;
+                      var a$0;
+                      var b$0;
+                      var t0$24;
+                      var m$25$0;
+                      var ph$9;
+                      var expr$1;
+                      t0$23 = temp$9$0;
+                      expr$1 = t0$23;
+                      ph$9 = t0$23;
+                      m$25$0 = ph$9;
+                      if (((m$25$0 instanceof Array) && (($targ$185 = m$25$0.length), (t0$24 = $targ$185), ((t0$24 === 2) && ((m$25$0[0] === "symbol") && (m$25$0[1] === "...")))))) {
+                        $targ$186 = true;
+                        inserted$0 = $targ$186;
+                        return __lt____lt____colon__$0(["multi"].concat(body$2), _b$0);
                       } else {
-                        (x$10582 = $10541$10557);
-                        if ((x$10582.fromop && (($10541$10557 instanceof Array) && (((t0$10562 = $10541$10557.length)), ((t0$10562 === 3) && (($10541$10557[0] === "send") && ((f$10583 = $10541$10557[1]), (((t1$10563 = $10541$10557[2])), ((t1$10563 instanceof Array) && (((t2$10564 = t1$10563.length)), ((t2$10564 === 3) && (t1$10563[0] === "data")))))))))))) {
-                          (a$10584 = t1$10563[1]);
-                          (b$10585 = t1$10563[2]);
-                          return ["send", this(f$10583), __lt____lt____colon__$8498(["data", this(a$10584), this(b$10585)], __plus____plus____colon__$8499(a$10584, b$10585))];
+                        x$2 = m$25$0;
+                        if ((x$2.fromop && ((m$25$0 instanceof Array) && (($targ$187 = m$25$0.length), (t0$24 = $targ$187), ((t0$24 === 3) && ((m$25$0[0] === "send") && ((f$5 = m$25$0[1]), (t1$14 = m$25$0[2]), ((t1$14 instanceof Array) && ((t2$5 = t1$14.length), ((t2$5 === 3) && (t1$14[0] === "data"))))))))))) {
+                          a$0 = t1$14[1];
+                          b$0 = t1$14[2];
+                          return ["send", this(f$5), __lt____lt____colon__$0(["data", this(a$0), this(b$0)], __plus____plus____colon__$0(a$0, b$0))];
                         } else {
-                          if ((($10541$10557 instanceof Array) && (((t0$10562 = $10541$10557.length)), ((t0$10562 >= 1) && ($10541$10557[0] === "data"))))) {
-                            (args$10606 = Array.prototype.slice.call($10541$10557, 1));
-                            (tr$10617 = this);
-                            (res$10618 = ["data"]);
-                            (temp$10632 = args$10606);
-                            ($length$10638 = temp$10632.length);
-                            ($index$10644 = 0);
-                            $10619: for (; ($index$10644 < $length$10638); ($index$10644++)) {
-                              var other$10681;
-                              var t0$10658;
-                              var t1$10659;
-                              var m$10653;
-                              (m$10653 = temp$10632[$index$10644]);
-                              (t0$10658 = m$10653);
-                              if (((t0$10658 instanceof Array) && (((t1$10659 = t0$10658.length)), ((t1$10659 === 2) && ((t0$10658[0] === "symbol") && (t0$10658[1] === "...")))))) {
-                                (inserted$10528 = true);
-                                (res$10618 = res$10618.concat(body$10490));
-                              } else {
-                                (other$10681 = m$10653);
-                                res$10618.push(__lt____lt____colon__$8498(tr$10617(other$10681), other$10681));
+                          if (((m$25$0 instanceof Array) && (($targ$190 = m$25$0.length), (t0$24 = $targ$190), ((t0$24 >= 1) && (m$25$0[0] === "data"))))) {
+                            args$2 = Array.prototype.slice.call(m$25$0, 1);
+                            tr$2 = this;
+                            $targ$192 = ["data"];
+                            res$0 = $targ$192;
+                            m$26 = null;
+                            $15: for (var $__4 = args$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+                                $__5; !($__5 = $__4.next()).done; ) {
+                              m$26 = $__5.value;
+                              {
+                                var t1$15;
+                                var $targ$195;
+                                var other$2;
+                                var t0$25;
+                                t0$25 = m$26;
+                                if (((t0$25 instanceof Array) && ((t1$15 = t0$25.length), ((t1$15 === 2) && ((t0$25[0] === "symbol") && (t0$25[1] === "...")))))) {
+                                  $targ$195 = true;
+                                  inserted$0 = $targ$195;
+                                  res$0 = res$0.concat(body$2);
+                                } else {
+                                  other$2 = m$26;
+                                  res$0.push(__lt____lt____colon__$0(tr$2(other$2), other$2));
+                                }
                               }
                             }
-                            return __lt____lt____colon__$8498(res$10618, expr$10546);
+                            return __lt____lt____colon__$0(res$0, expr$1);
                           } else {
-                            ___match_error($10541$10557);
+                            return ___match_error(m$25$0);
                           }
                         }
                       }
-                    })));
-                    if ((!inserted$10528)) {
-                      ($10686$10696 = target$10488);
-                      if ((($10686$10696 instanceof Array) && (((t0$10701 = $10686$10696.length)), ((t0$10701 === 1) && ($10686$10696[0] === "void"))))) {
-                        return __lt____lt____colon__$8498(["data"].concat(body$10490), sumloc$10257);
+                    }));
+                    if ((!inserted$0)) {
+                      m$27$0 = target$0;
+                      if (((m$27$0 instanceof Array) && (($targ$197 = m$27$0.length), (t0$26 = $targ$197), ((t0$26 === 1) && (m$27$0[0] === "void"))))) {
+                        return __lt____lt____colon__$0(["data"].concat(body$2), sumloc$0);
                       } else {
-                        $10686$10696;
-                        if (target$10488.fromop) {
-                          return __lt____lt____colon__$8498(["send", target$10488, __lt____lt____colon__$8498(["data"].concat(body$10490), _b$10489)], sumloc$10257);
+                        m$27$0;
+                        if (target$0.fromop) {
+                          return __lt____lt____colon__$0(["send", target$0, __lt____lt____colon__$0(["data"].concat(body$2), _b$0)], sumloc$0);
                         } else {
-                          if ((($10692$10705 = ($10686$10696 instanceof Array)) && (((t0$10701 = $10686$10696.length)), ((t0$10701 === 3) && (($10686$10696[0] === "send") && ((f$10722 = $10686$10696[1]), (((t1$10702 = $10686$10696[2])), ((orig_args$10723 = t1$10702), ((t1$10702 instanceof Array) && (((t2$10703 = t1$10702.length)), ((t2$10703 >= 1) && (t1$10702[0] === "data")))))))))))) {
-                            (args$10724 = Array.prototype.slice.call(t1$10702, 1));
-                            return __lt____lt____colon__$8498(["send", f$10722, __lt____lt____colon__$8498(["data"].concat(args$10724).concat(body$10490), __plus____plus____colon__$8499(orig_args$10723, _b$10489))], sumloc$10257);
+                          if ((($$16920$0 = (m$27$0 instanceof Array)) && (($targ$198 = m$27$0.length), (t0$26 = $targ$198), ((t0$26 === 3) && ((m$27$0[0] === "send") && ((f$6 = m$27$0[1]), (t1$16 = m$27$0[2]), (orig_args$0 = t1$16), ((t1$16 instanceof Array) && ((t2$6 = t1$16.length), ((t2$6 >= 1) && (t1$16[0] === "data")))))))))) {
+                            args$3 = Array.prototype.slice.call(t1$16, 1);
+                            return __lt____lt____colon__$0(["send", f$6, __lt____lt____colon__$0(["data"].concat(args$3).concat(body$2), __plus____plus____colon__$0(orig_args$0, _b$0))], sumloc$0);
                           } else {
-                            if (($10692$10705 && ((t0$10701 >= 1) && ($10686$10696[0] === "data")))) {
-                              (args$10746 = Array.prototype.slice.call($10686$10696, 1));
-                              return __lt____lt____colon__$8498(target$10488.concat(body$10490), sumloc$10257);
+                            if (($$16920$0 && ((t0$26 >= 1) && (m$27$0[0] === "data")))) {
+                              args$4 = Array.prototype.slice.call(m$27$0, 1);
+                              return __lt____lt____colon__$0(target$0.concat(body$2), sumloc$0);
                             } else {
-                              (other$10751 = $10686$10696);
-                              return __lt____lt____colon__$8498(["send", target$10488, __lt____lt____colon__$8498(["data"].concat(body$10490), _b$10489)], sumloc$10257);
+                              other$3 = m$27$0;
+                              return __lt____lt____colon__$0(["send", target$0, __lt____lt____colon__$0(["data"].concat(body$2), _b$0)], sumloc$0);
                             }
                           }
                         }
                       }
                     } else {
-                      return __lt____lt____colon__$8498(result$10529, sumloc$10257);
+                      return __lt____lt____colon__$0(result$1, sumloc$0);
                     }
                   } else {
-                    if (($10252$10433 && (((bridge$10238$10429 = $10233$10415[0])), ((((bridge$10238$10429 instanceof Array) && (((t0$10763 = bridge$10238$10429.length)), ((t0$10763 >= 2) && ((bridge$10238$10429[0] === "[") && ((commas$10755 = Array.prototype.slice.call(bridge$10238$10429, 1, -1)), (bridge$10238$10429[(t0$10763 - 1)] === "]")))))) || ((commas$10755 = bridge$10238$10429), true)) && ($10233$10415[1], commas$10755.every((function(x$10774) {
-                      return equal(x$10774, ",");
+                    if (($$16650$0 && ((bridge$$16637$0 = m$21$0[0]), ((((bridge$$16637$0 instanceof Array) && ((t0$27 = bridge$$16637$0.length), ((t0$27 >= 2) && ((bridge$$16637$0[0] === "[") && ((commas$0 = Array.prototype.slice.call(bridge$$16637$0, 1, -1)), (bridge$$16637$0[(t0$27 - 1)] === "]")))))) || ((commas$0 = bridge$$16637$0), true)) && (m$21$0[1], commas$0.every((function(x$3) {
+                      return equal(x$3, ",");
                     }))))))) {
-                      if ((op$10259 === "[")) {
-                        (args$10225 = args$10225.slice(1, -1));
+                      if ((op$1 === "[")) {
+                        $targ$205 = args$1.slice(1, -1);
+                        args$1 = $targ$205;
                       }
-                      (args$10225 = (((f$10790 = (function($10794$10797) {
-                        var other$10826;
-                        var t0$10813;
-                        var $10799$10808;
-                        var ph$10802;
-                        (ph$10802 = $10794$10797);
-                        ($10799$10808 = ph$10802);
-                        if ((($10799$10808 instanceof Array) && (((t0$10813 = $10799$10808.length)), ((t0$10813 === 1) && ($10799$10808[0] === "void"))))) {
+                      $targ$203 = ((f$7 = (function(temp$10$0) {
+                        var t0$28;
+                        var other$4;
+                        var m$28$0;
+                        var ph$10;
+                        ph$10 = temp$10$0;
+                        m$28$0 = ph$10;
+                        if (((m$28$0 instanceof Array) && ((t0$28 = m$28$0.length), ((t0$28 === 1) && (m$28$0[0] === "void"))))) {
                           return false;
                         } else {
-                          (other$10826 = $10799$10808);
+                          other$4 = m$28$0;
                           return true;
                         }
-                      }))), args$10225.filter(f$10790)));
-                      (result$10780 = ((($10832$10840 = args$10225)), ((($10836$10847 = ($10832$10840 instanceof Array)) && (((t0$10845 = $10832$10840.length)), (t0$10845 === 0))) ? ["multi"] : (($10836$10847 && (t0$10845 === 1)) ? ((x$10860 = $10832$10840[0]), ((((!isNaN(sumloc$10257.start)) && (!isNaN(sumloc$10257.end))) ? ((x$10860["location"] = sumloc$10257)) : undefined), x$10860)) : ((other$10871 = $10832$10840), ["multi"].concat(args$10225))))));
-                      return __lt____lt____colon__$8498(result$10780, sumloc$10257);
+                      })), args$1.filter(f$7));
+                      args$1 = $targ$203;
+                      result$2 = ((m$29$0 = args$1), ((($$17030$0 = (m$29$0 instanceof Array)) && ((t0$29 = m$29$0.length), (t0$29 === 0))) ? ["multi"] : (($$17030$0 && (t0$29 === 1)) ? ((x$4 = m$29$0[0]), (((!isNaN(sumloc$0.start)) && (!isNaN(sumloc$0.end))) ? (($targ$211 = sumloc$0), (x$4["location"] = $targ$211)) : undefined), x$4) : ((other$5 = m$29$0), ["multi"].concat(args$1)))));
+                      return __lt____lt____colon__$0(result$2, sumloc$0);
                     } else {
-                      if (($10252$10433 && (((t1$10421 = $10233$10415[0])), (($10254$10435 = (t1$10421 instanceof Array)) && (((t2$10422 = t1$10421.length)), ((t2$10422 >= 2) && ((t1$10421[0] === "{") && ((commas$10876 = Array.prototype.slice.call(t1$10421, 1, -1)), ((t1$10421[(t2$10422 - 1)] === "}") && ($10233$10415[1], commas$10876.every((function(x$10892) {
-                        return equal(x$10892, ",");
+                      if (($$16650$0 && (($targ$212 = m$21$0[0]), (t1$13 = $targ$212), (($$16652$0 = (t1$13 instanceof Array)) && (($targ$213 = t1$13.length), (t2$4 = $targ$213), ((t2$4 >= 2) && ((t1$13[0] === "{") && ((commas$1 = Array.prototype.slice.call(t1$13, 1, -1)), ((t1$13[(t2$4 - 1)] === "}") && (m$21$0[1], commas$1.every((function(x$5) {
+                        return equal(x$5, ",");
                       })))))))))))) {
-                        (f$10897 = (function($10901$10904) {
-                          var other$10933;
-                          var t0$10920;
-                          var $10906$10915;
-                          var ph$10909;
-                          (ph$10909 = $10901$10904);
-                          ($10906$10915 = ph$10909);
-                          if ((($10906$10915 instanceof Array) && (((t0$10920 = $10906$10915.length)), ((t0$10920 === 1) && ($10906$10915[0] === "void"))))) {
+                        f$8 = (function(temp$11$0) {
+                          var t0$30;
+                          var other$6;
+                          var m$30$0;
+                          var ph$11;
+                          ph$11 = temp$11$0;
+                          m$30$0 = ph$11;
+                          if (((m$30$0 instanceof Array) && ((t0$30 = m$30$0.length), ((t0$30 === 1) && (m$30$0[0] === "void"))))) {
                             return false;
                           } else {
-                            (other$10933 = $10906$10915);
+                            other$6 = m$30$0;
                             return true;
                           }
-                        }));
-                        return __lt____lt____colon__$8498(["data"].concat(args$10225.slice(1, -1).filter(f$10897)), sumloc$10257);
+                        });
+                        return __lt____lt____colon__$0(["data"].concat(args$1.slice(1, -1).filter(f$8)), sumloc$0);
                       } else {
-                        if (($10254$10435 && (($10256$10437 = (t2$10422 === 1)) && (t1$10421[0] === "WHITE")))) {
-                          $10233$10415[1];
-                          return __lt____lt____colon__$8498(["send"].concat(args$10225), sumloc$10257);
+                        if (($$16652$0 && (($$16654$0 = (t2$4 === 1)) && (t1$13[0] === "WHITE")))) {
+                          m$21$0[1];
+                          return __lt____lt____colon__$0(["send"].concat(args$1), sumloc$0);
                         } else {
-                          if ($10256$10437) {
-                            t1$10421[0];
-                            ($10242$10942 = $10233$10415[1]);
-                            (t0$10946 = $10242$10942);
-                            if ((($10246$10954 = (t0$10946 instanceof Array)) && (((t1$10947 = t0$10946.length)), (($10248$10956 = (t1$10947 === 2)) && (((t2$10948 = t0$10946[0])), ((t2$10948 instanceof Array) && (((t3$10949 = t2$10948.length)), ((t3$10949 === 1) && ((t2$10948[0] === "void") && (((t4$10950 = t0$10946[1])), ((t4$10950 instanceof Array) && (((t5$10951 = t4$10950.length)), ((t5$10951 === 1) && (t4$10950[0] === "void")))))))))))))) {
-                              return __lt____lt____colon__$8498(["symbol", op$10259], orig_ops$10258[0]);
+                          if ($$16654$0) {
+                            t1$13[0];
+                            ph$8$0 = m$21$0[1];
+                            t0$31 = ph$8$0;
+                            if ((($$16644$0 = (t0$31 instanceof Array)) && ((t1$17 = t0$31.length), (($$16646$0 = (t1$17 === 2)) && ((t2$7 = t0$31[0]), ((t2$7 instanceof Array) && ((t3$4 = t2$7.length), ((t3$4 === 1) && ((t2$7[0] === "void") && ((t4$2 = t0$31[1]), ((t4$2 instanceof Array) && ((t5$2 = t4$2.length), ((t5$2 === 1) && (t4$2[0] === "void")))))))))))))) {
+                              return __lt____lt____colon__$0(["symbol", op$1], orig_ops$0[0]);
                             } else {
-                              if ($10248$10956) {
-                                (a$10992 = t0$10946[0]);
-                                (b$10993 = t0$10946[1]);
-                                (oloc$11002 = orig_ops$10258[0].location);
-                                (abloc$11003 = __plus____plus____colon__$8499(a$10992, b$10993));
-                                (oabloc$11004 = __plus____plus____colon__$8499(orig_ops$10258[0], abloc$11003));
-                                (rval$11005 = __lt____lt____colon__$8498(["send", __lt____lt____colon__$8498(["symbol", op$10259], oloc$11002), __lt____lt____colon__$8498(["data", a$10992, b$10993], abloc$11003)], __plus____plus____colon__$8499(oloc$11002, abloc$11003)));
-                                (rval$11005["fromop"] = true);
-                                return rval$11005;
+                              if ($$16646$0) {
+                                a$1 = t0$31[0];
+                                b$1 = t0$31[1];
+                                oloc$0 = orig_ops$0[0].location;
+                                abloc$0 = __plus____plus____colon__$0(a$1, b$1);
+                                oabloc$0 = __plus____plus____colon__$0(orig_ops$0[0], abloc$0);
+                                rval$2 = __lt____lt____colon__$0(["send", __lt____lt____colon__$0(["symbol", op$1], oloc$0), __lt____lt____colon__$0(["data", a$1, b$1], abloc$0)], __plus____plus____colon__$0(oloc$0, abloc$0));
+                                $targ$227 = true;
+                                (rval$2["fromop"] = $targ$227);
+                                return rval$2;
                               } else {
-                                ___match_error($10242$10942, "/home/olivier/git/earl-grey/src/parse.eg", 17814, 17819);
+                                return ___match_error(ph$8$0, "/home/olivier/git/earl-grey/src/parse.eg", 17801, 17806);
                               }
                             }
                           } else {
-                            if ($10252$10433) {
-                              (op_strings$11025 = $10233$10415[0]);
-                              (args$11026 = $10233$10415[1]);
-                              return __lt____lt____colon__$8498(["mismix", (((acc$11034 = [])), (((temp$11040 = orig_ops$10258)), ((($length$11046 = temp$11040.length)), ((($index$11052 = 0)), (function() {
-                                $11029: for (; ($index$11052 < $length$11046); ($index$11052++)) {
-                                  var op$11069;
-                                  var m$11061;
-                                  (m$11061 = temp$11040[$index$11052]);
-                                  (op$11069 = m$11061);
-                                  acc$11034.push(__lt____lt____colon__$8498(["symbol", op$11069[2]], op$11069));
+                            if ($$16650$0) {
+                              op_strings$0 = m$21$0[0];
+                              args$5 = m$21$0[1];
+                              return __lt____lt____colon__$0(["mismix", ((acc$8 = []), (m$31 = null), (function() {
+                                $16: for (var $__4 = orig_ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                                    $__5; !($__5 = $__4.next()).done; ) {
+                                  m$31 = $__5.value;
+                                  {
+                                    var op$3;
+                                    op$3 = m$31;
+                                    acc$8.push(__lt____lt____colon__$0(["symbol", op$3[2]], op$3));
+                                  }
                                 }
-                              })()))), acc$11034)].concat(args$11026), sumloc$10257);
+                              })(), acc$8)].concat(args$5), sumloc$0);
                             } else {
-                              ___match_error($10233$10415);
+                              return ___match_error(m$21$0);
                             }
                           }
                         }
@@ -1063,30 +1139,40 @@ SimplePriority$8505;
                 }
               }
             } else {
-              (other$11076 = $10160$10183);
-              throw ErrorFactory(["should_never_happen"]).create("unknown node (B)", ({"node": token$10172}));
+              other$7 = m$20$0;
+              throw ErrorFactory(["should_never_happen"]).create("unknown node (B)", ({"node": token$0}));
             }
           }
         }
       }
     }
   }
-}));
-(parse$8515 = (function(tokens$11083) {
-  var next$11087;
-  (next$11087 = (function() {
-    return tokens$11083.shift();
-  }));
-  return oparse$8513(next$11087, eg_order$8507.compare.bind(eg_order$8507), finalize$8514);
-}));
-(exports["OperatorGroups"] = OperatorGroups$8503);
-(exports["SimplePriority"] = SimplePriority$8505);
-(exports["parse"] = parse$8515);
-(exports["oparse"] = oparse$8513);
-(exports["finalize"] = finalize$8514);
-(exports["DONE"] = DONE$8508);
-(exports["NONE"] = NONE$8509);
-(exports["LEFT"] = LEFT$8510);
-(exports["RIGHT"] = RIGHT$8511);
-(exports["BOTH"] = BOTH$8512);
+});
+parse$0 = (function(tokens$0) {
+  var next$1;
+  next$1 = (function() {
+    return tokens$0.shift();
+  });
+  return oparse$0(next$1, eg_order$0.compare.bind(eg_order$0), finalize$0);
+});
+$targ$230 = OperatorGroups$0;
+(exports["OperatorGroups"] = $targ$230);
+$targ$231 = SimplePriority$0;
+(exports["SimplePriority"] = $targ$231);
+$targ$232 = parse$0;
+(exports["parse"] = $targ$232);
+$targ$233 = oparse$0;
+(exports["oparse"] = $targ$233);
+$targ$234 = finalize$0;
+(exports["finalize"] = $targ$234);
+$targ$235 = DONE$0;
+(exports["DONE"] = $targ$235);
+$targ$236 = NONE$0;
+(exports["NONE"] = $targ$236);
+$targ$237 = LEFT$0;
+(exports["LEFT"] = $targ$237);
+$targ$238 = RIGHT$0;
+(exports["RIGHT"] = $targ$238);
+$targ$239 = BOTH$0;
+(exports["BOTH"] = $targ$239);
 //# sourceURL=<compile-source>

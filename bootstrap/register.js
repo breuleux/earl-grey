@@ -1,39 +1,38 @@
 "use strict";
 require("earlgrey-runtime");
-var $index$16002;
-var $length$15996;
-var temp$15990;
-var acc$15984;
-var eg$15934;
-var $15927$15935;
-var Source$15936;
-var fs$15937;
-var extensions$15938;
-var load$15939;
-(eg$15934 = require("./earl-grey"));
-($15927$15935 = require("./location"));
-(Source$15936 = $15927$15935.Source);
-(fs$15937 = require("fs"));
-(extensions$15938 = [".eg"]);
-(load$15939 = (function(module$15962, file$15963) {
-  var text$15969;
-  var g$15970;
-  var compiled$15971;
-  (text$15969 = fs$15937.readFileSync(file$15963, "utf8"));
-  (g$15970 = eg$15934.Generator());
-  (compiled$15971 = g$15970.generate(Source$15936(text$15969, file$15963)));
-  return module$15962._compile(compiled$15971, file$15963);
-}));
-(acc$15984 = []);
-(temp$15990 = extensions$15938);
-($length$15996 = temp$15990.length);
-($index$16002 = 0);
-$15940: for (; ($index$16002 < $length$15996); ($index$16002++)) {
-  var ext$16019;
-  var m$16011;
-  (m$16011 = temp$15990[$index$16002]);
-  (ext$16019 = m$16011);
-  acc$15984.push(((require.extensions[ext$16019] = load$15939)));
+var m$0;
+var acc$0;
+var eg$0;
+var $1$0;
+var Source$0;
+var fs$0;
+var extensions$0;
+var load$0;
+eg$0 = require("./earl-grey");
+$1$0 = require("./location");
+Source$0 = $1$0.Source;
+fs$0 = require("fs");
+extensions$0 = [".eg"];
+load$0 = (function(module$0, file$0) {
+  var text$0;
+  var g$0;
+  var compiled$0;
+  text$0 = fs$0.readFileSync(file$0, "utf8");
+  g$0 = eg$0.Generator();
+  compiled$0 = g$0.generate(Source$0(text$0, file$0));
+  return module$0._compile(compiled$0, file$0);
+});
+acc$0 = [];
+m$0 = null;
+$2: for (var $__0 = extensions$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__1; !($__1 = $__0.next()).done; ) {
+  m$0 = $__1.value;
+  {
+    var $targ$10;
+    var ext$0;
+    ext$0 = m$0;
+    acc$0.push((($targ$10 = load$0), (require.extensions[ext$0] = $targ$10)));
+  }
 }
-acc$15984;
+acc$0;
 //# sourceURL=<compile-source>

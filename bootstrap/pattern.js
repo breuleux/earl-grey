@@ -1,917 +1,1030 @@
 "use strict";
 require("earlgrey-runtime");
-var $15100 = (function(o, m) {
-  if (typeof(m) === 'string' || typeof(m) === 'number') {
-    return o[m];
-  } else {
-    return o['::send'](m);
-  }
+var $targ$99;
+var accum$0;
+var $targ$100;
+var accum$1;
+var $targ$167;
+var accum$2;
+var $targ$168;
+var accum$3;
+var $targ$332;
+var $targ$333;
+var $targ$334;
+var $targ$335;
+var $0$0;
+var __lt____gt__$0;
+var $1$0;
+var __lt____lt____colon__$0;
+var util$0;
+var GenSym$0;
+var gensym$0;
+var classify$0;
+var classify_contiguous$0;
+var identity$0;
+var Body$0;
+var $3$0;
+var checker_db$0;
+var PatternParser$0;
+var $targ$13;
+var $targ$14;
+var PatternProcessor$0;
+var $targ$16;
+var $targ$17;
+var $targ$18;
+var $targ$19;
+var assemble_conditions$0;
+var assemble_pattern$0;
+var inject_below_uses$0;
+var find_target$0;
+var parse_pattern$0;
+var checkall$0;
+var same_block$0;
+var parse_clauses$0;
+var opt_clauses$0;
+var weave_clauses$0;
+$0$0 = require("./pp");
+__lt____gt__$0 = $0$0["<>"];
+$1$0 = require("./location");
+__lt____lt____colon__$0 = $1$0["<<:"];
+util$0 = require("./util");
+GenSym$0 = util$0.GenSym;
+gensym$0 = util$0.gensym;
+classify$0 = util$0.classify;
+classify_contiguous$0 = util$0.classify_contiguous;
+identity$0 = util$0.identity;
+Body$0 = util$0.Body;
+$3$0 = require("./expand");
+checker_db$0 = $3$0.checker_db;
+PatternParser$0 = (function(info$0, pattern$0, opt$0) {
+  var $targ$32;
+  var $targ$33;
+  var $targ$34;
+  var $targ$35;
+  var tags$0;
+  var $targ$37;
+  var $it$0;
+  $it$0 = ((!getChecker(PatternParser$0)(this)) ? Object.create(PatternParser$0.prototype) : this);
+  $targ$32 = opt$0;
+  ($it$0["opt"] = $targ$32);
+  $targ$33 = [];
+  ($it$0["arguments"] = $targ$33);
+  $targ$34 = [];
+  ($it$0["vars"] = $targ$34);
+  $targ$35 = ({});
+  ($it$0["specials"] = $targ$35);
+  tags$0 = clone((opt$0.tags || ({})));
+  (tags$0["group_id"] = (tags$0.group_id || gensym$0("group")));
+  $targ$37 = $it$0.expand(info$0, pattern$0, tags$0, true, $it$0.opt.indexable);
+  ($it$0["pattern"] = $targ$37);
+  return $it$0;
 });
-var accum$12128;
-var accum$12132;
-var accum$12942;
-var accum$12946;
-var $11139$11173;
-var __lt____gt__$11174;
-var $11140$11175;
-var __lt____lt____colon__$11176;
-var util$11177;
-var GenSym$11178;
-var gensym$11179;
-var classify$11180;
-var classify_contiguous$11181;
-var identity$11182;
-var Body$11183;
-var $11142$11184;
-var checker_db$11185;
-var PatternParser$11186;
-var PatternProcessor$11187;
-var assemble_conditions$11188;
-var assemble_pattern$11189;
-var inject_below_uses$11190;
-var parse_pattern$11191;
-var checkall$11192;
-var same_block$11193;
-var parse_clauses$11194;
-var opt_clauses$11195;
-var weave_clauses$11196;
-($11139$11173 = require("./pp"));
-(__lt____gt__$11174 = $11139$11173["<>"]);
-($11140$11175 = require("./location"));
-(__lt____lt____colon__$11176 = $11140$11175["<<:"]);
-(util$11177 = require("./util"));
-(GenSym$11178 = util$11177.GenSym);
-(gensym$11179 = util$11177.gensym);
-(classify$11180 = util$11177.classify);
-(classify_contiguous$11181 = util$11177.classify_contiguous);
-(identity$11182 = util$11177.identity);
-(Body$11183 = util$11177.Body);
-($11142$11184 = require("./expand"));
-(checker_db$11185 = $11142$11184.checker_db);
-(PatternParser$11186 = (function(scope$11240, pattern$11241, opt$11242) {
-  var tags$11258;
-  var it$0$11245;
-  (it$0$11245 = ((!getChecker(PatternParser$11186)(this)) ? Object.create(PatternParser$11186.prototype) : this));
-  (it$0$11245["opt"] = opt$11242);
-  (it$0$11245["arguments"] = []);
-  (it$0$11245["vars"] = []);
-  (it$0$11245["specials"] = ({}));
-  (tags$11258 = clone((opt$11242.tags || ({}))));
-  (tags$11258["group_id"] = (tags$11258.group_id || gensym$11179("group")));
-  (it$0$11245["pattern"] = it$0$11245.expand(scope$11240, pattern$11241, tags$11258, true, it$0$11245.opt.indexable));
-  return it$0$11245;
-}));
-(PatternParser$11186.prototype["parse_specs"] = (function(scope$11282, specs$11283, tags$11284) {
-  var $index$11345;
-  var $length$11339;
-  var temp$11333;
-  var acc$11327;
-  var rest$11302;
-  var has_defaults$11303;
-  var rval$11304;
-  var it$0$11288;
-  var self$11289;
-  (it$0$11288 = this);
-  (self$11289 = this);
-  (rest$11302 = undefined);
-  (has_defaults$11303 = false);
-  (rval$11304 = classify$11180("fw", "bw", "keys", "defaults", (((acc$11327 = [])), (((temp$11333 = scope$11282.step_all(["pattern"], specs$11283))), ((($length$11339 = temp$11333.length)), ((($index$11345 = 0)), (function() {
-    $11313: for (; ($index$11345 < $length$11339); ($index$11345++)) {
-      var v$11419;
-      var v$11413;
-      var variable$11401;
-      var value$11402;
-      var key$11394;
-      var subp$11395;
-      var key$11388;
-      var variable$11368;
-      var $11321$11362;
-      var $11322$11363;
-      var $11323$11364;
-      var $11324$11365;
-      var t0$11359;
-      var t1$11360;
-      var m$11354;
-      (m$11354 = temp$11333[$index$11345]);
-      (t0$11359 = m$11354);
-      if ((($11322$11363 = (t0$11359 instanceof Array)) && (((t1$11360 = t0$11359.length)), (($11324$11365 = (t1$11360 === 2)) && (t0$11359[0] === "dynsplice"))))) {
-        (variable$11368 = t0$11359[1]);
-        acc$11327.push((((rest$11302 = it$0$11288.expand(scope$11282, variable$11368, tags$11284))), ["ignore"]));
-      } else {
-        if (($11324$11365 && (t0$11359[0] === "assoc"))) {
-          (key$11388 = t0$11359[1]);
-          acc$11327.push(["keys", [key$11388, it$0$11288.expand(scope$11282, key$11388, tags$11284)]]);
+$targ$13 = (function(info$1, specs$0, tags$1) {
+  var m$0;
+  var acc$0;
+  var $targ$40;
+  var rest$0;
+  var $targ$41;
+  var has_defaults$0;
+  var rval$0;
+  var $targ$43;
+  var $it$1;
+  var self$0;
+  $it$1 = this;
+  self$0 = this;
+  $targ$40 = undefined;
+  rest$0 = $targ$40;
+  $targ$41 = false;
+  has_defaults$0 = $targ$41;
+  rval$0 = classify$0("fw", "bw", "keys", "defaults", ((acc$0 = []), (m$0 = null), (function() {
+    $4: for (var $__0 = info$1.step_all(["pattern"], specs$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$0 = $__1.value;
+      {
+        var t1$0;
+        var $targ$47;
+        var $targ$48;
+        var v$1;
+        var v$0;
+        var variable$1;
+        var value$0;
+        var key$1;
+        var subp$0;
+        var key$0;
+        var t0$0;
+        var variable$0;
+        var $$17395$0;
+        var $$17396$0;
+        var $$17397$0;
+        var $$17398$0;
+        t0$0 = m$0;
+        if ((($$17396$0 = (t0$0 instanceof Array)) && ((t1$0 = t0$0.length), (($$17398$0 = (t1$0 === 2)) && (t0$0[0] === "dynsplice"))))) {
+          variable$0 = t0$0[1];
+          acc$0.push((($targ$47 = $it$1.expand(info$1, variable$0, tags$1)), (rest$0 = $targ$47), ["ignore"]));
         } else {
-          if (($11322$11363 && (($11324$11365 = (t1$11360 === 3)) && (t0$11359[0] === "assoc")))) {
-            (key$11394 = t0$11359[1]);
-            (subp$11395 = t0$11359[2]);
-            acc$11327.push(["keys", [key$11394, it$0$11288.expand(scope$11282, subp$11395, tags$11284)]]);
+          if (($$17398$0 && (t0$0[0] === "assoc"))) {
+            key$0 = t0$0[1];
+            acc$0.push(["keys", [key$0, $it$1.expand(info$1, key$0, tags$1)]]);
           } else {
-            if (($11324$11365 && (t0$11359[0] === "default"))) {
-              (variable$11401 = t0$11359[1]);
-              (value$11402 = t0$11359[2]);
-              acc$11327.push((((has_defaults$11303 = true)), (rest$11302 ? (function() {
-                throw ErrorFactory(["syntax", "pattern"]).create("No default arguments after rest arg.");
-              })() : ["defaults", [it$0$11288.expand(scope$11282, variable$11401, tags$11284), value$11402]])));
+            if (($$17396$0 && (($$17398$0 = (t1$0 === 3)) && (t0$0[0] === "assoc")))) {
+              key$1 = t0$0[1];
+              subp$0 = t0$0[2];
+              acc$0.push(["keys", [key$1, $it$1.expand(info$1, subp$0, tags$1)]]);
             } else {
-              (v$11413 = m$11354);
-              if (((rest$11302 === undefined) && (!has_defaults$11303))) {
-                acc$11327.push(["fw", it$0$11288.expand(scope$11282, v$11413, tags$11284)]);
+              if (($$17398$0 && (t0$0[0] === "default"))) {
+                variable$1 = t0$0[1];
+                value$0 = t0$0[2];
+                acc$0.push((($targ$48 = true), (has_defaults$0 = $targ$48), (rest$0 ? (function() {
+                  throw ErrorFactory(["syntax", "pattern"]).create("No default arguments after rest arg.");
+                })() : ["defaults", [$it$1.expand(info$1, variable$1, tags$1), value$0]])));
               } else {
-                (v$11419 = m$11354);
-                acc$11327.push(["bw", it$0$11288.expand(scope$11282, v$11419, tags$11284)]);
+                v$0 = m$0;
+                if (((rest$0 === undefined) && (!has_defaults$0))) {
+                  acc$0.push(["fw", $it$1.expand(info$1, v$0, tags$1)]);
+                } else {
+                  v$1 = m$0;
+                  acc$0.push(["bw", $it$1.expand(info$1, v$1, tags$1)]);
+                }
               }
             }
           }
         }
       }
     }
-  })()))), acc$11327)));
-  (rval$11304["rest"] = rest$11302);
-  return rval$11304;
-}));
-(PatternParser$11186.prototype["expand"] = (function() {
-  var x$11519;
-  var x$11529;
-  var x$11558;
-  var x$11564;
-  var variable$11571;
-  var variable$11588;
-  var x$11629;
-  var msg$11637;
-  var msg$11653;
-  var $index$11695;
-  var $length$11689;
-  var temp$11683;
-  var acc$11677;
-  var $index$11828;
-  var $length$11822;
-  var temp$11816;
-  var acc$11810;
-  var $index$11864;
-  var $length$11858;
-  var temp$11852;
-  var t0$11939;
-  var t1$11940;
-  var t2$11941;
-  var $index$11987;
-  var $length$11981;
-  var temp$11975;
-  var acc$11969;
-  var patts$11961;
-  var canon$11725;
-  var normalize$11726;
-  var pps$11727;
-  var vars$11728;
-  var patt$12062;
-  var msg$12108;
-  var other$12104;
-  var keys$12068;
-  var fw$12041;
-  var bw$12042;
-  var defaults$12043;
-  var rest$12044;
-  var $12019$12038;
-  var t0$12031;
-  var t1$12032;
-  var t2$12033;
-  var t3$12034;
-  var t4$12035;
-  var t5$12036;
-  var $12015$12026;
-  var specs$12020;
-  var other$12120;
-  var mode$12114;
-  var subp$12115;
-  var args$12010;
-  var xs$11717;
-  var xs$11669;
-  var x$11659;
-  var f$11643;
-  var arg$11644;
-  var f$11618;
-  var arguments$11619;
-  var checker$11612;
-  var subp$11613;
-  var projector$11605;
-  var subp$11606;
-  var unconditional$11607;
-  var condition$11599;
-  var subp$11600;
-  var v$11594;
-  var v$11577;
-  var type$11536;
-  var $11495$11510;
-  var $11496$11511;
-  var $11497$11512;
-  var $11498$11513;
-  var t0$11506;
-  var bridge$11480$11507;
-  var t1$11508;
-  var $11475$11501;
-  var expr$11468;
-  var rval$11469;
-  var scope$11454;
-  var pattern$11455;
-  var tags$11456;
-  var toplevel$11457;
-  var checked$11458;
-  var t0$11450;
-  var $11433$11445;
-  var it$0$11435;
-  var self$11436;
-  (it$0$11435 = this);
-  (self$11436 = this);
-  ($11433$11445 = arguments);
-  (t0$11450 = $11433$11445.length);
-  if (((t0$11450 >= 3) && (t0$11450 <= 5))) {
-    (scope$11454 = $11433$11445[0]);
-    (pattern$11455 = $11433$11445[1]);
-    (tags$11456 = $11433$11445[2]);
-    (toplevel$11457 = ((3 >= t0$11450) ? false : $11433$11445[3]));
-    (checked$11458 = ((4 >= t0$11450) ? false : $11433$11445[4]));
-    (expr$11468 = scope$11454.step(["pattern"], pattern$11455));
-    (rval$11469 = ((($11475$11501 = expr$11468)), ((((x$11519 = $11475$11501)), ((x$11519 instanceof Array) && (x$11519[0] === "void"))) ? ["check", checker_db$11185.null, ["ignore"]] : ((((x$11529 = $11475$11501)), ((x$11529 instanceof Array) && (x$11529[0] === "ignore"))) ? expr$11468 : ((($11475$11501 instanceof Array) && (((t0$11506 = $11475$11501.length)), ((t0$11506 === 2) && ($11475$11501[0] === "special")))) ? ((type$11536 = $11475$11501[1]), (((it$0$11435.specials[type$11536] = true)), expr$11468)) : (((bridge$11480$11507 = $11475$11501)), (((((x$11558 = bridge$11480$11507)), ((x$11558 instanceof Array) && (x$11558[0] === "symbol"))) || (((x$11564 = bridge$11480$11507)), ((x$11564 instanceof Array) && (x$11564[0] === "variable")))) ? (((variable$11571 = __amp__(expr$11468, tags$11456))), it$0$11435.vars.push(variable$11571), ["assign", variable$11571]) : ((($11495$11510 = ($11475$11501 instanceof Array)) && (((t0$11506 = $11475$11501.length)), (($11497$11512 = (t0$11506 === 2)) && (($11498$11513 = ($11475$11501[0] === "value")) && ((v$11577 = $11475$11501[1]), it$0$11435.opt.strings_as_variables))))) ? (((variable$11588 = __lt____lt____colon__$11176(__amp__(["symbol", v$11577], tags$11456), expr$11468))), it$0$11435.vars.push(variable$11588), ["assign", variable$11588]) : ($11498$11513 ? ((v$11594 = $11475$11501[1]), ["check", checker_db$11185(v$11594), ["ignore"]]) : (($11495$11510 && ((t0$11506 === 3) && ($11475$11501[0] === "test"))) ? ((condition$11599 = $11475$11501[1]), (subp$11600 = $11475$11501[2]), ["test", condition$11599, it$0$11435.expand(scope$11454, subp$11600, tags$11456, toplevel$11457, false)]) : (($11495$11510 && (((t0$11506 >= 3) && (t0$11506 <= 4)) && ($11475$11501[0] === "project"))) ? ((projector$11605 = $11475$11501[1]), (subp$11606 = $11475$11501[2]), (unconditional$11607 = ((3 >= t0$11506) ? false : $11475$11501[3])), ["project", projector$11605, it$0$11435.expand(scope$11454, subp$11606, tags$11456, toplevel$11457, true), unconditional$11607]) : (($11495$11510 && (($11497$11512 = (t0$11506 === 3)) && ($11475$11501[0] === "check"))) ? ((checker$11612 = $11475$11501[1]), (subp$11613 = $11475$11501[2]), ["check", checker$11612, it$0$11435.expand(scope$11454, subp$11613, tags$11456, toplevel$11457, true)]) : (($11497$11512 && (($11498$11513 = ($11475$11501[0] === "send")) && ((f$11618 = $11475$11501[1]), (((t1$11508 = $11475$11501[2])), (((x$11629 = t1$11508)), ((x$11629 instanceof Array) && (x$11629[0] === "data"))))))) ? ((arguments$11619 = t1$11508), (toplevel$11457 ? (it$0$11435.arguments.unshift(arguments$11619), it$0$11435.expand(scope$11454, f$11618, tags$11456, true, false)) : (((msg$11637 = "Function arguments can only be declared as a top level pattern.")), (function() {
-      throw ErrorFactory(["syntax", "pattern"]).create(msg$11637, ({
-        "node": expr$11468,
-        "arg": arguments$11619
+  })(), acc$0));
+  $targ$43 = rest$0;
+  (rval$0["rest"] = $targ$43);
+  return rval$0;
+});
+(PatternParser$0.prototype["parse_specs"] = $targ$13);
+$targ$14 = (function() {
+  var x$0;
+  var x$1;
+  var $targ$58;
+  var $targ$59;
+  var x$2;
+  var x$3;
+  var variable$2;
+  var $targ$64;
+  var variable$3;
+  var x$4;
+  var t1$1;
+  var msg$0;
+  var msg$1;
+  var $targ$70;
+  var m$3;
+  var acc$1;
+  var m$5;
+  var acc$3;
+  var m$6;
+  var t2$0;
+  var t1$4;
+  var t0$5;
+  var m$8;
+  var acc$4;
+  var patts$0;
+  var canon$0;
+  var normalize$0;
+  var pps$0;
+  var $targ$75;
+  var vars$0;
+  var $targ$90;
+  var $targ$89;
+  var patt$0;
+  var t5$0;
+  var t4$0;
+  var t3$0;
+  var t2$1;
+  var $targ$93;
+  var $targ$92;
+  var msg$2;
+  var other$0;
+  var keys$0;
+  var fw$0;
+  var bw$0;
+  var defaults$0;
+  var rest$1;
+  var $$17801$0;
+  var t0$6;
+  var t1$5;
+  var m$9$0;
+  var specs$1;
+  var other$1;
+  var mode$0;
+  var subp$4;
+  var args$0;
+  var xs$1;
+  var xs$0;
+  var x$5;
+  var f$1;
+  var arg$0;
+  var f$0;
+  var arguments$1;
+  var checker$0;
+  var subp$3;
+  var projector$0;
+  var subp$2;
+  var unconditional$0;
+  var condition$0;
+  var subp$1;
+  var v$3;
+  var v$2;
+  var bridge$$17495$0;
+  var type$0;
+  var $$17510$0;
+  var $$17511$0;
+  var $$17512$0;
+  var $$17513$0;
+  var t0$2;
+  var m$2$0;
+  var expr$0;
+  var rval$1;
+  var t0$1;
+  var info$2;
+  var pattern$1;
+  var tags$2;
+  var toplevel$0;
+  var checked$0;
+  var m$1$0;
+  var $it$2;
+  var self$1;
+  $it$2 = this;
+  self$1 = this;
+  m$1$0 = arguments;
+  t0$1 = m$1$0.length;
+  if (((t0$1 >= 3) && (t0$1 <= 5))) {
+    info$2 = m$1$0[0];
+    pattern$1 = m$1$0[1];
+    tags$2 = m$1$0[2];
+    toplevel$0 = ((3 >= t0$1) ? false : m$1$0[3]);
+    checked$0 = ((4 >= t0$1) ? false : m$1$0[4]);
+    expr$0 = info$2.step(["pattern"], pattern$1);
+    rval$1 = ((m$2$0 = expr$0), (((x$0 = m$2$0), ((x$0 instanceof Array) && (x$0[0] === "void"))) ? ["check", checker_db$0.null, ["ignore"]] : (((x$1 = m$2$0), ((x$1 instanceof Array) && (x$1[0] === "ignore"))) ? expr$0 : (((m$2$0 instanceof Array) && (($targ$58 = m$2$0.length), (t0$2 = $targ$58), ((t0$2 === 2) && (m$2$0[0] === "special")))) ? ((type$0 = m$2$0[1]), ($targ$59 = true), ($it$2.specials[type$0] = $targ$59), expr$0) : ((bridge$$17495$0 = m$2$0), ((((x$2 = bridge$$17495$0), ((x$2 instanceof Array) && (x$2[0] === "symbol"))) || ((x$3 = bridge$$17495$0), ((x$3 instanceof Array) && (x$3[0] === "variable")))) ? ((variable$2 = __amp__(expr$0, tags$2)), $it$2.vars.push(variable$2), ["assign", variable$2]) : ((($$17510$0 = (m$2$0 instanceof Array)) && (($targ$64 = m$2$0.length), (t0$2 = $targ$64), (($$17512$0 = (t0$2 === 2)) && (($$17513$0 = (m$2$0[0] === "value")) && ((v$2 = m$2$0[1]), $it$2.opt.strings_as_variables))))) ? ((variable$3 = __lt____lt____colon__$0(__amp__(["symbol", v$2], tags$2), expr$0)), $it$2.vars.push(variable$3), ["assign", variable$3]) : ($$17513$0 ? ((v$3 = m$2$0[1]), ["check", checker_db$0(v$3), ["ignore"]]) : (($$17510$0 && ((t0$2 === 3) && (m$2$0[0] === "test"))) ? ((condition$0 = m$2$0[1]), (subp$1 = m$2$0[2]), ["test", condition$0, $it$2.expand(info$2, subp$1, tags$2, toplevel$0, false)]) : (($$17510$0 && (((t0$2 >= 3) && (t0$2 <= 4)) && (m$2$0[0] === "project"))) ? ((projector$0 = m$2$0[1]), (subp$2 = m$2$0[2]), (unconditional$0 = ((3 >= t0$2) ? false : m$2$0[3])), ["project", projector$0, $it$2.expand(info$2, subp$2, tags$2, toplevel$0, true), unconditional$0]) : (($$17510$0 && (($$17512$0 = (t0$2 === 3)) && (m$2$0[0] === "check"))) ? ((checker$0 = m$2$0[1]), (subp$3 = m$2$0[2]), ["check", checker$0, $it$2.expand(info$2, subp$3, tags$2, toplevel$0, true)]) : (($$17512$0 && (($$17513$0 = (m$2$0[0] === "send")) && ((f$0 = m$2$0[1]), (t1$1 = m$2$0[2]), (x$4 = t1$1), ((x$4 instanceof Array) && (x$4[0] === "data"))))) ? ((arguments$1 = t1$1), (toplevel$0 ? ($it$2.arguments.unshift(arguments$1), $it$2.expand(info$2, f$0, tags$2, true, false)) : ((msg$0 = "Function arguments can only be declared as a top level pattern."), (function() {
+      throw ErrorFactory(["syntax", "pattern"]).create(msg$0, ({
+        "node": expr$0,
+        "arg": arguments$1
       }));
-    })()))) : ($11498$11513 ? ((f$11643 = $11475$11501[1]), (arg$11644 = $11475$11501[2]), ["assign", expr$11468]) : ($11475$11501, ((!it$0$11435.opt.allow_nested) ? (((msg$11653 = "Nested patterns are not allowed here.")), (function() {
-      throw ErrorFactory(["syntax", "pattern"]).create(msg$11653, ({"node": expr$11468}));
-    })()) : ((($11495$11510 = ($11475$11501 instanceof Array)) && (((t0$11506 = $11475$11501.length)), ((t0$11506 === 2) && ($11475$11501[0] === "neg")))) ? ((x$11659 = $11475$11501[1]), ["neg", it$0$11435.expand(scope$11454, x$11659, tags$11456)]) : (($11495$11510 && (($11497$11512 = (t0$11506 >= 1)) && ($11475$11501[0] === "all"))) ? ((xs$11669 = Array.prototype.slice.call($11475$11501, 1)), ["all"].concat((((acc$11677 = [])), (((temp$11683 = xs$11669)), ((($length$11689 = temp$11683.length)), ((($index$11695 = 0)), (function() {
-      $11672: for (; ($index$11695 < $length$11689); ($index$11695++)) {
-        var x$11712;
-        var m$11704;
-        (m$11704 = temp$11683[$index$11695]);
-        (x$11712 = m$11704);
-        acc$11677.push(it$0$11435.expand(scope$11454, x$11712, tags$11456));
+    })()))) : ($$17513$0 ? ((f$1 = m$2$0[1]), (arg$0 = m$2$0[2]), ["assign", expr$0]) : (m$2$0, ((!$it$2.opt.allow_nested) ? ((msg$1 = "Nested patterns are not allowed here."), (function() {
+      throw ErrorFactory(["syntax", "pattern"]).create(msg$1, ({"node": expr$0}));
+    })()) : ((($$17510$0 = (m$2$0 instanceof Array)) && (($targ$70 = m$2$0.length), (t0$2 = $targ$70), ((t0$2 === 2) && (m$2$0[0] === "neg")))) ? ((x$5 = m$2$0[1]), ["neg", $it$2.expand(info$2, x$5, tags$2)]) : (($$17510$0 && (($$17512$0 = (t0$2 >= 1)) && (m$2$0[0] === "all"))) ? ((xs$0 = Array.prototype.slice.call(m$2$0, 1)), ["all"].concat(((acc$1 = []), (m$3 = null), (function() {
+      $5: for (var $__0 = xs$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$3 = $__1.value;
+        {
+          var x$6;
+          x$6 = m$3;
+          acc$1.push($it$2.expand(info$2, x$6, tags$2));
+        }
       }
-    })()))), acc$11677))) : (($11497$11512 && ($11475$11501[0] === "any")) ? ((xs$11717 = Array.prototype.slice.call($11475$11501, 1)), (((canon$11725 = (function(all$11736) {
-      return all$11736.sort().join(",");
-    }))), ((normalize$11726 = (function(vars$11743) {
-      var $index$11768;
-      var $length$11762;
-      var temp$11756;
-      var acc$11750;
-      return canon$11725((((acc$11750 = [])), (((temp$11756 = vars$11743)), ((($length$11762 = temp$11756.length)), ((($index$11768 = 0)), (function() {
-        $11745: for (; ($index$11768 < $length$11762); ($index$11768++)) {
-          var v$11787;
-          var t0$11782;
-          var t1$11783;
-          var m$11777;
-          (m$11777 = temp$11756[$index$11768]);
-          (t0$11782 = m$11777);
-          if (((t0$11782 instanceof Array) && (((t1$11783 = t0$11782.length)), ((t1$11783 === 2) && (t0$11782[0] === "symbol"))))) {
-            (v$11787 = t0$11782[1]);
-            acc$11750.push(v$11787);
+    })(), acc$1))) : (($$17512$0 && (m$2$0[0] === "any")) ? ((xs$1 = Array.prototype.slice.call(m$2$0, 1)), (canon$0 = (function(all$0) {
+      return all$0.sort().join(",");
+    })), (normalize$0 = (function(vars$1) {
+      var m$4;
+      var acc$2;
+      return canon$0(((acc$2 = []), (m$4 = null), (function() {
+        $7: for (var $__0 = vars$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__1; !($__1 = $__0.next()).done; ) {
+          m$4 = $__1.value;
+          {
+            var t1$2;
+            var t0$3;
+            var v$4;
+            t0$3 = m$4;
+            if (((t0$3 instanceof Array) && ((t1$2 = t0$3.length), ((t1$2 === 2) && (t0$3[0] === "symbol"))))) {
+              v$4 = t0$3[1];
+              acc$2.push(v$4);
+            } else {
+              ___match_error(m$4, "/home/olivier/git/earl-grey/src/pattern.eg", 3939, 3977);
+            }
+          }
+        }
+      })(), acc$2));
+    })), (pps$0 = ((acc$3 = []), (m$5 = null), (function() {
+      $8: for (var $__0 = xs$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$5 = $__1.value;
+        {
+          var x$7;
+          x$7 = m$5;
+          acc$3.push(PatternParser$0(info$2, x$7, __amp__($it$2.opt, ({"tags": tags$2}))));
+        }
+      }
+    })(), acc$3)), (m$6 = null), (function() {
+      $6: for (var $__2 = neighbours(pps$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__3; !($__3 = $__2.next()).done; ) {
+        m$6 = $__3.value;
+        {
+          var t1$3;
+          var m$7;
+          var t0$4;
+          var pp1$0;
+          var pp2$0;
+          t0$4 = m$6;
+          if (((t0$4 instanceof Array) && ((t1$3 = t0$4.length), (t1$3 === 2)))) {
+            pp1$0 = t0$4[0];
+            pp2$0 = t0$4[1];
+            m$7 = null;
+            $9: for (var $__0 = pps$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__1; !($__1 = $__0.next()).done; ) {
+              m$7 = $__1.value;
+              {
+                var pp$0;
+                pp$0 = m$7;
+                normalize$0(pp$0.vars);
+              }
+            }
+            if ((normalize$0(pp1$0.vars) !== normalize$0(pp2$0.vars))) {
+              throw ErrorFactory(["syntax", "pattern"]).create("Both branches of 'or' must contain the same variables", ({
+                "vars1": __lt____lt____colon__$0(pp1$0.vars.sort(), pp1$0.pattern),
+                "vars2": __lt____lt____colon__$0(pp2$0.vars.sort(), pp2$0.pattern)
+              }));
+            }
+            if ((canon$0(keys(pp1$0.specials)) !== canon$0(keys(pp2$0.specials)))) {
+              throw ErrorFactory(["syntax", "pattern"]).create("Both branches of 'or' must contain the same special tokens", ({
+                "special1": __lt____lt____colon__$0(keys(pp1$0.specials).sort(), pp1$0.pattern),
+                "special2": __lt____lt____colon__$0(keys(pp2$0.specials).sort(), pp2$0.pattern)
+              }));
+            }
           } else {
-            ___match_error(m$11777, "/home/olivier/git/earl-grey/src/pattern.eg", 3957, 3995);
+            ___match_error(m$6, "/home/olivier/git/earl-grey/src/pattern.eg", 4068, 4865);
           }
         }
-      })()))), acc$11750));
-    }))), ((pps$11727 = (((acc$11810 = [])), (((temp$11816 = xs$11717)), ((($length$11822 = temp$11816.length)), ((($index$11828 = 0)), (function() {
-      $11805: for (; ($index$11828 < $length$11822); ($index$11828++)) {
-        var x$11845;
-        var m$11837;
-        (m$11837 = temp$11816[$index$11828]);
-        (x$11845 = m$11837);
-        acc$11810.push(PatternParser$11186(scope$11454, x$11845, __amp__(it$0$11435.opt, ({"tags": tags$11456}))));
       }
-    })()))), acc$11810))), (((temp$11852 = neighbours(pps$11727))), ((($length$11858 = temp$11852.length)), ((($index$11864 = 0)), (function() {
-      $11729: for (; ($index$11864 < $length$11858); ($index$11864++)) {
-        var $index$11915;
-        var $length$11909;
-        var temp$11903;
-        var pp1$11883;
-        var pp2$11884;
-        var t0$11878;
-        var t1$11879;
-        var m$11873;
-        (m$11873 = temp$11852[$index$11864]);
-        (t0$11878 = m$11873);
-        if (((t0$11878 instanceof Array) && (((t1$11879 = t0$11878.length)), (t1$11879 === 2)))) {
-          (pp1$11883 = t0$11878[0]);
-          (pp2$11884 = t0$11878[1]);
-          (temp$11903 = pps$11727);
-          ($length$11909 = temp$11903.length);
-          ($index$11915 = 0);
-          $11897: for (; ($index$11915 < $length$11909); ($index$11915++)) {
-            var pp$11932;
-            var m$11924;
-            (m$11924 = temp$11903[$index$11915]);
-            (pp$11932 = m$11924);
-            normalize$11726(pp$11932.vars);
-          }
-          if ((normalize$11726(pp1$11883.vars) !== normalize$11726(pp2$11884.vars))) {
-            throw ErrorFactory(["syntax", "pattern"]).create("Both branches of 'or' must contain the same variables", ({
-              "vars1": __lt____lt____colon__$11176(pp1$11883.vars.sort(), pp1$11883.pattern),
-              "vars2": __lt____lt____colon__$11176(pp2$11884.vars.sort(), pp2$11884.pattern)
-            }));
-          }
-          if ((canon$11725(keys(pp1$11883.specials)) !== canon$11725(keys(pp2$11884.specials)))) {
-            throw ErrorFactory(["syntax", "pattern"]).create("Both branches of 'or' must contain the same special tokens", ({
-              "special1": __lt____lt____colon__$11176(keys(pp1$11883.specials).sort(), pp1$11883.pattern),
-              "special2": __lt____lt____colon__$11176(keys(pp2$11884.specials).sort(), pp2$11884.pattern)
-            }));
-          }
-        } else {
-          ___match_error(m$11873, "/home/olivier/git/earl-grey/src/pattern.eg", 4087, 4884);
+    })(), ($targ$75 = pps$0), (t0$5 = $targ$75), (((t0$5 instanceof Array) && ((t1$4 = t0$5.length), ((t1$4 >= 1) && ((t2$0 = t0$5[0]), ___hasprop(t2$0, "vars"))))) ? ((vars$0 = t2$0.vars), Array.prototype.slice.call(t0$5, 1)) : ___match_error($targ$75)), ($it$2["vars"] = $it$2.vars.concat(vars$0)), (patts$0 = ((acc$4 = []), (m$8 = null), (function() {
+      $10: for (var $__0 = pps$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$8 = $__1.value;
+        {
+          var pp$1;
+          pp$1 = m$8;
+          acc$4.push(pp$1.pattern);
         }
       }
-    })()))), (((t0$11939 = pps$11727)), (((t0$11939 instanceof Array) && (((t1$11940 = t0$11939.length)), ((t1$11940 >= 1) && (((t2$11941 = t0$11939[0])), ___hasprop(t2$11941, "vars"))))) ? ((vars$11728 = t2$11941.vars), Array.prototype.slice.call(t0$11939, 1)) : ___match_error(pps$11727, "/home/olivier/git/earl-grey/src/pattern.eg", 4901, 4904))), (it$0$11435["vars"] = it$0$11435.vars.concat(vars$11728)), (((patts$11961 = (((acc$11969 = [])), (((temp$11975 = pps$11727)), ((($length$11981 = temp$11975.length)), ((($index$11987 = 0)), (function() {
-      $11964: for (; ($index$11987 < $length$11981); ($index$11987++)) {
-        var pp$12004;
-        var m$11996;
-        (m$11996 = temp$11975[$index$11987]);
-        (pp$12004 = m$11996);
-        acc$11969.push(pp$12004.pattern);
-      }
-    })()))), acc$11969))), ["any"].concat(patts$11961)))) : (($11497$11512 && ($11475$11501[0] === "data")) ? ((args$12010 = Array.prototype.slice.call($11475$11501, 1)), (((specs$12020 = it$0$11435.parse_specs(scope$11454, args$12010, tags$11456))), ((($12015$12026 = specs$12020)), ((($12019$12038 = ___hasprop($12015$12026, "keys")) && (((t0$12031 = $12015$12026.keys)), ((t0$12031 instanceof Array) && (((t1$12032 = t0$12031.length)), ((t1$12032 === 0) && (___hasprop($12015$12026, "fw") && ((fw$12041 = $12015$12026.fw), (___hasprop($12015$12026, "bw") && ((bw$12042 = $12015$12026.bw), (___hasprop($12015$12026, "defaults") && ((defaults$12043 = $12015$12026.defaults), ___hasprop($12015$12026, "rest")))))))))))) ? ((rest$12044 = $12015$12026.rest), (((patt$12062 = __lt____lt____colon__$11176(["array_pattern", fw$12041, bw$12042, defaults$12043, rest$12044], pattern$11455))), (checked$11458 ? patt$12062 : ["check", checker_db$11185.Array, patt$12062]))) : (($12019$12038 && ((keys$12068 = $12015$12026.keys), (___hasprop($12015$12026, "fw") && (((t0$12031 = $12015$12026.fw)), ((t0$12031 instanceof Array) && (((t1$12032 = t0$12031.length)), ((t1$12032 === 0) && (___hasprop($12015$12026, "bw") && (((t2$12033 = $12015$12026.bw)), ((t2$12033 instanceof Array) && (((t3$12034 = t2$12033.length)), ((t3$12034 === 0) && (___hasprop($12015$12026, "defaults") && (((t4$12035 = $12015$12026.defaults)), ((t4$12035 instanceof Array) && (((t5$12036 = t4$12035.length)), ((t5$12036 === 0) && (___hasprop($12015$12026, "rest") && ($12015$12026.rest === (void 0)))))))))))))))))))) ? ["object_pattern"].concat(keys$12068) : ((other$12104 = $12015$12026), (((msg$12108 = "Pattern must be an array or an object.")), (function() {
-      throw ErrorFactory(["syntax", "pattern"]).create(msg$12108, ({
-        "node": expr$11468,
-        "specs": specs$12020
+    })(), acc$4)), ["any"].concat(patts$0)) : (($$17512$0 && (m$2$0[0] === "data")) ? ((args$0 = Array.prototype.slice.call(m$2$0, 1)), (specs$1 = $it$2.parse_specs(info$2, args$0, tags$2)), (m$9$0 = specs$1), ((($$17801$0 = ___hasprop(m$9$0, "keys")) && (($targ$89 = m$9$0.keys), (t0$6 = $targ$89), ((t0$6 instanceof Array) && (($targ$90 = t0$6.length), (t1$5 = $targ$90), ((t1$5 === 0) && (___hasprop(m$9$0, "fw") && ((fw$0 = m$9$0.fw), (___hasprop(m$9$0, "bw") && ((bw$0 = m$9$0.bw), (___hasprop(m$9$0, "defaults") && ((defaults$0 = m$9$0.defaults), ___hasprop(m$9$0, "rest")))))))))))) ? ((rest$1 = m$9$0.rest), (patt$0 = __lt____lt____colon__$0(["array_pattern", fw$0, bw$0, defaults$0, rest$1], pattern$1)), (checked$0 ? patt$0 : ["check", checker_db$0.Array, patt$0])) : (($$17801$0 && ((keys$0 = m$9$0.keys), (___hasprop(m$9$0, "fw") && (($targ$92 = m$9$0.fw), (t0$6 = $targ$92), ((t0$6 instanceof Array) && (($targ$93 = t0$6.length), (t1$5 = $targ$93), ((t1$5 === 0) && (___hasprop(m$9$0, "bw") && ((t2$1 = m$9$0.bw), ((t2$1 instanceof Array) && ((t3$0 = t2$1.length), ((t3$0 === 0) && (___hasprop(m$9$0, "defaults") && ((t4$0 = m$9$0.defaults), ((t4$0 instanceof Array) && ((t5$0 = t4$0.length), ((t5$0 === 0) && (___hasprop(m$9$0, "rest") && (m$9$0.rest === (void 0)))))))))))))))))))) ? ["object_pattern"].concat(keys$0) : ((other$0 = m$9$0), (msg$2 = "Pattern must be an array or an object."), (function() {
+      throw ErrorFactory(["syntax", "pattern"]).create(msg$2, ({
+        "node": expr$0,
+        "specs": specs$1
       }));
-    })()))))))) : (($11495$11510 && ((t0$11506 === 3) && ($11475$11501[0] === "mode"))) ? ((mode$12114 = $11475$11501[1]), (subp$12115 = $11475$11501[2]), it$0$11435.expand(scope$11454, subp$12115, __amp__(tags$11456, ({"declare_mode": mode$12114})), toplevel$11457, checked$11458)) : ((other$12120 = $11475$11501), (function() {
-      throw ErrorFactory(["syntax", "pattern"]).create(("Illegal pattern: " + other$12120), ({"node": other$12120}));
-    })()))))))))))))))))))))));
-    return (it$0$11435.opt.wrap_pattern || identity$11182)(__lt____lt____colon__$11176(rval$11469, pattern$11455), toplevel$11457);
+    })())))) : (($$17510$0 && ((t0$2 === 3) && (m$2$0[0] === "mode"))) ? ((mode$0 = m$2$0[1]), (subp$4 = m$2$0[2]), $it$2.expand(info$2, subp$4, __amp__(tags$2, ({"declare_mode": mode$0})), toplevel$0, checked$0)) : ((other$1 = m$2$0), (function() {
+      throw ErrorFactory(["syntax", "pattern"]).create(("Illegal pattern: " + other$1), ({"node": other$1}));
+    })())))))))))))))))))))));
+    return ($it$2.opt.wrap_pattern || identity$0)(__lt____lt____colon__$0(rval$1, pattern$1), toplevel$0);
   } else {
-    ___match_error($11433$11445);
+    return ___match_error(m$1$0);
   }
-}));
-__amp____colon__(PatternParser$11186, __amp____colon__(((accum$12128 = ({})), ((accum$12128["::name"] = "PatternParser"), accum$12128)), ((accum$12132 = ({})), ((accum$12132["::egclass"] = true), accum$12132))));
-PatternParser$11186;
-(PatternProcessor$11187 = (function() {
-  var it$0$12141;
-  (it$0$12141 = ((!getChecker(PatternProcessor$11187)(this)) ? Object.create(PatternProcessor$11187.prototype) : this));
-  (it$0$12141["temps"] = []);
-  (it$0$12141["parts"] = []);
-  (it$0$12141["gen"] = GenSym$11178("t"));
-  return it$0$12141;
-}));
-(PatternProcessor$11187.prototype["do"] = (function(part$12165) {
-  var it$0$12169;
-  var self$12170;
-  (it$0$12169 = this);
-  (self$12170 = this);
-  return it$0$12169.parts.push(["do", part$12165]);
-}));
-(PatternProcessor$11187.prototype["check"] = (function() {
-  var part$12206;
-  var tags$12207;
-  var t0$12202;
-  var $12185$12197;
-  var it$0$12187;
-  var self$12188;
-  (it$0$12187 = this);
-  (self$12188 = this);
-  ($12185$12197 = arguments);
-  (t0$12202 = $12185$12197.length);
-  if (((t0$12202 >= 1) && (t0$12202 <= 2))) {
-    (part$12206 = $12185$12197[0]);
-    (tags$12207 = ((1 >= t0$12202) ? ({}) : $12185$12197[1]));
-    return it$0$12187.parts.push(__amp__(["check", part$12206], tags$12207));
+});
+(PatternParser$0.prototype["expand"] = $targ$14);
+__amp____colon__(PatternParser$0, __amp____colon__((($targ$99 = "PatternParser"), (accum$0 = ({})), (accum$0["::name"] = $targ$99), accum$0), (($targ$100 = true), (accum$1 = ({})), (accum$1["::egclass"] = $targ$100), accum$1)));
+PatternParser$0;
+PatternProcessor$0 = (function() {
+  var $targ$102;
+  var $targ$103;
+  var $targ$104;
+  var $it$3;
+  $it$3 = ((!getChecker(PatternProcessor$0)(this)) ? Object.create(PatternProcessor$0.prototype) : this);
+  $targ$102 = [];
+  ($it$3["temps"] = $targ$102);
+  $targ$103 = [];
+  ($it$3["parts"] = $targ$103);
+  $targ$104 = GenSym$0("t");
+  ($it$3["gen"] = $targ$104);
+  return $it$3;
+});
+$targ$16 = (function(part$0) {
+  var $it$4;
+  var self$2;
+  $it$4 = this;
+  self$2 = this;
+  return $it$4.parts.push(["do", part$0]);
+});
+(PatternProcessor$0.prototype["do"] = $targ$16);
+$targ$17 = (function() {
+  var t0$7;
+  var part$1;
+  var tags$3;
+  var m$10$0;
+  var $it$5;
+  var self$3;
+  $it$5 = this;
+  self$3 = this;
+  m$10$0 = arguments;
+  t0$7 = m$10$0.length;
+  if (((t0$7 >= 1) && (t0$7 <= 2))) {
+    part$1 = m$10$0[0];
+    tags$3 = ((1 >= t0$7) ? ({}) : m$10$0[1]);
+    return $it$5.parts.push(__amp__(["check", part$1], tags$3));
   } else {
-    ___match_error($12185$12197);
+    return ___match_error(m$10$0);
   }
-}));
-(PatternProcessor$11187.prototype["temp"] = (function() {
-  var x$12274;
-  var x$12280;
-  var init$12287;
-  var bridge$12254$12263;
-  var $12252$12258;
-  var x$12244;
-  var v$12245;
-  var t0$12240;
-  var $12223$12235;
-  var it$0$12225;
-  var self$12226;
-  (it$0$12225 = this);
-  (self$12226 = this);
-  ($12223$12235 = arguments);
-  (t0$12240 = $12223$12235.length);
-  if (((t0$12240 >= 1) && (t0$12240 <= 2))) {
-    (x$12244 = $12223$12235[0]);
-    (v$12245 = ((1 >= t0$12240) ? null : $12223$12235[1]));
-    ($12252$12258 = x$12244);
-    (bridge$12254$12263 = $12252$12258);
-    if ((((((x$12274 = bridge$12254$12263)), ((x$12274 instanceof Array) && (x$12274[0] === "variable"))) || (((x$12280 = bridge$12254$12263)), ((x$12280 instanceof Array) && (x$12280[0] === "symbol")))) && (___hasprop($12252$12258, "single_assignment") && (($12252$12258.single_assignment ? true : false) && (!v$12245))))) {
-      return x$12244;
+});
+(PatternProcessor$0.prototype["check"] = $targ$17);
+$targ$18 = (function() {
+  var x$9;
+  var x$10;
+  var $targ$119;
+  var $targ$120;
+  var init$0;
+  var bridge$$17990$0;
+  var m$12$0;
+  var t0$8;
+  var x$8;
+  var v$5;
+  var m$11$0;
+  var $it$6;
+  var self$4;
+  $it$6 = this;
+  self$4 = this;
+  m$11$0 = arguments;
+  t0$8 = m$11$0.length;
+  if (((t0$8 >= 1) && (t0$8 <= 2))) {
+    x$8 = m$11$0[0];
+    v$5 = ((1 >= t0$8) ? null : m$11$0[1]);
+    m$12$0 = x$8;
+    bridge$$17990$0 = m$12$0;
+    if (((((x$9 = bridge$$17990$0), ((x$9 instanceof Array) && (x$9[0] === "variable"))) || ((x$10 = bridge$$17990$0), ((x$10 instanceof Array) && (x$10[0] === "symbol")))) && (___hasprop(m$12$0, "single_assignment") && ((m$12$0.single_assignment ? true : false) && (!v$5))))) {
+      return x$8;
     } else {
-      (init$12287 = $12252$12258);
-      (v$12245 = (v$12245 || ["symbol", it$0$12225.gen()]));
-      (v$12245["single_assignment"] = true);
-      it$0$12225.temps.push(v$12245);
-      it$0$12225.do(["send", ["symbol", "="], ["data", ["send", ["symbol", "set"], v$12245], init$12287]]);
-      return v$12245;
+      init$0 = m$12$0;
+      $targ$119 = (v$5 || ["symbol", $it$6.gen()]);
+      v$5 = $targ$119;
+      $targ$120 = true;
+      (v$5["single_assignment"] = $targ$120);
+      $it$6.temps.push(v$5);
+      $it$6.do(["send", ["symbol", "="], ["data", ["send", ["symbol", "set"], v$5], init$0]]);
+      return v$5;
     }
   } else {
-    ___match_error($12223$12235);
+    return ___match_error(m$11$0);
   }
-}));
-(PatternProcessor$11187.prototype["process"] = (function(pattern$12304, rhs$12305, fns$12306) {
-  var x$12363;
-  var x$12397;
-  var t$12410;
-  var t$12434;
-  var t$12443;
-  var pp$12454;
-  var $index$12487;
-  var $length$12481;
-  var temp$12475;
-  var t$12465;
-  var $index$12555;
-  var $length$12549;
-  var temp$12543;
-  var acc$12537;
-  var fn$12520;
-  var parts$12521;
-  var t$12513;
-  var $index$12616;
-  var $length$12610;
-  var temp$12604;
-  var acc$12598;
-  var t$12589;
-  var otherwise$12749;
-  var $12727$12733;
-  var $index$12766;
-  var $length$12760;
-  var temp$12754;
-  var $index$12815;
-  var $length$12809;
-  var temp$12803;
-  var end$12877;
-  var pos$12871;
-  var $index$12901;
-  var $length$12895;
-  var temp$12889;
-  var acc$12883;
-  var nfw$12682;
-  var nbw$12683;
-  var ndflt$12684;
-  var extract_length$12685;
-  var check_length$12686;
-  var lo$12687;
-  var hi$12688;
-  var t$12689;
-  var len$12690;
-  var fw$12666;
-  var bw$12667;
-  var dflt$12668;
-  var rest$12669;
-  var subp$12584;
-  var xs$12508;
-  var xs$12460;
-  var patt$12449;
-  var projector$12416;
-  var subp$12417;
-  var unconditional$12418;
-  var $12332$12419;
-  var checker$12404;
-  var subp$12405;
-  var checker$12392;
-  var condition$12385;
-  var subp$12386;
-  var kind$12380;
-  var sym$12370;
-  var $12340$12354;
-  var $12341$12355;
-  var $12342$12356;
-  var $12343$12357;
-  var t0$12351;
-  var t1$12352;
-  var $12324$12346;
-  var rval$12321;
-  var it$0$12310;
-  var self$12311;
-  (it$0$12310 = this);
-  (self$12311 = this);
-  (rval$12321 = ((($12324$12346 = pattern$12304)), ((((x$12363 = $12324$12346)), ((x$12363 instanceof Array) && (x$12363[0] === "ignore"))) ? it$0$12310.do(rhs$12305) : ((($12340$12354 = ($12324$12346 instanceof Array)) && (((t0$12351 = $12324$12346.length)), (($12342$12356 = (t0$12351 === 2)) && ($12324$12346[0] === "assign")))) ? ((sym$12370 = $12324$12346[1]), it$0$12310.parts.push(fns$12306.assign(sym$12370, rhs$12305))) : (($12342$12356 && ($12324$12346[0] === "special")) ? ((kind$12380 = $12324$12346[1]), it$0$12310.process(fns$12306.special(pattern$12304, rhs$12305), rhs$12305, fns$12306)) : (($12340$12354 && (($12342$12356 = (t0$12351 === 3)) && ($12324$12346[0] === "test"))) ? ((condition$12385 = $12324$12346[1]), (subp$12386 = $12324$12346[2]), (it$0$12310.process(subp$12386, rhs$12305, fns$12306), it$0$12310.check(condition$12385, ({"test": true})))) : (($12342$12356 && (($12343$12357 = ($12324$12346[0] === "check")) && ((checker$12392 = $12324$12346[1]), (((x$12397 = $12324$12346[2])), ((x$12397 instanceof Array) && (x$12397[0] === "ignore")))))) ? it$0$12310.check(["send", checker$12392, ["data", rhs$12305]]) : ($12343$12357 ? ((checker$12404 = $12324$12346[1]), (subp$12405 = $12324$12346[2]), (((t$12410 = it$0$12310.temp(rhs$12305))), it$0$12310.check(["send", checker$12404, ["data", t$12410]]), it$0$12310.process(subp$12405, t$12410, fns$12306))) : (($12340$12354 && ((t0$12351 === 4) && ($12324$12346[0] === "project"))) ? ((projector$12416 = $12324$12346[1]), (subp$12417 = $12324$12346[2]), ((t1$12352 = $12324$12346[3])), (unconditional$12418 = t1$12352), ($12332$12419 = t1$12352), (($12332$12419 ? true : false) ? (((t$12434 = it$0$12310.temp(["send", projector$12416, ["data", rhs$12305]]))), it$0$12310.process(subp$12417, t$12434, fns$12306)) : ($12332$12419, (((t$12443 = it$0$12310.temp(["send", projector$12416, ["data", rhs$12305]]))), it$0$12310.check(["send", t$12443, ["value", 0]]), it$0$12310.process(subp$12417, ["send", t$12443, ["value", 1]], fns$12306))))) : (($12340$12354 && ((t0$12351 === 2) && ($12324$12346[0] === "neg"))) ? ((patt$12449 = $12324$12346[1]), it$0$12310.check(["send", ["symbol", "not"], ["data", ["void"], (((pp$12454 = PatternProcessor$11187())), pp$12454.process(patt$12449, rhs$12305, fns$12306), assemble_conditions$11188(pp$12454))]])) : (($12340$12354 && (($12342$12356 = (t0$12351 >= 1)) && ($12324$12346[0] === "all"))) ? ((xs$12460 = Array.prototype.slice.call($12324$12346, 1)), (((t$12465 = it$0$12310.temp(rhs$12305))), (((temp$12475 = xs$12460)), ((($length$12481 = temp$12475.length)), ((($index$12487 = 0)), (function() {
-    $12466: for (; ($index$12487 < $length$12481); ($index$12487++)) {
-      var x$12504;
-      var m$12496;
-      (m$12496 = temp$12475[$index$12487]);
-      (x$12504 = m$12496);
-      it$0$12310.process(x$12504, t$12465, fns$12306);
-    }
-  })()))), null)) : (($12342$12356 && ($12324$12346[0] === "any")) ? ((xs$12508 = Array.prototype.slice.call($12324$12346, 1)), (((t$12513 = it$0$12310.temp(rhs$12305, ["symbol", gensym$11179("bridge")]))), it$0$12310.check((((fn$12520 = (function(x$12526, rest$12527) {
-    return ["send", ["symbol", "or"], ["data", x$12526, rest$12527]];
-  }))), ((parts$12521 = (((acc$12537 = [])), (((temp$12543 = xs$12508)), ((($length$12549 = temp$12543.length)), ((($index$12555 = 0)), (function() {
-    $12532: for (; ($index$12555 < $length$12549); ($index$12555++)) {
-      var pp$12577;
-      var x$12572;
-      var m$12564;
-      (m$12564 = temp$12543[$index$12555]);
-      (x$12572 = m$12564);
-      acc$12537.push((((pp$12577 = PatternProcessor$11187())), pp$12577.process(x$12572, t$12513, fns$12306), assemble_conditions$11188(pp$12577)));
-    }
-  })()))), acc$12537))), util$11177.construct(parts$12521, fn$12520, ["symbol", "false"]))))) : (($12342$12356 && ($12324$12346[0] === "object_pattern")) ? ((subp$12584 = Array.prototype.slice.call($12324$12346, 1)), (((t$12589 = it$0$12310.temp(rhs$12305))), (((acc$12598 = [])), (((temp$12604 = subp$12584)), ((($length$12610 = temp$12604.length)), ((($index$12616 = 0)), (function() {
-    $12590: for (; ($index$12616 < $length$12610); ($index$12616++)) {
-      var k$12637;
-      var v$12638;
-      var t0$12630;
-      var t1$12631;
-      var t2$12632;
-      var t3$12633;
-      var m$12625;
-      (m$12625 = temp$12604[$index$12616]);
-      (t0$12630 = m$12625);
-      if (((t0$12630 instanceof Array) && (((t1$12631 = t0$12630.length)), ((t1$12631 === 2) && (((t2$12632 = t0$12630[0])), ((t2$12632 instanceof Array) && (((t3$12633 = t2$12632.length)), ((t3$12633 === 2) && (t2$12632[0] === "value"))))))))) {
-        (k$12637 = t2$12632[1]);
-        (v$12638 = t0$12630[1]);
-        acc$12598.push((it$0$12310.check(["send", ["symbol", "___hasprop"], ["data", t$12589, ["value", k$12637]]]), it$0$12310.process(v$12638, ["send", t$12589, ["value", k$12637]], fns$12306)));
-      } else {
-        ___match_error(m$12625, "/home/olivier/git/earl-grey/src/pattern.eg", 8398, 8530);
+});
+(PatternProcessor$0.prototype["temp"] = $targ$18);
+$targ$19 = (function(pattern$2, rhs$0, fns$0) {
+  var x$11;
+  var t0$9;
+  var x$12;
+  var t$0;
+  var t$1;
+  var t$2;
+  var t1$6;
+  var pp$2;
+  var m$14;
+  var t$3;
+  var m$15;
+  var acc$5;
+  var fn$0;
+  var parts$0;
+  var t$4;
+  var m$16;
+  var acc$6;
+  var t$5;
+  var otherwise$0;
+  var m$17$0;
+  var m$18;
+  var m$20;
+  var end$0;
+  var pos$0;
+  var m$21;
+  var acc$7;
+  var nfw$0;
+  var nbw$0;
+  var ndflt$0;
+  var extract_length$0;
+  var check_length$0;
+  var lo$0;
+  var hi$0;
+  var t$6;
+  var len$0;
+  var fw$1;
+  var bw$1;
+  var dflt$0;
+  var rest$3;
+  var subp$8;
+  var xs$3;
+  var xs$2;
+  var patt$1;
+  var projector$1;
+  var subp$7;
+  var unconditional$1;
+  var ph$0$0;
+  var checker$2;
+  var subp$6;
+  var checker$1;
+  var condition$1;
+  var subp$5;
+  var kind$0;
+  var sym$0;
+  var $$18059$0;
+  var $$18060$0;
+  var $$18061$0;
+  var $$18062$0;
+  var m$13$0;
+  var rval$2;
+  var $it$7;
+  var self$5;
+  $it$7 = this;
+  self$5 = this;
+  rval$2 = ((m$13$0 = pattern$2), (((x$11 = m$13$0), ((x$11 instanceof Array) && (x$11[0] === "ignore"))) ? $it$7.do(rhs$0) : ((($$18059$0 = (m$13$0 instanceof Array)) && ((t0$9 = m$13$0.length), (($$18061$0 = (t0$9 === 2)) && (m$13$0[0] === "assign")))) ? ((sym$0 = m$13$0[1]), $it$7.parts.push(fns$0.assign(sym$0, rhs$0))) : (($$18061$0 && (m$13$0[0] === "special")) ? ((kind$0 = m$13$0[1]), $it$7.process(fns$0.special(pattern$2, rhs$0), rhs$0, fns$0)) : (($$18059$0 && (($$18061$0 = (t0$9 === 3)) && (m$13$0[0] === "test"))) ? ((condition$1 = m$13$0[1]), (subp$5 = m$13$0[2]), $it$7.process(subp$5, rhs$0, fns$0), $it$7.check(condition$1, ({"test": true}))) : (($$18061$0 && (($$18062$0 = (m$13$0[0] === "check")) && ((checker$1 = m$13$0[1]), (x$12 = m$13$0[2]), ((x$12 instanceof Array) && (x$12[0] === "ignore"))))) ? $it$7.check(["send", checker$1, ["data", rhs$0]]) : ($$18062$0 ? ((checker$2 = m$13$0[1]), (subp$6 = m$13$0[2]), (t$0 = $it$7.temp(rhs$0)), $it$7.check(["send", checker$2, ["data", t$0]]), $it$7.process(subp$6, t$0, fns$0)) : (($$18059$0 && ((t0$9 === 4) && (m$13$0[0] === "project"))) ? ((projector$1 = m$13$0[1]), (subp$7 = m$13$0[2]), (t1$6 = m$13$0[3]), (unconditional$1 = t1$6), (ph$0$0 = t1$6), ((ph$0$0 ? true : false) ? ((t$1 = $it$7.temp(["send", projector$1, ["data", rhs$0]])), $it$7.process(subp$7, t$1, fns$0)) : (ph$0$0, (t$2 = $it$7.temp(["send", projector$1, ["data", rhs$0]])), $it$7.check(["send", t$2, ["value", 0]]), $it$7.process(subp$7, ["send", t$2, ["value", 1]], fns$0)))) : (($$18059$0 && ((t0$9 === 2) && (m$13$0[0] === "neg"))) ? ((patt$1 = m$13$0[1]), $it$7.check(["send", ["symbol", "not"], ["data", ["void"], ((pp$2 = PatternProcessor$0()), pp$2.process(patt$1, rhs$0, fns$0), assemble_conditions$0(pp$2))]])) : (($$18059$0 && (($$18061$0 = (t0$9 >= 1)) && (m$13$0[0] === "all"))) ? ((xs$2 = Array.prototype.slice.call(m$13$0, 1)), (t$3 = $it$7.temp(rhs$0)), (m$14 = null), (function() {
+    $11: for (var $__0 = xs$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$14 = $__1.value;
+      {
+        var x$13;
+        x$13 = m$14;
+        $it$7.process(x$13, t$3, fns$0);
       }
     }
-  })()))), acc$12598))) : (($12340$12354 && ((t0$12351 === 5) && ($12324$12346[0] === "array_pattern"))) ? ((fw$12666 = $12324$12346[1]), (bw$12667 = $12324$12346[2]), (dflt$12668 = $12324$12346[3]), (rest$12669 = $12324$12346[4]), (((nfw$12682 = fw$12666.length)), ((nbw$12683 = bw$12667.length)), ((ndflt$12684 = dflt$12668.length)), ((extract_length$12685 = true)), ((check_length$12686 = true)), ((lo$12687 = (nfw$12682 + nbw$12683))), ((hi$12688 = (lo$12687 + ndflt$12684))), ((t$12689 = it$0$12310.temp(rhs$12305))), ((len$12690 = it$0$12310.temp(["send", t$12689, ["send", ["symbol", "."], ["data", ["void"], ["symbol", "length"]]]]))), it$0$12310.check(((($12727$12733 = rest$12669)), (($12727$12733 ? true : false) ? ["send", ["symbol", ">="], ["data", len$12690, ["value", lo$12687]]] : ($12727$12733, ((lo$12687 === hi$12688) ? ["send", ["symbol", "==="], ["data", len$12690, ["value", lo$12687]]] : ((otherwise$12749 = $12727$12733), ["send", ["symbol", "and"], ["data", ["send", ["symbol", ">="], ["data", len$12690, ["value", lo$12687]]], ["send", ["symbol", "<="], ["data", len$12690, ["value", hi$12688]]]]])))))), (((temp$12754 = enumerate(fw$12666))), ((($length$12760 = temp$12754.length)), ((($index$12766 = 0)), (function() {
-    $12691: for (; ($index$12766 < $length$12760); ($index$12766++)) {
-      var i$12785;
-      var m$12786;
-      var t0$12780;
-      var t1$12781;
-      var m$12775;
-      (m$12775 = temp$12754[$index$12766]);
-      (t0$12780 = m$12775);
-      if (((t0$12780 instanceof Array) && (((t1$12781 = t0$12780.length)), (t1$12781 === 2)))) {
-        (i$12785 = t0$12780[0]);
-        (m$12786 = t0$12780[1]);
-        it$0$12310.process(m$12786, ["send", t$12689, ["value", i$12785]], fns$12306);
-      } else {
-        ___match_error(m$12775, "/home/olivier/git/earl-grey/src/pattern.eg", 9262, 9348);
+  })(), null) : (($$18061$0 && (m$13$0[0] === "any")) ? ((xs$3 = Array.prototype.slice.call(m$13$0, 1)), (t$4 = $it$7.temp(rhs$0, ["symbol", gensym$0("bridge")])), $it$7.check(((fn$0 = (function(x$14, rest$2) {
+    return ["send", ["symbol", "or"], ["data", x$14, rest$2]];
+  })), (parts$0 = ((acc$5 = []), (m$15 = null), (function() {
+    $12: for (var $__0 = xs$3[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$15 = $__1.value;
+      {
+        var pp$3;
+        var x$15;
+        x$15 = m$15;
+        acc$5.push(((pp$3 = PatternProcessor$0()), pp$3.process(x$15, t$4, fns$0), assemble_conditions$0(pp$3)));
       }
     }
-  })()))), (((temp$12803 = enumerate(dflt$12668))), ((($length$12809 = temp$12803.length)), ((($index$12815 = 0)), (function() {
-    $12694: for (; ($index$12815 < $length$12809); ($index$12815++)) {
-      var idx$12863;
-      var i$12836;
-      var patt$12837;
-      var value$12838;
-      var t0$12829;
-      var t1$12830;
-      var t2$12831;
-      var t3$12832;
-      var m$12824;
-      (m$12824 = temp$12803[$index$12815]);
-      (t0$12829 = m$12824);
-      if (((t0$12829 instanceof Array) && (((t1$12830 = t0$12829.length)), ((t1$12830 === 2) && ((i$12836 = t0$12829[0]), (((t2$12831 = t0$12829[1])), ((t2$12831 instanceof Array) && (((t3$12832 = t2$12831.length)), (t3$12832 === 2))))))))) {
-        (patt$12837 = t2$12831[0]);
-        (value$12838 = t2$12831[1]);
-        (idx$12863 = (i$12836 + nfw$12682));
-        it$0$12310.process(patt$12837, ["send", ["symbol", "if"], ["data", ["send", ["symbol", ">="], ["data", ["value", (idx$12863 + nbw$12683)], len$12690]], value$12838, ["send", t$12689, ["value", idx$12863]]]], fns$12306);
-      } else {
-        ___match_error(m$12824, "/home/olivier/git/earl-grey/src/pattern.eg", 9348, 9517);
+  })(), acc$5)), util$0.construct(parts$0, fn$0, ["symbol", "false"])))) : (($$18061$0 && (m$13$0[0] === "object_pattern")) ? ((subp$8 = Array.prototype.slice.call(m$13$0, 1)), (t$5 = $it$7.temp(rhs$0)), (acc$6 = []), (m$16 = null), (function() {
+    $13: for (var $__0 = subp$8[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$16 = $__1.value;
+      {
+        var t3$1;
+        var t2$2;
+        var t1$7;
+        var t0$10;
+        var k$0;
+        var v$6;
+        t0$10 = m$16;
+        if (((t0$10 instanceof Array) && ((t1$7 = t0$10.length), ((t1$7 === 2) && ((t2$2 = t0$10[0]), ((t2$2 instanceof Array) && ((t3$1 = t2$2.length), ((t3$1 === 2) && (t2$2[0] === "value"))))))))) {
+          k$0 = t2$2[1];
+          v$6 = t0$10[1];
+          acc$6.push(($it$7.check(["send", ["symbol", "___hasprop"], ["data", t$5, ["value", k$0]]]), $it$7.process(v$6, ["send", t$5, ["value", k$0]], fns$0)));
+        } else {
+          ___match_error(m$16, "/home/olivier/git/earl-grey/src/pattern.eg", 8376, 8508);
+        }
       }
     }
-  })()))), ((rest$12669 !== undefined) ? (((pos$12871 = (nfw$12682 + ndflt$12684))), (((end$12877 = ((nbw$12683 > 0) ? [["value", (-nbw$12683)]] : []))), it$0$12310.process(rest$12669, ["send", ["send", ["send", ["send", ["symbol", "Array"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "prototype"]]]], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "slice"]]]], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "call"]]]], ["data", t$12689, ["value", pos$12871]].concat(end$12877)], fns$12306))) : []), (((acc$12883 = [])), (((temp$12889 = enumerate(bw$12667))), ((($length$12895 = temp$12889.length)), ((($index$12901 = 0)), (function() {
-    $12697: for (; ($index$12901 < $length$12895); ($index$12901++)) {
-      var i$12920;
-      var m$12921;
-      var t0$12915;
-      var t1$12916;
-      var m$12910;
-      (m$12910 = temp$12889[$index$12901]);
-      (t0$12915 = m$12910);
-      if (((t0$12915 instanceof Array) && (((t1$12916 = t0$12915.length)), (t1$12916 === 2)))) {
-        (i$12920 = t0$12915[0]);
-        (m$12921 = t0$12915[1]);
-        acc$12883.push(it$0$12310.process(m$12921, ["send", ["symbol", "___js_fetch"], ["data", t$12689, ["send", ["symbol", "-"], ["data", len$12690, ["value", (nbw$12683 - i$12920)]]]]], fns$12306));
-      } else {
-        ___match_error(m$12910, "/home/olivier/git/earl-grey/src/pattern.eg", 9968, 10119);
+  })(), acc$6) : (($$18059$0 && ((t0$9 === 5) && (m$13$0[0] === "array_pattern"))) ? ((fw$1 = m$13$0[1]), (bw$1 = m$13$0[2]), (dflt$0 = m$13$0[3]), (rest$3 = m$13$0[4]), (nfw$0 = fw$1.length), (nbw$0 = bw$1.length), (ndflt$0 = dflt$0.length), (extract_length$0 = true), (check_length$0 = true), (lo$0 = (nfw$0 + nbw$0)), (hi$0 = (lo$0 + ndflt$0)), (t$6 = $it$7.temp(rhs$0)), (len$0 = $it$7.temp(["send", t$6, ["send", ["symbol", "."], ["data", ["void"], ["symbol", "length"]]]])), $it$7.check(((m$17$0 = rest$3), ((m$17$0 ? true : false) ? ["send", ["symbol", ">="], ["data", len$0, ["value", lo$0]]] : (m$17$0, ((lo$0 === hi$0) ? ["send", ["symbol", "==="], ["data", len$0, ["value", lo$0]]] : ((otherwise$0 = m$17$0), ["send", ["symbol", "and"], ["data", ["send", ["symbol", ">="], ["data", len$0, ["value", lo$0]]], ["send", ["symbol", "<="], ["data", len$0, ["value", hi$0]]]]])))))), (m$18 = null), (function() {
+    $14: for (var $__0 = enumerate(fw$1)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$18 = $__1.value;
+      {
+        var t1$8;
+        var t0$11;
+        var i$0;
+        var m$19;
+        t0$11 = m$18;
+        if (((t0$11 instanceof Array) && ((t1$8 = t0$11.length), (t1$8 === 2)))) {
+          i$0 = t0$11[0];
+          m$19 = t0$11[1];
+          $it$7.process(m$19, ["send", t$6, ["value", i$0]], fns$0);
+        } else {
+          ___match_error(m$18, "/home/olivier/git/earl-grey/src/pattern.eg", 9240, 9326);
+        }
       }
     }
-  })()))), acc$12883))) : (___match_error($12324$12346))))))))))))))));
-  return rval$12321;
-}));
-__amp____colon__(PatternProcessor$11187, __amp____colon__(((accum$12942 = ({})), ((accum$12942["::name"] = "PatternProcessor"), accum$12942)), ((accum$12946 = ({})), ((accum$12946["::egclass"] = true), accum$12946))));
-PatternProcessor$11187;
-(assemble_conditions$11188 = (function(pp$12953) {
-  var $index$13077;
-  var $length$13071;
-  var temp$13065;
-  var acc$13059;
-  var decls$13051;
-  var construct$12957;
-  (construct$12957 = (function($12961$12964) {
-    var x$13032;
-    var rest$13033;
-    var x$13017;
-    var x$13001;
-    var rest$13002;
-    var $12971$12988;
-    var $12972$12989;
-    var t0$12984;
-    var t1$12985;
-    var t2$12986;
-    var $12966$12979;
-    var ph$12973;
-    (ph$12973 = $12961$12964);
-    ($12966$12979 = ph$12973);
-    if ((($12971$12988 = ($12966$12979 instanceof Array)) && (((t0$12984 = $12966$12979.length)), (t0$12984 === 0)))) {
+  })(), (m$20 = null), (function() {
+    $15: for (var $__0 = enumerate(dflt$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$20 = $__1.value;
+      {
+        var t3$2;
+        var t2$3;
+        var t1$9;
+        var idx$0;
+        var t0$12;
+        var i$1;
+        var patt$2;
+        var value$1;
+        t0$12 = m$20;
+        if (((t0$12 instanceof Array) && ((t1$9 = t0$12.length), ((t1$9 === 2) && ((i$1 = t0$12[0]), (t2$3 = t0$12[1]), ((t2$3 instanceof Array) && ((t3$2 = t2$3.length), (t3$2 === 2)))))))) {
+          patt$2 = t2$3[0];
+          value$1 = t2$3[1];
+          idx$0 = (i$1 + nfw$0);
+          $it$7.process(patt$2, ["send", ["symbol", "if"], ["data", ["send", ["symbol", ">="], ["data", ["value", (idx$0 + nbw$0)], len$0]], value$1, ["send", t$6, ["value", idx$0]]]], fns$0);
+        } else {
+          ___match_error(m$20, "/home/olivier/git/earl-grey/src/pattern.eg", 9326, 9495);
+        }
+      }
+    }
+  })(), ((rest$3 !== undefined) ? ((pos$0 = (nfw$0 + ndflt$0)), (end$0 = ((nbw$0 > 0) ? [["value", (-nbw$0)]] : [])), $it$7.process(rest$3, ["send", ["send", ["send", ["send", ["symbol", "Array"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "prototype"]]]], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "slice"]]]], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "call"]]]], ["data", t$6, ["value", pos$0]].concat(end$0)], fns$0)) : []), (acc$7 = []), (m$21 = null), (function() {
+    $16: for (var $__0 = enumerate(bw$1)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$21 = $__1.value;
+      {
+        var t1$10;
+        var t0$13;
+        var i$2;
+        var m$22;
+        t0$13 = m$21;
+        if (((t0$13 instanceof Array) && ((t1$10 = t0$13.length), (t1$10 === 2)))) {
+          i$2 = t0$13[0];
+          m$22 = t0$13[1];
+          acc$7.push($it$7.process(m$22, ["send", ["symbol", "___js_fetch"], ["data", t$6, ["send", ["symbol", "-"], ["data", len$0, ["value", (nbw$0 - i$2)]]]]], fns$0));
+        } else {
+          ___match_error(m$21, "/home/olivier/git/earl-grey/src/pattern.eg", 9946, 10097);
+        }
+      }
+    }
+  })(), acc$7) : ___match_error(m$13$0))))))))))))));
+  return rval$2;
+});
+(PatternProcessor$0.prototype["process"] = $targ$19);
+__amp____colon__(PatternProcessor$0, __amp____colon__((($targ$167 = "PatternProcessor"), (accum$2 = ({})), (accum$2["::name"] = $targ$167), accum$2), (($targ$168 = true), (accum$3 = ({})), (accum$3["::egclass"] = $targ$168), accum$3)));
+PatternProcessor$0;
+assemble_conditions$0 = (function(pp$4) {
+  var m$24;
+  var acc$8;
+  var decls$0;
+  var construct$0;
+  construct$0 = (function(temp$0$0) {
+    var t0$14;
+    var $targ$173;
+    var $targ$172;
+    var $targ$175;
+    var $targ$174;
+    var $targ$177;
+    var $targ$176;
+    var x$18;
+    var rest$5;
+    var x$17;
+    var x$16;
+    var rest$4;
+    var $$18429$0;
+    var $$18430$0;
+    var t1$11;
+    var t2$4;
+    var m$23$0;
+    var ph$1;
+    ph$1 = temp$0$0;
+    m$23$0 = ph$1;
+    if ((($$18429$0 = (m$23$0 instanceof Array)) && ((t0$14 = m$23$0.length), (t0$14 === 0)))) {
       return ["value", true];
     } else {
-      if (($12971$12988 && ((t0$12984 >= 1) && (((t1$12985 = $12966$12979[0])), ((t1$12985 instanceof Array) && (((t2$12986 = t1$12985.length)), ((t2$12986 === 2) && (t1$12985[0] === "do")))))))) {
-        (x$13001 = t1$12985[1]);
-        (rest$13002 = Array.prototype.slice.call($12966$12979, 1));
-        return ["multi", x$13001, construct$12957(rest$13002)];
+      if (($$18429$0 && ((t0$14 >= 1) && (($targ$172 = m$23$0[0]), (t1$11 = $targ$172), ((t1$11 instanceof Array) && (($targ$173 = t1$11.length), (t2$4 = $targ$173), ((t2$4 === 2) && (t1$11[0] === "do")))))))) {
+        x$16 = t1$11[1];
+        rest$4 = Array.prototype.slice.call(m$23$0, 1);
+        return ["multi", x$16, construct$0(rest$4)];
       } else {
-        if (($12971$12988 && ((t0$12984 === 1) && (((t1$12985 = $12966$12979[0])), ((t1$12985 instanceof Array) && (((t2$12986 = t1$12985.length)), ((t2$12986 === 2) && (t1$12985[0] === "check")))))))) {
-          (x$13017 = t1$12985[1]);
-          return x$13017;
+        if (($$18429$0 && ((t0$14 === 1) && (($targ$174 = m$23$0[0]), (t1$11 = $targ$174), ((t1$11 instanceof Array) && (($targ$175 = t1$11.length), (t2$4 = $targ$175), ((t2$4 === 2) && (t1$11[0] === "check")))))))) {
+          x$17 = t1$11[1];
+          return x$17;
         } else {
-          if (($12971$12988 && ((t0$12984 >= 1) && (((t1$12985 = $12966$12979[0])), ((t1$12985 instanceof Array) && (((t2$12986 = t1$12985.length)), ((t2$12986 === 2) && (t1$12985[0] === "check")))))))) {
-            (x$13032 = t1$12985[1]);
-            (rest$13033 = Array.prototype.slice.call($12966$12979, 1));
-            return ["send", ["symbol", "and"], ["data", x$13032, construct$12957(rest$13033)]];
+          if (($$18429$0 && ((t0$14 >= 1) && (($targ$176 = m$23$0[0]), (t1$11 = $targ$176), ((t1$11 instanceof Array) && (($targ$177 = t1$11.length), (t2$4 = $targ$177), ((t2$4 === 2) && (t1$11[0] === "check")))))))) {
+            x$18 = t1$11[1];
+            rest$5 = Array.prototype.slice.call(m$23$0, 1);
+            return ["send", ["symbol", "and"], ["data", x$18, construct$0(rest$5)]];
           } else {
-            ___match_error($12966$12979);
+            return ___match_error(m$23$0);
           }
         }
       }
     }
-  }));
-  if (pp$12953.temps.length) {
-    (decls$13051 = (((acc$13059 = [])), (((temp$13065 = pp$12953.temps)), ((($length$13071 = temp$13065.length)), ((($index$13077 = 0)), (function() {
-      $13054: for (; ($index$13077 < $length$13071); ($index$13077++)) {
-        var t$13094;
-        var m$13086;
-        (m$13086 = temp$13065[$index$13077]);
-        (t$13094 = m$13086);
-        acc$13059.push(["declare", t$13094]);
+  });
+  if (pp$4.temps.length) {
+    decls$0 = ((acc$8 = []), (m$24 = null), (function() {
+      $17: for (var $__0 = pp$4.temps[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$24 = $__1.value;
+        {
+          var t$7;
+          t$7 = m$24;
+          acc$8.push(["declare", t$7]);
+        }
       }
-    })()))), acc$13059));
-    return ["multi"].concat(decls$13051).concat([construct$12957(pp$12953.parts)]);
+    })(), acc$8);
+    return ["multi"].concat(decls$0).concat([construct$0(pp$4.parts)]);
   } else {
-    return construct$12957(pp$12953.parts);
+    return construct$0(pp$4.parts);
   }
-}));
-(assemble_pattern$11189 = (function() {
-  var $index$13166;
-  var $length$13160;
-  var temp$13154;
-  var $index$13227;
-  var $length$13221;
-  var temp$13215;
-  var test$13366;
-  var lead$13129;
-  var trail$13130;
-  var construct$13131;
-  var parts$13116;
-  var t$13117;
-  var f$13118;
-  var t0$13112;
-  var $13103$13107;
-  ($13103$13107 = arguments);
-  (t0$13112 = $13103$13107.length);
-  if (((t0$13112 >= 2) && (t0$13112 <= 3))) {
-    (parts$13116 = $13103$13107[0]);
-    (t$13117 = $13103$13107[1]);
-    (f$13118 = ((2 >= t0$13112) ? null : $13103$13107[2]));
-    (lead$13129 = []);
-    (temp$13154 = parts$13116.slice(0));
-    ($length$13160 = temp$13154.length);
-    ($index$13166 = 0);
-    $13132: for (; ($index$13166 < $length$13160); ($index$13166++)) {
-      var x$13204;
-      var x$13189;
-      var $13136$13183;
-      var $13137$13184;
-      var $13138$13185;
-      var $13139$13186;
-      var t0$13180;
-      var t1$13181;
-      var m$13175;
-      (m$13175 = temp$13154[$index$13166]);
-      (t0$13180 = m$13175);
-      if ((($13137$13184 = (t0$13180 instanceof Array)) && (((t1$13181 = t0$13180.length)), (($13139$13186 = (t1$13181 === 2)) && (t0$13180[0] === "do"))))) {
-        (x$13189 = t0$13180[1]);
-        lead$13129.push(x$13189);
-        parts$13116.shift();
-      } else {
-        if (($13139$13186 && (t0$13180[0] === "check"))) {
-          (x$13204 = t0$13180[1]);
-          break $13132;
+});
+assemble_pattern$0 = (function() {
+  var m$26;
+  var m$27;
+  var test$0;
+  var lead$0;
+  var trail$0;
+  var construct$1;
+  var t0$15;
+  var parts$1;
+  var t$8;
+  var f$2;
+  var m$25$0;
+  m$25$0 = arguments;
+  t0$15 = m$25$0.length;
+  if (((t0$15 >= 2) && (t0$15 <= 3))) {
+    parts$1 = m$25$0[0];
+    t$8 = m$25$0[1];
+    f$2 = ((2 >= t0$15) ? null : m$25$0[2]);
+    lead$0 = [];
+    m$26 = null;
+    $18: for (var $__0 = parts$1.slice(0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$26 = $__1.value;
+      {
+        var t1$12;
+        var x$20;
+        var t0$16;
+        var x$19;
+        var $$18540$0;
+        var $$18541$0;
+        var $$18542$0;
+        var $$18543$0;
+        t0$16 = m$26;
+        if ((($$18541$0 = (t0$16 instanceof Array)) && ((t1$12 = t0$16.length), (($$18543$0 = (t1$12 === 2)) && (t0$16[0] === "do"))))) {
+          x$19 = t0$16[1];
+          lead$0.push(x$19);
+          parts$1.shift();
         } else {
-          ___match_error(m$13175, "/home/olivier/git/earl-grey/src/pattern.eg", 10580, 10690);
+          if (($$18543$0 && (t0$16[0] === "check"))) {
+            x$20 = t0$16[1];
+            break $18;
+          } else {
+            ___match_error(m$26, "/home/olivier/git/earl-grey/src/pattern.eg", 10558, 10668);
+          }
         }
       }
     }
-    (trail$13130 = []);
-    (temp$13215 = parts$13116.slice(0).reverse());
-    ($length$13221 = temp$13215.length);
-    ($index$13227 = 0);
-    $13140: for (; ($index$13227 < $length$13221); ($index$13227++)) {
-      var x$13265;
-      var x$13250;
-      var $13144$13244;
-      var $13145$13245;
-      var $13146$13246;
-      var $13147$13247;
-      var t0$13241;
-      var t1$13242;
-      var m$13236;
-      (m$13236 = temp$13215[$index$13227]);
-      (t0$13241 = m$13236);
-      if ((($13145$13245 = (t0$13241 instanceof Array)) && (((t1$13242 = t0$13241.length)), (($13147$13247 = (t1$13242 === 2)) && (t0$13241[0] === "do"))))) {
-        (x$13250 = t0$13241[1]);
-        trail$13130.unshift(x$13250);
-        parts$13116.pop();
-      } else {
-        if (($13147$13247 && (t0$13241[0] === "check"))) {
-          (x$13265 = t0$13241[1]);
-          break $13140;
+    trail$0 = [];
+    m$27 = null;
+    $19: for (var $__2 = parts$1.slice(0).reverse()[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__3; !($__3 = $__2.next()).done; ) {
+      m$27 = $__3.value;
+      {
+        var t1$13;
+        var x$22;
+        var t0$17;
+        var x$21;
+        var $$18547$0;
+        var $$18548$0;
+        var $$18549$0;
+        var $$18550$0;
+        t0$17 = m$27;
+        if ((($$18548$0 = (t0$17 instanceof Array)) && ((t1$13 = t0$17.length), (($$18550$0 = (t1$13 === 2)) && (t0$17[0] === "do"))))) {
+          x$21 = t0$17[1];
+          trail$0.unshift(x$21);
+          parts$1.pop();
         } else {
-          ___match_error(m$13236, "/home/olivier/git/earl-grey/src/pattern.eg", 10704, 10826);
+          if (($$18550$0 && (t0$17[0] === "check"))) {
+            x$22 = t0$17[1];
+            break $19;
+          } else {
+            ___match_error(m$27, "/home/olivier/git/earl-grey/src/pattern.eg", 10682, 10804);
+          }
         }
       }
     }
-    (construct$13131 = (function($13273$13276) {
-      var other$13361;
-      var x$13345;
-      var rest$13346;
-      var x$13330;
-      var x$13314;
-      var rest$13315;
-      var $13284$13301;
-      var $13285$13302;
-      var t0$13297;
-      var t1$13298;
-      var t2$13299;
-      var $13278$13292;
-      var ph$13286;
-      (ph$13286 = $13273$13276);
-      ($13278$13292 = ph$13286);
-      if ((($13284$13301 = ($13278$13292 instanceof Array)) && (((t0$13297 = $13278$13292.length)), (t0$13297 === 0)))) {
+    construct$1 = (function(temp$1$0) {
+      var t0$18;
+      var $targ$192;
+      var $targ$191;
+      var $targ$194;
+      var $targ$193;
+      var $targ$196;
+      var $targ$195;
+      var other$2;
+      var x$25;
+      var rest$7;
+      var x$24;
+      var x$23;
+      var rest$6;
+      var $$18614$0;
+      var $$18615$0;
+      var t1$14;
+      var t2$5;
+      var m$28$0;
+      var ph$2;
+      ph$2 = temp$1$0;
+      m$28$0 = ph$2;
+      if ((($$18614$0 = (m$28$0 instanceof Array)) && ((t0$18 = m$28$0.length), (t0$18 === 0)))) {
         return ["value", true];
       } else {
-        if (($13284$13301 && ((t0$13297 >= 1) && (((t1$13298 = $13278$13292[0])), ((t1$13298 instanceof Array) && (((t2$13299 = t1$13298.length)), ((t2$13299 === 2) && (t1$13298[0] === "do")))))))) {
-          (x$13314 = t1$13298[1]);
-          (rest$13315 = Array.prototype.slice.call($13278$13292, 1));
-          return ["multi", x$13314, construct$13131(rest$13315)];
+        if (($$18614$0 && ((t0$18 >= 1) && (($targ$191 = m$28$0[0]), (t1$14 = $targ$191), ((t1$14 instanceof Array) && (($targ$192 = t1$14.length), (t2$5 = $targ$192), ((t2$5 === 2) && (t1$14[0] === "do")))))))) {
+          x$23 = t1$14[1];
+          rest$6 = Array.prototype.slice.call(m$28$0, 1);
+          return ["multi", x$23, construct$1(rest$6)];
         } else {
-          if (($13284$13301 && ((t0$13297 === 1) && (((t1$13298 = $13278$13292[0])), ((t1$13298 instanceof Array) && (((t2$13299 = t1$13298.length)), ((t2$13299 === 2) && (t1$13298[0] === "check")))))))) {
-            (x$13330 = t1$13298[1]);
-            return x$13330;
+          if (($$18614$0 && ((t0$18 === 1) && (($targ$193 = m$28$0[0]), (t1$14 = $targ$193), ((t1$14 instanceof Array) && (($targ$194 = t1$14.length), (t2$5 = $targ$194), ((t2$5 === 2) && (t1$14[0] === "check")))))))) {
+            x$24 = t1$14[1];
+            return x$24;
           } else {
-            if (($13284$13301 && ((t0$13297 >= 1) && (((t1$13298 = $13278$13292[0])), ((t1$13298 instanceof Array) && (((t2$13299 = t1$13298.length)), ((t2$13299 === 2) && (t1$13298[0] === "check")))))))) {
-              (x$13345 = t1$13298[1]);
-              (rest$13346 = Array.prototype.slice.call($13278$13292, 1));
-              return ["send", ["symbol", "and"], ["data", x$13345, construct$13131(rest$13346)]];
+            if (($$18614$0 && ((t0$18 >= 1) && (($targ$195 = m$28$0[0]), (t1$14 = $targ$195), ((t1$14 instanceof Array) && (($targ$196 = t1$14.length), (t2$5 = $targ$196), ((t2$5 === 2) && (t1$14[0] === "check")))))))) {
+              x$25 = t1$14[1];
+              rest$7 = Array.prototype.slice.call(m$28$0, 1);
+              return ["send", ["symbol", "and"], ["data", x$25, construct$1(rest$7)]];
             } else {
-              (other$13361 = $13278$13292);
-              throw ErrorFactory(["oops"]).create("?!?", other$13361);
+              other$2 = m$28$0;
+              throw ErrorFactory(["oops"]).create("?!?", other$2);
             }
           }
         }
       }
-    }));
-    if (parts$13116.length) {
-      (test$13366 = construct$13131(parts$13116));
-      return ["multi"].concat(lead$13129).concat([(f$13118 ? ["send", ["symbol", "if"], ["data", test$13366, ["multi"].concat(trail$13130).concat([t$13117]), f$13118]] : ["send", ["symbol", "if"], ["data", test$13366, ["multi"].concat(trail$13130).concat([t$13117])]])]);
+    });
+    if (parts$1.length) {
+      test$0 = construct$1(parts$1);
+      return ["multi"].concat(lead$0).concat([(f$2 ? ["send", ["symbol", "if"], ["data", test$0, ["multi"].concat(trail$0).concat([t$8]), f$2]] : ["send", ["symbol", "if"], ["data", test$0, ["multi"].concat(trail$0).concat([t$8])]])]);
     } else {
-      return ["multi"].concat(lead$13129).concat(trail$13130).concat([t$13117]);
+      return ["multi"].concat(lead$0).concat(trail$0).concat([t$8]);
     }
   } else {
-    ___match_error($13103$13107);
+    return ___match_error(m$25$0);
   }
-}));
-(inject_below_uses$11190 = (function($13376$13379, fn$13380) {
-  var other$13411;
-  var scope$13400;
-  var x$13401;
-  var t0$13396;
-  var $13382$13391;
-  var ph$13385;
-  (ph$13385 = $13376$13379);
-  ($13382$13391 = ph$13385);
-  if ((($13382$13391 instanceof Array) && (((t0$13396 = $13382$13391.length)), ((t0$13396 === 3) && ($13382$13391[0] === "use"))))) {
-    (scope$13400 = $13382$13391[1]);
-    (x$13401 = $13382$13391[2]);
-    return ["use", scope$13400, inject_below_uses$11190(x$13401, fn$13380)];
+});
+inject_below_uses$0 = (function(temp$2$0, fn$1) {
+  var t0$19;
+  var other$3;
+  var scope$0;
+  var x$26;
+  var m$29$0;
+  var ph$3;
+  ph$3 = temp$2$0;
+  m$29$0 = ph$3;
+  if (((m$29$0 instanceof Array) && ((t0$19 = m$29$0.length), ((t0$19 === 3) && (m$29$0[0] === "use"))))) {
+    scope$0 = m$29$0[1];
+    x$26 = m$29$0[2];
+    return ["use", scope$0, inject_below_uses$0(x$26, fn$1)];
   } else {
-    (other$13411 = $13382$13391);
-    return fn$13380(other$13411);
+    other$3 = m$29$0;
+    return fn$1(other$3);
   }
-}));
-(parse_pattern$11191 = (function(scope$13418, pattern$13419, rhs$13420, opt$13421) {
-  var t0$13435;
-  var $index$13487;
-  var $length$13481;
-  var temp$13475;
-  var acc$13469;
-  var t0$13533;
-  var t1$13534;
-  var t2$13535;
-  var t3$13536;
-  var t4$13537;
-  var t0$13566;
-  var t1$13567;
-  var t2$13568;
-  var t3$13569;
-  var t4$13570;
-  var bridge$13514$13523;
-  var $13512$13518;
-  var targ$13509;
-  var parse$13427;
-  var target$13428;
-  var proc$13429;
-  (parse$13427 = PatternParser$11186(scope$13418, pattern$13419, opt$13421));
-  if (((!opt$13421.allow_arguments) && parse$13427.arguments.length)) {
-    throw ErrorFactory(["syntax", "pattern", "arguments"]).create("Arguments cannot be declared in this pattern", ({"args": parse$13427.arguments[0]}));
+});
+find_target$0 = (function(rhs$1, temp$3$0) {
+  var t0$20;
+  var t0$21;
+  var projector$2;
+  var subp$9;
+  var m$30$0;
+  var ph$4;
+  var pattern$3;
+  t0$20 = temp$3$0;
+  pattern$3 = t0$20;
+  ph$4 = t0$20;
+  m$30$0 = ph$4;
+  if (((m$30$0 instanceof Array) && ((t0$21 = m$30$0.length), ((t0$21 === 4) && ((m$30$0[0] === "project") && ((projector$2 = m$30$0[1]), (subp$9 = m$30$0[2]), (m$30$0[3] === true))))))) {
+    return find_target$0(["send", projector$2, ["data", rhs$1]], subp$9);
+  } else {
+    m$30$0;
+    return [rhs$1, pattern$3];
   }
-  (t0$13435 = getProjector((opt$13421.wrap_target || identity$11182))((parse$13427.arguments.length ? inject_below_uses$11190(rhs$13420, (function(x$13442) {
-    return util$11177.construct(parse$13427.arguments.concat([x$13442]), (function(args$13446, rest$13447) {
-      return ["send", ["symbol", "->"], ["data", args$13446, rest$13447]];
+});
+parse_pattern$0 = (function(info$3, pattern$4, rhs$2, opt$1) {
+  var t0$22;
+  var t1$15;
+  var t0$23;
+  var x$28;
+  var x$29;
+  var t1$16;
+  var t0$24;
+  var $targ$215;
+  var bridge$$18761$0;
+  var m$31$0;
+  var m$32;
+  var acc$9;
+  var succ$0;
+  var fail$0;
+  var assembly$0;
+  var parse$0;
+  var $targ$204;
+  var real_rhs$0;
+  var $targ$205;
+  var target$0;
+  var $targ$206;
+  var expr$1;
+  var proc$0;
+  parse$0 = PatternParser$0(info$3, pattern$4, opt$1);
+  if (((!opt$1.allow_arguments) && parse$0.arguments.length)) {
+    throw ErrorFactory(["syntax", "pattern", "arguments"]).create("Arguments cannot be declared in this pattern", ({"args": parse$0.arguments[0]}));
+  }
+  $targ$204 = (parse$0.arguments.length ? inject_below_uses$0(rhs$2, (function(x$27) {
+    return util$0.construct(parse$0.arguments.concat([x$27]), (function(args$1, rest$8) {
+      return ["send", ["symbol", "->"], ["data", args$1, rest$8]];
     }));
-  })) : rhs$13420)));
-  if (t0$13435[0]) {
-    (target$13428 = t0$13435[1]);
+  })) : rhs$2);
+  t0$22 = getProjector((opt$1.wrap_target || identity$0))($targ$204);
+  if (t0$22[0]) {
+    real_rhs$0 = t0$22[1];
   } else {
-    ___match_error((parse$13427.arguments.length ? inject_below_uses$11190(rhs$13420, (function(x$13454) {
-      return util$11177.construct(parse$13427.arguments.concat([x$13454]), (function(args$13458, rest$13459) {
-        return ["send", ["symbol", "->"], ["data", args$13458, rest$13459]];
-      }));
-    })) : rhs$13420), "/home/olivier/git/earl-grey/src/pattern.eg", 12226, 12652);
+    ___match_error($targ$204);
   }
-  (proc$13429 = PatternProcessor$11187());
-  proc$13429.process(parse$13427.pattern, target$13428, opt$13421);
-  if (opt$13421.finalize) {
-    return ["splice"].concat(opt$13421.declare(scope$13418, parse$13427.vars)).concat([["multi"].concat((((acc$13469 = [])), (((temp$13475 = proc$13429.temps)), ((($length$13481 = temp$13475.length)), ((($index$13487 = 0)), (function() {
-      $13464: for (; ($index$13487 < $length$13481); ($index$13487++)) {
-        var t$13504;
-        var m$13496;
-        (m$13496 = temp$13475[$index$13487]);
-        (t$13504 = m$13496);
-        acc$13469.push(["declare", t$13504]);
-      }
-    })()))), acc$13469)).concat([(((targ$13509 = ((($13512$13518 = target$13428)), (((bridge$13514$13523 = $13512$13518)), ((((bridge$13514$13523 instanceof Array) && (((t0$13533 = bridge$13514$13523.length)), ((t0$13533 === 3) && ((bridge$13514$13523[0] === "send") && (((t1$13534 = bridge$13514$13523[1])), ((t1$13534 instanceof Array) && (((t2$13535 = t1$13534.length)), ((t2$13535 === 2) && ((t1$13534[0] === "symbol") && ((t1$13534[1] === "->") && (((t3$13536 = bridge$13514$13523[2])), ((t3$13536 instanceof Array) && (((t4$13537 = t3$13536.length)), ((t4$13537 === 3) && ((t3$13536[0] === "data") && (t3$13536[1], (t3$13536[2], true))))))))))))))))) || ((bridge$13514$13523 instanceof Array) && (((t0$13566 = bridge$13514$13523.length)), ((t0$13566 === 3) && ((bridge$13514$13523[0] === "send") && (((t1$13567 = bridge$13514$13523[1])), ((t1$13567 instanceof Array) && (((t2$13568 = t1$13567.length)), ((t2$13568 === 2) && ((t1$13567[0] === "symbol") && ((t1$13567[1] === "_lambda") && (((t3$13569 = bridge$13514$13523[2])), ((t3$13569 instanceof Array) && (((t4$13570 = t3$13569.length)), ((t4$13570 >= 1) && ((t3$13569[0] === "data") && (Array.prototype.slice.call(t3$13569, 1), true))))))))))))))))) ? ["value", "<function>"] : ($13512$13518, target$13428)))))), assemble_pattern$11189(proc$13429.parts, opt$13421.success(target$13428), opt$13421.failure(targ$13509)))])]);
+  $targ$205 = find_target$0(real_rhs$0, parse$0.pattern);
+  t0$23 = $targ$205;
+  if (((t0$23 instanceof Array) && ((t1$15 = t0$23.length), (t1$15 === 2)))) {
+    target$0 = t0$23[0];
+    pattern$4 = t0$23[1];
   } else {
-    return [parse$13427.vars, proc$13429.temps, proc$13429.parts];
+    ___match_error($targ$205);
   }
-}));
-(checkall$11192 = ["send", "data", "multi", "assign", "void", "check", "do"]);
-(same_block$11193 = (function($13609$13612, ban1$13613, ban2$13614) {
-  var $index$13778;
-  var $length$13772;
-  var temp$13766;
-  var other$13800;
-  var type1$13739;
-  var args1$13740;
-  var type2$13741;
-  var args2$13742;
-  var m1$13722;
-  var m2$13723;
-  var v1$13705;
-  var v2$13706;
-  var s1$13688;
-  var s2$13689;
-  var v1$13656;
-  var v2$13657;
-  var $13623$13647;
-  var $13624$13648;
-  var $13625$13649;
-  var $13626$13650;
-  var $13627$13651;
-  var $13628$13652;
-  var $13629$13653;
-  var t0$13641;
-  var t1$13642;
-  var t2$13643;
-  var t3$13644;
-  var t4$13645;
-  var $13616$13636;
-  var ph$13630;
-  (ph$13630 = $13609$13612);
-  ($13616$13636 = ph$13630);
-  if ((($13623$13647 = ($13616$13636 instanceof Array)) && (((t0$13641 = $13616$13636.length)), (($13625$13649 = (t0$13641 === 2)) && (((t1$13642 = $13616$13636[0])), (($13627$13651 = (t1$13642 instanceof Array)) && (((t2$13643 = t1$13642.length)), (($13629$13653 = (t2$13643 === 2)) && ((t1$13642[0] === "variable") && ((v1$13656 = t1$13642[1]), (((t3$13644 = $13616$13636[1])), ((t3$13644 instanceof Array) && (((t4$13645 = t3$13644.length)), ((t4$13645 === 2) && (t3$13644[0] === "variable"))))))))))))))) {
-    (v2$13657 = t3$13644[1]);
-    return (v1$13656 === v2$13657);
+  $targ$206 = null;
+  expr$1 = $targ$206;
+  m$31$0 = target$0;
+  bridge$$18761$0 = m$31$0;
+  if ((((x$28 = bridge$$18761$0), ((x$28 instanceof Array) && (x$28[0] === "symbol"))) || ((x$29 = bridge$$18761$0), ((x$29 instanceof Array) && (x$29[0] === "variable"))))) {
+    undefined;
   } else {
-    if (($13629$13653 && ((t1$13642[0] === "symbol") && ((s1$13688 = t1$13642[1]), (((t3$13644 = $13616$13636[1])), ((t3$13644 instanceof Array) && (((t4$13645 = t3$13644.length)), ((t4$13645 === 2) && (t3$13644[0] === "symbol"))))))))) {
-      (s2$13689 = t3$13644[1]);
-      return (((!$15100(ban1$13613, s1$13688)) && (!$15100(ban2$13614, s2$13689))) && (s1$13688 === s2$13689));
+    m$31$0;
+    $targ$215 = [["variable", info$3.gensym("$targ")], target$0];
+    t0$24 = $targ$215;
+    if (((t0$24 instanceof Array) && ((t1$16 = t0$24.length), (t1$16 === 2)))) {
+      target$0 = t0$24[0];
+      expr$1 = t0$24[1];
     } else {
-      if (($13629$13653 && ((t1$13642[0] === "value") && ((v1$13705 = t1$13642[1]), (((t3$13644 = $13616$13636[1])), ((t3$13644 instanceof Array) && (((t4$13645 = t3$13644.length)), ((t4$13645 === 2) && (t3$13644[0] === "value"))))))))) {
-        (v2$13706 = t3$13644[1]);
-        return (v1$13705 === v2$13706);
+      ___match_error($targ$215);
+    }
+  }
+  proc$0 = PatternProcessor$0();
+  proc$0.process(pattern$4, target$0, opt$1);
+  if (opt$1.finalize) {
+    succ$0 = opt$1.success(target$0);
+    fail$0 = opt$1.failure(target$0);
+    assembly$0 = assemble_pattern$0(proc$0.parts, succ$0, fail$0);
+    return ["splice", ((expr$1 === null) ? ["splice"] : ["splice", ["declare", target$0], ["assign", target$0, expr$1]])].concat(opt$1.declare(info$3, parse$0.vars)).concat([["multi"].concat(((acc$9 = []), (m$32 = null), (function() {
+      $20: for (var $__0 = proc$0.temps[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__1; !($__1 = $__0.next()).done; ) {
+        m$32 = $__1.value;
+        {
+          var t$9;
+          t$9 = m$32;
+          acc$9.push(["declare", t$9]);
+        }
+      }
+    })(), acc$9)).concat([assembly$0])]);
+  } else {
+    return [parse$0.vars, proc$0.temps, proc$0.parts];
+  }
+});
+checkall$0 = ["send", "data", "multi", "assign", "void", "check", "do"];
+same_block$0 = (function(temp$4$0, ban1$0, ban2$0) {
+  var $targ$227;
+  var $targ$226;
+  var t2$6;
+  var t1$17;
+  var t0$25;
+  var $targ$229;
+  var $targ$228;
+  var $targ$231;
+  var $targ$230;
+  var $targ$233;
+  var $targ$232;
+  var $targ$235;
+  var $targ$234;
+  var m$34;
+  var other$4;
+  var type1$0;
+  var args1$0;
+  var type2$0;
+  var args2$0;
+  var m1$0;
+  var m2$0;
+  var v1$1;
+  var v2$1;
+  var s1$0;
+  var s2$0;
+  var v1$0;
+  var v2$0;
+  var $$18885$0;
+  var $$18886$0;
+  var $$18887$0;
+  var $$18888$0;
+  var $$18889$0;
+  var $$18890$0;
+  var $$18891$0;
+  var t3$3;
+  var t4$1;
+  var m$33$0;
+  var ph$5;
+  ph$5 = temp$4$0;
+  m$33$0 = ph$5;
+  if ((($$18885$0 = (m$33$0 instanceof Array)) && ((t0$25 = m$33$0.length), (($$18887$0 = (t0$25 === 2)) && ((t1$17 = m$33$0[0]), (($$18889$0 = (t1$17 instanceof Array)) && ((t2$6 = t1$17.length), (($$18891$0 = (t2$6 === 2)) && ((t1$17[0] === "variable") && ((v1$0 = t1$17[1]), ($targ$226 = m$33$0[1]), (t3$3 = $targ$226), ((t3$3 instanceof Array) && (($targ$227 = t3$3.length), (t4$1 = $targ$227), ((t4$1 === 2) && (t3$3[0] === "variable")))))))))))))) {
+    v2$0 = t3$3[1];
+    return (v1$0 === v2$0);
+  } else {
+    if (($$18891$0 && ((t1$17[0] === "symbol") && ((s1$0 = t1$17[1]), ($targ$228 = m$33$0[1]), (t3$3 = $targ$228), ((t3$3 instanceof Array) && (($targ$229 = t3$3.length), (t4$1 = $targ$229), ((t4$1 === 2) && (t3$3[0] === "symbol")))))))) {
+      s2$0 = t3$3[1];
+      return (((!send(ban1$0, s1$0)) && (!send(ban2$0, s2$0))) && (s1$0 === s2$0));
+    } else {
+      if (($$18891$0 && ((t1$17[0] === "value") && ((v1$1 = t1$17[1]), ($targ$230 = m$33$0[1]), (t3$3 = $targ$230), ((t3$3 instanceof Array) && (($targ$231 = t3$3.length), (t4$1 = $targ$231), ((t4$1 === 2) && (t3$3[0] === "value")))))))) {
+        v2$1 = t3$3[1];
+        return (v1$1 === v2$1);
       } else {
-        if (($13629$13653 && ((t1$13642[0] === "macro") && ((m1$13722 = t1$13642[1]), (((t3$13644 = $13616$13636[1])), ((t3$13644 instanceof Array) && (((t4$13645 = t3$13644.length)), ((t4$13645 === 2) && (t3$13644[0] === "macro"))))))))) {
-          (m2$13723 = t3$13644[1]);
-          return (m1$13722 === m2$13723);
+        if (($$18891$0 && ((t1$17[0] === "macro") && ((m1$0 = t1$17[1]), ($targ$232 = m$33$0[1]), (t3$3 = $targ$232), ((t3$3 instanceof Array) && (($targ$233 = t3$3.length), (t4$1 = $targ$233), ((t4$1 === 2) && (t3$3[0] === "macro")))))))) {
+          m2$0 = t3$3[1];
+          return (m1$0 === m2$0);
         } else {
-          if (($13627$13651 && ((t2$13643 >= 1) && ((type1$13739 = t1$13642[0]), ((args1$13740 = Array.prototype.slice.call(t1$13642, 1)), (((t3$13644 = $13616$13636[1])), ((t3$13644 instanceof Array) && (((t4$13645 = t3$13644.length)), ((t4$13645 >= 1) && ((type2$13741 = t3$13644[0]), ((args2$13742 = Array.prototype.slice.call(t3$13644, 1)), (checkall$11192.indexOf(type1$13739) !== -1)))))))))))) {
-            if (((type1$13739 === type2$13741) && (args1$13740.length === args2$13742.length))) {
-              (temp$13766 = zip(args1$13740, args2$13742));
-              ($length$13772 = temp$13766.length);
-              ($index$13778 = 0);
-              $13760: for (; ($index$13778 < $length$13772); ($index$13778++)) {
-                var pair$13795;
-                var m$13787;
-                (m$13787 = temp$13766[$index$13778]);
-                (pair$13795 = m$13787);
-                if ((!same_block$11193(pair$13795, ban1$13613, ban2$13614))) {
-                  return false;
+          if (($$18889$0 && ((t2$6 >= 1) && ((type1$0 = t1$17[0]), (args1$0 = Array.prototype.slice.call(t1$17, 1)), ($targ$234 = m$33$0[1]), (t3$3 = $targ$234), ((t3$3 instanceof Array) && (($targ$235 = t3$3.length), (t4$1 = $targ$235), ((t4$1 >= 1) && ((type2$0 = t3$3[0]), (args2$0 = Array.prototype.slice.call(t3$3, 1)), (checkall$0.indexOf(type1$0) !== -1))))))))) {
+            if (((type1$0 === type2$0) && (args1$0.length === args2$0.length))) {
+              m$34 = null;
+              $21: for (var $__0 = zip(args1$0, args2$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+                  $__1; !($__1 = $__0.next()).done; ) {
+                m$34 = $__1.value;
+                {
+                  var pair$0;
+                  pair$0 = m$34;
+                  if ((!same_block$0(pair$0, ban1$0, ban2$0))) {
+                    return false;
+                  }
                 }
               }
               return true;
@@ -919,490 +1032,514 @@ PatternProcessor$11187;
               return false;
             }
           } else {
-            (other$13800 = $13616$13636);
+            other$4 = m$33$0;
             return false;
           }
         }
       }
     }
   }
-}));
-(parse_clauses$11194 = (function(scope$13807, target$13808, stmts$13809, opt$13810) {
-  var $index$13850;
-  var $length$13844;
-  var temp$13838;
-  var acc$13832;
-  var $index$14096;
-  var $length$14090;
-  var temp$14084;
-  var acc$14078;
-  var $index$14159;
-  var $length$14153;
-  var temp$14147;
-  var acc$14141;
-  var decls$14133;
-  var all_temps$13816;
-  var the_parts$13817;
-  var unique_temps$13818;
-  (all_temps$13816 = []);
-  (the_parts$13817 = (((acc$13832 = [])), (((temp$13838 = scope$13807.step_all(["clause"], stmts$13809))), ((($length$13844 = temp$13838.length)), ((($index$13850 = 0)), (function() {
-    var $__0 = function() {
-      var accum$13962;
-      var accum$13980;
-      var t0$13954;
-      var t1$13955;
-      var $index$14007;
-      var $length$14001;
-      var temp$13995;
-      var bod$14048;
-      var placeholder$13889;
-      var special_fn$13890;
-      var vars$13891;
-      var temps$13892;
-      var blocks$13893;
-      var vars2$13894;
-      var x$14058;
-      var other$14066;
-      var b$14054;
-      var pattern$13870;
-      var body$13871;
-      var $13829$13867;
-      var t0$13864;
-      var t1$13865;
-      var m$13859;
-      (m$13859 = temp$13838[$index$13850]);
-      (t0$13864 = m$13859);
-      if (((t0$13864 instanceof Array) && (((t1$13865 = t0$13864.length)), ((t1$13865 === 3) && (t0$13864[0] === "clause"))))) {
-        (pattern$13870 = t0$13864[1]);
-        (body$13871 = t0$13864[2]);
-        acc$13832.push((((placeholder$13889 = undefined)), ((special_fn$13890 = (function($13905$13908, value$13909) {
-          var t0$13917;
-          var t1$13918;
-          var other$13950;
-          var $13911$13933;
-          var ph$13914;
-          var expr$13915;
-          (t0$13917 = $13905$13908);
-          if (((t0$13917 instanceof Array) && (((t1$13918 = t0$13917.length)), ((t1$13918 === 2) && (t0$13917[0] === "special"))))) {
-            (ph$13914 = t0$13917[1]);
-            (expr$13915 = t0$13917);
-          } else {
-            ___match_error($13905$13908);
-          }
-          ($13911$13933 = ph$13914);
-          if (($13911$13933 === "match")) {
-            (placeholder$13889 = __lt____lt____colon__$11176(["symbol", scope$13807.gensym("ph")], expr$13915));
-            return ["assign", placeholder$13889];
-          } else {
-            (other$13950 = $13911$13933);
-            throw ErrorFactory(["syntax", "pattern", "special"]).create("Special token cannot be used here", ({"special": expr$13915}));
-          }
-        }))), (((t0$13954 = parse_pattern$11191(scope$13807, pattern$13870, target$13808, __amp__(opt$13810, __amp____colon__(({
-          "allow_arguments": false,
-          "allow_nested": true,
-          "special": special_fn$13890
-        }), __amp____colon__(((accum$13962 = ({})), ((accum$13962["assign"] = (function(v$13967, value$13968) {
-          return ["do", __lt____lt____colon__$11176(["assign", v$13967, value$13968], v$13967)];
-        })), accum$13962)), ({"finalize": false}))))))), (((t0$13954 instanceof Array) && (((t1$13955 = t0$13954.length)), (t1$13955 === 3))) ? ((vars$13891 = t0$13954[0]), (temps$13892 = t0$13954[1]), (blocks$13893 = t0$13954[2])) : ___match_error(parse_pattern$11191(scope$13807, pattern$13870, target$13808, __amp__(opt$13810, __amp____colon__(({
-          "allow_arguments": false,
-          "allow_nested": true,
-          "special": special_fn$13890
-        }), __amp____colon__(((accum$13980 = ({})), ((accum$13980["assign"] = (function(v$13985, value$13986) {
-          return ["do", __lt____lt____colon__$11176(["assign", v$13985, value$13986], v$13985)];
-        })), accum$13980)), ({"finalize": false}))))), "/home/olivier/git/earl-grey/src/pattern.eg", 14830, 15164))), (all_temps$13816 = all_temps$13816.concat(temps$13892)), (placeholder$13889 ? vars$13891.push(placeholder$13889) : undefined), ((vars2$13894 = ({}))), (((temp$13995 = vars$13891)), ((($length$14001 = temp$13995.length)), ((($index$14007 = 0)), (function() {
-          $13895: for (; ($index$14007 < $length$14001); ($index$14007++)) {
-            var other$14044;
-            var xxx$14026;
-            var t0$14021;
-            var t1$14022;
-            var m$14016;
-            (m$14016 = temp$13995[$index$14007]);
-            (t0$14021 = m$14016);
-            if (((t0$14021 instanceof Array) && (((t1$14022 = t0$14021.length)), ((t1$14022 === 2) && (t0$14021[0] === "symbol"))))) {
-              (xxx$14026 = t0$14021[1]);
-              (vars2$13894[xxx$14026] = true);
+});
+parse_clauses$0 = (function(info$4, target$1, stmts$0, opt$2) {
+  var m$35;
+  var acc$10;
+  var m$38;
+  var acc$11;
+  var m$39;
+  var acc$12;
+  var decls$1;
+  var $targ$236;
+  var all_temps$0;
+  var the_parts$0;
+  var unique_temps$0;
+  $targ$236 = [];
+  all_temps$0 = $targ$236;
+  the_parts$0 = ((acc$10 = []), (m$35 = null), (function() {
+    var $__4 = function() {
+      m$35 = $__1.value;
+      {
+        var t1$18;
+        var $targ$250;
+        var accum$4;
+        var t1$20;
+        var t0$28;
+        var m$37;
+        var bod$0;
+        var $targ$242;
+        var placeholder$0;
+        var special_fn$0;
+        var $targ$244;
+        var vars$2;
+        var temps$0;
+        var blocks$0;
+        var vars2$0;
+        var x$30;
+        var other$7;
+        var b$0;
+        var t0$26;
+        var pattern$5;
+        var body$0;
+        var $$19021$0;
+        t0$26 = m$35;
+        if (((t0$26 instanceof Array) && ((t1$18 = t0$26.length), ((t1$18 === 3) && (t0$26[0] === "clause"))))) {
+          pattern$5 = t0$26[1];
+          body$0 = t0$26[2];
+          acc$10.push((($targ$242 = undefined), (placeholder$0 = $targ$242), (special_fn$0 = (function(temp$5$0, value$2) {
+            var t1$19;
+            var t0$27;
+            var $targ$249;
+            var other$5;
+            var m$36$0;
+            var ph$6;
+            var expr$2;
+            t0$27 = temp$5$0;
+            if (((t0$27 instanceof Array) && ((t1$19 = t0$27.length), ((t1$19 === 2) && (t0$27[0] === "special"))))) {
+              ph$6 = t0$27[1];
+              expr$2 = t0$27;
             } else {
-              (other$14044 = m$14016);
-              throw ErrorFactory(["syntax", "unexpected"]).create();
+              ___match_error(temp$5$0);
             }
-          }
-        })()))), (((bod$14048 = (placeholder$13889 ? parse_clauses$11194(scope$13807, placeholder$13889, getProjector(Body$11183)(body$13871)[1], opt$13810) : (opt$13810.wrap ? opt$13810.wrap(body$13871) : body$13871)))), ["clause", vars$13891, vars2$13894, blocks$13893, bod$14048])));
-      } else {
-        if ((((x$14058 = t0$13864)), ((x$14058 instanceof Array) && (x$14058[0] === "block")))) {
-          (b$14054 = t0$13864);
-          acc$13832.push(b$14054);
+            m$36$0 = ph$6;
+            if ((m$36$0 === "match")) {
+              $targ$249 = __lt____lt____colon__$0(["symbol", info$4.gensym("ph")], expr$2);
+              placeholder$0 = $targ$249;
+              return ["assign", placeholder$0];
+            } else {
+              other$5 = m$36$0;
+              throw ErrorFactory(["syntax", "pattern", "special"]).create("Special token cannot be used here", ({"special": expr$2}));
+            }
+          })), ($targ$244 = parse_pattern$0(info$4, pattern$5, target$1, __amp__(opt$2, __amp____colon__(({
+            "allow_arguments": false,
+            "allow_nested": true,
+            "special": special_fn$0
+          }), __amp____colon__((($targ$250 = (function(v$7, value$3) {
+            return ["do", __lt____lt____colon__$0(["assign", v$7, value$3], v$7)];
+          })), (accum$4 = ({})), (accum$4["assign"] = $targ$250), accum$4), ({"finalize": false})))))), (t0$28 = $targ$244), (((t0$28 instanceof Array) && ((t1$20 = t0$28.length), (t1$20 === 3))) ? ((vars$2 = t0$28[0]), (temps$0 = t0$28[1]), (blocks$0 = t0$28[2])) : ___match_error($targ$244)), (all_temps$0 = all_temps$0.concat(temps$0)), (placeholder$0 ? vars$2.push(placeholder$0) : undefined), (vars2$0 = ({})), (m$37 = null), (function() {
+            $23: for (var $__0 = vars$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__1; !($__1 = $__0.next()).done; ) {
+              m$37 = $__1.value;
+              {
+                var t1$21;
+                var $targ$255;
+                var other$6;
+                var t0$29;
+                var xxx$0;
+                t0$29 = m$37;
+                if (((t0$29 instanceof Array) && ((t1$21 = t0$29.length), ((t1$21 === 2) && (t0$29[0] === "symbol"))))) {
+                  xxx$0 = t0$29[1];
+                  $targ$255 = true;
+                  (vars2$0[xxx$0] = $targ$255);
+                } else {
+                  other$6 = m$37;
+                  throw ErrorFactory(["syntax", "unexpected"]).create();
+                }
+              }
+            }
+          })(), (bod$0 = (placeholder$0 ? parse_clauses$0(info$4, placeholder$0, getProjector(Body$0)(body$0)[1], opt$2) : (opt$2.wrap ? opt$2.wrap(body$0) : body$0))), ["clause", vars$2, vars2$0, blocks$0, bod$0]));
         } else {
-          (other$14066 = m$13859);
-          acc$13832.push((function() {
-            throw ErrorFactory(["syntax", "clause"]).create("Illegal clause", ({"clause": other$14066}));
+          if (((x$30 = t0$26), ((x$30 instanceof Array) && (x$30[0] === "block")))) {
+            b$0 = t0$26;
+            acc$10.push(b$0);
+          } else {
+            other$7 = m$35;
+            acc$10.push((function() {
+              throw ErrorFactory(["syntax", "clause"]).create("Illegal clause", ({"clause": other$7}));
+            })());
+          }
+        }
+      }
+    };
+    $22: for (var $__0 = info$4.step_all(["clause"], stmts$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      $__4();
+    }
+  })(), acc$10);
+  if (opt$2.fallback) {
+    the_parts$0.push(["block", opt$2.fallback(target$1)]);
+  }
+  unique_temps$0 = keys(util$0.mkset(((acc$11 = []), (m$38 = null), (function() {
+    $24: for (var $__0 = all_temps$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$38 = $__1.value;
+      {
+        var t1$22;
+        var t0$30;
+        var t$10;
+        t0$30 = m$38;
+        if (((t0$30 instanceof Array) && ((t1$22 = t0$30.length), ((t1$22 === 2) && (t0$30[0] === "symbol"))))) {
+          t$10 = t0$30[1];
+          acc$11.push(t$10);
+        } else {
+          ___match_error(m$38, "/home/olivier/git/earl-grey/src/pattern.eg", 15868, 15898);
+        }
+      }
+    }
+  })(), acc$11)));
+  decls$1 = ((acc$12 = []), (m$39 = null), (function() {
+    $25: for (var $__0 = unique_temps$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$39 = $__1.value;
+      {
+        var t$11;
+        t$11 = m$39;
+        acc$12.push(["declare", __amp____colon__(["symbol", t$11], ({"mutable": true}))]);
+      }
+    }
+  })(), acc$12);
+  return ["multi"].concat(decls$1).concat([weave_clauses$0(the_parts$0)]);
+});
+opt_clauses$0 = (function(clauses$0) {
+  var m$40;
+  var acc$13;
+  var m$43;
+  var acc$14;
+  var m$44;
+  var acc$15;
+  var m$45;
+  var acc$16;
+  var shares$0;
+  var max$0;
+  var temps$1;
+  var $targ$266;
+  var shared_last$0;
+  var $targ$267;
+  var idx_last$0;
+  var new_clauses$0;
+  shares$0 = ((acc$13 = []), (m$40 = null), (function() {
+    var $__5 = function() {
+      m$40 = $__1.value;
+      {
+        var t3$4;
+        var t2$7;
+        var t1$23;
+        var t1$24;
+        var t0$32;
+        var m$41;
+        var $targ$274;
+        var varsd0$0;
+        var blocks0$0;
+        var share$0;
+        var $targ$276;
+        var idx$1;
+        var t0$31;
+        var i$3;
+        var vars$3;
+        var varsd$0;
+        var blocks$1;
+        var body$1;
+        t0$31 = m$40;
+        if (((t0$31 instanceof Array) && ((t1$23 = t0$31.length), ((t1$23 === 2) && ((i$3 = t0$31[0]), (t2$7 = t0$31[1]), ((t2$7 instanceof Array) && ((t3$4 = t2$7.length), ((t3$4 === 5) && (t2$7[0] === "clause"))))))))) {
+          vars$3 = t2$7[1];
+          varsd$0 = t2$7[2];
+          blocks$1 = t2$7[3];
+          body$1 = t2$7[4];
+          acc$13.push((($targ$274 = send(clauses$0, i$3)), (t0$32 = $targ$274), (((t0$32 instanceof Array) && ((t1$24 = t0$32.length), ((t1$24 === 5) && (t0$32[0] === "clause")))) ? (t0$32[1], (varsd0$0 = t0$32[2]), (blocks0$0 = t0$32[3]), t0$32[4]) : ___match_error($targ$274)), (share$0 = 0), ($targ$276 = 0), (idx$1 = $targ$276), (m$41 = null), (function() {
+            $27: for (var $__0 = blocks$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__1; !($__1 = $__0.next()).done; ) {
+              m$41 = $__1.value;
+              {
+                var x$31;
+                var x$32;
+                var $targ$282;
+                var other$8;
+                var m$42$0;
+                var b$1;
+                b$1 = m$41;
+                if (same_block$0([send(blocks0$0, share$0), b$1], varsd0$0, varsd$0)) {
+                  (share$0++);
+                  m$42$0 = b$1;
+                  if (((x$31 = m$42$0), ((x$31 instanceof Array) && (x$31[0] === "do")))) {
+                    null;
+                  } else {
+                    if (((x$32 = m$42$0), ((x$32 instanceof Array) && (x$32[0] === "check")))) {
+                      $targ$282 = share$0;
+                      idx$1 = $targ$282;
+                    } else {
+                      other$8 = m$42$0;
+                      __lt____gt__$0(null, other$8);
+                    }
+                  }
+                } else {
+                  break $27;
+                }
+              }
+            }
+          })(), [share$0, idx$1]));
+        } else {
+          ___match_error(m$40, "/home/olivier/git/earl-grey/src/pattern.eg", 16067, 16595);
+        }
+      }
+    };
+    $26: for (var $__0 = enumerate(clauses$0.slice(1))[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      $__5();
+    }
+  })(), acc$13);
+  max$0 = send(Math.max, ((acc$14 = []), (m$43 = null), (function() {
+    $28: for (var $__0 = shares$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$43 = $__1.value;
+      {
+        var t1$25;
+        var t0$33;
+        var x$33;
+        t0$33 = m$43;
+        if (((t0$33 instanceof Array) && ((t1$25 = t0$33.length), (t1$25 === 2)))) {
+          x$33 = t0$33[0];
+          t0$33[1];
+          acc$14.push(x$33);
+        } else {
+          ___match_error(m$43, "/home/olivier/git/earl-grey/src/pattern.eg", 16609, 16634);
+        }
+      }
+    }
+  })(), acc$14));
+  shares$0.push([0, 0]);
+  temps$1 = ((acc$15 = []), (m$44 = null), (function() {
+    $29: for (var $__0 = range(1, max$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$44 = $__1.value;
+      {
+        m$44;
+        acc$15.push(["symbol", gensym$0()]);
+      }
+    }
+  })(), acc$15);
+  $targ$266 = 0;
+  shared_last$0 = $targ$266;
+  $targ$267 = 0;
+  idx_last$0 = $targ$267;
+  new_clauses$0 = ((acc$16 = []), (m$45 = null), (function() {
+    var $__6 = function() {
+      m$45 = $__1.value;
+      {
+        var t3$5;
+        var t2$8;
+        var t1$26;
+        var t1$27;
+        var t0$35;
+        var m$46;
+        var acc$17;
+        var rest$9;
+        var newblocks$0;
+        var $targ$292;
+        var share$1;
+        var $targ$297;
+        var shared$0;
+        var n_to_share$0;
+        var to_share$0;
+        var $targ$296;
+        var other$9;
+        var t0$34;
+        var i$4;
+        var vars$4;
+        var varsd$1;
+        var blocks$2;
+        var body$2;
+        t0$34 = m$45;
+        if (((t0$34 instanceof Array) && ((t1$26 = t0$34.length), ((t1$26 === 2) && ((i$4 = t0$34[0]), (t2$8 = t0$34[1]), ((t2$8 instanceof Array) && ((t3$5 = t2$8.length), ((t3$5 === 5) && (t2$8[0] === "clause"))))))))) {
+          vars$4 = t2$8[1];
+          varsd$1 = t2$8[2];
+          blocks$2 = t2$8[3];
+          body$2 = t2$8[4];
+          acc$16.push((($targ$292 = send(shares$0, i$4)), (t0$35 = $targ$292), (((t0$35 instanceof Array) && ((t1$27 = t0$35.length), (t1$27 === 2))) ? ((share$1 = t0$35[0]), ($targ$297 = t0$35[1])) : ___match_error($targ$292)), (shared$0 = (idx_last$0 ? [["check", send(temps$1, (idx_last$0 - 1))]] : [])), (n_to_share$0 = Math.max(shared_last$0, share$1)), (to_share$0 = ((acc$17 = []), (m$46 = null), (function() {
+            $31: for (var $__0 = enumerate(blocks$2.slice(shared_last$0, n_to_share$0))[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__1; !($__1 = $__0.next()).done; ) {
+              m$46 = $__1.value;
+              {
+                var $targ$304;
+                var $targ$303;
+                var t1$28;
+                var $targ$306;
+                var $targ$305;
+                var j$1;
+                var x$35;
+                var t0$36;
+                var j$0;
+                var x$34;
+                var $$19454$0;
+                var $$19455$0;
+                var $$19456$0;
+                var $$19457$0;
+                var t2$9;
+                var t3$6;
+                t0$36 = m$46;
+                if ((($$19455$0 = (t0$36 instanceof Array)) && ((t1$28 = t0$36.length), (($$19457$0 = (t1$28 === 2)) && ((j$0 = t0$36[0]), ($targ$303 = t0$36[1]), (t2$9 = $targ$303), ((t2$9 instanceof Array) && (($targ$304 = t2$9.length), (t3$6 = $targ$304), ((t3$6 === 2) && (t2$9[0] === "check"))))))))) {
+                  x$34 = t2$9[1];
+                  acc$17.push(["check", ["assign", send(temps$1, (shared_last$0 + j$0)), x$34]]);
+                } else {
+                  if (($$19457$0 && ((j$1 = t0$36[0]), ($targ$305 = t0$36[1]), (t2$9 = $targ$305), ((t2$9 instanceof Array) && (($targ$306 = t2$9.length), (t3$6 = $targ$306), ((t3$6 === 2) && (t2$9[0] === "do"))))))) {
+                    x$35 = t2$9[1];
+                    acc$17.push(["do", x$35]);
+                  } else {
+                    ___match_error(m$46, "/home/olivier/git/earl-grey/src/pattern.eg", 17015, 17186);
+                  }
+                }
+              }
+            }
+          })(), acc$17)), ($targ$296 = share$1), (shared_last$0 = $targ$296), (idx_last$0 = $targ$297), (newblocks$0 = ((rest$9 = blocks$2.slice(n_to_share$0)), shared$0.concat(to_share$0).concat(rest$9))), ["clause", vars$4, varsd$1, newblocks$0, body$2]));
+        } else {
+          other$9 = m$45;
+          acc$16.push((function() {
+            throw ErrorFactory(["oops"]).create("what", ({"value": other$9}));
           })());
         }
       }
     };
-    $13824: for (; ($index$13850 < $length$13844); ($index$13850++)) {
-      $__0();
+    $30: for (var $__0 = enumerate(clauses$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      $__6();
     }
-  })()))), acc$13832));
-  if (opt$13810.fallback) {
-    the_parts$13817.push(["block", opt$13810.fallback(target$13808)]);
-  }
-  (unique_temps$13818 = keys(util$11177.mkset((((acc$14078 = [])), (((temp$14084 = all_temps$13816)), ((($length$14090 = temp$14084.length)), ((($index$14096 = 0)), (function() {
-    $14073: for (; ($index$14096 < $length$14090); ($index$14096++)) {
-      var t$14115;
-      var t0$14110;
-      var t1$14111;
-      var m$14105;
-      (m$14105 = temp$14084[$index$14096]);
-      (t0$14110 = m$14105);
-      if (((t0$14110 instanceof Array) && (((t1$14111 = t0$14110.length)), ((t1$14111 === 2) && (t0$14110[0] === "symbol"))))) {
-        (t$14115 = t0$14110[1]);
-        acc$14078.push(t$14115);
-      } else {
-        ___match_error(m$14105, "/home/olivier/git/earl-grey/src/pattern.eg", 15971, 16001);
-      }
-    }
-  })()))), acc$14078))));
-  (decls$14133 = (((acc$14141 = [])), (((temp$14147 = unique_temps$13818)), ((($length$14153 = temp$14147.length)), ((($index$14159 = 0)), (function() {
-    $14136: for (; ($index$14159 < $length$14153); ($index$14159++)) {
-      var t$14176;
-      var m$14168;
-      (m$14168 = temp$14147[$index$14159]);
-      (t$14176 = m$14168);
-      acc$14141.push(["declare", __amp____colon__(["symbol", t$14176], ({"mutable": true}))]);
-    }
-  })()))), acc$14141));
-  return ["multi"].concat(decls$14133).concat([weave_clauses$11196(the_parts$13817)]);
-}));
-(opt_clauses$11195 = (function(clauses$14185) {
-  var $index$14225;
-  var $length$14219;
-  var temp$14213;
-  var acc$14207;
-  var $index$14409;
-  var $length$14403;
-  var temp$14397;
-  var acc$14391;
-  var $index$14469;
-  var $length$14463;
-  var temp$14457;
-  var acc$14451;
-  var $index$14521;
-  var $length$14515;
-  var temp$14509;
-  var acc$14503;
-  var shares$14194;
-  var max$14195;
-  var temps$14196;
-  var shared_last$14197;
-  var idx_last$14198;
-  var new_clauses$14199;
-  (shares$14194 = (((acc$14207 = [])), (((temp$14213 = enumerate(clauses$14185.slice(1)))), ((($length$14219 = temp$14213.length)), ((($index$14225 = 0)), (function() {
-    var $__1 = function() {
-      var t0$14286;
-      var t1$14287;
-      var $index$14321;
-      var $length$14315;
-      var temp$14309;
-      var varsd0$14278;
-      var blocks0$14279;
-      var share$14280;
-      var idx$14281;
-      var i$14246;
-      var vars$14247;
-      var varsd$14248;
-      var blocks$14249;
-      var body$14250;
-      var t0$14239;
-      var t1$14240;
-      var t2$14241;
-      var t3$14242;
-      var m$14234;
-      (m$14234 = temp$14213[$index$14225]);
-      (t0$14239 = m$14234);
-      if (((t0$14239 instanceof Array) && (((t1$14240 = t0$14239.length)), ((t1$14240 === 2) && ((i$14246 = t0$14239[0]), (((t2$14241 = t0$14239[1])), ((t2$14241 instanceof Array) && (((t3$14242 = t2$14241.length)), ((t3$14242 === 5) && (t2$14241[0] === "clause")))))))))) {
-        (vars$14247 = t2$14241[1]);
-        (varsd$14248 = t2$14241[2]);
-        (blocks$14249 = t2$14241[3]);
-        (body$14250 = t2$14241[4]);
-        acc$14207.push(((((t0$14286 = $15100(clauses$14185, i$14246))), (((t0$14286 instanceof Array) && (((t1$14287 = t0$14286.length)), ((t1$14287 === 5) && (t0$14286[0] === "clause")))) ? (t0$14286[1], (varsd0$14278 = t0$14286[2]), (blocks0$14279 = t0$14286[3]), t0$14286[4]) : ___match_error($15100(clauses$14185, i$14246), "/home/olivier/git/earl-grey/src/pattern.eg", 16294, 16304))), ((share$14280 = 0)), ((idx$14281 = 0)), (((temp$14309 = blocks$14249)), ((($length$14315 = temp$14309.length)), ((($index$14321 = 0)), (function() {
-          $14282: for (; ($index$14321 < $length$14315); ($index$14321++)) {
-            var x$14358;
-            var x$14368;
-            var other$14379;
-            var $14341$14347;
-            var b$14338;
-            var m$14330;
-            (m$14330 = temp$14309[$index$14321]);
-            (b$14338 = m$14330);
-            if (same_block$11193([$15100(blocks0$14279, share$14280), b$14338], varsd0$14278, varsd$14248)) {
-              (share$14280++);
-              ($14341$14347 = b$14338);
-              if ((((x$14358 = $14341$14347)), ((x$14358 instanceof Array) && (x$14358[0] === "do")))) {
-                null;
-              } else {
-                if ((((x$14368 = $14341$14347)), ((x$14368 instanceof Array) && (x$14368[0] === "check")))) {
-                  (idx$14281 = share$14280);
-                } else {
-                  (other$14379 = $14341$14347);
-                  __lt____gt__$11174(null, other$14379);
-                }
-              }
-            } else {
-              break $14282;
-            }
-          }
-        })()))), [share$14280, idx$14281]));
-      } else {
-        ___match_error(m$14234, "/home/olivier/git/earl-grey/src/pattern.eg", 16170, 16698);
-      }
-    };
-    $14202: for (; ($index$14225 < $length$14219); ($index$14225++)) {
-      $__1();
-    }
-  })()))), acc$14207));
-  (max$14195 = $15100(Math.max, (((acc$14391 = [])), (((temp$14397 = shares$14194)), ((($length$14403 = temp$14397.length)), ((($index$14409 = 0)), (function() {
-    $14386: for (; ($index$14409 < $length$14403); ($index$14409++)) {
-      var x$14428;
-      var t0$14423;
-      var t1$14424;
-      var m$14418;
-      (m$14418 = temp$14397[$index$14409]);
-      (t0$14423 = m$14418);
-      if (((t0$14423 instanceof Array) && (((t1$14424 = t0$14423.length)), (t1$14424 === 2)))) {
-        (x$14428 = t0$14423[0]);
-        t0$14423[1];
-        acc$14391.push(x$14428);
-      } else {
-        ___match_error(m$14418, "/home/olivier/git/earl-grey/src/pattern.eg", 16712, 16737);
-      }
-    }
-  })()))), acc$14391)));
-  shares$14194.push([0, 0]);
-  (temps$14196 = (((acc$14451 = [])), (((temp$14457 = range(1, max$14195))), ((($length$14463 = temp$14457.length)), ((($index$14469 = 0)), (function() {
-    $14446: for (; ($index$14469 < $length$14463); ($index$14469++)) {
-      var m$14478;
-      (m$14478 = temp$14457[$index$14469]);
-      m$14478;
-      acc$14451.push(["symbol", gensym$11179()]);
-    }
-  })()))), acc$14451));
-  (shared_last$14197 = 0);
-  (idx_last$14198 = 0);
-  (new_clauses$14199 = (((acc$14503 = [])), (((temp$14509 = enumerate(clauses$14185))), ((($length$14515 = temp$14509.length)), ((($index$14521 = 0)), (function() {
-    var $__2 = function() {
-      var t0$14583;
-      var t1$14584;
-      var $index$14633;
-      var $length$14627;
-      var temp$14621;
-      var acc$14615;
-      var rest$14717;
-      var newblocks$14712;
-      var share$14577;
-      var idx$14578;
-      var shared$14579;
-      var n_to_share$14580;
-      var to_share$14581;
-      var other$14724;
-      var i$14542;
-      var vars$14543;
-      var varsd$14544;
-      var blocks$14545;
-      var body$14546;
-      var t0$14535;
-      var t1$14536;
-      var t2$14537;
-      var t3$14538;
-      var m$14530;
-      (m$14530 = temp$14509[$index$14521]);
-      (t0$14535 = m$14530);
-      if (((t0$14535 instanceof Array) && (((t1$14536 = t0$14535.length)), ((t1$14536 === 2) && ((i$14542 = t0$14535[0]), (((t2$14537 = t0$14535[1])), ((t2$14537 instanceof Array) && (((t3$14538 = t2$14537.length)), ((t3$14538 === 5) && (t2$14537[0] === "clause")))))))))) {
-        (vars$14543 = t2$14537[1]);
-        (varsd$14544 = t2$14537[2]);
-        (blocks$14545 = t2$14537[3]);
-        (body$14546 = t2$14537[4]);
-        acc$14503.push(((((t0$14583 = $15100(shares$14194, i$14542))), (((t0$14583 instanceof Array) && (((t1$14584 = t0$14583.length)), (t1$14584 === 2))) ? ((share$14577 = t0$14583[0]), (idx$14578 = t0$14583[1])) : ___match_error($15100(shares$14194, i$14542), "/home/olivier/git/earl-grey/src/pattern.eg", 16970, 16979))), ((shared$14579 = (idx_last$14198 ? [["check", $15100(temps$14196, (idx_last$14198 - 1))]] : []))), ((n_to_share$14580 = Math.max(shared_last$14197, share$14577))), ((to_share$14581 = (((acc$14615 = [])), (((temp$14621 = enumerate(blocks$14545.slice(shared_last$14197, n_to_share$14580)))), ((($length$14627 = temp$14621.length)), ((($index$14633 = 0)), (function() {
-          $14605: for (; ($index$14633 < $length$14627); ($index$14633++)) {
-            var j$14685;
-            var x$14686;
-            var j$14658;
-            var x$14659;
-            var $14609$14652;
-            var $14610$14653;
-            var $14611$14654;
-            var $14612$14655;
-            var t0$14647;
-            var t1$14648;
-            var t2$14649;
-            var t3$14650;
-            var m$14642;
-            (m$14642 = temp$14621[$index$14633]);
-            (t0$14647 = m$14642);
-            if ((($14610$14653 = (t0$14647 instanceof Array)) && (((t1$14648 = t0$14647.length)), (($14612$14655 = (t1$14648 === 2)) && ((j$14658 = t0$14647[0]), (((t2$14649 = t0$14647[1])), ((t2$14649 instanceof Array) && (((t3$14650 = t2$14649.length)), ((t3$14650 === 2) && (t2$14649[0] === "check")))))))))) {
-              (x$14659 = t2$14649[1]);
-              acc$14615.push(["check", ["assign", $15100(temps$14196, (shared_last$14197 + j$14658)), x$14659]]);
-            } else {
-              if (($14612$14655 && ((j$14685 = t0$14647[0]), (((t2$14649 = t0$14647[1])), ((t2$14649 instanceof Array) && (((t3$14650 = t2$14649.length)), ((t3$14650 === 2) && (t2$14649[0] === "do")))))))) {
-                (x$14686 = t2$14649[1]);
-                acc$14615.push(["do", x$14686]);
-              } else {
-                ___match_error(m$14642, "/home/olivier/git/earl-grey/src/pattern.eg", 17118, 17289);
-              }
-            }
-          }
-        })()))), acc$14615))), ((shared_last$14197 = share$14577)), ((idx_last$14198 = idx$14578)), (((newblocks$14712 = (((rest$14717 = blocks$14545.slice(n_to_share$14580))), shared$14579.concat(to_share$14581).concat(rest$14717)))), ["clause", vars$14543, varsd$14544, newblocks$14712, body$14546])));
-      } else {
-        (other$14724 = m$14530);
-        acc$14503.push((function() {
-          throw ErrorFactory(["oops"]).create("what", ({"value": other$14724}));
-        })());
-      }
-    };
-    $14497: for (; ($index$14521 < $length$14515); ($index$14521++)) {
-      $__2();
-    }
-  })()))), acc$14503));
-  return [temps$14196, new_clauses$14199];
-}));
-(weave_clauses$11196 = (function(parts$14733) {
-  var $index$14798;
-  var $length$14792;
-  var temp$14786;
-  var $index$15062;
-  var $length$15056;
-  var temp$15050;
-  var acc$15044;
-  var groups$14740;
-  var reassemble$14741;
-  var new_temps$14742;
-  var helper$14743;
-  (groups$14740 = classify_contiguous$11181(parts$14733, (function($14755$14758) {
-    var t0$14762;
-    var t1$14763;
-    var cls$14760;
-    (t0$14762 = $14755$14758);
-    if (((t0$14762 instanceof Array) && (((t1$14763 = t0$14762.length)), (t1$14763 >= 1)))) {
-      (cls$14760 = t0$14762[0]);
-      Array.prototype.slice.call(t0$14762, 1);
+  })(), acc$16);
+  return [temps$1, new_clauses$0];
+});
+weave_clauses$0 = (function(parts$2) {
+  var m$47;
+  var m$51;
+  var acc$19;
+  var groups$0;
+  var $targ$310;
+  var reassemble$0;
+  var $targ$311;
+  var new_temps$0;
+  var helper$0;
+  groups$0 = classify_contiguous$0(parts$2, (function(temp$6$0) {
+    var t1$29;
+    var t0$37;
+    var cls$0;
+    t0$37 = temp$6$0;
+    if (((t0$37 instanceof Array) && ((t1$29 = t0$37.length), (t1$29 >= 1)))) {
+      cls$0 = t0$37[0];
+      Array.prototype.slice.call(t0$37, 1);
     } else {
-      ___match_error($14755$14758);
+      ___match_error(temp$6$0);
     }
-    return cls$14760;
-  })));
-  (reassemble$14741 = []);
-  (new_temps$14742 = []);
-  (temp$14786 = groups$14740);
-  ($length$14792 = temp$14786.length);
-  ($index$14798 = 0);
-  $14744: for (; ($index$14798 < $length$14792); ($index$14798++)) {
-    var t0$14838;
-    var t1$14839;
-    var ts$14835;
-    var new_clauses$14836;
-    var elems$14854;
-    var elems$14821;
-    var $14748$14815;
-    var $14749$14816;
-    var $14750$14817;
-    var $14751$14818;
-    var t0$14812;
-    var t1$14813;
-    var m$14807;
-    (m$14807 = temp$14786[$index$14798]);
-    (t0$14812 = m$14807);
-    if ((($14749$14816 = (t0$14812 instanceof Array)) && (((t1$14813 = t0$14812.length)), (($14751$14818 = (t1$14813 >= 1)) && (t0$14812[0] === "clause"))))) {
-      (elems$14821 = Array.prototype.slice.call(t0$14812, 1));
-      (t0$14838 = opt_clauses$11195(elems$14821));
-      if (((t0$14838 instanceof Array) && (((t1$14839 = t0$14838.length)), (t1$14839 === 2)))) {
-        (ts$14835 = t0$14838[0]);
-        (new_clauses$14836 = t0$14838[1]);
-      } else {
-        ___match_error(opt_clauses$11195(elems$14821), "/home/olivier/git/earl-grey/src/pattern.eg", 17798, 17816);
-      }
-      (new_temps$14742 = new_temps$14742.concat(ts$14835));
-      (reassemble$14741 = reassemble$14741.concat(new_clauses$14836));
-    } else {
-      if (($14751$14818 && (t0$14812[0] === "block"))) {
-        (elems$14854 = Array.prototype.slice.call(t0$14812, 1));
-        (reassemble$14741 = reassemble$14741.concat(elems$14854));
-      } else {
-        ___match_error(m$14807, "/home/olivier/git/earl-grey/src/pattern.eg", 17732, 17937);
-      }
-    }
-  }
-  (helper$14743 = (function($14862$14865) {
-    var $index$14978;
-    var $length$14972;
-    var temp$14966;
-    var acc$14960;
-    var decls$14952;
-    var vars$14943;
-    var varsd$14944;
-    var blocks$14945;
-    var body$14946;
-    var rest$14947;
-    var body$14912;
-    var rest$14913;
-    var $14871$14895;
-    var $14872$14896;
-    var $14873$14897;
-    var $14874$14898;
-    var $14875$14899;
-    var $14876$14900;
-    var t0$14888;
-    var t1$14889;
-    var t2$14890;
-    var t3$14891;
-    var t4$14892;
-    var t5$14893;
-    var $14867$14883;
-    var ph$14877;
-    (ph$14877 = $14862$14865);
-    ($14867$14883 = ph$14877);
-    if ((($14871$14895 = ($14867$14883 instanceof Array)) && (((t0$14888 = $14867$14883.length)), (t0$14888 === 0)))) {
-      return ["multi"];
-    } else {
-      if (($14871$14895 && (($14873$14897 = (t0$14888 >= 1)) && (((t1$14889 = $14867$14883[0])), (($14875$14899 = (t1$14889 instanceof Array)) && (((t2$14890 = t1$14889.length)), ((t2$14890 === 2) && ((t1$14889[0] === "block") && (((t3$14891 = getProjector(Body$11183)(t1$14889[1]))), (t3$14891[0] && (((t4$14892 = t3$14891[1])), (((t5$14893 = t4$14892.length)), (t5$14893 >= 0))))))))))))) {
-        (body$14912 = Array.prototype.slice.call(t4$14892, 0));
-        (rest$14913 = Array.prototype.slice.call($14867$14883, 1));
-        return ["multi"].concat(body$14912).concat([helper$14743(rest$14913)]);
-      } else {
-        if (($14875$14899 && ((t2$14890 === 5) && (t1$14889[0] === "clause")))) {
-          (vars$14943 = t1$14889[1]);
-          (varsd$14944 = t1$14889[2]);
-          (blocks$14945 = t1$14889[3]);
-          (body$14946 = t1$14889[4]);
-          (rest$14947 = Array.prototype.slice.call($14867$14883, 1));
-          (decls$14952 = (((acc$14960 = [])), (((temp$14966 = vars$14943)), ((($length$14972 = temp$14966.length)), ((($index$14978 = 0)), (function() {
-            $14955: for (; ($index$14978 < $length$14972); ($index$14978++)) {
-              var bridge$15003$15011;
-              var $14998$15006;
-              var v$14995;
-              var m$14987;
-              (m$14987 = temp$14966[$index$14978]);
-              (v$14995 = m$14987);
-              acc$14960.push(((($14998$15006 = v$14995.declare_mode)), (($14998$15006 === "set") ? ["splice"] : (($14998$15006 === "let") ? ["declare", __amp__(v$14995, ({"mutable": false}))] : (($14998$15006 === "var") ? ["declare", __amp__(v$14995, ({"mutable": true}))] : (((bridge$15003$15011 = $14998$15006)), (((bridge$15003$15011 === "unqualified") || (bridge$15003$15011 === (void 0))) ? ["declare", __amp__(v$14995, ({"mutable": false}))] : (___match_error($14998$15006)))))))));
-            }
-          })()))), acc$14960));
-          return ["tagscope", "back", ["multi"].concat(decls$14952).concat([assemble_pattern$11189(blocks$14945, body$14946, ["use", "back", helper$14743(rest$14947)])])];
+    return cls$0;
+  }));
+  $targ$310 = [];
+  reassemble$0 = $targ$310;
+  $targ$311 = [];
+  new_temps$0 = $targ$311;
+  m$47 = null;
+  $32: for (var $__0 = groups$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$47 = $__1.value;
+    {
+      var t1$30;
+      var t1$31;
+      var t0$39;
+      var $targ$317;
+      var ts$0;
+      var new_clauses$1;
+      var elems$1;
+      var t0$38;
+      var elems$0;
+      var $$19548$0;
+      var $$19549$0;
+      var $$19550$0;
+      var $$19551$0;
+      t0$38 = m$47;
+      if ((($$19549$0 = (t0$38 instanceof Array)) && ((t1$30 = t0$38.length), (($$19551$0 = (t1$30 >= 1)) && (t0$38[0] === "clause"))))) {
+        elems$0 = Array.prototype.slice.call(t0$38, 1);
+        $targ$317 = opt_clauses$0(elems$0);
+        t0$39 = $targ$317;
+        if (((t0$39 instanceof Array) && ((t1$31 = t0$39.length), (t1$31 === 2)))) {
+          ts$0 = t0$39[0];
+          new_clauses$1 = t0$39[1];
         } else {
-          ___match_error($14867$14883);
+          ___match_error($targ$317);
+        }
+        new_temps$0 = new_temps$0.concat(ts$0);
+        reassemble$0 = reassemble$0.concat(new_clauses$1);
+      } else {
+        if (($$19551$0 && (t0$38[0] === "block"))) {
+          elems$1 = Array.prototype.slice.call(t0$38, 1);
+          reassemble$0 = reassemble$0.concat(elems$1);
+        } else {
+          ___match_error(m$47, "/home/olivier/git/earl-grey/src/pattern.eg", 17629, 17834);
         }
       }
     }
-  }));
-  return ["multi"].concat((((acc$15044 = [])), (((temp$15050 = new_temps$14742)), ((($length$15056 = temp$15050.length)), ((($index$15062 = 0)), (function() {
-    $15039: for (; ($index$15062 < $length$15056); ($index$15062++)) {
-      var t$15079;
-      var m$15071;
-      (m$15071 = temp$15050[$index$15062]);
-      (t$15079 = m$15071);
-      acc$15044.push(["declare", t$15079]);
+  }
+  helper$0 = (function(temp$7$0) {
+    var t0$40;
+    var t5$1;
+    var t4$2;
+    var t3$7;
+    var t2$10;
+    var t1$32;
+    var m$49;
+    var acc$18;
+    var decls$2;
+    var vars$5;
+    var varsd$2;
+    var blocks$3;
+    var body$4;
+    var rest$11;
+    var body$3;
+    var rest$10;
+    var $$19623$0;
+    var $$19624$0;
+    var $$19625$0;
+    var $$19626$0;
+    var $$19627$0;
+    var $$19628$0;
+    var m$48$0;
+    var ph$7;
+    ph$7 = temp$7$0;
+    m$48$0 = ph$7;
+    if ((($$19623$0 = (m$48$0 instanceof Array)) && ((t0$40 = m$48$0.length), (t0$40 === 0)))) {
+      return ["multi"];
+    } else {
+      if (($$19623$0 && (($$19625$0 = (t0$40 >= 1)) && ((t1$32 = m$48$0[0]), (($$19627$0 = (t1$32 instanceof Array)) && ((t2$10 = t1$32.length), ((t2$10 === 2) && ((t1$32[0] === "block") && ((t3$7 = getProjector(Body$0)(t1$32[1])), (t3$7[0] && ((t4$2 = t3$7[1]), (t5$1 = t4$2.length), (t5$1 >= 0)))))))))))) {
+        body$3 = Array.prototype.slice.call(t4$2, 0);
+        rest$10 = Array.prototype.slice.call(m$48$0, 1);
+        return ["multi"].concat(body$3).concat([helper$0(rest$10)]);
+      } else {
+        if (($$19627$0 && ((t2$10 === 5) && (t1$32[0] === "clause")))) {
+          vars$5 = t1$32[1];
+          varsd$2 = t1$32[2];
+          blocks$3 = t1$32[3];
+          body$4 = t1$32[4];
+          rest$11 = Array.prototype.slice.call(m$48$0, 1);
+          decls$2 = ((acc$18 = []), (m$49 = null), (function() {
+            $33: for (var $__2 = vars$5[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__3; !($__3 = $__2.next()).done; ) {
+              m$49 = $__3.value;
+              {
+                var bridge$$19699$0;
+                var m$50$0;
+                var v$8;
+                v$8 = m$49;
+                acc$18.push(((m$50$0 = v$8.declare_mode), ((m$50$0 === "set") ? ["splice"] : ((m$50$0 === "let") ? ["declare", __amp__(v$8, ({"mutable": false}))] : ((m$50$0 === "var") ? ["declare", __amp__(v$8, ({"mutable": true}))] : ((bridge$$19699$0 = m$50$0), (((bridge$$19699$0 === "unqualified") || (bridge$$19699$0 === (void 0))) ? ["declare", __amp__(v$8, ({"mutable": false}))] : ___match_error(m$50$0))))))));
+              }
+            }
+          })(), acc$18);
+          return ["tagscope", "back", ["multi"].concat(decls$2).concat([assemble_pattern$0(blocks$3, body$4, ["use", "back", helper$0(rest$11)])])];
+        } else {
+          return ___match_error(m$48$0);
+        }
+      }
     }
-  })()))), acc$15044)).concat([helper$14743(reassemble$14741)]);
-}));
-(exports["PatternParser"] = PatternParser$11186);
-(exports["PatternProcessor"] = PatternProcessor$11187);
-(exports["parse_clauses"] = parse_clauses$11194);
-(exports["parse_pattern"] = parse_pattern$11191);
+  });
+  return ["multi"].concat(((acc$19 = []), (m$51 = null), (function() {
+    $34: for (var $__2 = new_temps$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__3; !($__3 = $__2.next()).done; ) {
+      m$51 = $__3.value;
+      {
+        var t$12;
+        t$12 = m$51;
+        acc$19.push(["declare", t$12]);
+      }
+    }
+  })(), acc$19)).concat([helper$0(reassemble$0)]);
+});
+$targ$332 = PatternParser$0;
+(exports["PatternParser"] = $targ$332);
+$targ$333 = PatternProcessor$0;
+(exports["PatternProcessor"] = $targ$333);
+$targ$334 = parse_clauses$0;
+(exports["parse_clauses"] = $targ$334);
+$targ$335 = parse_pattern$0;
+(exports["parse_pattern"] = $targ$335);
 //# sourceURL=<compile-source>

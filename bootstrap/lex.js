@@ -1,51 +1,49 @@
 "use strict";
 require("earlgrey-runtime");
-var $5868 = (function(o, m) {
-  if (typeof(m) === 'string' || typeof(m) === 'number') {
-    return o[m];
-  } else {
-    return o['::send'](m);
-  }
-});
-var id$4152;
-var id_f$4153;
-var numr$4154;
-var numr_f$4155;
-var num$4156;
-var num_f$4157;
-var str$4158;
-var str_f$4159;
-var op$4160;
-var op2$4161;
-var op3$4162;
-var op4$4163;
-var op_f$4164;
-var indent$4165;
-var indent_f$4166;
-var indent2$4167;
-var indent2_f$4168;
-var cmnt$4169;
-var cmnt_f$4170;
-var unkn$4171;
-var unkn_f$4172;
-var $4087$4102;
-var Location$4103;
-var __lt____lt____colon__$4104;
-var special_ops$4105;
-var regexps$4106;
-var ws_re$4107;
-var eol_re$4108;
-var produce$4109;
-var indent_tracker$4110;
-var process_indent$4111;
-var disambiguate_fixity$4112;
-var alternate_operators$4113;
-var fill_locations$4114;
-var tokenize$4115;
-($4087$4102 = require("./location"));
-(Location$4103 = $4087$4102.Location);
-(__lt____lt____colon__$4104 = $4087$4102["<<:"]);
-(special_ops$4105 = ({
+var id$0;
+var id_f$0;
+var numr$0;
+var numr_f$0;
+var num$0;
+var num_f$0;
+var str$0;
+var str_f$0;
+var op$0;
+var op2$0;
+var op3$0;
+var op4$0;
+var op_f$0;
+var indent$0;
+var indent_f$0;
+var indent2$0;
+var indent2_f$0;
+var cmnt$0;
+var cmnt_f$0;
+var unkn$0;
+var unkn_f$0;
+var $targ$184;
+var $targ$185;
+var $targ$186;
+var $targ$187;
+var $targ$188;
+var $0$0;
+var Location$0;
+var __lt____lt____colon__$0;
+var special_ops$0;
+var regexps$0;
+var ws_re$0;
+var eol_re$0;
+var produce$0;
+var indent_tracker$0;
+var process_indent$0;
+var disambiguate_fixity$0;
+var alternate_operators$0;
+var fill_locations$0;
+var tokenize$0;
+$0$0 = require("./location");
+Location$0 = $0$0.Location;
+__lt____lt____colon__$0 = $0$0["<<:"];
+special_ops$0 = ({
   "(": "PFX",
   "[": "PFX",
   "{": "PFX",
@@ -56,495 +54,556 @@ var tokenize$4115;
   ".": "PFX",
   "'": "PFX",
   "not": "PFX"
-}));
-(regexps$4106 = (((id$4152 = RegExp("(?:^(?:\\.\\.\\.|(?:(?:[a-zA-Z$_]|(?:\\\\_.))(?:(?:[a-zA-Z$_0-9]|(?:\\\\_.))*))))", ""))), ((id_f$4153 = (function(m$4180) {
-  return ["ID", m$4180[0].replace(RegExp("\\\\_(.)", "g"), (function($4183$4186, x$4187) {
-    $4183$4186;
-    return x$4187;
+});
+regexps$0 = ((id$0 = RegExp("(?:^(?:\\.\\.\\.|(?:(?:[a-zA-Z$_]|(?:\\\\_.))(?:(?:[a-zA-Z$_0-9]|(?:\\\\_.))*))))", "")), (id_f$0 = (function(m$0) {
+  return ["ID", m$0[0].replace(RegExp("\\\\_(.)", "g"), (function(temp$0$0, x$0) {
+    temp$0$0;
+    return x$0;
   }))];
-}))), ((numr$4154 = RegExp("(?:^((?:\\d+))[rR]((?:[A-Za-z0-9_]+))(?:(?:\\.((?:[A-Za-z0-9_]+)))?))", ""))), ((numr_f$4155 = (function(m$4200) {
-  var t0$4210;
-  var t1$4211;
-  var frac$4231;
-  var radix$4205;
-  var intp$4206;
-  var frac$4207;
-  var value$4208;
-  (t0$4210 = m$4200);
-  if (((t0$4210 instanceof Array) && (((t1$4211 = t0$4210.length)), (t1$4211 === 4)))) {
-    t0$4210[0];
-    (radix$4205 = t0$4210[1]);
-    (intp$4206 = t0$4210[2]);
-    (frac$4207 = t0$4210[3]);
+})), (numr$0 = RegExp("(?:^((?:\\d+))[rR]((?:[A-Za-z0-9_]+))(?:(?:\\.((?:[A-Za-z0-9_]+)))?))", "")), (numr_f$0 = (function(m$1) {
+  var t1$0;
+  var t0$0;
+  var frac$1;
+  var $targ$40;
+  var $targ$35;
+  var radix$0;
+  var intp$0;
+  var frac$0;
+  var $targ$36;
+  var value$0;
+  $targ$35 = m$1;
+  t0$0 = $targ$35;
+  if (((t0$0 instanceof Array) && ((t1$0 = t0$0.length), (t1$0 === 4)))) {
+    t0$0[0];
+    radix$0 = t0$0[1];
+    intp$0 = t0$0[2];
+    frac$0 = t0$0[3];
   } else {
-    ___match_error(m$4200, "/home/olivier/git/earl-grey/src/lex.eg", 1192, 1193);
+    ___match_error($targ$35);
   }
-  (value$4208 = parseInt(intp$4206.replace(RegExp("_", "g"), ""), radix$4205));
-  if (frac$4207) {
-    (frac$4231 = frac$4207.replace(RegExp("_", "g"), ""));
-    (value$4208 = (value$4208 + (parseInt(frac$4207, radix$4205) / Math.pow(radix$4205, frac$4207.length))));
+  $targ$36 = parseInt(intp$0.replace(RegExp("_", "g"), ""), radix$0);
+  value$0 = $targ$36;
+  if (frac$0) {
+    frac$1 = frac$0.replace(RegExp("_", "g"), "");
+    $targ$40 = (value$0 + (parseInt(frac$0, radix$0) / Math.pow(radix$0, frac$0.length)));
+    value$0 = $targ$40;
   }
-  return ["NUM", value$4208];
-}))), ((num$4156 = RegExp("(?:^((?:[0-9_]+))(?:(?:\\.((?:\\d+)))?)(?:(?:[eE]((?:[+-]?)(?:[0-9_]+)))?))", ""))), ((num_f$4157 = (function(m$4246) {
-  return ["NUM", parseFloat(m$4246[0].replace(RegExp("_", "g"), ""))];
-}))), ((str$4158 = RegExp("(?:^\"((?:(?:(?:\\\\.)|[^\"])*))\")", ""))), ((str_f$4159 = (function(m$4256) {
-  var rx$4271;
-  var f$4272;
-  var repl$4261;
-  var r$4262;
-  (repl$4261 = ({
+  return ["NUM", value$0];
+})), (num$0 = RegExp("(?:^((?:[0-9_]+))(?:(?:\\.((?:\\d+)))?)(?:(?:[eE]((?:[+-]?)(?:[0-9_]+)))?))", "")), (num_f$0 = (function(m$2) {
+  return ["NUM", parseFloat(m$2[0].replace(RegExp("_", "g"), ""))];
+})), (str$0 = RegExp("(?:^\"((?:(?:(?:\\\\.)|[^\"])*))\")", "")), (str_f$0 = (function(m$3) {
+  var rx$0;
+  var f$0;
+  var repl$0;
+  var r$0;
+  repl$0 = ({
     "b": String.fromCharCode(8),
     "f": String.fromCharCode(12),
     "n": "\n",
     "r": String.fromCharCode(13),
     "t": String.fromCharCode(9)
-  }));
-  (r$4262 = (((rx$4271 = RegExp("\\\\u[0-9A-Fa-f]{4}|\\\\x[0-9A-Fa-f]{2}|\\\\.", "g"))), ((f$4272 = (function($4279$4282) {
-    var chr$4323;
-    var digits$4304;
-    var t0$4298;
-    var t1$4299;
-    var t2$4300;
-    var $4284$4293;
-    var ph$4287;
-    (ph$4287 = $4279$4282);
-    ($4284$4293 = ph$4287);
-    (t0$4298 = getProjector(RegExp("^(?:\\\\u|\\\\x)(.*)", ""))($4284$4293));
-    if ((t0$4298[0] && (((t1$4299 = t0$4298[1])), (((t2$4300 = t1$4299.length)), (t2$4300 === 2))))) {
-      t1$4299[0];
-      (digits$4304 = t1$4299[1]);
-      return String.fromCharCode(parseInt(digits$4304, 16));
+  });
+  r$0 = ((rx$0 = RegExp("\\\\u[0-9A-Fa-f]{4}|\\\\x[0-9A-Fa-f]{2}|\\\\.", "g")), (f$0 = (function(temp$1$0) {
+    var $targ$48;
+    var $targ$47;
+    var $targ$51;
+    var $targ$50;
+    var $targ$49;
+    var chr$0;
+    var $targ$46;
+    var digits$0;
+    var t0$1;
+    var t1$1;
+    var t2$0;
+    var m$4$0;
+    var ph$0;
+    ph$0 = temp$1$0;
+    m$4$0 = ph$0;
+    $targ$46 = getProjector(RegExp("^(?:\\\\u|\\\\x)(.*)", ""))(m$4$0);
+    t0$1 = $targ$46;
+    if ((t0$1[0] && (($targ$47 = t0$1[1]), (t1$1 = $targ$47), ($targ$48 = t1$1.length), (t2$0 = $targ$48), (t2$0 === 2)))) {
+      t1$1[0];
+      digits$0 = t1$1[1];
+      return String.fromCharCode(parseInt(digits$0, 16));
     } else {
-      (t0$4298 = getProjector(RegExp("^.(.)", ""))($4284$4293));
-      if ((t0$4298[0] && (((t1$4299 = t0$4298[1])), (((t2$4300 = t1$4299.length)), (t2$4300 === 2))))) {
-        t1$4299[0];
-        (chr$4323 = t1$4299[1]);
-        return ($5868(repl$4261, chr$4323) || chr$4323);
+      $targ$49 = getProjector(RegExp("^.(.)", ""))(m$4$0);
+      t0$1 = $targ$49;
+      if ((t0$1[0] && (($targ$50 = t0$1[1]), (t1$1 = $targ$50), ($targ$51 = t1$1.length), (t2$0 = $targ$51), (t2$0 === 2)))) {
+        t1$1[0];
+        chr$0 = t1$1[1];
+        return (send(repl$0, chr$0) || chr$0);
       } else {
-        ___match_error($4284$4293);
+        return ___match_error(m$4$0);
       }
     }
-  }))), m$4256[1].replace(rx$4271, f$4272)));
-  return ["STR", r$4262];
-}))), ((op$4160 = RegExp("(?:^(?:[+\\-*/~\\^<>=%&|?!@#.:']+))", ""))), ((op2$4161 = RegExp("(?:^[\\[\\{\\}\\],])", ""))), ((op3$4162 = RegExp("(?:^(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:with|where)|when)|and)|not)|or)|in)|mod)|each)|as)|of)(?:(?:[+\\-*/~\\^<>=%&|?!@#.:']+)|\\b))", ""))), ((op4$4163 = RegExp("(?:^`((?:[A-Za-z0-9_$]+))`)", ""))), ((op_f$4164 = (function(m$4361, column$4362) {
-  var fixity$4394;
-  var otherwise$4400;
-  var $4370$4383;
-  var $4366$4377;
-  var op$4371;
-  (op$4371 = (m$4361[1] || m$4361[0]));
-  ($4366$4377 = null);
-  $4366$4377;
-  if ((op$4371 === "|")) {
-    return ["INDENT", (column$4362 - 1)];
+  })), m$3[1].replace(rx$0, f$0));
+  return ["STR", r$0];
+})), (op$0 = RegExp("(?:^(?:[+\\-*/~\\^<>=%&|?!@#.:']+))", "")), (op2$0 = RegExp("(?:^[\\[\\{\\}\\],])", "")), (op3$0 = RegExp("(?:^(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:with|where)|when)|and)|not)|or)|in)|mod)|each)|as)|of)(?:(?:[+\\-*/~\\^<>=%&|?!@#.:']+)|\\b))", "")), (op4$0 = RegExp("(?:^`((?:[A-Za-z0-9_$]+))`)", "")), (op_f$0 = (function(m$5, column$0) {
+  var fixity$0;
+  var otherwise$0;
+  var $$3030$0;
+  var m$6$0;
+  var op$1;
+  op$1 = (m$5[1] || m$5[0]);
+  m$6$0 = null;
+  m$6$0;
+  if ((op$1 === "|")) {
+    return ["INDENT", (column$0 - 1)];
   } else {
-    if ((op$4371 in special_ops$4105)) {
-      (fixity$4394 = $5868(special_ops$4105, op$4371));
-      return ["OP", fixity$4394, op$4371];
+    if ((op$1 in special_ops$0)) {
+      fixity$0 = send(special_ops$0, op$1);
+      return ["OP", fixity$0, op$1];
     } else {
-      (otherwise$4400 = $4366$4377);
-      return ["OP", "?FX", op$4371];
+      otherwise$0 = m$6$0;
+      return ["OP", "?FX", op$1];
     }
   }
-}))), ((indent$4165 = RegExp("(?:^(?:(?:\n(?: *);(?:[^\n]*))*)(?:(?:\n((?: *)))+))", ""))), ((indent_f$4166 = (function(m$4410) {
-  var ilen$4414;
-  (ilen$4414 = m$4410[1].length);
-  return ["INDENT", ilen$4414];
-}))), ((indent2$4167 = RegExp("(?:^\\\\\\\\)", ""))), ((indent2_f$4168 = (function(m$4426, column$4427) {
-  return ["INDENT", (column$4427 - 2)];
-}))), ((cmnt$4169 = RegExp("(?:^;(?:[^\n]*))", ""))), ((cmnt_f$4170 = (function(m$4437) {
+})), (indent$0 = RegExp("(?:^(?:(?:\n(?: *);(?:[^\n]*))*)(?:(?:\n((?: *)))+))", "")), (indent_f$0 = (function(m$7) {
+  var ilen$0;
+  ilen$0 = m$7[1].length;
+  return ["INDENT", ilen$0];
+})), (indent2$0 = RegExp("(?:^\\\\\\\\)", "")), (indent2_f$0 = (function(m$8, column$1) {
+  return ["INDENT", (column$1 - 2)];
+})), (cmnt$0 = RegExp("(?:^;(?:[^\n]*))", "")), (cmnt_f$0 = (function(m$9) {
   return ["IGNORE"];
-}))), ((unkn$4171 = RegExp("(?:^.)", ""))), ((unkn_f$4172 = (function(m$4447) {
-  return ["ILLEGAL", m$4447[0]];
-}))), [[op3$4162, op_f$4164], [id$4152, id_f$4153], [numr$4154, numr_f$4155], [num$4156, num_f$4157], [str$4158, str_f$4159], [op$4160, op_f$4164], [op2$4161, op_f$4164], [op4$4163, op_f$4164], [indent$4165, indent_f$4166], [indent2$4167, indent2_f$4168], [cmnt$4169, cmnt_f$4170], [unkn$4171, unkn_f$4172]]));
-(ws_re$4107 = RegExp("(?:^(?: *)(?:(?:\n(?: *)\\\\ (?: *))*))", ""));
-(eol_re$4108 = RegExp("(?:^(?: *)(?:\n|$))", ""));
-(produce$4109 = (function(src$4461) {
-  var text$4470;
-  var results$4471;
-  var wsb$4472;
-  var pos$4473;
-  var column$4474;
-  (text$4470 = src$4461.text);
-  (results$4471 = []);
-  (wsb$4472 = text$4470.match(ws_re$4107)[0].length);
-  (text$4470 = text$4470.slice(wsb$4472));
-  (pos$4473 = wsb$4472);
-  (column$4474 = 0);
-  $4493: while (text$4470) {
-    var i$4499;
-    (i$4499 = 0);
-    $4496: for (; (i$4499 < regexps$4106.length); (++i$4499)) {
-      var t0$4513;
-      var t1$4514;
-      var splits$4563;
-      var skip$4546;
-      var endpos$4547;
-      var wsa$4548;
-      var eol$4549;
-      var bwsb$4550;
-      var bwsa$4551;
-      var token$4552;
-      var re$4509;
-      var fn$4510;
-      var m$4511;
-      (t0$4513 = $5868(regexps$4106, i$4499));
-      if (((t0$4513 instanceof Array) && (((t1$4514 = t0$4513.length)), (t1$4514 === 2)))) {
-        (re$4509 = t0$4513[0]);
-        (fn$4510 = t0$4513[1]);
+})), (unkn$0 = RegExp("(?:^.)", "")), (unkn_f$0 = (function(m$10) {
+  return ["ILLEGAL", m$10[0]];
+})), [[op3$0, op_f$0], [id$0, id_f$0], [numr$0, numr_f$0], [num$0, num_f$0], [str$0, str_f$0], [op$0, op_f$0], [op2$0, op_f$0], [op4$0, op_f$0], [indent$0, indent_f$0], [indent2$0, indent2_f$0], [cmnt$0, cmnt_f$0], [unkn$0, unkn_f$0]]);
+ws_re$0 = RegExp("(?:^(?: *)(?:(?:\n(?: *)\\\\ (?: *))*))", "");
+eol_re$0 = RegExp("(?:^(?: *)(?:\n|$))", "");
+produce$0 = (function(src$0) {
+  var $targ$56;
+  var text$0;
+  var results$0;
+  var $targ$58;
+  var wsb$0;
+  var $targ$59;
+  var $targ$60;
+  var pos$0;
+  var $targ$61;
+  var column$2;
+  $targ$56 = src$0.text;
+  text$0 = $targ$56;
+  results$0 = [];
+  $targ$58 = text$0.match(ws_re$0)[0].length;
+  wsb$0 = $targ$58;
+  $targ$59 = text$0.slice(wsb$0);
+  text$0 = $targ$59;
+  $targ$60 = wsb$0;
+  pos$0 = $targ$60;
+  $targ$61 = 0;
+  column$2 = $targ$61;
+  $1: while (text$0) {
+    var i$0;
+    i$0 = 0;
+    $2: for (null; (i$0 < regexps$0.length); (++i$0)) {
+      var t1$2;
+      var t0$2;
+      var splits$0;
+      var skip$0;
+      var endpos$0;
+      var $targ$69;
+      var $targ$70;
+      var wsa$0;
+      var eol$0;
+      var bwsb$0;
+      var bwsa$0;
+      var token$0;
+      var $targ$76;
+      var $targ$77;
+      var $targ$78;
+      var $targ$79;
+      var $targ$80;
+      var $targ$81;
+      var $targ$63;
+      var re$0;
+      var fn$0;
+      var m$11;
+      $targ$63 = send(regexps$0, i$0);
+      t0$2 = $targ$63;
+      if (((t0$2 instanceof Array) && ((t1$2 = t0$2.length), (t1$2 === 2)))) {
+        re$0 = t0$2[0];
+        fn$0 = t0$2[1];
       } else {
-        ___match_error($5868(regexps$4106, i$4499), "/home/olivier/git/earl-grey/src/lex.eg", 4345, 4355);
+        ___match_error($targ$63);
       }
-      (m$4511 = text$4470.match(re$4509));
-      if (m$4511) {
-        (skip$4546 = m$4511[0].length);
-        (endpos$4547 = (pos$4473 + skip$4546));
-        (column$4474 = (((splits$4563 = m$4511[0].split("\n"))), ((splits$4563.length > 1) ? $5868(splits$4563, (splits$4563.length - 1)).length : (column$4474 + skip$4546))));
-        (text$4470 = text$4470.slice(skip$4546));
-        (wsa$4548 = text$4470.match(ws_re$4107)[0].length);
-        (eol$4549 = (text$4470.match(eol_re$4108) && true));
-        (bwsb$4550 = (wsb$4472 > 0));
-        (bwsa$4551 = (eol$4549 ? bwsb$4550 : (wsa$4548 > 0)));
-        (token$4552 = fn$4510(m$4511, column$4474));
-        (token$4552["wsb"] = bwsb$4550);
-        (token$4552["wsa"] = bwsa$4551);
-        (token$4552["location"] = Location$4103(src$4461, pos$4473, endpos$4547));
-        results$4471.push(token$4552);
-        (text$4470 = text$4470.slice(wsa$4548));
-        (column$4474 = (column$4474 + wsa$4548));
-        (wsb$4472 = wsa$4548);
-        (pos$4473 = (endpos$4547 + wsa$4548));
-        break $4496;
+      m$11 = text$0.match(re$0);
+      if (m$11) {
+        skip$0 = m$11[0].length;
+        endpos$0 = (pos$0 + skip$0);
+        $targ$69 = ((splits$0 = m$11[0].split("\n")), ((splits$0.length > 1) ? send(splits$0, (splits$0.length - 1)).length : (column$2 + skip$0)));
+        column$2 = $targ$69;
+        $targ$70 = text$0.slice(skip$0);
+        text$0 = $targ$70;
+        wsa$0 = text$0.match(ws_re$0)[0].length;
+        eol$0 = (text$0.match(eol_re$0) && true);
+        bwsb$0 = (wsb$0 > 0);
+        bwsa$0 = (eol$0 ? bwsb$0 : (wsa$0 > 0));
+        token$0 = fn$0(m$11, column$2);
+        $targ$76 = bwsb$0;
+        (token$0["wsb"] = $targ$76);
+        $targ$77 = bwsa$0;
+        (token$0["wsa"] = $targ$77);
+        $targ$78 = Location$0(src$0, pos$0, endpos$0);
+        (token$0["location"] = $targ$78);
+        results$0.push(token$0);
+        $targ$79 = text$0.slice(wsa$0);
+        text$0 = $targ$79;
+        column$2 = (column$2 + wsa$0);
+        $targ$80 = wsa$0;
+        wsb$0 = $targ$80;
+        $targ$81 = (endpos$0 + wsa$0);
+        pos$0 = $targ$81;
+        break $2;
       }
     }
   }
-  return results$4471;
-}));
-(indent_tracker$4110 = (function() {
-  var curr$4617;
-  var stack$4618;
-  var stacks$4619;
-  (curr$4617 = 0);
-  (stack$4618 = []);
-  (stacks$4619 = [stack$4618]);
-  return (function($4615$4630) {
-    var t0$4653;
-    var rval$4721;
-    var $index$4801;
-    var $length$4795;
-    var temp$4789;
-    var acc$4783;
-    var rval$4775;
-    var x$4832;
-    var $index$4860;
-    var $length$4854;
-    var temp$4848;
-    var acc$4842;
-    var other$4881;
-    var fixity$4762;
-    var fixity$4742;
-    var stuff$4737;
-    var new_indent$4678;
-    var $4634$4679;
-    var $4646$4672;
-    var $4647$4673;
-    var $4648$4674;
-    var $4649$4675;
-    var t0$4667;
-    var t1$4668;
-    var bridge$4641$4669;
-    var bridge$4643$4670;
-    var $4632$4662;
-    var ph$4650;
-    var token$4651;
-    (t0$4653 = $4615$4630);
-    (token$4651 = t0$4653);
-    (ph$4650 = t0$4653);
-    ($4632$4662 = ph$4650);
-    if ((($4646$4672 = ($4632$4662 instanceof Array)) && (((t0$4667 = $4632$4662.length)), ((t0$4667 === 2) && ($4632$4662[0] === "INDENT"))))) {
-      (t1$4668 = $4632$4662[1]);
-      (new_indent$4678 = t1$4668);
-      ($4634$4679 = t1$4668);
-      $4634$4679;
-      if ((curr$4617 === false)) {
-        (curr$4617 = new_indent$4678);
+  return results$0;
+});
+indent_tracker$0 = (function() {
+  var $targ$83;
+  var curr$0;
+  var $targ$84;
+  var stack$0;
+  var stacks$0;
+  $targ$83 = 0;
+  curr$0 = $targ$83;
+  $targ$84 = [];
+  stack$0 = $targ$84;
+  stacks$0 = [stack$0];
+  return (function(temp$2$0) {
+    var t0$3;
+    var t0$4;
+    var $targ$90;
+    var $targ$91;
+    var rval$0;
+    var t1$3;
+    var bridge$$3260$0;
+    var $targ$95;
+    var $targ$96;
+    var bridge$$3262$0;
+    var m$13;
+    var acc$0;
+    var rval$1;
+    var $targ$99;
+    var $targ$100;
+    var x$1;
+    var m$14;
+    var acc$1;
+    var other$0;
+    var fixity$2;
+    var fixity$1;
+    var stuff$0;
+    var new_indent$0;
+    var ph$1$0;
+    var $$3265$0;
+    var $$3266$0;
+    var $$3267$0;
+    var $$3268$0;
+    var m$12$0;
+    var ph$2;
+    var token$1;
+    t0$3 = temp$2$0;
+    token$1 = t0$3;
+    ph$2 = t0$3;
+    m$12$0 = ph$2;
+    if ((($$3265$0 = (m$12$0 instanceof Array)) && ((t0$4 = m$12$0.length), ((t0$4 === 2) && (m$12$0[0] === "INDENT"))))) {
+      t1$3 = m$12$0[1];
+      new_indent$0 = t1$3;
+      ph$1$0 = t1$3;
+      ph$1$0;
+      if ((curr$0 === false)) {
+        $targ$90 = new_indent$0;
+        curr$0 = $targ$90;
         return [__amp__(["OP", "IFX", ","], ({
           "wsb": true,
           "wsa": true
         }))];
       } else {
-        if (($4634$4679 > curr$4617)) {
-          stack$4618.push(curr$4617);
-          (curr$4617 = new_indent$4678);
+        if ((ph$1$0 > curr$0)) {
+          stack$0.push(curr$0);
+          $targ$91 = new_indent$0;
+          curr$0 = $targ$91;
           return [__amp__(["OP", "PFX", "["], ({
             "wsb": true,
             "wsa": true
           }))];
         } else {
-          if (($4634$4679 === curr$4617)) {
+          if ((ph$1$0 === curr$0)) {
             return [__amp__(["OP", "IFX", ","], ({
               "wsb": true,
               "wsa": true
             }))];
           } else {
-            if (($4634$4679 < curr$4617)) {
-              (rval$4721 = []);
-              $4725: while (((stack$4618.length > 0) && (new_indent$4678 < curr$4617))) {
-                (curr$4617 = stack$4618.pop());
-                rval$4721.push(__amp__(["OP", "SFX", "]"], ({
+            if ((ph$1$0 < curr$0)) {
+              rval$0 = [];
+              $3: while (((stack$0.length > 0) && (new_indent$0 < curr$0))) {
+                var $targ$93;
+                $targ$93 = stack$0.pop();
+                curr$0 = $targ$93;
+                rval$0.push(__amp__(["OP", "SFX", "]"], ({
                   "wsb": true,
                   "wsa": true
                 })));
               }
-              rval$4721.push(__amp__(["OP", "IFX", ","], ({
+              rval$0.push(__amp__(["OP", "IFX", ","], ({
                 "wsb": true,
                 "wsa": true
               })));
-              return rval$4721;
+              return rval$0;
             } else {
-              ___match_error($4634$4679, "/home/olivier/git/earl-grey/src/lex.eg", 5722, 5738);
+              return ___match_error(ph$1$0, "/home/olivier/git/earl-grey/src/lex.eg", 5722, 5738);
             }
           }
         }
       }
     } else {
-      if (($4646$4672 && ((t0$4667 >= 1) && ($4632$4662[0] === "ID")))) {
-        (stuff$4737 = Array.prototype.slice.call($4632$4662, 1));
-        return [token$4651];
+      if (($$3265$0 && ((t0$4 >= 1) && (m$12$0[0] === "ID")))) {
+        stuff$0 = Array.prototype.slice.call(m$12$0, 1);
+        return [token$1];
       } else {
-        if (($4646$4672 && (($4648$4674 = (t0$4667 === 3)) && (($4649$4675 = ($4632$4662[0] === "OP")) && ((fixity$4742 = $4632$4662[1]), (((bridge$4641$4669 = $4632$4662[2])), ((bridge$4641$4669 === "[") || (bridge$4641$4669 === "{")))))))) {
-          stack$4618.push(curr$4617);
-          stacks$4619.push(stack$4618);
-          (stack$4618 = []);
-          (curr$4617 = false);
-          return [token$4651];
+        if (($$3265$0 && (($$3267$0 = (t0$4 === 3)) && (($$3268$0 = (m$12$0[0] === "OP")) && ((fixity$1 = m$12$0[1]), (bridge$$3260$0 = m$12$0[2]), ((bridge$$3260$0 === "[") || (bridge$$3260$0 === "{"))))))) {
+          stack$0.push(curr$0);
+          stacks$0.push(stack$0);
+          $targ$95 = [];
+          stack$0 = $targ$95;
+          $targ$96 = false;
+          curr$0 = $targ$96;
+          return [token$1];
         } else {
-          if (($4649$4675 && ((fixity$4762 = $4632$4662[1]), (((bridge$4643$4670 = $4632$4662[2])), ((bridge$4643$4670 === "]") || (bridge$4643$4670 === "}")))))) {
-            (rval$4775 = (((acc$4783 = [])), (((temp$4789 = stack$4618)), ((($length$4795 = temp$4789.length)), ((($index$4801 = 0)), (function() {
-              $4778: for (; ($index$4801 < $length$4795); ($index$4801++)) {
-                var m$4810;
-                (m$4810 = temp$4789[$index$4801]);
-                m$4810;
-                acc$4783.push(__amp__(["OP", "SFX", "]"], ({
-                  "wsb": true,
-                  "wsa": true
-                })));
+          if (($$3268$0 && ((fixity$2 = m$12$0[1]), (bridge$$3262$0 = m$12$0[2]), ((bridge$$3262$0 === "]") || (bridge$$3262$0 === "}"))))) {
+            rval$1 = ((acc$0 = []), (m$13 = null), (function() {
+              $4: for (var $__0 = stack$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                  $__1; !($__1 = $__0.next()).done; ) {
+                m$13 = $__1.value;
+                {
+                  m$13;
+                  acc$0.push(__amp__(["OP", "SFX", "]"], ({
+                    "wsb": true,
+                    "wsa": true
+                  })));
+                }
               }
-            })()))), acc$4783));
-            (stack$4618 = stacks$4619.pop());
-            (curr$4617 = stack$4618.pop());
-            rval$4775.push(token$4651);
-            return rval$4775;
+            })(), acc$0);
+            $targ$99 = stacks$0.pop();
+            stack$0 = $targ$99;
+            $targ$100 = stack$0.pop();
+            curr$0 = $targ$100;
+            rval$1.push(token$1);
+            return rval$1;
           } else {
-            if ((((x$4832 = $4632$4662)), ((x$4832 instanceof Array) && (x$4832[0] === "EOF")))) {
-              (acc$4842 = []);
-              (temp$4848 = stack$4618);
-              ($length$4854 = temp$4848.length);
-              ($index$4860 = 0);
-              $4837: for (; ($index$4860 < $length$4854); ($index$4860++)) {
-                var m$4869;
-                (m$4869 = temp$4848[$index$4860]);
-                m$4869;
-                acc$4842.push(__amp__(["OP", "SFX", "]"], ({
-                  "wsb": true,
-                  "wsa": true
-                })));
+            if (((x$1 = m$12$0), ((x$1 instanceof Array) && (x$1[0] === "EOF")))) {
+              acc$1 = [];
+              m$14 = null;
+              $5: for (var $__0 = stack$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                  $__1; !($__1 = $__0.next()).done; ) {
+                m$14 = $__1.value;
+                {
+                  m$14;
+                  acc$1.push(__amp__(["OP", "SFX", "]"], ({
+                    "wsb": true,
+                    "wsa": true
+                  })));
+                }
               }
-              return acc$4842;
+              return acc$1;
             } else {
-              (other$4881 = $4632$4662);
-              return [token$4651];
+              other$0 = m$12$0;
+              return [token$1];
             }
           }
         }
       }
     }
   });
-}));
-(process_indent$4111 = (function(stream$4888) {
-  var $index$4919;
-  var $length$4913;
-  var temp$4907;
-  var tracker$4893;
-  var results$4894;
-  (tracker$4893 = indent_tracker$4110());
-  (results$4894 = []);
-  (temp$4907 = stream$4888);
-  ($length$4913 = temp$4907.length);
-  ($index$4919 = 0);
-  $4895: for (; ($index$4919 < $length$4913); ($index$4919++)) {
-    var token$4936;
-    var m$4928;
-    (m$4928 = temp$4907[$index$4919]);
-    (token$4936 = m$4928);
-    (results$4894 = results$4894.concat(tracker$4893(token$4936)));
+});
+process_indent$0 = (function(stream$0) {
+  var m$15;
+  var tracker$0;
+  var $targ$105;
+  var results$1;
+  tracker$0 = indent_tracker$0();
+  $targ$105 = [];
+  results$1 = $targ$105;
+  m$15 = null;
+  $6: for (var $__0 = stream$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$15 = $__1.value;
+    {
+      var token$2;
+      token$2 = m$15;
+      results$1 = results$1.concat(tracker$0(token$2));
+    }
   }
-  return results$4894.concat(tracker$4893(["EOF"]));
-}));
-(disambiguate_fixity$4112 = (function(stream$4943) {
-  var $index$5425;
-  var $length$5419;
-  var temp$5413;
-  var __lt____lt____lt____colon__$4952;
-  var collapse_operators$4953;
-  var buffer$4954;
-  var pfx$4955;
-  var collapse$4956;
-  var results$4957;
-  (__lt____lt____lt____colon__$4952 = (function(a$4973, b$4974) {
-    (a$4973["wsb"] = b$4974.wsb);
-    (a$4973["wsa"] = b$4974.wsa);
-    return __lt____lt____colon__$4104(a$4973, b$4974);
-  }));
-  (collapse_operators$4953 = (function() {
-    var msg$5092;
-    var longer$5088;
-    var token$5065;
-    var fixity$5066;
-    var name$5067;
-    var t0$5059;
-    var t1$5060;
-    var t2$5061;
-    var $5049$5054;
-    var $index$5123;
-    var $length$5117;
-    var temp$5111;
-    var acc$5105;
-    var $index$5186;
-    var $length$5180;
-    var temp$5174;
-    var acc$5168;
-    var t0$5239;
-    var t1$5240;
-    var t2$5241;
-    var t3$5242;
-    var t0$5287;
-    var t0$5294;
-    var t0$5347;
-    var t0$5354;
-    var t1$5355;
-    var t2$5356;
-    var bridge$5328$5337;
-    var $5326$5332;
-    var t$5323;
-    var results$5317;
-    var $5231$5276;
-    var $5232$5277;
-    var $5233$5278;
-    var bridge$5228$5273;
-    var t0$5274;
-    var $5226$5268;
-    var first$5234;
-    var fixity$5235;
-    var name$5236;
-    var rest$5237;
-    var n$5029;
-    var $4998$5024;
-    var $4999$5025;
-    var $5000$5026;
-    var t0$5021;
-    var t1$5022;
-    var buffer$5012;
-    var $4992$5013;
-    var t0$5008;
-    var $4990$5003;
-    ($4990$5003 = arguments);
-    (t0$5008 = $4990$5003.length);
-    if ((t0$5008 >= 1)) {
-      (buffer$5012 = $4990$5003[0]);
-      ($4992$5013 = Array.prototype.slice.call($4990$5003, 1));
-      (n$5029 = buffer$5012.length);
-      $4992$5013;
-      if ((!buffer$5012.length)) {
+  return results$1.concat(tracker$0(["EOF"]));
+});
+disambiguate_fixity$0 = (function(stream$1) {
+  var m$22;
+  var __lt____lt____lt____colon__$0;
+  var collapse_operators$0;
+  var $targ$108;
+  var buffer$0;
+  var $targ$109;
+  var pfx$0;
+  var collapse$0;
+  var $targ$111;
+  var results$2;
+  __lt____lt____lt____colon__$0 = (function(a$0, b$0) {
+    var $targ$112;
+    var $targ$113;
+    $targ$112 = b$0.wsb;
+    (a$0["wsb"] = $targ$112);
+    $targ$113 = b$0.wsa;
+    (a$0["wsa"] = $targ$113);
+    return __lt____lt____colon__$0(a$0, b$0);
+  });
+  collapse_operators$0 = (function() {
+    var t2$1;
+    var t1$5;
+    var t0$7;
+    var msg$0;
+    var longer$0;
+    var token$3;
+    var fixity$3;
+    var name$0;
+    var m$17$0;
+    var m$18;
+    var acc$2;
+    var m$19;
+    var acc$3;
+    var t3$0;
+    var t2$2;
+    var t1$8;
+    var t0$10;
+    var t0$12;
+    var t0$13;
+    var t0$11;
+    var t0$14;
+    var t2$3;
+    var t1$9;
+    var t0$15;
+    var bridge$$3700$0;
+    var m$21$0;
+    var t$0;
+    var results$3;
+    var bridge$$3624$0;
+    var $$3627$0;
+    var $$3628$0;
+    var $$3629$0;
+    var m$20$0;
+    var $targ$130;
+    var first$0;
+    var fixity$4;
+    var name$3;
+    var rest$0;
+    var t0$6;
+    var t1$4;
+    var n$0;
+    var $$3485$0;
+    var $$3486$0;
+    var $$3487$0;
+    var t0$5;
+    var buffer$1;
+    var ph$5$0;
+    var m$16$0;
+    m$16$0 = arguments;
+    t0$5 = m$16$0.length;
+    if ((t0$5 >= 1)) {
+      buffer$1 = m$16$0[0];
+      ph$5$0 = Array.prototype.slice.call(m$16$0, 1);
+      n$0 = buffer$1.length;
+      ph$5$0;
+      if ((!buffer$1.length)) {
         return [];
       } else {
-        (t0$5021 = $4992$5013);
-        (t1$5022 = t0$5021.length);
-        if ((($5000$5026 = (t1$5022 === 2)) && ((t0$5021[0] ? true : false) && (t0$5021[1] ? true : false)))) {
-          ($5049$5054 = buffer$5012);
-          if ((($5049$5054 instanceof Array) && (((t0$5059 = $5049$5054.length)), ((t0$5059 === 1) && (((t1$5060 = $5049$5054[0])), ((token$5065 = t1$5060), ((t1$5060 instanceof Array) && (((t2$5061 = t1$5060.length)), ((t2$5061 === 3) && (t1$5060[0] === "OP")))))))))) {
-            (fixity$5066 = t1$5060[1]);
-            (name$5067 = t1$5060[2]);
-            return [__lt____lt____lt____colon__$4952(["ID", name$5067], token$5065)];
+        t0$6 = ph$5$0;
+        t1$4 = t0$6.length;
+        if ((($$3487$0 = (t1$4 === 2)) && ((t0$6[0] ? true : false) && (t0$6[1] ? true : false)))) {
+          m$17$0 = buffer$1;
+          if (((m$17$0 instanceof Array) && ((t0$7 = m$17$0.length), ((t0$7 === 1) && ((t1$5 = m$17$0[0]), (token$3 = t1$5), ((t1$5 instanceof Array) && ((t2$1 = t1$5.length), ((t2$1 === 3) && (t1$5[0] === "OP"))))))))) {
+            fixity$3 = t1$5[1];
+            name$0 = t1$5[2];
+            return [__lt____lt____lt____colon__$0(["ID", name$0], token$3)];
           } else {
-            (longer$5088 = $5049$5054);
-            (msg$5092 = "Too many consecutive operators were found here.");
-            throw ErrorFactory(["syntax", "nullary"]).create(msg$5092, ({"operators": buffer$5012}));
+            longer$0 = m$17$0;
+            msg$0 = "Too many consecutive operators were found here.";
+            throw ErrorFactory(["syntax", "nullary"]).create(msg$0, ({"operators": buffer$1}));
           }
         } else {
-          if (($5000$5026 && (t0$5021[0] ? true : false))) {
-            t0$5021[1];
-            (acc$5105 = []);
-            (temp$5111 = buffer$5012);
-            ($length$5117 = temp$5111.length);
-            ($index$5123 = 0);
-            $5100: for (; ($index$5123 < $length$5117); ($index$5123++)) {
-              var token$5142;
-              var name$5143;
-              var t0$5137;
-              var t1$5138;
-              var m$5132;
-              (m$5132 = temp$5111[$index$5123]);
-              (t0$5137 = m$5132);
-              (token$5142 = t0$5137);
-              if (((t0$5137 instanceof Array) && (((t1$5138 = t0$5137.length)), ((t1$5138 === 3) && (t0$5137[0] === "OP"))))) {
-                t0$5137[1];
-                (name$5143 = t0$5137[2]);
-                acc$5105.push(__lt____lt____lt____colon__$4952(["OP", "PFX", name$5143], token$5142));
-              } else {
-                ___match_error(m$5132, "/home/olivier/git/earl-grey/src/lex.eg", 8093, 8177);
-              }
-            }
-            return acc$5105;
-          } else {
-            if (($5000$5026 && (t0$5021[0], (t0$5021[1] ? true : false)))) {
-              (acc$5168 = []);
-              (temp$5174 = buffer$5012);
-              ($length$5180 = temp$5174.length);
-              ($index$5186 = 0);
-              $5163: for (; ($index$5186 < $length$5180); ($index$5186++)) {
-                var token$5205;
-                var name$5206;
-                var t0$5200;
-                var t1$5201;
-                var m$5195;
-                (m$5195 = temp$5174[$index$5186]);
-                (t0$5200 = m$5195);
-                (token$5205 = t0$5200);
-                if (((t0$5200 instanceof Array) && (((t1$5201 = t0$5200.length)), ((t1$5201 === 3) && (t0$5200[0] === "OP"))))) {
-                  t0$5200[1];
-                  (name$5206 = t0$5200[2]);
-                  acc$5168.push(__lt____lt____lt____colon__$4952(["OP", "SFX", name$5206], token$5205));
+          if (($$3487$0 && (t0$6[0] ? true : false))) {
+            t0$6[1];
+            acc$2 = [];
+            m$18 = null;
+            $8: for (var $__0 = buffer$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__1; !($__1 = $__0.next()).done; ) {
+              m$18 = $__1.value;
+              {
+                var t1$6;
+                var t0$8;
+                var token$4;
+                var name$1;
+                t0$8 = m$18;
+                token$4 = t0$8;
+                if (((t0$8 instanceof Array) && ((t1$6 = t0$8.length), ((t1$6 === 3) && (t0$8[0] === "OP"))))) {
+                  t0$8[1];
+                  name$1 = t0$8[2];
+                  acc$2.push(__lt____lt____lt____colon__$0(["OP", "PFX", name$1], token$4));
                 } else {
-                  ___match_error(m$5195, "/home/olivier/git/earl-grey/src/lex.eg", 8200, 8284);
+                  ___match_error(m$18, "/home/olivier/git/earl-grey/src/lex.eg", 8093, 8177);
                 }
               }
-              return acc$5168;
-            } else {
-              $4992$5013;
-              (t0$5239 = buffer$5012);
-              if (((t0$5239 instanceof Array) && (((t1$5240 = t0$5239.length)), ((t1$5240 >= 1) && (((t2$5241 = t0$5239[0])), ((first$5234 = t2$5241), ((t2$5241 instanceof Array) && (((t3$5242 = t2$5241.length)), ((t3$5242 === 3) && (t2$5241[0] === "OP")))))))))) {
-                (fixity$5235 = t2$5241[1]);
-                (name$5236 = t2$5241[2]);
-                (rest$5237 = Array.prototype.slice.call(t0$5239, 1));
-              } else {
-                ___match_error(buffer$5012, "/home/olivier/git/earl-grey/src/lex.eg", 8337, 8343);
-              }
-              ($5226$5268 = [first$5234.wsb, first$5234.wsa]);
-              (bridge$5228$5273 = $5226$5268);
-              if ((((bridge$5228$5273 instanceof Array) && (((t0$5287 = bridge$5228$5273.length)), ((t0$5287 === 2) && ((!bridge$5228$5273[0]) && (!bridge$5228$5273[1]))))) || ((bridge$5228$5273 instanceof Array) && (((t0$5294 = bridge$5228$5273.length)), ((t0$5294 === 2) && ((bridge$5228$5273[0] ? true : false) && (bridge$5228$5273[1] ? true : false))))))) {
-                return [__lt____lt____lt____colon__$4952(["OP", "IFX", name$5236], first$5234)].concat(collapse_operators$4953(rest$5237, true, false));
-              } else {
-                if ((($5231$5276 = ($5226$5268 instanceof Array)) && (((t0$5274 = $5226$5268.length)), (($5233$5278 = (t0$5274 === 2)) && ($5226$5268[0] ? true : false))))) {
-                  $5226$5268[1];
-                  return [__lt____lt____lt____colon__$4952(["OP", "PFX", name$5236], first$5234)].concat(collapse_operators$4953(rest$5237, true, false));
-                } else {
-                  if (($5233$5278 && ($5226$5268[0], ($5226$5268[1] ? true : false)))) {
-                    (results$5317 = collapse_operators$4953(rest$5237, false, false));
-                    (t$5323 = ((($5326$5332 = results$5317)), (((bridge$5328$5337 = $5326$5332)), ((((bridge$5328$5337 instanceof Array) && (((t0$5347 = bridge$5328$5337.length)), (t0$5347 === 0))) || ((bridge$5328$5337 instanceof Array) && (((t0$5354 = bridge$5328$5337.length)), ((t0$5354 >= 1) && (((t1$5355 = bridge$5328$5337[0])), ((t1$5355 instanceof Array) && (((t2$5356 = t1$5355.length)), ((t2$5356 >= 2) && ((t1$5355[0] === "OP") && ((t1$5355[1] === "PFX") && (Array.prototype.slice.call(t1$5355, 2), (Array.prototype.slice.call(bridge$5328$5337, 1), true)))))))))))) ? ["OP", "IFX", name$5236] : ($5326$5332, ["OP", "SFX", name$5236])))));
-                    return [__lt____lt____lt____colon__$4952(t$5323, first$5234)].concat(results$5317);
+            }
+            return acc$2;
+          } else {
+            if (($$3487$0 && (t0$6[0], (t0$6[1] ? true : false)))) {
+              acc$3 = [];
+              m$19 = null;
+              $9: for (var $__2 = buffer$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                  $__3; !($__3 = $__2.next()).done; ) {
+                m$19 = $__3.value;
+                {
+                  var t1$7;
+                  var t0$9;
+                  var token$5;
+                  var name$2;
+                  t0$9 = m$19;
+                  token$5 = t0$9;
+                  if (((t0$9 instanceof Array) && ((t1$7 = t0$9.length), ((t1$7 === 3) && (t0$9[0] === "OP"))))) {
+                    t0$9[1];
+                    name$2 = t0$9[2];
+                    acc$3.push(__lt____lt____lt____colon__$0(["OP", "SFX", name$2], token$5));
                   } else {
-                    ___match_error($5226$5268);
+                    ___match_error(m$19, "/home/olivier/git/earl-grey/src/lex.eg", 8200, 8284);
+                  }
+                }
+              }
+              return acc$3;
+            } else {
+              ph$5$0;
+              $targ$130 = buffer$1;
+              t0$10 = $targ$130;
+              if (((t0$10 instanceof Array) && ((t1$8 = t0$10.length), ((t1$8 >= 1) && ((t2$2 = t0$10[0]), (first$0 = t2$2), ((t2$2 instanceof Array) && ((t3$0 = t2$2.length), ((t3$0 === 3) && (t2$2[0] === "OP"))))))))) {
+                fixity$4 = t2$2[1];
+                name$3 = t2$2[2];
+                rest$0 = Array.prototype.slice.call(t0$10, 1);
+              } else {
+                ___match_error($targ$130);
+              }
+              m$20$0 = [first$0.wsb, first$0.wsa];
+              bridge$$3624$0 = m$20$0;
+              if ((((bridge$$3624$0 instanceof Array) && ((t0$12 = bridge$$3624$0.length), ((t0$12 === 2) && ((!bridge$$3624$0[0]) && (!bridge$$3624$0[1]))))) || ((bridge$$3624$0 instanceof Array) && ((t0$13 = bridge$$3624$0.length), ((t0$13 === 2) && ((bridge$$3624$0[0] ? true : false) && (bridge$$3624$0[1] ? true : false))))))) {
+                return [__lt____lt____lt____colon__$0(["OP", "IFX", name$3], first$0)].concat(collapse_operators$0(rest$0, true, false));
+              } else {
+                if ((($$3627$0 = (m$20$0 instanceof Array)) && ((t0$11 = m$20$0.length), (($$3629$0 = (t0$11 === 2)) && (m$20$0[0] ? true : false))))) {
+                  m$20$0[1];
+                  return [__lt____lt____lt____colon__$0(["OP", "PFX", name$3], first$0)].concat(collapse_operators$0(rest$0, true, false));
+                } else {
+                  if (($$3629$0 && (m$20$0[0], (m$20$0[1] ? true : false)))) {
+                    results$3 = collapse_operators$0(rest$0, false, false);
+                    t$0 = ((m$21$0 = results$3), (bridge$$3700$0 = m$21$0), ((((bridge$$3700$0 instanceof Array) && ((t0$14 = bridge$$3700$0.length), (t0$14 === 0))) || ((bridge$$3700$0 instanceof Array) && ((t0$15 = bridge$$3700$0.length), ((t0$15 >= 1) && ((t1$9 = bridge$$3700$0[0]), ((t1$9 instanceof Array) && ((t2$3 = t1$9.length), ((t2$3 >= 2) && ((t1$9[0] === "OP") && ((t1$9[1] === "PFX") && (Array.prototype.slice.call(t1$9, 2), Array.prototype.slice.call(bridge$$3700$0, 1), true))))))))))) ? ["OP", "IFX", name$3] : (m$21$0, ["OP", "SFX", name$3])));
+                    return [__lt____lt____lt____colon__$0(t$0, first$0)].concat(results$3);
+                  } else {
+                    return ___match_error(m$20$0);
                   }
                 }
               }
@@ -553,219 +612,252 @@ var tokenize$4115;
         }
       }
     } else {
-      ___match_error($4990$5003);
+      return ___match_error(m$16$0);
     }
-  }));
-  (buffer$4954 = []);
-  (pfx$4955 = true);
-  (collapse$4956 = (function(sfx$5394) {
-    var rval$5399;
-    (rval$5399 = collapse_operators$4953(buffer$4954, pfx$4955, sfx$5394));
-    (buffer$4954 = []);
-    return rval$5399;
-  }));
-  (results$4957 = []);
-  (temp$5413 = stream$4943);
-  ($length$5419 = temp$5413.length);
-  ($index$5425 = 0);
-  $4958: for (; ($index$5425 < $length$5419); ($index$5425++)) {
-    var other$5506;
-    var name$5456;
-    var $4963$5457;
-    var t0$5451;
-    var t1$5452;
-    var token$5443;
-    var $4961$5444;
-    var t0$5439;
-    var m$5434;
-    (m$5434 = temp$5413[$index$5425]);
-    (t0$5439 = m$5434);
-    (token$5443 = t0$5439);
-    ($4961$5444 = t0$5439);
-    (t0$5451 = $4961$5444);
-    if (((t0$5451 instanceof Array) && (((t1$5452 = t0$5451.length)), ((t1$5452 === 3) && (t0$5451[0] === "OP"))))) {
-      ($4963$5457 = t0$5451[1]);
-      (name$5456 = t0$5451[2]);
-      if (($4963$5457 === "?FX")) {
-        buffer$4954.push(token$5443);
-      } else {
-        if (($4963$5457 === "IFX")) {
-          (results$4957 = results$4957.concat(collapse$4956(true)));
-          results$4957.push(token$5443);
-          (pfx$4955 = true);
+  });
+  $targ$108 = [];
+  buffer$0 = $targ$108;
+  $targ$109 = true;
+  pfx$0 = $targ$109;
+  collapse$0 = (function(sfx$0) {
+    var rval$2;
+    var $targ$149;
+    rval$2 = collapse_operators$0(buffer$0, pfx$0, sfx$0);
+    $targ$149 = [];
+    buffer$0 = $targ$149;
+    return rval$2;
+  });
+  $targ$111 = [];
+  results$2 = $targ$111;
+  m$22 = null;
+  $7: for (var $__0 = stream$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$22 = $__1.value;
+    {
+      var t1$10;
+      var $targ$153;
+      var $targ$154;
+      var $targ$155;
+      var $targ$156;
+      var other$1;
+      var t0$17;
+      var name$4;
+      var ph$4$0;
+      var t0$16;
+      var token$6;
+      var ph$3$0;
+      t0$16 = m$22;
+      token$6 = t0$16;
+      ph$3$0 = t0$16;
+      t0$17 = ph$3$0;
+      if (((t0$17 instanceof Array) && ((t1$10 = t0$17.length), ((t1$10 === 3) && (t0$17[0] === "OP"))))) {
+        ph$4$0 = t0$17[1];
+        name$4 = t0$17[2];
+        if ((ph$4$0 === "?FX")) {
+          buffer$0.push(token$6);
         } else {
-          if (($4963$5457 === "PFX")) {
-            (results$4957 = results$4957.concat(collapse$4956(false)));
-            results$4957.push(token$5443);
-            (pfx$4955 = true);
+          if ((ph$4$0 === "IFX")) {
+            results$2 = results$2.concat(collapse$0(true));
+            results$2.push(token$6);
+            $targ$153 = true;
+            pfx$0 = $targ$153;
           } else {
-            if (($4963$5457 === "SFX")) {
-              (results$4957 = results$4957.concat(collapse$4956(true)));
-              results$4957.push(token$5443);
-              (pfx$4955 = false);
+            if ((ph$4$0 === "PFX")) {
+              results$2 = results$2.concat(collapse$0(false));
+              results$2.push(token$6);
+              $targ$154 = true;
+              pfx$0 = $targ$154;
             } else {
-              ___match_error($4963$5457, "/home/olivier/git/earl-grey/src/lex.eg", 9153, 9158);
+              if ((ph$4$0 === "SFX")) {
+                results$2 = results$2.concat(collapse$0(true));
+                results$2.push(token$6);
+                $targ$155 = false;
+                pfx$0 = $targ$155;
+              } else {
+                ___match_error(ph$4$0, "/home/olivier/git/earl-grey/src/lex.eg", 9153, 9158);
+              }
             }
           }
         }
+      } else {
+        other$1 = ph$3$0;
+        results$2 = results$2.concat(collapse$0(false));
+        results$2.push(token$6);
+        $targ$156 = false;
+        pfx$0 = $targ$156;
       }
-    } else {
-      (other$5506 = $4961$5444);
-      (results$4957 = results$4957.concat(collapse$4956(false)));
-      results$4957.push(token$5443);
-      (pfx$4955 = false);
     }
   }
-  return results$4957.concat(collapse$4956(true));
-}));
-(alternate_operators$4113 = (function(stream$5518) {
-  var $index$5562;
-  var $length$5556;
-  var temp$5550;
-  var W$5524;
-  var last_op$5525;
-  var results$5526;
-  (W$5524 = (function(x$5538) {
-    if (x$5538) {
+  return results$2.concat(collapse$0(true));
+});
+alternate_operators$0 = (function(stream$2) {
+  var m$23;
+  var W$0;
+  var $targ$158;
+  var last_op$0;
+  var results$4;
+  W$0 = (function(x$2) {
+    if (x$2) {
       return "wide";
     } else {
       return "short";
     }
-  }));
-  (last_op$5525 = true);
-  (results$5526 = []);
-  (temp$5550 = stream$5518);
-  ($length$5556 = temp$5550.length);
-  ($index$5562 = 0);
-  $5527: for (; ($index$5562 < $length$5556); ($index$5562++)) {
-    var x$5596;
-    var $5617$5624;
-    var token$5662;
-    var fixity$5603;
-    var name$5604;
-    var t0$5588;
-    var t1$5589;
-    var token$5580;
-    var $5530$5581;
-    var t0$5576;
-    var m$5571;
-    (m$5571 = temp$5550[$index$5562]);
-    (t0$5576 = m$5571);
-    (token$5580 = t0$5576);
-    ($5530$5581 = t0$5576);
-    if ((((x$5596 = $5530$5581)), ((x$5596 instanceof Array) && (x$5596[0] === "IGNORE")))) {
-      null;
-    } else {
-      (t0$5588 = $5530$5581);
-      if (((t0$5588 instanceof Array) && (((t1$5589 = t0$5588.length)), ((t1$5589 === 3) && (t0$5588[0] === "OP"))))) {
-        (fixity$5603 = t0$5588[1]);
-        (name$5604 = t0$5588[2]);
-        if (last_op$5525) {
-          results$5526.push(["VOID"]);
-        }
-        ($5617$5624 = fixity$5603);
-        if (($5617$5624 === "IFX")) {
-          results$5526.push(__lt____lt____colon__$4104(["IFX", W$5524((token$5580.wsa || token$5580.wsb)), name$5604], token$5580));
-          (last_op$5525 = true);
-        } else {
-          if (($5617$5624 === "PFX")) {
-            if ((!last_op$5525)) {
-              results$5526.push(["IFX", W$5524(token$5580.wsb), "WHITE"], ["VOID"]);
-            }
-            results$5526.push(__lt____lt____colon__$4104(["PFX", W$5524(token$5580.wsa), name$5604], token$5580));
-            (last_op$5525 = true);
+  });
+  $targ$158 = true;
+  last_op$0 = $targ$158;
+  results$4 = [];
+  m$23 = null;
+  $10: for (var $__0 = stream$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$23 = $__1.value;
+    {
+      var x$3;
+      var t1$11;
+      var $targ$165;
+      var $targ$166;
+      var $targ$167;
+      var m$24$0;
+      var $targ$168;
+      var token$8;
+      var t0$19;
+      var fixity$5;
+      var name$5;
+      var t0$18;
+      var token$7;
+      var ph$6$0;
+      t0$18 = m$23;
+      token$7 = t0$18;
+      ph$6$0 = t0$18;
+      if (((x$3 = ph$6$0), ((x$3 instanceof Array) && (x$3[0] === "IGNORE")))) {
+        null;
+      } else {
+        t0$19 = ph$6$0;
+        if (((t0$19 instanceof Array) && ((t1$11 = t0$19.length), ((t1$11 === 3) && (t0$19[0] === "OP"))))) {
+          fixity$5 = t0$19[1];
+          name$5 = t0$19[2];
+          if (last_op$0) {
+            results$4.push(["VOID"]);
+          }
+          m$24$0 = fixity$5;
+          if ((m$24$0 === "IFX")) {
+            results$4.push(__lt____lt____colon__$0(["IFX", W$0((token$7.wsa || token$7.wsb)), name$5], token$7));
+            $targ$165 = true;
+            last_op$0 = $targ$165;
           } else {
-            if (($5617$5624 === "SFX")) {
-              results$5526.push(__lt____lt____colon__$4104(["SFX", W$5524(token$5580.wsb), name$5604], token$5580), ["VOID"]);
-              (last_op$5525 = false);
+            if ((m$24$0 === "PFX")) {
+              if ((!last_op$0)) {
+                results$4.push(["IFX", W$0(token$7.wsb), "WHITE"], ["VOID"]);
+              }
+              results$4.push(__lt____lt____colon__$0(["PFX", W$0(token$7.wsa), name$5], token$7));
+              $targ$166 = true;
+              last_op$0 = $targ$166;
             } else {
-              ___match_error($5617$5624);
+              if ((m$24$0 === "SFX")) {
+                results$4.push(__lt____lt____colon__$0(["SFX", W$0(token$7.wsb), name$5], token$7), ["VOID"]);
+                $targ$167 = false;
+                last_op$0 = $targ$167;
+              } else {
+                ___match_error(m$24$0);
+              }
             }
           }
+        } else {
+          token$8 = ph$6$0;
+          if ((!last_op$0)) {
+            results$4.push(["IFX", W$0(token$8.wsb), "WHITE"]);
+          }
+          results$4.push(token$8);
+          $targ$168 = false;
+          last_op$0 = $targ$168;
         }
-      } else {
-        (token$5662 = $5530$5581);
-        if ((!last_op$5525)) {
-          results$5526.push(["IFX", W$5524(token$5662.wsb), "WHITE"]);
-        }
-        results$5526.push(token$5662);
-        (last_op$5525 = false);
       }
     }
   }
-  if (last_op$5525) {
-    results$5526.push(["VOID"]);
+  if (last_op$0) {
+    results$4.push(["VOID"]);
   }
-  return results$5526;
-}));
-(fill_locations$4114 = (function(source$5676, stream$5677) {
-  var $index$5774;
-  var $length$5768;
-  var temp$5762;
-  var to_fill$5683;
-  var start$5684;
-  var fill$5685;
-  (to_fill$5683 = []);
-  (start$5684 = 0);
-  (fill$5685 = (function(end$5700) {
-    var $index$5723;
-    var $length$5717;
-    var temp$5711;
-    (temp$5711 = to_fill$5683);
-    ($length$5717 = temp$5711.length);
-    ($index$5723 = 0);
-    $5704: for (; ($index$5723 < $length$5717); ($index$5723++)) {
-      var token$5749;
-      var token$5740;
-      var m$5732;
-      (m$5732 = temp$5711[$index$5723]);
-      (token$5740 = m$5732);
-      if (($index$5723 === 0)) {
-        (token$5740["location"] = Location$4103(source$5676, start$5684, end$5700));
-      } else {
-        (token$5749 = m$5732);
-        (token$5749["location"] = Location$4103(source$5676, end$5700, end$5700));
+  return results$4;
+});
+fill_locations$0 = (function(source$0, stream$3) {
+  var m$26;
+  var $targ$169;
+  var to_fill$0;
+  var $targ$170;
+  var start$0;
+  var fill$0;
+  $targ$169 = [];
+  to_fill$0 = $targ$169;
+  $targ$170 = 0;
+  start$0 = $targ$170;
+  fill$0 = (function(end$0) {
+    var m$25;
+    var $targ$172;
+    var first$1;
+    var $targ$173;
+    $targ$172 = true;
+    first$1 = $targ$172;
+    m$25 = null;
+    $12: for (var $__0 = to_fill$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__1; !($__1 = $__0.next()).done; ) {
+      m$25 = $__1.value;
+      {
+        var $targ$176;
+        var s$0;
+        var $targ$175;
+        var token$9;
+        token$9 = m$25;
+        s$0 = (first$1 ? (($targ$176 = false), (first$1 = $targ$176), start$0) : end$0);
+        $targ$175 = Location$0(source$0, s$0, end$0);
+        (token$9["location"] = $targ$175);
       }
     }
-    (to_fill$5683 = []);
-  }));
-  (temp$5762 = stream$5677);
-  ($length$5768 = temp$5762.length);
-  ($index$5774 = 0);
-  $5686: for (; ($index$5774 < $length$5768); ($index$5774++)) {
-    var other$5807;
-    var location$5792;
-    var t0$5788;
-    var m$5783;
-    (m$5783 = temp$5762[$index$5774]);
-    (t0$5788 = m$5783);
-    if ((___hasprop(t0$5788, "location") && ((location$5792 = t0$5788.location), location$5792))) {
-      fill$5685(location$5792.start);
-      (start$5684 = location$5792.end);
-    } else {
-      (other$5807 = m$5783);
-      to_fill$5683.push(other$5807);
+    $targ$173 = [];
+    return (to_fill$0 = $targ$173);
+  });
+  m$26 = null;
+  $11: for (var $__0 = stream$3[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__1; !($__1 = $__0.next()).done; ) {
+    m$26 = $__1.value;
+    {
+      var $targ$178;
+      var other$2;
+      var t0$20;
+      var location$0;
+      t0$20 = m$26;
+      if ((___hasprop(t0$20, "location") && ((location$0 = t0$20.location), location$0))) {
+        fill$0(location$0.start);
+        $targ$178 = location$0.end;
+        start$0 = $targ$178;
+      } else {
+        other$2 = m$26;
+        to_fill$0.push(other$2);
+      }
     }
   }
-  fill$5685(source$5676.text.length);
-  return stream$5677;
-}));
-(tokenize$4115 = (function(src$5814) {
-  var it$0$5842;
-  var it$0$5836;
-  var it$0$5830;
-  var it$0$5824;
-  var it$0$5818;
-  (it$0$5818 = src$5814);
-  (it$0$5824 = produce$4109(it$0$5818));
-  (it$0$5830 = process_indent$4111(it$0$5824));
-  (it$0$5836 = disambiguate_fixity$4112(it$0$5830));
-  (it$0$5842 = alternate_operators$4113(it$0$5836));
-  return fill_locations$4114(src$5814, it$0$5842);
-}));
-(exports["tokenize"] = tokenize$4115);
-(exports["process_indent"] = process_indent$4111);
-(exports["disambiguate_fixity"] = disambiguate_fixity$4112);
-(exports["alternate_operators"] = alternate_operators$4113);
-(exports["fill_locations"] = fill_locations$4114);
+  fill$0(source$0.text.length);
+  return stream$3;
+});
+tokenize$0 = (function(src$1) {
+  var $it$4;
+  var $it$3;
+  var $it$2;
+  var $it$1;
+  var $it$0;
+  $it$0 = src$1;
+  $it$1 = produce$0($it$0);
+  $it$2 = process_indent$0($it$1);
+  $it$3 = disambiguate_fixity$0($it$2);
+  $it$4 = alternate_operators$0($it$3);
+  return fill_locations$0(src$1, $it$4);
+});
+$targ$184 = tokenize$0;
+(exports["tokenize"] = $targ$184);
+$targ$185 = process_indent$0;
+(exports["process_indent"] = $targ$185);
+$targ$186 = disambiguate_fixity$0;
+(exports["disambiguate_fixity"] = $targ$186);
+$targ$187 = alternate_operators$0;
+(exports["alternate_operators"] = $targ$187);
+$targ$188 = fill_locations$0;
+(exports["fill_locations"] = $targ$188);
 //# sourceURL=<compile-source>
