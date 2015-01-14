@@ -86,9 +86,11 @@ X improve gensym to be less heavy-handed; one counter per variable
 X make unconditional #project more robust
 X FIX: f! x = g{y} will include the code for g{y} twice (once in the
   success branch, once in the failure branch)
+X Upgrade product to standard lib
+X timeit macro
+
 
 * Make unconditional transformers for String!, Number! and Boolean!
-* Upgrade product to standard lib
 * maybe use \ for unquote?
 * Use ES6 classes
 * Use ES6 splats
@@ -97,7 +99,6 @@ X FIX: f! x = g{y} will include the code for g{y} twice (once in the
 * Handle mix of array and object
 * Compare for equality when the same variable is found multiple times
   in a pattern
-* timeit macro
 * revamp the blocktest macro (rename to tests?)
 * match_error could use being more precise
 * fix emacro's interaction with ! when not in a pattern

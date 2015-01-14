@@ -8,7 +8,7 @@ provide:
    partition
    construct
    mkset
-   product
+   ;; product
    Body
 
 
@@ -133,12 +133,12 @@ partition{xs, predicate} =
    {t, f}
 
 
-product{a, b} =
-   var results = {}
-   a each x ->
-      results ++=
-         b each y -> {x, y}
-   results
+;; product{a, b} =
+;;    var results = {}
+;;    a each x ->
+;;       results ++=
+;;          b each y -> {x, y}
+;;    results
 
 
 construct{match, fn, zero} =
