@@ -4,7 +4,6 @@ require:
       <<:
    "./helpers" ->
       expr_mac
-      value_mac
       pattern_handlers
       Body
    "../pattern" ->
@@ -230,26 +229,6 @@ mac{"delete"}! delete_mac{context, _, form, match arg} =
 mac{"splice"}! splice_mac{context, _, form, #data{Body! {*stmts}}} =
    #splice{*stmts}
 
-;; [items{{...}} each {k, v} -> mac{k}{v}] with
-
-;;    "null" = value_mac{.null, chk} where
-;;       chk{x} = '[^x === ^=null]
-;;    "undefined" = value_mac{.undefined, chk} where
-;;       chk{x} = '[^x === ^=undefined]
-;;    "true" = value_mac{.true, chk} where
-;;       chk{x} = 'if{^x, true, false}
-;;    "false" = value_mac{.false, chk} where
-;;       chk{x} = '[not ^x]
-;;    "String" = value_mac{.String, chk, proj} where
-;;       chk{x} = '[typeof{^x} === .string]
-;;       proj{x} = '{true, String{^x}}
-;;    "Number" = value_mac{.Number, chk, proj} where
-;;       chk{x} = '[typeof{^x} === .number]
-;;       proj{x} = '{true, parseFloat{^x}}
-;;    "Boolean" = value_mac{.Boolean, chk, proj} where
-;;       chk{x} = '[typeof{^x} === .boolean]
-;;       proj{x} = '{true, Boolean{^x}}
-
 mac{"#"}! hash_mac{context, _, form, #data{#void{}, #symbol{var tag}}} =
    set tag = #value{tag}
    #macro{f} where f{match, _, form, expr} =
@@ -273,6 +252,9 @@ mac{"#"}! hash_mac{context, _, form, #data{#void{}, #symbol{var tag}}} =
                '{^tag, ^*args}
             other ->
                '{^tag}[^other]
+
+mac{"_"}! placeholder_mac{#pattern, _, form, #void{}} =
+   #ignore{}
 
 
 

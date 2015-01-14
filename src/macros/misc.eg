@@ -1,10 +1,15 @@
 
 require:
+   "../location" ->
+      <<:
    "./helpers" ->
       expr_mac
       var_operator
       overridable
+      pattern_handlers
       Body
+   "../pattern" ->
+      parse_pattern
 
 inject: mac
 
@@ -86,4 +91,104 @@ mac{"S"}! S_mac{context, info, form, arg} =
       match info.gettext{arg}:
          R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
          text -> text
+
+mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
+   helper{name, super, stmts} =
+      var statics = #data{'[=]}
+      var ctor = {#data{}, #multi{} & {env = env}}
+      new_stmts = stmts each
+         #send{'static, #data{Body! {*methods}}} ->
+            statics ++= methods
+         '[constructor[^args] = ^body] or '[constructor = ^args -> ^body] ->
+            set ctor = {args, body}
+            #splice{}
+         '[^lhs = ^rhs] ->
+            parse_pattern{info, lhs, rhs} with
+               pattern_handlers.build_object & {
+                  allow_nested = false
+                  assign{#symbol{v} or #value{v}, value} =
+                     #do{#assign{'[^name].prototype[^=v], value} <<: v}
+                  declare{vars} = {}
+                  wrap_target{match} =
+                     '[^args -> ^body] ->
+                        {env => other_env} = body
+                        it = #symbol{"@"} & {env = other_env}
+                        it2 = #symbol{"self"} & {env = other_env}
+                        '_lambda{
+                           ^args
+                           splice: [let ^it = this, let ^it2 = this]
+                           ^body
+                           ^=null
+                           ^=false
+                        }
+                     other ->
+                        other
+                  success{_} = #splice{}
+               }
+         when false -> pass
+
+      {ctor_args, ctor_body} = ctor
+      ctor_expr =
+         {env => env2} = ctor_body
+         it = #symbol{"@"} & {env = env2}
+         cls =
+            '_lambda{
+               ^ctor_args
+               ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
+               ^ctor_body
+               ^it
+               ^=false
+            }
+         if super:
+            then: '___extend{^cls, ^super}
+            else: cls
+
+      match name:
+         #symbol{name_str} ->
+            statics.push with
+               '["::name" = ^=name_str]
+         else ->
+            pass
+
+      statics.push with
+         '["::egclass" = true]
+
+      node =
+         #splice{
+            '[let ^name = ^ctor_expr]
+            '[^*new_stmts]
+            '[[^name] &: ^statics]
+            name
+         }
+
+      match context:
+         #expr{.multi} -> node
+         other -> #multi{node}
+
+   match expr:
+      #data{match, Body! {*stmts}} ->
+         '[^name {^super}] ->
+            helper{name, super, stmts}
+         '[^name {}] or [#symbol{_} and name] ->
+            helper{name, null, stmts}
+      #data{Body! {*stmts}} ->
+         helper{#symbol{info.gensym{}}, null, stmts}
+
+
+;;;;;;;;;;;;;;;;;;;
+;; ERROR FACTORY ;;
+;;;;;;;;;;;;;;;;;;;
+
+mac{"E"}! E_mac = errf_macro{{}} where
+   errf_macro{tags}{match, _, form, expr} =
+      #check or #project -> #nostep{form}
+      ctx ->
+         match expr:
+            #void{} ->
+               'ErrorFactory{{^*tags}}
+            #data{*args} ->
+               'ErrorFactory{{^*tags}}.create{^*args}
+            other ->
+               #macro with errf_macro{tags ++ {other}}
+
 

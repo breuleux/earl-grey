@@ -1,0 +1,99 @@
+
+require:
+   "./helpers" ->
+      protected_value
+      value_mac
+
+
+inject:
+   mac, bind
+
+
+global_variables = {
+
+   "+", "-", "*", "/", "mod"
+   "&.", "|.", "^."
+   "and", "or", "not"
+   ;; "==", "!="
+   "===", "!=="
+   "<", ">", "<=", ">="
+   "<<", ">>", ">>>"
+   "in", "instanceof", "--"
+   "++"
+
+   ;; .true, .false, .null, .undefined
+
+   .typeof
+   ;; .String, .Number, .Boolean
+   .Array, .Object
+   .RegExp, .Function, .Date
+   .parseInt, .parseFloat, .Math
+   .Error, .TypeError, .ReferenceError
+   .console, .process, .eval
+
+   .setTimeout, .clearTimeout
+   .setInterval, .clearInterval
+
+   .___js_fetch, .___node
+
+   .arguments, .this, .exports
+
+   .send
+   .object, .keys, .items, .enumerate
+   .zip, .product, .neighbours, .range
+   .predicate
+   "==", "!="
+   .equal, .nequal
+   "&", "&:"
+   .clone, .dir
+   .getProjector, .getChecker
+   .ErrorFactory, .Node
+
+   .___build_array
+   .___hasprop
+   .___extend
+   .___match_error
+   .___serialize_ast
+
+   .Set, .Map
+   .Promise, .promisify, .spawn
+
+   .Buffer
+
+   .global
+}
+
+global_variables each gvar ->
+   bind{gvar, #variable{gvar} & {mutable = false, assigned = true}}
+
+keywords = {
+   true = protected_value{.true, true}
+   false = protected_value{.false, false}
+   null = protected_value{.null, null}
+   undefined = protected_value{.undefined, undefined}
+   pass = #variable{.undefined}
+}
+
+items{keywords} each {gvar, v} ->
+   bind{gvar, v}
+
+[items{kv} each {k, v} -> mac{k}{v}] where kv = {
+   "null" = value_mac{.null, chk} where
+      chk{x} = '[^x === ^=null]
+   "undefined" = value_mac{.undefined, chk} where
+      chk{x} = '[^x === ^=undefined]
+   "true" = value_mac{.true, chk} where
+      chk{x} = 'if{^x, true, false}
+   "false" = value_mac{.false, chk} where
+      chk{x} = '[not ^x]
+   "String" = value_mac{.String, chk, proj} where
+      chk{x} = '[typeof{^x} === .string]
+      proj{x} = '{true, String{^x}}
+   "Number" = value_mac{.Number, chk, proj} where
+      chk{x} = '[typeof{^x} === .number]
+      proj{x} = '{true, parseFloat{^x}}
+   "Boolean" = value_mac{.Boolean, chk, proj} where
+      chk{x} = '[typeof{^x} === .boolean]
+      proj{x} = '{true, Boolean{^x}}
+}
+
