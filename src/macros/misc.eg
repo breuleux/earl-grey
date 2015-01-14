@@ -1,0 +1,89 @@
+
+require:
+   "./helpers" ->
+      expr_mac
+      var_operator
+      overridable
+      Body
+
+inject: mac
+
+[items{{...}} each {k, v} -> mac{k}{v}] with
+   "@" => var_operator{"$it"}
+
+expr_mac! mac{"chain"}! chain_mac{_, form, #data{defn and {=> env}, Body! {*body}}} =
+   it = '[@] & {env = env}
+   construct{match} =
+      {x} -> x
+      {x, *rest} ->
+         ' | let [^it = ^x]:
+              ^construct{rest}
+   construct{{defn} ++ body}
+
+expr_mac! mac{"using"}! using_mac{_, form, #data{defn and {=> env}, body}} =
+   it = '[@] & {env = env}
+   ' | let [^it = ^defn]:
+        ^body
+
+overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
+   #clause ->
+      #block{body}
+   #test ->
+      Body! {*stmts} = body
+      #do{#splice{*stmts}}
+   #expr ->
+      #multi{body}
+
+mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents}} =
+   match context:
+      #check or #project ->
+         return #nostep{form}
+      else -> pass
+
+   var tags = #data{}
+   kv = '{=}
+
+   parse{match whole} =
+      #void{} -> null
+      #symbol{s} ->
+         tags.push with #value{s}
+      #value{String! x} ->
+         tags.push with #value{x}
+      '[. ^[#symbol{x} or #value{String! x}]] ->
+         tags.push with #value{"." + x}
+      #send{#symbol{"^"}, #data{#void{}, expr}} ->
+         tags.push with expr
+      '[^_ = ^_] ->
+         kv.push with whole
+      #send{expr, rest} ->
+         parse{expr}, parse{rest}
+      #multi{*args} or #data{*args} ->
+         args each arg -> parse{arg}
+
+   parse{descr}
+
+   contents ?=
+      #void{} -> #array{}
+      #multi{*args} ->
+         xs = {}
+         args each
+            pair and '[^k = ^v] ->
+               kv.push with pair
+            spl and '[** ^_] ->
+               kv.push with spl
+            other ->
+               xs.push with other
+         #array{*xs}
+      pair and '[^k = ^v] ->
+         kv.push with pair
+         #array{}
+      x -> x
+
+   'Node{^tags, ^kv, ^contents}
+
+mac{"S"}! S_mac{context, info, form, arg} =
+   #value with
+      match info.gettext{arg}:
+         R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
+         text -> text
+

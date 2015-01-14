@@ -1,0 +1,28 @@
+
+require:
+   "./helpers" ->
+      expr_mac, expr_mac2
+
+inject: mac
+
+expr_mac! mac{"yield"}! yield_mac{_, form, match} =
+   'all[^arg] -> #js_yield{arg, #value{true}}
+   arg -> #js_yield{arg, #value{false}}
+
+expr_mac! mac{"await"}! await_mac{_, form, match} =
+   'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
+   'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
+   arg -> #js_yield{arg, #value{false}}
+
+expr_mac2! mac{"gen"}! gen_mac{match} =
+   '{^arg -> ^body} ->
+      '[^arg *-> ^body]
+   '{_lambda{^arg, ^pre, ^body, ^post, ^_}} ->
+      '_lambda{^arg, ^pre, ^body, ^post, ^=true}
+
+expr_mac2! mac{"async"}! async_mac{match} =
+   '{^arg -> ^body} ->
+      '[^arg -> spawn{{} *-> ^body}]
+   '{_lambda{^arg, ^pre, ^body, ^post, ^_}} ->
+      ;; TODO: this is wrong; post should be inside the spawn
+      '_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}

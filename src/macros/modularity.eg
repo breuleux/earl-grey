@@ -1,0 +1,80 @@
+
+require:
+   "./helpers" -> Body
+
+inject: mac
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; REQUIRE/PROVIDE AND GLOBALS ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+mac{"require"}! require_mac{context, info, form, match} =
+   #data{expr} ->
+      req = #variable{.require}
+      stmts = {}
+
+      topfetch{pkg, v} =
+         stmts.push with '[^v = [^req]{^pkg}]
+         v
+
+      produce{match expr, fetch} =
+
+         #symbol{s} ->
+            fetch{#value{s}, expr}
+
+         #value{String? s} ->
+            fetch{expr, #symbol{info.gensym{}}}
+
+         #multi{*subp} or #data{*subp} ->
+            subp each p -> produce{p, fetch}
+            null
+
+         #send{#symbol{"^"}, #data{#void{}, name}} ->
+            fetch{name, #symbol{info.gensym{}}}
+
+         #send{#symbol{"as"}, #data{pkg, s}} ->
+            produce{pkg} with {the_pkg, _} ->
+               fetch{the_pkg, s}
+
+         #send{#symbol{"->"}, #data{pkg, subp}} ->
+            pkgv = produce{pkg, fetch}
+            produce{subp} with {pkg, v} ->
+                stmts.push with '[^v = ^pkgv ^pkg]
+                v
+
+      produce{expr, topfetch}
+      #splice{*stmts}
+
+   #void{} ->
+      #variable{.require}
+
+   arg ->
+      #send{#variable{.require}, arg}
+
+mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
+   exp = form.env.mark{'exports}
+   #sink with
+      #multi ++
+         expr each
+            s and #symbol{name} ->
+               '[[^exp][^=name] = ^s]
+            '[^s as ^[#symbol{name} or #value{name}]] ->
+               '[[^exp][^=name] = ^s]
+            other ->
+               throw E.syntax.provide with
+                  "Each clause of provide must be 'sym' or 'sym as name'"
+
+mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
+   #restmacro with {stmts} ->
+      exp = form.env.mark{'exports}
+      {'[
+          globals: module
+          module.exports{^*expr} =
+             var ^exp = {=}
+             ^[#multi{*stmts}]
+             ^exp
+       ]}
+
+mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
+   #splice{*[...]} with
+      vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}

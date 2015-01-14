@@ -1,0 +1,254 @@
+
+require:
+   "../location" ->
+      <<:
+   "../expand" ->
+      Scope, mac1
+   "../pattern" ->
+      PatternParser
+      parse_pattern, parse_clauses
+   "../util" ->
+      Body
+
+
+provide:
+   embed_location
+   error_embed_location
+   match_error
+   drop_ctx
+   expr_mac
+   expr_mac2
+   ctx_mac
+   value_mac
+   overridable
+   protected_value
+   var_operator
+   accum_flags
+   build_loop
+   partial_pattern
+   make_assigner
+   pattern_handlers
+   Body
+
+
+embed_location{match} =
+   {location => {source => {=> url}, => start, => end}} ->
+      '[#location{^=url, ^=start, ^=end}]
+   other ->
+      '[#location{null, 0, 0}]
+
+error_embed_location{error, target} =
+   '[throw [^error &: {location = ^embed_location{target}}]]
+
+match_error{match target} =
+   {location => {source => {=> url}, => start, => end}} ->
+      '___match_error{^target, ^=url, ^=start, ^=end}
+   other ->
+      '___match_error{^other}
+
+drop_ctx{f}{context, info, form, arg} =
+   f{context, info, form, arg} !!
+      E.match? {args => {{value => [=== context and not #expr{.expr}]}}} ->
+         #nostep{form}
+
+expr_mac{f}{match, info, form, arg} =
+   #expr{.expr} or #expr{.head} ->
+      f{info, form, arg}
+   otherwise ->
+      #nostep{form}
+
+expr_mac2{mac}{match, info, f, e} =
+   #project{match} ->
+      #pattern ->
+         #unconditional{#macro{mac3}} where
+            mac3{c, info, f, #data{match}} =
+               #use{env, x} ->
+                  #use{env, mac.call{info, #data{x} <<: e}}
+               x ->
+                  mac.call{info, #data{x} <<: x}
+      else ->
+         mac.call{info, e}
+   #expr ->
+      mac.call{info, e}
+
+ctx_mac{mac}{ctx, info, f, e} =
+   mac.call{info, ctx, e}
+
+_default_proj{name}{x} =
+   '[throw E.project{"Cannot project a value with '" + ^=name + "!'"}]
+value_mac{name, chk, proj = _default_proj{name}}{match ctx, _, form, arg} =
+   #check ->
+      #nostep{#macro{m}} where
+         m{*, #data{x}} = chk{x}
+   #project ->
+      #nostep{#macro{m}} where
+         m{*, #data{x}} = proj{x}
+   ctx ->
+      match arg:
+         #void -> #variable{name}
+         else -> #send{#variable{name}, arg}
+
+overridable{f}{match context, info, form, arg} =
+   #pattern ->
+      #nostep{form}
+   #expr{.multi} ->
+      #nostep{form}
+   other ->
+      f{context, info, form, arg}
+
+protected_value{name, value}{match, _, form, arg} =
+   #pattern ->
+      throw E.syntax.pattern{"'"+name+"' is not a valid pattern and cannot be redeclared"}
+   other ->
+      match arg:
+         #void{} ->
+            #value{value}
+         other ->
+            #send{#value{value}, arg}
+
+var_operator{name} = {context, {=> env}, form, expr} ->
+   ;; {=> env} = form
+   sym = #symbol{name} & {env = env}
+   match expr:
+      #void{} ->
+         sym
+      #data{#void, match} ->
+         #symbol{s} ->
+            #send{sym, #value{s}}
+         other ->
+            #send{sym, other}
+
+accum_flags{mac, also_values = true} =
+   make{flags}{context, info, form, match} =
+      #value{flag} when also_values ->
+         #macro{make{flags ++ {flag}}}
+      '[. ^[#symbol{flag}]] ->
+         #macro{make{flags ++ {flag}}}
+      other ->
+         mac{context, info, form, other, flags}
+   make{{}}
+
+
+;; Note about lbl:
+
+;; The "for" macro rebinds break and continue to refer to its
+;; own label in either the environment it is created in or in
+;; the environment of the label it is given. This means,
+;; roughly speaking, that break/continue in user code will
+;; jump over macro-generated loops (and the macro's will jump
+;; over the user's), unless the macro explicitly makes sure
+;; that break/continue are redefined in the user
+;; environment. To do so, we create a random label and give
+;; it the same environment as the argument to "each". This
+;; means "break" will jump out of "each" and not out of an
+;; outer loop.
+
+build_loop{info, env, form, li, clauses, wrap, pre, post, opt} =
+   lbl =
+      if env:
+         then: #value{info.gensym{}} & {env = env}
+         else: #value{info.gensym{}}
+
+   freshenv = info.expander.mkenv{}
+   i = 'i & {env = freshenv}
+   len = 'len & {env = freshenv}
+
+   drop_ctx! first_mac{#pattern, _, form, subp} =
+      #test{'[^i === 0], subp}
+   drop_ctx! last_mac{#pattern, _, form, subp} =
+      #test{'[^i === [^len - 1]], subp}
+
+   newscope = Scope{info.scope}
+   env.bind{newscope, "first", #macro{first_mac}}
+   env.bind{newscope, "last", #macro{last_mac}}
+
+   m = 'm <<: form ;; transfer location, for error printing purposes
+   if opt.forof:
+      '[^pre
+        for[^lbl] [^m of ^li]:
+           ^parse_clauses{
+                info.with_scope{newscope}, m, clauses
+                opt & {wrap{x} = wrap{x, '0}}
+            }
+        ^post]
+   else:
+      '[^pre
+        let [temp = ^li, ^len = temp.length]:
+           for[^lbl] [var ^i = 0, ^i < ^len, ^i++]:
+              ^m = ___js_fetch{temp, ^i}
+              ^parse_clauses{
+                   info.with_scope{newscope}, m, clauses
+                   opt & {wrap{x} = wrap{x, i}}
+               }
+        ^post]
+
+partial_pattern{operator} =
+   op =
+      match operator:
+         #symbol -> operator
+         String? -> #variable{operator}
+   {context, _, form, expr} ->
+      match {context, expr}:
+         {#pattern, #data{#void{}, val}} ->
+            #check{m, #ignore{}} where
+               m = mac1 with {x} -> '[^op]{^x, ^val}
+         {_, #void{}} ->
+            op
+         other ->
+            #send{op, expr}
+
+make_assigner{op}{context, _, form, #data{a, b}} =
+   #assign{a, #send{#symbol{op}, #data{a, b}}}
+
+
+disregard_specials{#special{kind} and expr, value} =
+   throw E.syntax.pattern.special with
+      "Special token cannot be used here"
+      {special = expr}
+
+pattern_handlers = {
+
+   declare_variables = {
+      allow_nested = true
+      allow_arguments = true
+      special = disregard_specials
+      assign{match v, value} =
+         #symbol{name} ->
+            #do{#assign{v, value &: {name = name}} <<: v}
+         v ->
+            #do{#assign{v, value} <<: v}
+      finalize = true
+      tags = {declare_mode = .unqualified}
+      declare{_, vars} =
+         vars each v ->
+            match v.declare_mode:
+               .set -> #splice{}
+               .let -> #declare{v & {mutable = false}}
+               .var -> #declare{v & {mutable = true}}
+               .unqualified ->
+                  #declare{v & {mutable = false, use_previous = true}}
+      success{_} = #multi{}
+      failure{target} =
+         match_error{target}
+         ;; error_embed_location{..., target} with
+         ;;    'E.match{"Could not find a match for value", {value = ^target}}
+   }
+
+   build_object = {
+      strings_as_variables = true
+      allow_nested = true
+      allow_arguments = true
+      special = disregard_specials
+      assign{#symbol{v} or #value{v}, value, _} =
+         #do{#assign{'accum[^=v], value} <<: v}
+      finalize = true
+      declare{_, vars} =
+         {#declare{'accum, '{=}}}
+      success{_} = 'accum
+      failure{target} =
+         match_error{target}
+         ;; error_embed_location{..., target} with
+         ;;    'E.match{"Could not find a match for value", {value = ^target}}
+   }
+
+}

@@ -1,0 +1,146 @@
+
+require:
+   "../location" ->
+      <<:
+   "./helpers" ->
+      accum_flags
+      match_error
+      Body
+   "../pattern" ->
+      parse_clauses
+   "../util" as util
+
+
+inject: mac
+
+
+accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
+   #pattern ->
+      match expr:
+         #void{} -> #special{.match}
+         other -> #all{other <<: expr, #special{.match} <<: form}
+   other ->
+      opt = util.mkset{flags}
+      to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
+      {value, body} = match expr:
+         #data{Body! {*b}} -> {#value{null}, b}
+         #data{v, Body! {*b}} -> {v, b}
+      '[let [^to_match = ^value]: ^mbody] where mbody =
+         parse_clauses with
+            info, to_match, body
+            opt & {
+               fallback{target} =
+                  match_error{target}
+                  ;; error_embed_location{..., target} with
+                  ;;    'E.match{"Could not find a match for value", {value = ^target}}
+               wrap = {x} -> x
+            }
+
+mac{"if"}! if_mac{ctx, _, form, match} =
+   #data{test, a, b} ->
+      #if{test, a, b}
+
+   #data{test, #multi! #multi{*match}} ->
+      {'then{^a}} ->
+         #if{test, a, #value{undefined}}
+      {'then{^a}, 'else{^b}} ->
+         #if{test, a, b}
+      body ->
+         piece_together{conditions} =
+            var rval = #value{undefined}
+            conditions.reverse{} each {match, bod} ->
+               null? ->
+                  rval = bod
+               test ->
+                  rval = #if{test, bod, rval}
+            rval
+
+         conditions = {{test, #multi{*body}}}
+
+         match ctx:
+            #expr{.multi} ->
+               #restmacro with {stmts} ->
+                  while stmts.length:
+                     match stmts.shift{}:
+                        'elif{^cond, ^body} ->
+                           conditions.push with {cond, body}
+                        'else{^body} ->
+                           conditions.push with {null, body}
+                        x ->
+                           stmts.unshift{x}
+                           break
+                  {piece_together{conditions}} ++ stmts
+
+            else ->
+               piece_together{conditions}
+
+mac{"else"}! else_mac{match, _, form, _} =
+   #pattern ->
+      #ignore{}
+   else ->
+      throw E.syntax.else{msg, {node = form}} where
+         msg = "'else' should be found inside an 'if' block"
+
+mac{"not"}! not_mac{match, _, form, #data{#void{}, rhs} and arg} =
+   #check or #project ->
+      #nostep{form}
+   #pattern ->
+      #neg{rhs}
+   other ->
+      #send{#variable{"not"}, arg}
+
+mac{"and"}! and_mac{match, _, form, #data{lhs, rhs} and arg} =
+   #check or #project ->
+      #nostep{form}
+   #pattern ->
+      #all{lhs, rhs}
+   other ->
+      #send{#variable{"and"}, arg}
+
+mac{"or"}! or_mac{match, _, form, #data{lhs, rhs} and arg} =
+   #check or #project ->
+      #nostep{form}
+   #pattern ->
+      #any{lhs, rhs}
+   other ->
+      #send{#variable{"or"}, arg}
+
+mac{"when"}! when_mac{context, _, form, #data{match, condition}} =
+   #void{} -> #test{condition, #ignore{}}
+   other -> #test{condition, other}
+
+mac{"?"}! check_mac{match context, info, form, #data{chk, target}} =
+   do:
+      checker = match info.step{#check{context}, chk}:
+         === chk -> 'getChecker{^chk}
+         checker -> checker
+   #pattern ->
+      subp = if{target == #void, #ignore, target}
+      match checker:
+         #raw{projector} ->
+            checker
+         else ->
+            #check{checker, subp}
+   when target == #void ->
+      checker
+   other ->
+      '[^checker]{^target}
+
+mac{"!"}! project_mac{match context, info, form, #data{proj, target}} =
+   do:
+      projector = match info.step{#project{context}, proj}:
+         === proj -> 'getProjector{^proj}
+         projector -> projector
+   #pattern ->
+      subp = if{target == #void, #ignore, target}
+      match projector:
+         #raw{projector} ->
+            projector
+         #unconditional{projector} ->
+            #project{projector, subp, true}
+         else ->
+            #project{projector, subp}
+   when target == #void ->
+      '[{x} -> [^projector]{x}[1]]
+   other ->
+      '[^projector]{^target}[1]

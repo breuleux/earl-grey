@@ -463,11 +463,10 @@ fill_locations{source, stream} =
    var to_fill = {}
    var start = 0
    fill{end} =
-      to_fill each
-         first token ->
-            token.location = Location{source, start, end}
-         token ->
-            token.location = Location{source, end, end}
+      var first = true
+      to_fill each token ->
+         s = if{first, [first = false, start], end}
+         token.location = Location{source, s, end}
       set to_fill = {}
    stream each
       {=> location} when location ->

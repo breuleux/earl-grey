@@ -1,0 +1,78 @@
+
+require:
+   "./helpers" ->
+      partial_pattern
+      make_assigner
+
+inject: mac
+
+[items{{...}} each {k, v} -> mac{k}{v}] with
+
+   "===" => partial_pattern{"==="}
+   "!==" => partial_pattern{"!=="}
+   "==" => partial_pattern{"equal"}
+   "!=" => partial_pattern{"nequal"}
+   "<=" => partial_pattern{"<="}
+   ">=" => partial_pattern{">="}
+   "<" => partial_pattern{"<"}
+   ">" => partial_pattern{">"}
+
+   "+=" => make_assigner{"+"}
+   "-=" => make_assigner{"-"}
+   "*=" => make_assigner{"*"}
+   "/=" => make_assigner{"/"}
+   "<<=" => make_assigner{"<<"}
+   ">>=" => make_assigner{">>"}
+   ">>>=" => make_assigner{">>>"}
+   "++=" => make_assigner{"++"}
+   "?=" => make_assigner{"match"}
+   "or=" => make_assigner{"or"}
+   "and=" => make_assigner{"and"}
+   "each=" => make_assigner{"each"}
+
+
+mac{"-"}! minus_mac{context, _, form, match expr} =
+   #data{#void{}, #value{Number? n}} ->
+      #value{-n}
+   #void{} ->
+      #variable{"-"}
+   other ->
+      #send{#variable{"-"}, expr}
+
+mac{"++"}! append_mac{context, _, form, match} =
+   #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
+   #data{x, #void{}} -> #send{#variable{"++"}, #data{x, #void{}}}
+   #data{x, y} -> '[^x].concat{^y}
+   #void{} -> '[{x, y} -> x.concat{y}]
+   other -> '[___build_array{^other}]
+
+mac{".."}! range_mac{context, _, form, match} =
+   #data{#void{}, x} -> 'range{1, ^x}
+   #data{x, #void{}} -> 'range{^x}
+   #data{x, y} -> 'range{^x, ^y}
+   #void{} -> 'range
+
+mac{"//"}! floor_mac{context, _, form, #data{a, b}} =
+   'Math.floor{^a / ^b}
+
+mac{"*"}! times_mac{context, _, form, expr} =
+   match {context, expr}:
+      {#pattern, #void{}} ->
+         #dynsplice{#ignore{}}
+      {#pattern or #expr{.data}, #data{#void{}, val}} ->
+         #dynsplice{val}
+      {_, #void{}} ->
+         #variable{"*"}
+      other ->
+         #send{#variable{"*"}, expr}
+
+mac{"**"}! exp_mac{context, _, form, expr} =
+   match {context, expr}:
+      {#pattern, #void{}} ->
+         #objsplice{#ignore{}}
+      {#pattern or #expr{.data}, #data{#void{}, val}} ->
+         #objsplice{val}
+      {_, #void{}} ->
+         'Math.pow
+      {_, #data{a, b}} ->
+         'Math.pow{^a, ^b}

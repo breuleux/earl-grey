@@ -1,0 +1,42 @@
+
+require:
+   "../expand" ->
+      Env, topscope
+   "./helpers" ->
+      ctx_mac, expr_mac2
+
+inject: mac
+
+;;;;;;;;;;;;
+;; MACROS ;;
+;;;;;;;;;;;;
+
+wrap_macro{info, mac} =
+   mac2{c, s, f, e} =
+      bindings = info.env.list_bindings{info.scope}
+      env = Env{}
+      env.scopes[topscope.name] = bindings
+      r = mac.call{info, c, s, f, e}
+      env.mark{r}
+   #macro{mac2}
+
+mac{"macro"}! macro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      #declare_raw{name, wrap_macro{info, mac}}
+
+mac{"cmacro"}! cmacro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      #declare_raw{name, wrap_macro{info, ctx_mac{mac}}}
+
+mac{"emacro"}! emacro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, argument}, ast} ->
+      let mac = info.go{'[{^argument} -> ^ast], .parse, .eval}
+      #declare_raw{name, wrap_macro{info, expr_mac2{mac}}}
+
+mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
+   the_macros = info.go{body, .parse, .eval}
+   #splice{*[...]} with
+      items{the_macros} each {k, v} ->
+         #declare_raw{#symbol{k} &: {env = env}, #macro{v}}

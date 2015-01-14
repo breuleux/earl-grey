@@ -1,0 +1,144 @@
+
+require:
+   "./helpers" ->
+      expr_mac
+      overridable
+      build_loop
+      match_error
+      Body
+
+
+setup_label{label, env, body} =
+   #bind{'break & {env = env}, #macro{break_mac{label}}
+         #bind{'continue & {env = env}, #macro{continue_mac{label}}
+               #js_label{#value{label}, body}}}
+
+break_mac{default_label} = overridable with
+   {context, _, form, match expr} ->
+      #void{} when default_label -> #js_break{#value{default_label}}
+      #void{} -> #js_break{}
+      #value{v} -> #js_break{expr}
+      #symbol{v} -> #js_break{#value{v}}
+
+continue_mac{default_label} = overridable with
+   {context, _, form, match expr} ->
+      #void{} when default_label -> #js_continue{#value{default_label}}
+      #void{} -> #js_continue{}
+      #value{v} -> #js_continue{expr}
+      #symbol{v} -> #js_continue{#value{v}}
+
+inject: mac
+
+[items{{...}} each {k, v} -> mac{k}{v}] with
+   "break" => break_mac{null}
+   "continue" => continue_mac{null}
+
+expr_mac! mac{"while"}! while_mac{info, form, match {=> env}} =
+   '[. ^[#symbol{label}]] or #value{label} ->
+      #macro with {context, _, form, #data{test, body}} ->
+         setup_label{label, env, #js_while{test, body}}
+   #data{test, body} ->
+      setup_label{info.gensym{}, env, #js_while{test, body}}
+
+mac{"for"}! for_mac{context, info, form, match expr} =
+   do: setup_for{label, env, match, body} =
+      #multi{a, b, c} ->
+         #multi with
+            a
+            setup_label{label, env, #js_for{#multi{}, b, c, body}}
+      '[^a in ^b] ->
+         #multi with
+            #declare{a, #value{null}} ;; this is to show the symbol as resolved
+            setup_label{label, env, #js_for_in{a, b, body}}
+      '[of]{^a, ^b} ->
+         #multi with
+            #declare{a, #value{null}} ;; this is to show the symbol as resolved
+            setup_label{label, env, #js_for_of{a, b, body}}
+   '[. ^[#symbol{label}]] or #value{label} ->
+      #macro with {context, _, form, #data{spec, body}} ->
+         setup_for{label, expr.env, spec, body}
+   #data{spec, body} ->
+      setup_for{info.gensym{}, form.env, spec, body}
+
+
+mac{"each"}! each_mac{match, info and {=> env}, form, #data{li, Body! {*clauses}}} =
+   do:
+      var ends_with_test = false
+      _build_loop{wrap, pre, post} =
+         build_loop{info, env, form, li, clauses
+                    wrap, pre, post
+                    {...}} with
+            forof = true
+            wrap_pattern{x, toplevel} =
+               set ends_with_test =
+                  match x:
+                     #test -> toplevel
+                     other -> false
+               x
+            fallback{target} =
+               if ends_with_test:
+                  then: 'false
+                  else: match_error{target}
+
+   #test ->
+      #test_factory{li, clauses} & {env = env}
+
+   #expr{.multi} ->
+      ;; expand{#multi} will call this macro again with either
+      ;; #expr{.ignore} or #expr{.expr}, depending on whether we
+      ;; are in the middle of a block or at the end of one. We want
+      ;; to specialize on that information, so we pass our turn.
+      #nostep{form}
+
+   #expr{.ignore} ->
+      ;; Middle of a block. This means we don't have to accumulate
+      ;; the values.
+      _build_loop{{x} -> x, #splice{}, #splice{}}
+
+   other ->
+      ;; Middle of a block. We have to accumulate the values in
+      ;; order to return them. Right now, this plays poorly with
+      ;; break and continue.
+      _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
+
+
+mac{"each+"}! eachp_mac{match, info and {=> env}, form, #data{li, Body! {*clauses}}} =
+   do:
+      var ends_with_test = false
+      _build_loop{wrap, pre, post} =
+         build_loop{info, env, form, li, clauses
+                    wrap, pre, post
+                    {...}} with
+            forof = true
+            wrap_pattern{x, toplevel} =
+               set ends_with_test =
+                  match x:
+                     #test -> toplevel
+                     other -> false
+               x
+            fallback{target} =
+               if ends_with_test:
+                  then: 'false
+                  else: match_error{target}
+
+   #test ->
+      #test_factory{li, clauses} & {env = env}
+
+   #expr{.multi} ->
+      ;; expand{#multi} will call this macro again with either
+      ;; #expr{.ignore} or #expr{.expr}, depending on whether we
+      ;; are in the middle of a block or at the end of one. We want
+      ;; to specialize on that information, so we pass our turn.
+      #nostep{form}
+
+   #expr{.ignore} ->
+      ;; Middle of a block. This means we don't have to accumulate
+      ;; the values.
+      _build_loop{{x} -> x, #splice{}, #splice{}}
+
+   other ->
+      ;; Middle of a block. We have to accumulate the values in
+      ;; order to return them. Right now, this plays poorly with
+      ;; break and continue.
+      _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
+

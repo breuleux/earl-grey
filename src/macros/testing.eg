@@ -1,0 +1,70 @@
+
+require:
+   "./helpers" ->
+      build_loop
+      match_error
+      Body
+
+inject: mac
+
+
+;;;;;;;;;;;;;
+;; TESTING ;;
+;;;;;;;;;;;;;
+
+blocktest_wrap{expr} =
+   ' | value = [[...] !! e -> #error{e}] with
+        match [^expr]:
+           true? x -> #success{x}
+           false? x -> #failure{x}
+     | acc.push with
+        #test_result{label, value}
+
+_blocktest_mac{info, tests} =
+
+   exptests = enumerate{info.step_all{#test, tests}}
+   n = exptests.length
+   stmts = exptests each
+
+      {i, #do{stmt}} ->
+         stmt
+
+      {i, #blocktest{more_labels, more_tests}} ->
+         ' | let [label = label.concat{Array! ^more_labels}]:
+              set acc = acc.concat with
+                 ^_blocktest_mac{info, more_tests}
+
+      {i, #test_factory{elements, clauses} and {=> env}} ->
+         build_loop{info, env, #void{}
+                    elements, clauses, wrap, #splice{}, #splice{}
+                    {fallback = fall}} where
+            wrap{expr, index} =
+               ' | let [label = label.concat{{^index}}]:
+                    ^blocktest_wrap{expr}
+            fall{target} =
+               match_error{target}
+
+      {i, expr} ->
+         lbl = if{n === 1, '{}, '{^=i}}
+         ' | let [label = label.concat{^lbl}]:
+              ^blocktest_wrap{expr}
+
+   ' | let [var acc = {}]:
+        [[...] !! e -> acc.concat{{#error{label, e}}}] with
+           [^*stmts, acc]
+
+mac{"blocktest"}! blocktest_mac{context, info, form, #data{*match}} =
+   {Body! {*tests}} ->
+      ' | label = {}
+        | ^_blocktest_mac{info, tests}
+   {labels, Body! {*tests}} ->
+      ' | label = Array! ^labels
+        | ^_blocktest_mac{info, tests}
+
+
+mac{"timeit"}! timeit_mac{context, info, form, #data{body}} =
+   '[t = process.hrtime{}
+     result = ^body
+     {s, n} = process.hrtime{t}
+     {result, s * 1000 + n / 1e6}]
+

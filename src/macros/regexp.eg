@@ -1,0 +1,95 @@
+
+require:
+   "./helpers" -> accum_flags
+
+inject: mac
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; REGULAR EXPRESSIONS ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+class RegexBuilder:
+
+   wrap{x} =
+      "(?:" + x + ")"
+
+   quote{x} =
+      x.replace{R.g'{in ".?*+^$[](){}|\\\\"}, "\\$1"}
+
+   quote_charset{x} =
+      x.replace{R.g'{in "[](){}^"}, "\\$1"}
+
+   build{expr} =
+      match expr:
+         #symbol{match} ->
+            .any -> "."
+            .start -> "^"
+            .end -> "$"
+            .alpha -> "\\a"
+            .digit -> "\\d"
+            .word -> "\\w"
+            .space -> "\\s"
+            .boundary -> "\\b"
+            .a -> "\\a"
+            .d -> "\\d"
+            .w -> "\\w"
+            .s -> "\\s"
+            .b -> "\\b"
+
+         #value{x} -> @quote{x}
+
+         #send{#symbol{"raw"}, #value{s}} ->
+             s
+
+         #send{#symbol{match}, #data{a, b}} ->
+            "||" ->
+               @wrap{@build{a} + "|" + @build{b}}
+            "or" ->
+               @wrap{@build{a} + "|" + @build{b}}
+            "*" ->
+               #void{} = a
+               @wrap{@build{b} + "*"}
+            "+" ->
+               #void{} = a
+               @wrap{@build{b} + "+"}
+            "?" ->
+               #void{} = a
+               @wrap{@build{b} + "?"}
+            "in" ->
+               #void{} = a
+               #value{v} = b
+               ["[" + x + "]"] where
+                  x = @quote_charset{v}
+            "not" ->
+               #void{} = a
+               #send{#symbol{"in"}, #data{#void{}, #value{v}}} = b
+               ["[^" + x + "]"] where
+                  x = @quote_charset{v}
+
+         #data{*args} ->
+            "(" + [args each arg -> @build{arg}].join{""} + ")"
+         #multi{*args} ->
+            "(?:" + [args each arg -> @build{arg}].join{""} + ")"
+
+         other ->
+            E.syntax.regexp with
+               "Illegal regular expression"
+               {expr = expr}
+
+build_regexp{x} = RegexBuilder{}.build{x}
+
+accum_flagsf{f} = accum_flags{f, false}
+accum_flagsf! mac{"R"}! regexp_mac{match, info, form, arg, flags} =
+   #check or #project ->
+      #nostep{form}
+   else ->
+      match arg:
+         #value{String? v} ->
+            text =
+               ;; match arg.location.text{}:
+               match info.gettext{arg}:
+                  R"^\".*\"$"? text -> text.substring{1, text.length - 1}
+                  text -> text
+            'RegExp{^=text, ^=[flags.join{""}]}
+         #send{#symbol{"'"}, #data{#void{}, arg}} ->
+            'RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}

@@ -123,11 +123,13 @@ extract_options{clone! argv, opttable, optmessage} =
             process_option{arg, opt, true}
 
          R"^-([a-zA-Z_0-9]+)"! {_, opts} ->
-            opts each
-               last ch ->
-                  process_option{arg, ch, true}
-               ch ->
-                  process_option{arg, ch}
+            enumerate{opts} each {i, ch} ->
+               process_option{arg, ch, i == opts.length - 1}
+            ;; opts each
+            ;;    last ch ->
+            ;;       process_option{arg, ch, true}
+            ;;    ch ->
+            ;;       process_option{arg, ch}
 
          other when associate ->
             results[associate] = other
