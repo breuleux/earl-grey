@@ -80,6 +80,7 @@ X investigate bug where some locations cannot be found
   (well, it looks like... it fixed itself? can't reproduce it anymore)
 X `if` in expressions should generate ?:
 X remove the if{x, y, else{z}} form
+X remove `each?`
 
 
 * FIX: f! x = g{y} will include the code for g{y} twice (once in the
@@ -122,7 +123,6 @@ X remove the if{x, y, else{z}} form
 * add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
-* remove `each?`
 
 * f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 * f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}

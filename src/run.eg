@@ -54,7 +54,7 @@ display_error{match e} =
    E.syntax? {args => {args}} ->
       console.error{String{e}}
       hls = {.hl1, .hl2, .hl3, .hl4}
-      locs = enumerate{items{args}} each?
+      locs = enumerate{items{args}} each
          {i, {key, arg}} when arg and arg.location ->
             {arg.location, hls[i mod 4]}
       var accum = "\n"

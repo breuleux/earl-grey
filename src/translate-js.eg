@@ -365,7 +365,7 @@ class Translator:
                when [mode === "expr"] and [not args.some{isdecl}] ->
                   var xs = args each x ->
                      @translate{x, .expr}
-                  set xs = xs each? x when x !== "" -> x
+                  set xs = xs each x when x !== "" -> x
                   ["(" + xs.join{","} + ")"]
                _ -> @body{expr, mode}
 

@@ -629,35 +629,6 @@ mac{"each"}! each_mac{match, info and {=> env}, form, #data{li, Body! {*clauses}
       _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
 
 
-mac{"each?"}! eachq_mac{match, info and {=> env}, form, #data{li, Body! {*clauses}}} =
-
-   #test ->
-      #test_factory{li, clauses} & {env = env}
-
-   #expr{.multi} ->
-      ;; expand{#multi} will call this macro again with either
-      ;; #expr{.ignore} or #expr{.expr}, depending on whether we
-      ;; are in the middle of a block or at the end of one. We want
-      ;; to specialize on that information, so we pass our turn.
-      #nostep{form}
-
-   #expr{.ignore} ->
-      ;; Middle of a block. This means we don't have to accumulate
-      ;; the values.
-      build_loop{info, env, form, li, clauses
-                 {x} -> x, #splice{}, #splice{}
-                 {fallback = {target} -> 'false}}
-
-   other ->
-      ;; Middle of a block. We have to accumulate the values in
-      ;; order to return them. Right now, this plays poorly with
-      ;; break and continue.
-      build_loop{info, env, form, li, clauses
-                 {x} -> 'acc.push{^x}, '[var acc = {}], 'acc
-                 {fallback = {target} -> 'false}}
-
-
-
 mac{"try"}! try_mac{match, info, form, #data{Body! {*parts}}} =
    do:
       grouped = classify_contiguous{parts} with {match} ->

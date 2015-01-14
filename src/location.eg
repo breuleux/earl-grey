@@ -102,7 +102,7 @@ highlight_lines{text, linelocs, {l1, l2}, spans} =
                highlight{text, {{start, end, {}}, *clamp{spans, start, end}}}
 
 clamp{spans, bot, top} =
-   spans each? {start, end, attr} when [end >= bot and start <= top] ->
+   spans each {start, end, attr} when [end >= bot and start <= top] ->
       {Math.max{start, bot}, Math.min{end, top}, attr}
 
 
@@ -140,7 +140,7 @@ morsel{spans} =
             {{}, active}
          else:
            {newbot, span} = jump{active, bot, top}
-           newactive = active each?
+           newactive = active each
               x and {_, e, attr} when e > newbot -> x
            {let spans, remainder} = jumptill{newactive, newbot, top}
            {{span} ++ spans, remainder}
@@ -224,7 +224,7 @@ format_error{match e, context = 0} =
 
    E.syntax? {args => {args}} ->
       hls = {.hl1, .hl2, .hl3, .hl4}
-      locs = enumerate{items{args}} each?
+      locs = enumerate{items{args}} each
          {i, {key, arg}} when arg and arg.location ->
             {arg.location, hls[i mod 4]}
       div %
