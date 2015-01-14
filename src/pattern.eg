@@ -364,13 +364,20 @@ inject_below_uses{match, fn} =
 ;; success => what to return on success
 ;; failure => what to return on failure
 
+find_target{rhs, match pattern} =
+   #project{projector, subp, === true} ->
+      find_target{'[^projector]{^rhs}, subp}
+   else ->
+      {rhs, pattern}
+
+
 parse_pattern{info, pattern, rhs, opt} =
    parse = PatternParser{info, pattern, opt}
    if [not opt.allow_arguments and parse.arguments.length]:
       throw E.syntax.pattern.arguments with
          "Arguments cannot be declared in this pattern"
          {args = parse.arguments[0]}
-   [opt.wrap_target or identity]! target =
+   [opt.wrap_target or identity]! real_rhs =
       if parse.arguments.length:
          then:
             inject_below_uses{rhs} with {x} ->
@@ -378,24 +385,32 @@ parse_pattern{info, pattern, rhs, opt} =
                   {args, rest} -> '[^args -> ^rest]
          else:
             rhs
+   {var target, pattern} = find_target{real_rhs, parse.pattern}
+
+   var expr = null
+   match target:
+      #symbol or #variable ->
+         pass
+      else ->
+         {target, expr} = {#variable{info.gensym{"$targ"}}, target}
+
    proc = PatternProcessor{}
-   proc.process{parse.pattern, target, opt}
+   proc.process{pattern, target, opt}
+
    if opt.finalize:
       then:
+         succ = opt.success{target}
+         fail = opt.failure{target}
+         assembly = assemble_pattern{proc.parts, succ, fail}
          #splice with
+            ;; if{expr === null, #splice{}, '[^target = ^expr]}
+            if expr === null:
+               then: #splice{}
+               else: #splice{#declare{target}, #assign{target, expr}}
             *opt.declare{info, parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
-               assemble_pattern{proc.parts, opt.success{target}, opt.failure{targ}} where
-                  ;; This is a hack to avoid injecting whole function
-                  ;; definitions in match errors (this can actually
-                  ;; cause compile errors if the function contains
-                  ;; yield, because target is unwrapped by
-                  ;; unconditional transformers)
-                  ;; FIX: apply unconditional projectors on target?
-                  targ = match target:
-                     '[^_ -> ^_] or '_lambda{^*_} -> '"<function>"
-                     else -> target
+               assembly
       else:
          {parse.vars, proc.temps, proc.parts}
 

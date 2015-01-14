@@ -83,11 +83,11 @@ X remove the if{x, y, else{z}} form
 X remove `each?`
 X improve gensym to be less heavy-handed; one counter per variable
   name, perhaps
-
-
-* FIX: f! x = g{y} will include the code for g{y} twice (once in the
+X make unconditional #project more robust
+X FIX: f! x = g{y} will include the code for g{y} twice (once in the
   success branch, once in the failure branch)
 
+* Make unconditional transformers for String!, Number! and Boolean!
 * Upgrade product to standard lib
 * maybe use \ for unquote?
 * Use ES6 classes
@@ -99,7 +99,6 @@ X improve gensym to be less heavy-handed; one counter per variable
   in a pattern
 * timeit macro
 * revamp the blocktest macro (rename to tests?)
-* make unconditional #project more robust
 * match_error could use being more precise
 * fix emacro's interaction with ! when not in a pattern
 * emacro --> macro; macro --> cmacro?

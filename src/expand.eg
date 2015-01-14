@@ -138,7 +138,7 @@ class Info:
       Info{@context, newscope, @form, @arg, @expander}
 
    gensym{name} =
-      @expander.gensym{}
+      @expander.gensym{name or ""}
 
    defer{} =
       #nostep{@form}

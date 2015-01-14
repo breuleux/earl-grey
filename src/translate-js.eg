@@ -347,15 +347,27 @@ class Translator:
                c = @translate{rhs, .expr}
 
          #assign{lhs, rhs} ->
-            @expr{"(" + a + "=" + b + ")", mode} where
+            core = a + "=" + b where
                a = @translate{lhs, .expr}
                b = @translate{rhs, .expr}
+            match mode:
+               .stmt ->
+                  core + ";"
+               else ->
+                  @expr{"(" + core + ")", mode}
 
          #multi{} ->
             ;;if{mode === .stmt, ";", ""}
-            ""
+            if{mode === .stmt, "", "null"}
 
-         #multi{*args} ->
+         #multi{*_args} ->
+            args = flatten{_args} where
+               flatten{args} =
+                  var res = {}
+                  args each
+                     #multi{*more} -> res ++= flatten{more}
+                     other -> res.push with other
+                  res
             isdecl{match} =
                #declare{variable, value} -> true
                other -> false

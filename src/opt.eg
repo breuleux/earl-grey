@@ -1,6 +1,105 @@
 
 provide:
    hoist
+   eliminate_spurious_variables
+
+
+s{stats, v} =
+   if [not Object.hasOwnProperty.call{stats, v}]:
+      stats[v] = {
+         assigns = 0
+         uses = 0
+         transfers = {}
+         replaceable = false
+      }
+   stats[v]
+
+varstats{match expr, stats} =
+   #assign{#variable{v1}, #variable{v2}} ->
+      s{stats, v1}.assigns += 1
+      s{stats, v2}.uses += 1
+      s{stats, v2}.transfers.push{v1}
+   #assign{#variable{v1}, expr} ->
+      s{stats, v1}.assigns += 1
+      varstats{expr, stats}
+   #variable{v} ->
+      s{stats, v}.uses += 1
+   #value ->
+      pass
+   #scope{vars, body} ->
+      vars each #variable{v} ->
+         s{stats, v}.replaceable = true
+      varstats{body, stats}
+   #lambda{vars, body, generator = null} ->
+      vars each #variable{v} ->
+         s{stats, v}.assigns += 1
+      varstats{body, stats}
+   other ->
+      other.slice{1} each x ->
+         varstats{x, stats}
+
+replaceVars{match expr, repl} =
+   #variable{v} when Object.hasOwnProperty.call{repl, v} and repl[v] ->
+      #variable{repl[v]}
+   #assign{#variable{v1}, #variable{v2}} when repl[v1] == v2 or repl[v2] == v1 ->
+      #multi{}
+   #variable or #value ->
+      expr
+   #scope{vars, body} ->
+      newvars = {}
+      vars each _var and #variable{v} ->
+         if Object.hasOwnProperty.call{repl, v}:
+            if repl[v] !== false:
+               newvars.push with #variable{repl[v]}
+         else:
+            newvars.push{_var}
+      #scope{
+         newvars
+         replaceVars{body, repl}
+      }
+   #lambda{vars, body, generator = null} ->
+      #lambda{
+         vars
+         replaceVars{body, repl}
+         generator
+      }
+   {x, *rest} ->
+      {x, *newrest} where newrest =
+         rest each elem ->
+            replaceVars{elem, repl}
+   other ->
+      console.error{other}
+      throw E.replaceVars{"Unknown: " + String{other}}
+
+;; decl x
+;; x = f{y}
+;; decl z
+;; z = x
+;; bab{z, z, z}
+;; ===>
+;; decl z
+;; z = f{y}
+;; bab{z, z, z}
+
+;; repl[x] = z
+;; repl[z] = _
+
+eliminate_spurious_variables{expr} =
+   stats = {=}
+   varstats{expr, stats}
+   repl = {=}
+   items{stats} each {v, st} ->
+      if st.uses == 1 and st.assigns == 1 and st.transfers.length == 1 and st.replaceable:
+         {tr} = st.transfers
+         st2 = s{stats, tr}
+         if st2.assigns == 1 and st2.replaceable:
+            repl[v] = tr
+            repl[tr] = false
+            st.replaceable = false
+            st2.replaceable = false
+   replaceVars{expr, repl}
+
+
 
 hoist{expr} =
    {b, inner} = hoist_helper{expr}
