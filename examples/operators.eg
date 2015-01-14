@@ -15,18 +15,23 @@ console.log with
 
 ;; Let's swap some variables!
 macro [<=>]{*, #data{a, b}}:
-   ' | temp = ^a
-     | ^a := ^b
-     | ^b := temp
+   ' | let temp = ^a
+     | ^a = ^b
+     | ^b = temp
 
-x = 10
-y = 20
+var x = 10
+var y = 20
 console.log with
    x, y
 
 x <=> y
 console.log with
    x, y
+
+var temp = 60
+temp <=> x
+console.log with
+   x, temp
 
 
 ;; Besides their predefined priority, there's really nothing special

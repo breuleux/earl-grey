@@ -1,6 +1,6 @@
 
 
-macro statemachine{context, scope, form, #data{name, #multi! {*fns}}}:
+macro statemachine{context, scope, form, #data{name, #multi! #multi{*fns}}}:
    ;; This macro will help us define state machines nicely and easily
 
    ;; Usage:
@@ -29,17 +29,17 @@ macro statemachine{context, scope, form, #data{name, #multi! {*fns}}}:
    ;; First we create variables named "state" and "switch" which will
    ;; be visible in the user's lexical environment
    ;; form.env should contain a reference to that environment
-   state = form.env.convert{'state}
-   switch = form.env.convert{'switch}
+   state = form.env.mark{'state}
+   switch = form.env.mark{'switch}
 
    ;; We scrape the name of the initial state from the first clause
    '[[^ #symbol{initial_state}][^_] = ^_] =
       fns[0]
 
    ;; We define switch as a macro so that we don't need {}s or with
-   ;; switch newstate ==> state := newstate
+   ;; switch newstate ==> state = newstate
    switch_macro{*, newstate} =
-      ' | ^state := ^newstate
+      ' | ^state = ^newstate
 
    ;; #splice shouldn't actually be needed here, I'll have to check
    ;; what's going on with this. Anyway, it works.
@@ -47,12 +47,12 @@ macro statemachine{context, scope, form, #data{name, #multi! {*fns}}}:
       ' | ^name =
            ^ | #declare_raw{switch, #macro{switch_macro}}
            states = {^* fns}
-           ^state = ^=initial_state
+           var ^state = ^=initial_state
            {*args} ->
               states[^state].apply{null, args}
 
 
-statemachine Safe{key, prize}:
+statemachine Safe{key, var prize}:
    ;; Exercise: add the #put action :)
 
    locked{*match} =
@@ -86,7 +86,7 @@ statemachine Safe{key, prize}:
          switch .unlocked
       #take when prize ->
          console.log with "Took " + [String! prize] + "!"
-         prize := null
+         prize = null
       #take ->
          console.log with "The safe is empty!"
 
@@ -95,6 +95,7 @@ safe = Safe{"secret", "a million dollars"}
 
 safe #unlock{"secret"}
 safe #open
+safe #take
 safe #take
 
 
