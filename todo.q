@@ -90,6 +90,8 @@ X Upgrade product to standard lib
 X timeit macro
 X Make `each` iterate over iterables
 X x[1..10] instead of x.slice{1, 10}
+X print x
+X "::check" => Symbol.check, etc.
 
 
 * Make unconditional transformers for String!, Number! and Boolean!
@@ -118,12 +120,10 @@ X x[1..10] instead of x.slice{1, 10}
 * experiment with changing the priority of wide juxtaposition
 * make it possible to do "earl compile src -o lib" instead of having
   to do "earl compile -o lib src"
-* print x
 * string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
 * add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
-* "::check" => Symbol.check, etc.
 
 * f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 * f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}
