@@ -21,41 +21,41 @@ provide:
 
 class PatternParser:
 
-   constructor{scope, pattern, opt} =
+   constructor{info, pattern, opt} =
       @opt = opt
       @arguments = {}
       @vars = {}
       @specials = {=}
       tags = clone{opt.tags or {=}}
       tags.group_id or= gensym{.group}
-      @pattern = @expand{scope, pattern, tags, true, @opt.indexable}
+      @pattern = @expand{info, pattern, tags, true, @opt.indexable}
 
-   parse_specs{scope, specs, tags} =
+   parse_specs{info, specs, tags} =
       var rest = undefined
       var has_defaults = false
       rval = classify{.fw, .bw, .keys, .defaults} with
-         scope.step_all{#pattern, specs} each
+         info.step_all{#pattern, specs} each
             #dynsplice{variable} ->
-               set rest = @expand{scope, variable, tags}
+               set rest = @expand{info, variable, tags}
                #ignore
             #assoc{key} ->
-               #keys with {key, @expand{scope, key, tags}}
+               #keys with {key, @expand{info, key, tags}}
             #assoc{key, subp} ->
-               #keys with {key, @expand{scope, subp, tags}}
+               #keys with {key, @expand{info, subp, tags}}
             #default{variable, value} ->
                set has_defaults = true
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
-                  else: #defaults with {@expand{scope, variable, tags}, value}
+                  else: #defaults with {@expand{info, variable, tags}, value}
             v when rest === undefined and not has_defaults ->
-               #fw with @expand{scope, v, tags}
+               #fw with @expand{info, v, tags}
             v ->
-               #bw with @expand{scope, v, tags}
+               #bw with @expand{info, v, tags}
       rval.rest = rest
       rval
 
-   expand{scope, pattern, tags, toplevel = false, checked = false} =
-      expr = scope.step{#pattern, pattern}
+   expand{info, pattern, tags, toplevel = false, checked = false} =
+      expr = info.step{#pattern, pattern}
       rval = match expr:
          #void ->
             #check{checker_db.null, #ignore}
@@ -79,19 +79,19 @@ class PatternParser:
             ;; #check{mac1{{x} -> '[^x === ^=v]}, #ignore}
 
          #test{condition, subp} ->
-            #test{condition, @expand{scope, subp, tags, toplevel, false}}
+            #test{condition, @expand{info, subp, tags, toplevel, false}}
          #project{projector, subp, unconditional = false} ->
             #project{projector
-                     @expand{scope, subp, tags, toplevel, true}
+                     @expand{info, subp, tags, toplevel, true}
                      unconditional}
          #check{checker, subp} ->
-            #check{checker, @expand{scope, subp, tags, toplevel, true}}
+            #check{checker, @expand{info, subp, tags, toplevel, true}}
 
          #send{f, #data and arguments} ->
             if toplevel:
                then:
                   @arguments.unshift with arguments
-                  @expand{scope, f, tags, true, false}
+                  @expand{info, f, tags, true, false}
                else:
                   throw E.syntax.pattern{msg, {node = expr, arg = arguments}} where
                      msg = "Function arguments can only be declared as a top level pattern."
@@ -107,10 +107,10 @@ class PatternParser:
                msg = "Nested patterns are not allowed here."
 
          #neg{x} ->
-            #neg{@expand{scope, x, tags}}
+            #neg{@expand{info, x, tags}}
 
          #all{*xs} ->
-            #all ++ [xs each x -> @expand{scope, x, tags}]
+            #all ++ [xs each x -> @expand{info, x, tags}]
 
          #any{*xs} ->
             canon{all} =
@@ -119,7 +119,7 @@ class PatternParser:
                canon{...} with
                   vars each #symbol{v} -> v
             pps = xs each x ->
-               PatternParser{scope, x, @opt & {tags = tags}}
+               PatternParser{info, x, @opt & {tags = tags}}
             neighbours{pps} each {pp1, pp2} ->
                pps each pp -> normalize{pp.vars}
                if [normalize{pp1.vars} !== normalize{pp2.vars}]:
@@ -139,7 +139,7 @@ class PatternParser:
             #any{*patts} where patts = pps each pp -> pp.pattern
 
          #data{*args} ->
-            specs = @parse_specs{scope, args, tags}
+            specs = @parse_specs{info, args, tags}
             match specs:
                {keys => {}, => fw, => bw, => defaults, => rest} ->
                   patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
@@ -148,13 +148,13 @@ class PatternParser:
                      else: #check{checker_db.Array, patt}
                {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
                   #object_pattern{*keys}
-                  ;; each {k, v} -> {k, @expand{scope, v, false, false}}}
+                  ;; each {k, v} -> {k, @expand{info, v, false, false}}}
                other ->
                   throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
                      msg = "Pattern must be an array or an object."
 
          #mode{mode, subp} ->
-            @expand{scope, subp, tags & {declare_mode = mode}, toplevel, checked}
+            @expand{info, subp, tags & {declare_mode = mode}, toplevel, checked}
 
          other ->
             throw E.syntax.pattern{"Illegal pattern: " + other, {node = other}}
@@ -364,8 +364,8 @@ inject_below_uses{match, fn} =
 ;; success => what to return on success
 ;; failure => what to return on failure
 
-parse_pattern{scope, pattern, rhs, opt} =
-   parse = PatternParser{scope, pattern, opt}
+parse_pattern{info, pattern, rhs, opt} =
+   parse = PatternParser{info, pattern, opt}
    if [not opt.allow_arguments and parse.arguments.length]:
       throw E.syntax.pattern.arguments with
          "Arguments cannot be declared in this pattern"
@@ -387,7 +387,7 @@ parse_pattern{scope, pattern, rhs, opt} =
    if opt.finalize:
       then:
          #splice with
-            *opt.declare{scope, parse.vars}
+            *opt.declare{info, parse.vars}
             #multi with
                *[proc.temps each t -> #declare{t}]
                assemble_pattern{proc.parts, opt.success{target}, opt.failure{targ}} where
@@ -429,17 +429,17 @@ same_block{match, ban1, ban2} =
    other ->
       false
 
-parse_clauses{scope, target, stmts, opt} =
+parse_clauses{info, target, stmts, opt} =
 
    var all_temps = {}
 
-   the_parts = scope.step_all{#clause, stmts} each
+   the_parts = info.step_all{#clause, stmts} each
 
       #clause{pattern, body} ->
          var placeholder = undefined
          special_fn{#special{match} and expr, value} =
             .match ->
-               set placeholder = #symbol{scope.gensym{.ph}} <<: expr
+               set placeholder = #symbol{info.gensym{.ph}} <<: expr
                #assign{placeholder}
             other ->
                throw E.syntax.pattern.special with
@@ -447,7 +447,7 @@ parse_clauses{scope, target, stmts, opt} =
                   {special = expr}
 
          {vars, temps, blocks} =
-            parse_pattern{scope, pattern, target} with
+            parse_pattern{info, pattern, target} with
                opt & {
                   allow_arguments = false
                   allow_nested = true
@@ -473,7 +473,7 @@ parse_clauses{scope, target, stmts, opt} =
                if placeholder:
                   then:
                      parse_clauses with
-                        scope, placeholder, [Body! body]
+                        info, placeholder, [Body! body]
                         opt
                   else: if{opt.wrap, opt.wrap{body}, body}
 
@@ -576,6 +576,6 @@ weave_clauses{parts} =
                      body
                      #use{.back, helper{rest}}
 
-   #multi with 
+   #multi with
       *[new_temps each t -> #declare{t}]
       helper{reassemble}

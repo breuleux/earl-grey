@@ -9,10 +9,10 @@ require:
       classify_contiguous
       Body
    "./pattern" ->
-      PatternParser, PatternProcessor
+      PatternParser
       parse_pattern, parse_clauses
    "./expand" as mt ->
-      Expander, Scope, Env, nullenv
+      Expander, Scope, Info, Env, nullenv
       mac1, checker_db
 
 
@@ -122,36 +122,36 @@ match_error{match target} =
    other ->
       '___match_error{^other}
 
-drop_ctx{f}{context, scope, form, arg} =
-   f{context, scope, form, arg} !!
+drop_ctx{f}{context, info, form, arg} =
+   f.call{this, context, info, form, arg} !!
       E.match? {args => {{value => [=== context and not #expr{.expr}]}}} ->
          #nostep{form}
 
-expr_mac{f}{match, scope, form, arg} =
+expr_mac{f}{match, info, form, arg} =
    #expr{.expr} or #expr{.head} ->
-      f{scope, form, arg}
+      f.call{this, info, form, arg}
    otherwise ->
       #nostep{form}
 
-expr_mac2{mac}{match, s, f, e} =
+expr_mac2{mac}{match, info, f, e} =
    #project{match} ->
       #pattern ->
          #unconditional{#macro{mac3}} where
-            mac3{c, s, f, #data{match}} =
+            mac3{c, info, f, #data{match}} =
                #use{env, x} ->
-                  #use{env, mac{#data{x} <<: e}}
+                  #use{env, mac.call{this, #data{x} <<: e}}
                x ->
-                  mac{#data{x} <<: x}
+                  mac.call{this, #data{x} <<: x}
       else ->
-         mac{e}
+         mac.call{this, e}
    #expr ->
-      mac{e}
+      mac.call{this, e}
 
 
 
 _default_proj{name}{x} =
    '[throw E.project{"Cannot project a value with '" + ^=name + "!'"}]
-value_mac{name, chk, proj = _default_proj{name}}{match ctx, scope, form, arg} =
+value_mac{name, chk, proj = _default_proj{name}}{match ctx, _, form, arg} =
    #check ->
       #nostep{#macro{m}} where
          m{*, #data{x}} = chk{x}
@@ -164,15 +164,15 @@ value_mac{name, chk, proj = _default_proj{name}}{match ctx, scope, form, arg} =
          else -> #send{#variable{name}, arg}
 
 
-overridable{f}{match context, scope, form, arg} =
+overridable{f}{match context, info, form, arg} =
    #pattern ->
       #nostep{form}
    #expr{.multi} ->
       #nostep{form}
    other ->
-      f{context, scope, form, arg}
+      f.call{this, context, info, form, arg}
 
-protected_value{name, value}{match, scope, form, arg} =
+protected_value{name, value}{match, _, form, arg} =
    #pattern ->
       throw E.syntax.pattern{"'"+name+"' is not a valid pattern and cannot be redeclared"}
    other ->
@@ -189,20 +189,20 @@ setup_label{label, env, body} =
                #js_label{#value{label}, body}}}
 
 break_mac{default_label} = overridable with
-   {context, scope, form, match expr} ->
+   {context, _, form, match expr} ->
       #void{} when default_label -> #js_break{#value{default_label}}
       #void{} -> #js_break{}
       #value{v} -> #js_break{expr}
       #symbol{v} -> #js_break{#value{v}}
 
 continue_mac{default_label} = overridable with
-   {context, scope, form, match expr} ->
+   {context, _, form, match expr} ->
       #void{} when default_label -> #js_continue{#value{default_label}}
       #void{} -> #js_continue{}
       #value{v} -> #js_continue{expr}
       #symbol{v} -> #js_continue{#value{v}}
 
-var_operator{name} = {context, scope, form, expr} ->
+var_operator{name} = {context, _, form, expr} ->
    {=> env} = form
    sym = #symbol{name} & {env = env}
    match expr:
@@ -215,13 +215,13 @@ var_operator{name} = {context, scope, form, expr} ->
             #send{sym, other}
 
 accum_flags{mac, also_values = true} =
-   make{flags}{context, scope, form, match} =
+   make{flags}{context, info, form, match} =
       #value{flag} when also_values ->
          #macro{make{flags ++ {flag}}}
       '[. ^[#symbol{flag}]] ->
          #macro{make{flags ++ {flag}}}
       other ->
-         mac{context, scope, form, other, flags}
+         mac.call{this, context, info, form, other, flags}
    make{{}}
 
 pattern_constructors = {=}
@@ -245,7 +245,7 @@ pattern_handlers = {
             #do{#assign{v, value} <<: v}
       finalize = true
       tags = {declare_mode = .unqualified}
-      declare{scope, vars} =
+      declare{_, vars} =
          vars each v ->
             match v.declare_mode:
                .set -> #splice{}
@@ -253,14 +253,6 @@ pattern_handlers = {
                .var -> #declare{v & {mutable = true}}
                .unqualified ->
                   #declare{v & {mutable = false, use_previous = true}}
-                  ;; match v.env.resolve{scope, v[1]}:
-                  ;;    undefined? ->
-                  ;;       #declare{v & {mutable = false}}
-                  ;;    {mutable => true?} ->
-                  ;;       #splice{}
-                  ;;    other ->
-                  ;;       throw E.syntax.redeclaring{msg, {variable = v}} where
-                  ;;          msg = "Variable was declared read-only. Declare with 'var' to make it mutable."
       success{_} = #multi{}
       failure{target} =
          match_error{target}
@@ -276,7 +268,7 @@ pattern_handlers = {
       assign{#symbol{v} or #value{v}, value, _} =
          #do{#assign{'accum[^=v], value} <<: v}
       finalize = true
-      declare{scope, vars} =
+      declare{_, vars} =
          {#declare{'accum, '{=}}}
       success{_} = 'accum
       failure{target} =
@@ -302,11 +294,11 @@ pattern_handlers = {
 ;; means "break" will jump out of "each" and not out of an
 ;; outer loop.
 
-build_loop{scope, env, form, li, clauses, wrap, pre, post, opt} =
+build_loop{info, env, form, li, clauses, wrap, pre, post, opt} =
    lbl =
       if env:
-         then: #value{scope.gensym{}} & {env = env}
-         else: #value{scope.gensym{}}
+         then: #value{info.gensym{}} & {env = env}
+         else: #value{info.gensym{}}
 
    ;; freshenv = scope.expander.mkenv{}
    ;; i = 'i & {env = freshenv}
@@ -314,12 +306,12 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, opt} =
    i = '$index & {env = env}
    len = '$length & {env = env}
 
-   drop_ctx! first_mac{#pattern, scope, form, subp} =
+   drop_ctx! first_mac{#pattern, _, form, subp} =
       #test{'[^i === 0], subp}
-   drop_ctx! last_mac{#pattern, scope, form, subp} =
+   drop_ctx! last_mac{#pattern, _, form, subp} =
       #test{'[^i === [^len - 1]], subp}
 
-   newscope = Scope{scope}
+   newscope = Scope{info.scope}
    env.bind{newscope, "first", #macro{first_mac}}
    env.bind{newscope, "last", #macro{last_mac}}
 
@@ -329,7 +321,7 @@ build_loop{scope, env, form, li, clauses, wrap, pre, post, opt} =
         for[^lbl] [var ^i = 0, ^i < ^len, ^i++]:
            ^m = ___js_fetch{temp, ^i}
            ^ | parse_clauses with
-                newscope, m, clauses
+                info.with_scope{newscope}, m, clauses
                 opt & {wrap{x} = wrap{x, i}}
      | ^post
 
@@ -339,7 +331,7 @@ partial_pattern{operator} =
       match operator:
          #symbol -> operator
          String? -> #variable{operator}
-   {context, scope, form, expr} ->
+   {context, _, form, expr} ->
       match {context, expr}:
          {#pattern, #data{#void{}, val}} ->
             #check{m, #ignore{}} where
@@ -349,7 +341,7 @@ partial_pattern{operator} =
          other ->
             #send{op, expr}
 
-make_assigner{op}{context, scope, form, #data{a, b}} =
+make_assigner{op}{context, _, form, #data{a, b}} =
    #assign{a, #send{#symbol{op}, #data{a, b}}}
 
 
@@ -380,7 +372,7 @@ mac{name}{m} =
    "<" => partial_pattern{"<"}
    ">" => partial_pattern{">"}
 
-mac{"-"}! minus_mac{context, scope, form, match expr} =
+mac{"-"}! minus_mac{context, _, form, match expr} =
    #data{#void{}, #value{Number? n}} ->
       #value{-n}
    #void{} ->
@@ -388,23 +380,23 @@ mac{"-"}! minus_mac{context, scope, form, match expr} =
    other ->
       #send{#variable{"-"}, expr}
 
-mac{"++"}! append_mac{context, scope, form, match} =
+mac{"++"}! append_mac{context, _, form, match} =
    #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
    #data{x, #void{}} -> #send{#variable{"++"}, #data{x, #void{}}}
    #data{x, y} -> '[^x].concat{^y}
    #void{} -> '[{x, y} -> x.concat{y}]
    other -> '[___build_array{^other}]
 
-mac{".."}! range_mac{context, scope, form, match} =
+mac{".."}! range_mac{context, _, form, match} =
    #data{#void{}, x} -> 'range{1, ^x}
    #data{x, #void{}} -> 'range{^x}
    #data{x, y} -> 'range{^x, ^y}
    #void{} -> 'range
 
-mac{"//"}! floor_mac{context, scope, form, #data{a, b}} =
+mac{"//"}! floor_mac{context, _, form, #data{a, b}} =
    'Math.floor{^a / ^b}
 
-mac{"*"}! times_mac{context, scope, form, expr} =
+mac{"*"}! times_mac{context, _, form, expr} =
    match {context, expr}:
       {#pattern, #void{}} ->
          #dynsplice{#ignore{}}
@@ -415,7 +407,7 @@ mac{"*"}! times_mac{context, scope, form, expr} =
       other ->
          #send{#variable{"*"}, expr}
 
-mac{"**"}! exp_mac{context, scope, form, expr} =
+mac{"**"}! exp_mac{context, _, form, expr} =
    match {context, expr}:
       {#pattern, #void{}} ->
          #objsplice{#ignore{}}
@@ -426,17 +418,17 @@ mac{"**"}! exp_mac{context, scope, form, expr} =
       {_, #data{a, b}} ->
          'Math.pow{^a, ^b}
 
-mac{"_"}! placeholder_mac{#pattern, scope, form, #void{}} =
+mac{"_"}! placeholder_mac{#pattern, _, form, #void{}} =
    #ignore{}
 
-mac{"else"}! else_mac{match, scope, form, _} =
+mac{"else"}! else_mac{match, _, form, _} =
    #pattern ->
       #ignore{}
    else ->
       throw E.syntax.else{msg, {node = form}} where
          msg = "'else' should be found inside an 'if' block"
 
-mac{"not"}! not_mac{match, scope, form, #data{#void{}, rhs} and arg} =
+mac{"not"}! not_mac{match, _, form, #data{#void{}, rhs} and arg} =
    #check or #project ->
       #nostep{form}
    #pattern ->
@@ -444,7 +436,7 @@ mac{"not"}! not_mac{match, scope, form, #data{#void{}, rhs} and arg} =
    other ->
       #send{#variable{"not"}, arg}
 
-mac{"and"}! and_mac{match, scope, form, #data{lhs, rhs} and arg} =
+mac{"and"}! and_mac{match, _, form, #data{lhs, rhs} and arg} =
    #check or #project ->
       #nostep{form}
    #pattern ->
@@ -452,7 +444,7 @@ mac{"and"}! and_mac{match, scope, form, #data{lhs, rhs} and arg} =
    other ->
       #send{#variable{"and"}, arg}
 
-mac{"or"}! or_mac{match, scope, form, #data{lhs, rhs} and arg} =
+mac{"or"}! or_mac{match, _, form, #data{lhs, rhs} and arg} =
    #check or #project ->
       #nostep{form}
    #pattern ->
@@ -460,11 +452,11 @@ mac{"or"}! or_mac{match, scope, form, #data{lhs, rhs} and arg} =
    other ->
       #send{#variable{"or"}, arg}
 
-mac{"when"}! when_mac{context, scope, form, #data{match, condition}} =
+mac{"when"}! when_mac{context, _, form, #data{match, condition}} =
    #void{} -> #test{condition, #ignore{}}
    other -> #test{condition, other}
 
-mac{"."}! dot_mac{context, scope, form, #data{#void{}, expr}} =
+mac{"."}! dot_mac{context, _, form, #data{#void{}, expr}} =
    f{expr} where f{match} =
       #symbol{x} ->
          #value{x}
@@ -474,7 +466,7 @@ mac{"."}! dot_mac{context, scope, form, #data{#void{}, expr}} =
          throw E.syntax.dot{"Argument to '.' must be a symbol or an array"
                             {argument = other}}
 
-mac{"="}! equal_mac{match, scope, form, expr} =
+mac{"="}! equal_mac{match, info, form, expr} =
    #pattern ->
       #data{lhs, rhs} = expr
       #default{lhs, rhs}
@@ -487,14 +479,14 @@ mac{"="}! equal_mac{match, scope, form, expr} =
             #assoc{#value{s}, rhs}
          #data{lhs, rhs} ->
             #objsplice with #multi with
-               parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
+               parse_pattern{info, lhs, #use{info.scope, rhs} <<: rhs} with
                   pattern_handlers.build_object
    other ->
       #data{lhs, rhs} = expr
-      parse_pattern{scope, lhs, #use{scope, rhs} <<: rhs} with
+      parse_pattern{info, lhs, #use{info.scope, rhs} <<: rhs} with
          pattern_handlers.declare_variables
 
-mac{"=>"}! fat_arrow_mac{match, scope, {=> env}, #data{lhs, rhs}} =
+mac{"=>"}! fat_arrow_mac{match, _, {=> env}, #data{lhs, rhs}} =
    #pattern ->
       match {lhs, rhs}:
          {#void, #symbol{k} or #value{k}} ->
@@ -524,12 +516,12 @@ mac{"=>"}! fat_arrow_mac{match, scope, {=> env}, #data{lhs, rhs}} =
    "each=" => make_assigner{"each"}
 
 
-mac{"_lambda"}! _lambda_mac{context, scope, form, match} =
+mac{"_lambda"}! _lambda_mac{context, info, form, match} =
    #data{#data{*args} and arg, pre, body, post, generator = #value{false}} ->
       wrap{body2} =
          if{pre == #value{null}, body3, #multi{pre, body3}} where
             body3 = if{post == #value{null}, body2, #multi{body2, post}}
-      pp = PatternParser{scope, arg, {...}} with
+      pp = PatternParser{info, arg, {...}} with
          indexable = true
          allow_nested = true
       match pp.pattern:
@@ -539,9 +531,9 @@ mac{"_lambda"}! _lambda_mac{context, scope, form, match} =
                #assign{expr and #symbol{v}} ->
                   expr
                other ->
-                  newv = #symbol{scope.gensym{.temp}} & {env = stdenv}
+                  newv = #symbol{info.gensym{.temp}} & {env = stdenv}
                   decls.push with
-                     parse_pattern{scope, arg, newv} with
+                     parse_pattern{info, arg, newv} with
                         pattern_handlers.declare_variables & {
                            tags = {declare_mode = .let}
                            special = {#special{match} and expr, value} ->
@@ -563,13 +555,13 @@ mac{"_lambda"}! _lambda_mac{context, scope, form, match} =
                body2 = ' | match.indexable [^a]:
                             ^arg -> ^body
 
-mac{"*->"}! genarrow_mac{ctx, scope, form, match} =
+mac{"*->"}! genarrow_mac{ctx, _, form, match} =
    #data{args, body} ->
       '_lambda{^args, ^=null, ^body, ^=null, ^=true}
    other ->
       throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
-mac{"->"}! arrow_mac{match, scope, form, expr} =
+mac{"->"}! arrow_mac{match, _, form, expr} =
    do:
       if form.name:
          console.log with form.name
@@ -583,20 +575,20 @@ mac{"->"}! arrow_mac{match, scope, form, expr} =
          other ->
             throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
-accum_flags! mac{"match"}! match_mac{match, scope, form, expr, flags} =
+accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
          #void{} -> #special{.match}
          other -> #all{other <<: expr, #special{.match} <<: form}
    other ->
       opt = util.mkset{flags}
-      to_match = #symbol{scope.gensym{.m}} & {single_assignment = true}
+      to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
       {value, body} = match expr:
          #data{Body! {*b}} -> {#value{null}, b}
          #data{v, Body! {*b}} -> {v, b}
       '[let [^to_match = ^value]: ^mbody] where mbody =
          parse_clauses with
-            scope, to_match, body
+            info, to_match, body
             opt & {
                fallback{target} =
                   match_error{target}
@@ -605,11 +597,11 @@ accum_flags! mac{"match"}! match_mac{match, scope, form, expr, flags} =
                wrap = {x} -> x
             }
 
-mac{"each"}! each_mac{match, scope, form and {=> env}, #data{li, Body! {*clauses}}} =
+mac{"each"}! each_mac{match, info, form and {=> env}, #data{li, Body! {*clauses}}} =
    do:
       var ends_with_test = false
       _build_loop{wrap, pre, post} =
-         build_loop{scope, env, form, li, clauses
+         build_loop{info, env, form, li, clauses
                     wrap, pre, post
                     {...}} with
             wrap_pattern{x, toplevel} =
@@ -645,7 +637,7 @@ mac{"each"}! each_mac{match, scope, form and {=> env}, #data{li, Body! {*clauses
       _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
 
 
-mac{"each?"}! eachq_mac{match, scope, form and {=> env}, #data{li, Body! {*clauses}}} =
+mac{"each?"}! eachq_mac{match, info, form and {=> env}, #data{li, Body! {*clauses}}} =
 
    #test ->
       #test_factory{li, clauses} & {env = env}
@@ -660,7 +652,7 @@ mac{"each?"}! eachq_mac{match, scope, form and {=> env}, #data{li, Body! {*claus
    #expr{.ignore} ->
       ;; Middle of a block. This means we don't have to accumulate
       ;; the values.
-      build_loop{scope, env, form, li, clauses
+      build_loop{info, env, form, li, clauses
                  {x} -> x, #splice{}, #splice{}
                  {fallback = {target} -> 'false}}
 
@@ -668,13 +660,13 @@ mac{"each?"}! eachq_mac{match, scope, form and {=> env}, #data{li, Body! {*claus
       ;; Middle of a block. We have to accumulate the values in
       ;; order to return them. Right now, this plays poorly with
       ;; break and continue.
-      build_loop{scope, env, form, li, clauses
+      build_loop{info, env, form, li, clauses
                  {x} -> 'acc.push{^x}, '[var acc = {}], 'acc
                  {fallback = {target} -> 'false}}
 
 
 
-mac{"try"}! try_mac{match, scope, form, #data{Body! {*parts}}} =
+mac{"try"}! try_mac{match, info, form, #data{Body! {*parts}}} =
    do:
       grouped = classify_contiguous{parts} with {match} ->
          '[finally: ^b] -> .finally
@@ -701,7 +693,7 @@ mac{"try"}! try_mac{match, scope, form, #data{Body! {*parts}}} =
       #js_try{#multi{*stmts}, ..., finally or #void{}} with
          ' | {excv} ->
               ^ | parse_clauses with
-                   scope, 'excv, clauses
+                   info, 'excv, clauses
                    {wrap = {x} -> x}
    other ->
       clauses.push with
@@ -710,11 +702,11 @@ mac{"try"}! try_mac{match, scope, form, #data{Body! {*parts}}} =
            ^ #js_try{'[set rval = ^[#multi{*stmts}]], ..., finally or #void{}} with
               ' | {excv} ->
                    ^ | parse_clauses with
-                        scope, 'excv, clauses
+                        info, 'excv, clauses
                         {wrap = {x} -> '[set rval = ^x]}
            rval
 
-mac{"!!"}! tryop_mac{match, scope, form, #data{expr, Body! {*clauses}}} =
+mac{"!!"}! tryop_mac{match, info, form, #data{expr, Body! {*clauses}}} =
    #expr{.multi} ->
       #nostep{form}
    #expr{.ignore} ->
@@ -723,7 +715,7 @@ mac{"!!"}! tryop_mac{match, scope, form, #data{expr, Body! {*clauses}}} =
       #js_try{expr, ..., #void{}} with
          ' | {excv} ->
               ^ | parse_clauses with
-                   scope, 'excv, clauses
+                   info, 'excv, clauses
                    {wrap = {x} -> x}
    other ->
       clauses.push with
@@ -732,7 +724,7 @@ mac{"!!"}! tryop_mac{match, scope, form, #data{expr, Body! {*clauses}}} =
            ^ #js_try{'[set rval = ^expr], ..., #void{}} with
               ' | {excv} ->
                    ^ | parse_clauses with
-                        scope, 'excv, clauses
+                        info, 'excv, clauses
                         {wrap = {x} -> '[set rval = ^x]}
            rval
 
@@ -740,7 +732,7 @@ mac{"!!"}! tryop_mac{match, scope, form, #data{expr, Body! {*clauses}}} =
 [items{{...}} each {k, v} -> mac{k}{v}] with
    "@" => var_operator{"$it"}
 
-expr_mac! mac{"chain"}! chain_mac{scope, form, #data{defn and {=> env}, Body! {*body}}} =
+expr_mac! mac{"chain"}! chain_mac{_, form, #data{defn and {=> env}, Body! {*body}}} =
    it = '[@] & {env = env}
    construct{match} =
       {x} -> x
@@ -749,12 +741,12 @@ expr_mac! mac{"chain"}! chain_mac{scope, form, #data{defn and {=> env}, Body! {*
               ^construct{rest}
    construct{{defn} ++ body}
 
-expr_mac! mac{"using"}! using_mac{scope, form, #data{defn and {=> env}, body}} =
+expr_mac! mac{"using"}! using_mac{_, form, #data{defn and {=> env}, body}} =
    it = '[@] & {env = env}
    ' | let [^it = ^defn]:
         ^body
 
-overridable! mac{"do"}! do_mac{match, scope, form, #data{body}} =
+overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
    #clause ->
       #block{body}
    #test ->
@@ -764,7 +756,7 @@ overridable! mac{"do"}! do_mac{match, scope, form, #data{body}} =
       #multi{body}
 
 
-mac{"if"}! if_mac{ctx, scope, form, match} =
+mac{"if"}! if_mac{ctx, _, form, match} =
    #data{test, a, b} ->
       #if{test, a, b}
 
@@ -804,14 +796,14 @@ mac{"if"}! if_mac{ctx, scope, form, match} =
 
 
 
-expr_mac! mac{"while"}! while_mac{scope, form, match {=> env}} =
+expr_mac! mac{"while"}! while_mac{info, form, match {=> env}} =
    '[. ^[#symbol{label}]] or #value{label} ->
-      #macro with {context, scope, form, #data{test, body}} ->
+      #macro with {context, _, form, #data{test, body}} ->
          setup_label{label, env, #js_while{test, body}}
    #data{test, body} ->
-      setup_label{scope.gensym{}, env, #js_while{test, body}}
+      setup_label{info.gensym{}, env, #js_while{test, body}}
 
-mac{"for"}! for_mac{context, scope, form, match expr} =
+mac{"for"}! for_mac{context, info, form, match expr} =
    do: setup_for{label, env, match, body} =
       #multi{a, b, c} ->
          #multi with
@@ -826,18 +818,18 @@ mac{"for"}! for_mac{context, scope, form, match expr} =
             #declare{a, #value{null}} ;; this is to show the symbol as resolved
             setup_label{label, env, #js_for_of{a, b, body}}
    '[. ^[#symbol{label}]] or #value{label} ->
-      #macro with {context, scope, form, #data{spec, body}} ->
+      #macro with {context, _, form, #data{spec, body}} ->
          setup_for{label, expr.env, spec, body}
    #data{spec, body} ->
-      setup_for{scope.gensym{}, form.env, spec, body}
+      setup_for{info.gensym{}, form.env, spec, body}
 
-mac{"var"}! var_mac{#pattern, scope, form, argument} =
+mac{"var"}! var_mac{#pattern, _, form, argument} =
    #mode{.var, argument}
 
-mac{"set"}! set_mac{#pattern, scope, form, argument} =
+mac{"set"}! set_mac{#pattern, _, form, argument} =
    #mode{.set, argument}
 
-mac{"let"}! let_mac{match, scope, form, argument} =
+mac{"let"}! let_mac{match, _, form, argument} =
    #pattern ->
       #mode{.let, argument}
    other ->
@@ -852,11 +844,11 @@ mac{"let"}! let_mac{match, scope, form, argument} =
             construct{bindings}
             ;; #multi{*bindings, body} & {nonrecursive = true}
 
-expr_mac! mac{"letrec"}! letrec_mac{scope, form, #data{Body! {*bindings}, body}} =
+expr_mac! mac{"letrec"}! letrec_mac{_, form, #data{Body! {*bindings}, body}} =
    #multi{*let_bindings, body} where
       let_bindings = bindings each '[^b = ^v] -> '[let ^b = ^v]
 
-mac{"where"}! where_mac{context, scope, form, #data{body, bindings}} =
+mac{"where"}! where_mac{context, _, form, #data{body, bindings}} =
    'letrec{^bindings, ^body}
 
 [items{{...}} each {k, v} -> mac{k}{v}] with
@@ -864,11 +856,11 @@ mac{"where"}! where_mac{context, scope, form, #data{body, bindings}} =
    "break" => break_mac{null}
    "continue" => continue_mac{null}
 
-expr_mac! mac{"yield"}! yield_mac{scope, form, match} =
+expr_mac! mac{"yield"}! yield_mac{_, form, match} =
    'all[^arg] -> #js_yield{arg, #value{true}}
    arg -> #js_yield{arg, #value{false}}
 
-expr_mac! mac{"await"}! await_mac{scope, form, match} =
+expr_mac! mac{"await"}! await_mac{_, form, match} =
    'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
    'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
    arg -> #js_yield{arg, #value{false}}
@@ -886,22 +878,22 @@ expr_mac2! mac{"async"}! async_mac{match} =
       ;; TODO: this is wrong; post should be inside the spawn
       '_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}
 
-expr_mac! mac{"throw"}! throw_mac{scope, form, arg} =
+expr_mac! mac{"throw"}! throw_mac{_, form, arg} =
    #js_throw{arg}
 
-expr_mac! mac{"return"}! return_mac{scope, form, arg} =
+expr_mac! mac{"return"}! return_mac{_, form, arg} =
    #js_return{arg}
 
-expr_mac! mac{"new"}! new_mac{scope, form, arg} =
+expr_mac! mac{"new"}! new_mac{_, form, arg} =
    #js_new{arg}
 
-mac{"delete"}! delete_mac{context, scope, form, match arg} =
+mac{"delete"}! delete_mac{context, _, form, match arg} =
    #symbol{s} ->
       #undeclare{arg}
    other ->
       #js_delete{other}
 
-mac{"splice"}! splice_mac{context, scope, form, #data{Body! {*stmts}}} =
+mac{"splice"}! splice_mac{context, _, form, #data{Body! {*stmts}}} =
    #splice{*stmts}
 
 
@@ -926,9 +918,9 @@ mac{"splice"}! splice_mac{context, scope, form, #data{Body! {*stmts}}} =
       proj{x} = '{true, Boolean{^x}}
 
 
-mac{"?"}! check_mac{match context, scope, form, #data{chk, target}} =
+mac{"?"}! check_mac{match context, info, form, #data{chk, target}} =
    do:
-      checker = match scope.step{#check{context}, chk}:
+      checker = match info.step{#check{context}, chk}:
          === chk -> 'getChecker{^chk}
          checker -> checker
    #pattern ->
@@ -943,9 +935,9 @@ mac{"?"}! check_mac{match context, scope, form, #data{chk, target}} =
    other ->
       '[^checker]{^target}
 
-mac{"!"}! project_mac{match context, scope, form, #data{proj, target}} =
+mac{"!"}! project_mac{match context, info, form, #data{proj, target}} =
    do:
-      projector = match scope.step{#project{context}, proj}:
+      projector = match info.step{#project{context}, proj}:
          === proj -> 'getProjector{^proj}
          projector -> projector
    #pattern ->
@@ -963,11 +955,11 @@ mac{"!"}! project_mac{match context, scope, form, #data{proj, target}} =
       '[^projector]{^target}[1]
 
 
-mac{"#"}! hash_mac{context, scope, form, #data{#void{}, #symbol{var tag}}} =
+mac{"#"}! hash_mac{context, _, form, #data{#void{}, #symbol{var tag}}} =
    set tag = #value{tag}
-   #macro{f} where f{match, scope, form, expr} =
+   #macro{f} where f{match, _, form, expr} =
       #pattern ->
-         checker_mac = #macro with {context, scope, form, #data{expr}} ->
+         checker_mac = #macro with {context, _, form, #data{expr}} ->
             ' | let [x = ^expr]:
                  [[instanceof]{x, Array} and x[0] === ^tag]
          match expr:
@@ -989,8 +981,7 @@ mac{"#"}! hash_mac{context, scope, form, #data{#void{}, #symbol{var tag}}} =
 
 
 
-mac{"class"}! class_mac{context, scope, {=> env}, expr} =
-
+mac{"class"}! class_mac{context, info, {=> env}, expr} =
    helper{name, super, stmts} =
       var statics = #data{'[=]}
       var ctor = {#data{}, #multi{} & {env = env}}
@@ -1001,7 +992,7 @@ mac{"class"}! class_mac{context, scope, {=> env}, expr} =
             set ctor = {args, body}
             #splice{}
          '[^lhs = ^rhs] ->
-            parse_pattern{scope, lhs, rhs} with
+            parse_pattern{info, lhs, rhs} with
                pattern_handlers.build_object & {
                   allow_nested = false
                   assign{#symbol{v} or #value{v}, value} =
@@ -1070,10 +1061,10 @@ mac{"class"}! class_mac{context, scope, {=> env}, expr} =
          '[^name {}] or [#symbol{_} and name] ->
             helper{name, null, stmts}
       #data{Body! {*stmts}} ->
-         helper{#symbol{scope.gensym{}}, null, stmts}
+         helper{#symbol{info.gensym{}}, null, stmts}
 
 
-mac{"%"}! buildnode_mac{context, scope, form and {=> env}, #data{descr, var contents}} =
+mac{"%"}! buildnode_mac{context, _, form and {=> env}, #data{descr, var contents}} =
    match context:
       #check or #project ->
          return #nostep{form}
@@ -1120,7 +1111,7 @@ mac{"%"}! buildnode_mac{context, scope, form and {=> env}, #data{descr, var cont
 
    'Node{^tags, ^kv, ^contents}
 
-mac{"S"}! S_mac{context, scope, form, arg} =
+mac{"S"}! S_mac{context, _, form, arg} =
    #value with
       match arg.location.text{}:
          R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
@@ -1133,7 +1124,7 @@ mac{"S"}! S_mac{context, scope, form, arg} =
 ;; REQUIRE/PROVIDE AND GLOBALS ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-mac{"require"}! require_mac{context, scope, form, match} =
+mac{"require"}! require_mac{context, info, form, match} =
    #data{expr} ->
       req = #variable{.require}
       stmts = {}
@@ -1148,14 +1139,14 @@ mac{"require"}! require_mac{context, scope, form, match} =
             fetch{#value{s}, expr}
 
          #value{String? s} ->
-            fetch{expr, #symbol{scope.gensym{}}}
+            fetch{expr, #symbol{info.gensym{}}}
 
          #multi{*subp} or #data{*subp} ->
             subp each p -> produce{p, fetch}
             null
 
          #send{#symbol{"^"}, #data{#void{}, name}} ->
-            fetch{name, #symbol{scope.gensym{}}}
+            fetch{name, #symbol{info.gensym{}}}
 
          #send{#symbol{"as"}, #data{pkg, s}} ->
             produce{pkg} with {the_pkg, _} ->
@@ -1176,7 +1167,7 @@ mac{"require"}! require_mac{context, scope, form, match} =
    arg ->
       #send{#variable{.require}, arg}
 
-mac{"provide"}! provide_mac{context, scope, form, #data{Body! {*expr}}} =
+mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
    exp = form.env.mark{'exports}
    #sink with
       #multi ++
@@ -1189,7 +1180,7 @@ mac{"provide"}! provide_mac{context, scope, form, #data{Body! {*expr}}} =
                throw E.syntax.provide with
                   "Each clause of provide must be 'sym' or 'sym as name'"
 
-mac{"inject"}! inject_mac{context, scope, form, #data{Body! {*expr}}} =
+mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
    #restmacro with {stmts} ->
       exp = form.env.mark{'exports}
       {'[
@@ -1200,7 +1191,7 @@ mac{"inject"}! inject_mac{context, scope, form, #data{Body! {*expr}}} =
              ^exp
        ]}
 
-mac{"globals"}! globals_mac{context, scope, form, #data{Body! {*vars}}} =
+mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
    #splice{*[...]} with
       vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}
 
@@ -1231,7 +1222,7 @@ qq{match expr} =
    {name, *args} ->
       qqstruct{name, args each arg -> qq{arg}}
 
-mac{"'"}! quote_mac{context, scope, form, #data{#void{}, expr}} =
+mac{"'"}! quote_mac{context, _, form, #data{#void{}, expr}} =
    qq{expr}
 
 
@@ -1311,7 +1302,7 @@ class RegexBuilder:
 build_regexp{x} = RegexBuilder{}.build{x}
 
 accum_flagsf{f} = accum_flags{f, false}
-accum_flagsf! mac{"R"}! regexp_mac{match, scope, form, arg, flags} =
+accum_flagsf! mac{"R"}! regexp_mac{match, _, form, arg, flags} =
    #check or #project ->
       #nostep{form}
    else ->
@@ -1331,7 +1322,7 @@ accum_flagsf! mac{"R"}! regexp_mac{match, scope, form, arg, flags} =
 ;; ERROR FACTORY ;;
 ;;;;;;;;;;;;;;;;;;;
 
-errf_macro{tags}{match, scope, form, expr} =
+errf_macro{tags}{match, _, form, expr} =
    #check or #project -> #nostep{form}
    ctx ->
       match expr:
@@ -1358,9 +1349,9 @@ blocktest_wrap{expr} =
      | acc.push with
         #test_result{label, value}
 
-_blocktest_mac{scope, tests} =
+_blocktest_mac{info, tests} =
 
-   exptests = enumerate{scope.step_all{#test, tests}}
+   exptests = enumerate{info.step_all{#test, tests}}
    n = exptests.length
    stmts = exptests each
 
@@ -1370,10 +1361,10 @@ _blocktest_mac{scope, tests} =
       {i, #blocktest{more_labels, more_tests}} ->
          ' | let [label = label.concat{Array! ^more_labels}]:
               set acc = acc.concat with
-                 ^_blocktest_mac{scope, more_tests}
+                 ^_blocktest_mac{info, more_tests}
 
       {i, #test_factory{elements, clauses} and {=> env}} ->
-         build_loop{scope, env, #void{}
+         build_loop{info, env, #void{}
                     elements, clauses, wrap, #splice{}, #splice{}
                     {fallback = fall}} where
             wrap{expr, index} =
@@ -1391,13 +1382,13 @@ _blocktest_mac{scope, tests} =
         [[...] !! e -> acc.concat{{#error{label, e}}}] with
            [^*stmts, acc]
 
-mac{"blocktest"}! blocktest_mac{context, scope, form, #data{*match}} =
+mac{"blocktest"}! blocktest_mac{context, info, form, #data{*match}} =
    {Body! {*tests}} ->
       ' | label = {}
-        | ^_blocktest_mac{scope, tests}
+        | ^_blocktest_mac{info, tests}
    {labels, Body! {*tests}} ->
       ' | label = Array! ^labels
-        | ^_blocktest_mac{scope, tests}
+        | ^_blocktest_mac{info, tests}
 
 
 
@@ -1412,7 +1403,7 @@ mkstdenv{} =
 expander = Expander{mkstdenv, generic_nodes}
 expand = expander.expand.bind{expander}
 
-topscope = Scope{null, .top, expander}
+topscope = Scope{null, .top}
 
 items{stdstore} each {k, v} ->
    stdenv.bind{topscope, k, v}
