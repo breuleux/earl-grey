@@ -48,6 +48,13 @@ evaluator{match options} =
          cache = require.cache
       }
 
+      save = {
+         __filename = global.__filename
+         __dirname = global.__dirname
+         module = global.module
+         require = global.require
+      }
+
       global &: {
          __filename = options.filename
          __dirname = path.dirname{options.filename}
@@ -57,7 +64,9 @@ evaluator{match options} =
 
       {code} ->
          script = vm.createScript{code, options.showname}
-         script.runInThisContext{}
+         rval = script.runInThisContext{}
+         global &: save
+         rval
 
    else ->
       __eval = eval
