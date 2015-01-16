@@ -10,6 +10,8 @@ require:
    "../util" ->
       Body
 
+globals:
+   Infinity
 
 provide:
    embed_location
@@ -29,6 +31,9 @@ provide:
    make_assigner
    pattern_handlers
    Body
+   named_statement_matcher
+   grab_statements
+   flatmacro
 
 
 embed_location{match} =
@@ -255,3 +260,73 @@ pattern_handlers = {
    }
 
 }
+
+
+named_statement_matcher{name} =
+   predicate! p{match} =
+      #send{#symbol{=== name}, _} ->
+         true
+      else ->
+         false
+   p.toString{} = name
+   p
+
+
+grab_statements{match descr, all, transform = {x} -> x} =
+
+   Function? pattern ->
+      match all:
+         {pattern? stmt, *rest} ->
+            {transform{stmt}, rest}
+         else ->
+            {null, all}
+
+   #any{*opts} ->
+      opts each opt ->
+         match grab_statements{opt, all, transform}:
+            {null?, _} -> pass
+            {m, rest} -> return {m, rest}
+      return {null, all}
+
+   #multiple{pattern, min = 0, max = Infinity, err = true} ->
+      var matches = {}
+      var rest = all
+      while true:
+         {_matches, rest} = grab_statements{pattern, rest, transform}
+         if _matches == null: break
+         matches.push{_matches}
+         if rest == {}: break
+      match matches.length:
+         n and [< min or > max] ->
+            if err:
+               throw E.syntax.wrong_multiplicity{
+                  n + " instances of the pattern '" + pattern + "' were found."
+                  \ + " between " + min + " and " + max + " were expected."
+                  {pattern = pattern
+                   matches = matches}
+               }
+            {#multiple{}, all}
+         else ->
+            {#multiple{*matches}, rest}
+
+   #seq{} ->
+      {#seq{}, all}
+
+   #seq{pattern, *others} ->
+      {one, rest1} = grab_statements{pattern, all, transform}
+      if one === null:
+         return {null, all}
+      {two, rest2} = grab_statements{#seq{*others}, rest1, transform}
+      if two === null:
+         return {null, all}
+      {#seq{one, *two.slice{1}}, rest2}
+
+   else ->
+      throw E.unknown_pattern{descr}
+
+
+flatmacro{pattern, assemble} =
+   #restmacro with {stmts} ->
+      {result, rest} = grab_statements{pattern, stmts}
+      {assemble{result}} ++ rest
+

@@ -6,6 +6,8 @@ require:
       accum_flags
       match_error
       Body
+      named_statement_matcher
+      flatmacro
    "../pattern" ->
       parse_clauses
    "../util" as util
@@ -17,8 +19,8 @@ inject: mac
 accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
-         #void{} -> #special{.match}
-         other -> #all{other <<: expr, #special{.match} <<: form}
+         #void{} -> #special{.match, true}
+         other -> #all{other <<: expr, #special{.match, true} <<: form}
    other ->
       opt = util.mkset{flags}
       to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
@@ -36,43 +38,31 @@ accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
                wrap = {x} -> x
             }
 
+if_pattern = #seq{#multiple{_elif}, #multiple{_else, 0, 1}} where
+   _elif = named_statement_matcher{.elif}
+   _else = named_statement_matcher{.else}
+
 mac{"if"}! if_mac{ctx, _, form, match} =
    #data{test, a, b} ->
       #if{test, a, b}
-
    #data{test, #multi! #multi{*match}} ->
       {'then{^a}} ->
          #if{test, a, #value{undefined}}
       {'then{^a}, 'else{^b}} ->
          #if{test, a, b}
       body ->
-         piece_together{conditions} =
-            var rval = #value{undefined}
-            conditions.reverse{} each {match, bod} ->
-               null? ->
-                  rval = bod
-               test ->
-                  rval = #if{test, bod, rval}
-            rval
-
-         conditions = {{test, #multi{*body}}}
-
          match ctx:
             #expr{.multi} ->
-               #restmacro with {stmts} ->
-                  while stmts.length:
-                     match stmts.shift{}:
-                        'elif{^cond, ^body} ->
-                           conditions.push with {cond, body}
-                        'else{^body} ->
-                           conditions.push with {null, body}
-                        x ->
-                           stmts.unshift{x}
-                           break
-                  {piece_together{conditions}} ++ stmts
-
+               flatmacro{if_pattern} with
+                  {#seq{#multiple{*elifs}, #multiple{*elses}}} ->
+                     var rval = #value{undefined}
+                     elses each 'else{^body} ->
+                        rval = body
+                     elifs.reverse{} each 'elif{^cond, ^body} ->
+                        rval = #if{cond, body, rval}
+                     #if{test, #multi{*body}, rval}
             else ->
-               piece_together{conditions}
+               #if{test, #multi{*body}, #value{undefined}}
 
 mac{"else"}! else_mac{match, _, form, _} =
    #pattern ->
