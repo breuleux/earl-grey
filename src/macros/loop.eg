@@ -93,7 +93,7 @@ mac{"each"}! each_mac{match, info and {=> env}, form, #data{li, Body! {*clauses}
    #expr{.ignore} ->
       ;; Middle of a block. This means we don't have to accumulate
       ;; the values.
-      _build_loop{{x} -> x, #splice{}, #splice{}}
+      _build_loop{null, #splice{}, #splice{}}
 
    other ->
       ;; Middle of a block. We have to accumulate the values in

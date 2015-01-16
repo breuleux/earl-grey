@@ -93,13 +93,15 @@ X x[1..10] instead of x.slice{1, 10}
 X print x
 X "::check" => Symbol.check, etc.
 X add long strings: """xyz"""
+X try: catch:
 
 
+* Automatically annotate '[...] with location information
+* Embed promisify
 * Make unconditional transformers for String!, Number! and Boolean!
 * maybe use \ for unquote?
 * Use ES6 classes
 * Use ES6 splats
-* try: catch:
 * Handle mix of array and object
 * Compare for equality when the same variable is found multiple times
   in a pattern
@@ -125,6 +127,7 @@ X add long strings: """xyz"""
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
 
+* expression `{x, return, y} = {1, 2, 3}` returns 2
 * f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 * f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}
 * f{match.0, match.1} = a -> b -> c ==> f{x, y} = match x: a -> match y: b -> c

@@ -16,6 +16,45 @@ require:
 inject: mac
 
 
+class MatchHandler:
+
+   constructor{} =
+      @key = "match"
+      @wrapOrder = 1
+
+   expand{info} =
+      @placeholder = info.env.mark{'ph}
+      @placeholder
+
+   wrap{expr, info, opt} =
+      parse_clauses with
+         info, @placeholder, Body{expr}, opt & {wrap = null}
+
+
+
+accum_flags! mac{"matchX"}! matchx_mac{match, info, form, expr, flags} =
+   #pattern ->
+      match expr:
+         #void{} -> #specialX{MatchHandler{}}
+         other -> #all{other <<: expr, #specialX{MatchHandler{}} <<: form}
+   other ->
+      opt = util.mkset{flags}
+      to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
+      {value, body} = match expr:
+         #data{Body! {*b}} -> {#value{null}, b}
+         #data{v, Body! {*b}} -> {v, b}
+      '[let [^to_match = ^value]: ^mbody] where mbody =
+         parse_clauses with
+            info, to_match, body
+            opt & {
+               fallback{target} =
+                  match_error{target}
+                  ;; error_embed_location{..., target} with
+                  ;;    'E.match{"Could not find a match for value", {value = ^target}}
+               wrap = null
+            }
+
+
 accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
@@ -35,7 +74,7 @@ accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
                   match_error{target}
                   ;; error_embed_location{..., target} with
                   ;;    'E.match{"Could not find a match for value", {value = ^target}}
-               wrap = {x} -> x
+               wrap = null
             }
 
 if_pattern = #seq{#multiple{_elif}, #multiple{_else, 0, 1}} where

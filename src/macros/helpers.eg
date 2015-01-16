@@ -176,7 +176,7 @@ build_loop{info, env, form, li, clauses, wrap, pre, post, opt} =
         for[^lbl] [^m of ^li]:
            ^parse_clauses{
                 info.with_scope{newscope}, m, clauses
-                opt & {wrap{x} = wrap{x, '0}}
+                opt & {wrap = wrap} ;; & {wrap{x} = wrap{x, '0}}
             }
         ^post]
    else:
@@ -240,6 +240,7 @@ pattern_handlers = {
          match_error{target}
          ;; error_embed_location{..., target} with
          ;;    'E.match{"Could not find a match for value", {value = ^target}}
+      wrapOrder = 0
    }
 
    build_object = {
@@ -257,6 +258,7 @@ pattern_handlers = {
          match_error{target}
          ;; error_embed_location{..., target} with
          ;;    'E.match{"Could not find a match for value", {value = ^target}}
+      wrapOrder = 0
    }
 
 }
@@ -329,4 +331,8 @@ flatmacro{pattern, assemble} =
    #restmacro with {stmts} ->
       {result, rest} = grab_statements{pattern, stmts}
       {assemble{result}} ++ rest
+
+
+
+
 

@@ -17,6 +17,22 @@ provide:
    PatternParser
    PatternProcessor
    parse_clauses, parse_pattern
+   Handlers
+
+
+class Handlers:
+   constructor{@info, @opt} =
+      @handlers = {}
+   push{x} =
+      @handlers.push with x
+   merge{handlers} =
+      @handlers ++= handlers.handlers
+   wrap{expr} =
+      @handlers.sort with {x, y} -> x.wrapOrder < y.wrapOrder
+      var x = expr
+      @handlers each handler ->
+         x = handler.wrap{x, @info, @opt}
+      x
 
 
 class PatternParser:
@@ -26,6 +42,7 @@ class PatternParser:
       @arguments = {}
       @vars = {}
       @specials = {=}
+      @handlers = Handlers{info, opt}
       tags = clone{opt.tags or {=}}
       tags.group_id or= gensym{.group}
       @pattern = @expand{info, pattern, tags, true, @opt.indexable}
@@ -54,6 +71,18 @@ class PatternParser:
       rval.rest = rest
       rval
 
+   regspecial{special and #special{name, handler}} =
+      match @specials[name]:
+         undefined? ->
+            @specials[name] = handler
+         === handler ->
+            pass
+         else ->
+            throw E.syntax.pattern.incompatible_specials{
+               "Special directive '" + name + "' was given two incompatible handlers."
+               {special = special}
+            }
+
    expand{info, pattern, tags, toplevel = false, checked = false} =
       expr = info.step{#pattern, pattern}
       rval = match expr:
@@ -61,9 +90,13 @@ class PatternParser:
             #check{checker_db.null, #ignore}
          #ignore ->
             expr
-         #special{type} ->
+         #special{type, handler} ->
+            ;; @regspecial{expr}
             @specials[type] = true
             expr
+         #specialX{handler} ->
+            @handlers.push with handler
+            @expand{info, handler.expand{info}, tags, toplevel, false}
          #symbol or #variable ->
             variable = expr & tags
             @vars.push with variable
@@ -128,12 +161,18 @@ class PatternParser:
                      {vars1 = pp1.vars.sort{} <<: pp1.pattern
                       vars2 = pp2.vars.sort{} <<: pp2.pattern}
                   }
-               if [canon{keys{pp1.specials}} !== canon{keys{pp2.specials}}]:
+               if keys{pp1.specials} != {} or keys{pp2.specials} != {}:
                   throw E.syntax.pattern{
-                     "Both branches of 'or' must contain the same special tokens"
+                     "Neither branch of 'or' may contain special tokens."
                      {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
                       special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
                   }
+               ;; if [canon{keys{pp1.specials}} !== canon{keys{pp2.specials}}]:
+               ;;    throw E.syntax.pattern{
+               ;;       "Both branches of 'or' must contain the same special tokens"
+               ;;       {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
+               ;;        special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
+               ;;    }
             {{=> vars}, *} = pps
             @vars ++= vars
             #any{*patts} where patts = pps each pp -> pp.pattern
@@ -193,7 +232,7 @@ class PatternProcessor:
             @do{rhs}
          #assign{sym} ->
             @parts.push with fns.assign{sym, rhs}
-         #special{kind} ->
+         #special{kind, handler} ->
             @process{..., rhs, fns} with
                fns.special{pattern, rhs}
 
@@ -412,7 +451,7 @@ parse_pattern{info, pattern, rhs, opt} =
                *[proc.temps each t -> #declare{t}]
                assembly
       else:
-         {parse.vars, proc.temps, proc.parts}
+         {parse.vars, parse.handlers, proc.temps, proc.parts}
 
 
 
@@ -448,7 +487,7 @@ parse_clauses{info, target, stmts, opt} =
 
       #clause{pattern, body} ->
          var placeholder = undefined
-         special_fn{#special{match} and expr, value} =
+         special_fn{#special{match, handler} and expr, value} =
             .match ->
                set placeholder = #symbol{info.gensym{.ph}} <<: expr
                #assign{placeholder}
@@ -457,7 +496,7 @@ parse_clauses{info, target, stmts, opt} =
                   "Special token cannot be used here"
                   {special = expr}
 
-         {vars, temps, blocks} =
+         {vars, handlers, temps, blocks} =
             parse_pattern{info, pattern, target} with
                opt & {
                   allow_arguments = false
@@ -479,14 +518,39 @@ parse_clauses{info, target, stmts, opt} =
             other ->
                throw E.syntax.unexpected{}
 
+         if opt.wrap:
+            handlers.push with opt
+            ;; handlers.push with {
+            ;;    wrapOrder = 0
+            ;;    wrap{expr, subwrap, info, opt} =
+            ;;       opt.wrap{expr}
+            ;; }
+
+         ;; handlers.sort with {x, y} -> x.wrapOrder < y.wrapOrder
+
+         ;; #clause{vars, vars2, blocks, bod} where bod =
+         ;;    var x = body
+         ;;    handlers each handler ->
+         ;;       body = handler.wrap{info, opt, body}
+         ;;    body
+
          #clause{vars, vars2, blocks, bod} where
             bod =
                if placeholder:
                   then:
-                     parse_clauses with
+                     ;; parse_clauses with
+                     ;;    info, placeholder, [Body! body]
+                     ;;    opt
+                     r = parse_clauses with
                         info, placeholder, [Body! body]
-                        opt
-                  else: if{opt.wrap, opt.wrap{body}, body}
+                        opt & {wrap = null}
+                     if{opt.wrap, opt.wrap{r}, r}
+                  else:
+                     handlers.wrap{body}
+                     ;; var x = body
+                     ;; handlers each handler ->
+                     ;;    x = handler.wrap{x, info, opt}
+                     ;; x
 
       #block b ->
          b

@@ -13,6 +13,7 @@ require:
       parse_pattern
       PatternParser
       parse_clauses
+      Handlers
    "../util" as util ->
       classify_contiguous
 
@@ -101,6 +102,7 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
          allow_nested = true
       match pp.pattern:
          #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
+            ;; handlers = Handlers{}
             decls = if{pp.specials.match, {#declare{'ph}}, {}}
             newargs = zip{fw, args} each {match, arg} ->
                #assign{expr and #symbol{v}} ->
@@ -108,9 +110,10 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
                other ->
                   ;; newv = #symbol{info.gensym{.temp}} & {env = stdenv}
                   newv = #symbol{info.gensym{.temp}} & {env = info.mkenv{}}
-                  decls.push with
+                  decl =
                      parse_pattern{info, arg, newv} with
                         pattern_handlers.declare_variables & {
+                           ;; return_handlers = true
                            tags = {declare_mode = .let}
                            special = {#special{match, handler} and expr, value} ->
                               .match ->
@@ -120,11 +123,14 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
                                     "Special token cannot be used here"
                                     {special = expr}
                         }
+                  decls.push with decl
+                  ;; handlers.merge{_handlers}
                   newv
+            _body = pp.handlers.wrap{body}
             #lambda{newargs, wrap{#multi{*decls, ...}}, generator} with
                if pp.specials.match:
-                  then: '[match ph: ^body]
-                  else: body
+                  then: '[match ph: ^_body]
+                  else: _body
          other ->
             a = 'arguments <<: arg
             #lambda{{}, wrap{body2}, generator} where
@@ -156,7 +162,7 @@ try_pattern = #seq{#multiple{_catch}, #multiple{_finally, 0, 1}} where
    _catch = named_statement_matcher{.catch}
    _finally = named_statement_matcher{.finally}
 
-mac{"try"}! try2_mac{#expr{.multi}, info, form, #data{body}} =
+mac{"try"}! try_mac{#expr{.multi}, info, form, #data{body}} =
    flatmacro{try_pattern} with
       {#seq{#multiple{*catches}, #multiple{*finallies}}} ->
          env = info.mkenv{}

@@ -259,7 +259,7 @@ class Expander:
             env = match expr:
                {=> env} -> expr.env
                other -> throw E.syntax.no_env with
-                  "No environment was found to resolve"
+                  "No environment was found to resolve '" + s + "'"
                   {symbol = expr}
             match env.resolve{scope, s}:
                #macro{m} ->
