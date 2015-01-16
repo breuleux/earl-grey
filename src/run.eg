@@ -335,7 +335,7 @@ _run{match, opts} =
 
       match rest:
          when o.evaluate ->
-            code = _gen{o.evaluate, "<cli>", o.noboil}
+            code = _gen{o.evaluate, "<cli>", o.noboil, not o.es6}
             match:
                when o.output ->
                   fs.writeFileSync{o.output} with
