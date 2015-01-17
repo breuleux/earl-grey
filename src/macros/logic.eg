@@ -23,7 +23,8 @@ class MatchHandler:
       @wrapOrder = 1
 
    expand{info} =
-      @placeholder = info.env.mark{'ph}
+      @placeholder = info.env.mark{#symbol{info.gensym{.ph}}}
+      ;; @placeholder = info.env.mark{'ph}
       @placeholder
 
    wrap{expr, info, opt} =
@@ -32,7 +33,7 @@ class MatchHandler:
 
 
 
-accum_flags! mac{"matchX"}! matchx_mac{match, info, form, expr, flags} =
+accum_flags! mac{"match"}! matchx_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
          #void{} -> #specialX{MatchHandler{}}
@@ -55,7 +56,7 @@ accum_flags! mac{"matchX"}! matchx_mac{match, info, form, expr, flags} =
             }
 
 
-accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
+accum_flags! mac{"matchX"}! match_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
          #void{} -> #special{.match, true}

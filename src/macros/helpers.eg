@@ -5,8 +5,7 @@ require:
    "../expand" ->
       Scope, mac1
    "../pattern" ->
-      PatternParser
-      parse_pattern, parse_clauses
+      parse_clauses
    "../util" ->
       Body
 
