@@ -94,6 +94,7 @@ X print x
 X "::check" => Symbol.check, etc.
 X add long strings: """xyz"""
 X try: catch:
+X f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 
 
 * Automatically annotate '[...] with location information
@@ -128,7 +129,6 @@ X try: catch:
   if outer each is
 
 * expression `{x, return, y} = {1, 2, 3}` returns 2
-* f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 * f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}
 * f{match.0, match.1} = a -> b -> c ==> f{x, y} = match x: a -> match y: b -> c
 

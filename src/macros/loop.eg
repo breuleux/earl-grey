@@ -61,8 +61,32 @@ mac{"for"}! for_mac{context, info, form, match expr} =
       setup_for{info.gensym{}, form.env, spec, body}
 
 
-mac{"each"}! each_mac{match, info and {=> env}, form, #data{li, Body! {*clauses}}} =
+class EachHandler:
+
+   constructor{@placeholder, @loopvar} =
+      @wrapOrder = 2
+
+   expand{info} =
+      ;; @placeholder = info.env.mark{#symbol{info.gensym{.xs}}}
+      @placeholder
+
+   wrap{expr, info, opt} =
+      '[^[@placeholder] each ^[@loopvar] -> ^expr]
+
+
+mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
+
+   #pattern ->
+      if [expr == #void{}]:
+         expr = #data{#void{}, #void{}}
+      #data{li, body} = expr
+      #special{EachHandler{ph, lv}} where
+         ph = if{li == #void{}, info.env.mark{#symbol{info.gensym{.xs}}}, li}
+         lv = if{body == #void{}, info.env.mark{'match}, body}
+
    do:
+      #data{li, body} = expr
+      Body! {*clauses} = body
       var ends_with_test = false
       _build_loop{wrap, pre, post} =
          build_loop{info, env, form, li, clauses
