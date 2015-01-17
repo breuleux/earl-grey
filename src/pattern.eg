@@ -6,7 +6,6 @@ require:
       [<<:]
    "./util" as util ->
       GenSym, gensym
-      ;; _neighbours
       classify, classify_contiguous
       identity
       Body
@@ -14,26 +13,8 @@ require:
       checker_db
 
 provide:
-   ;; PatternParser
    PatternCompiler
-   PatternProcessor
-   parse_clauses, parse_pattern
-   Handlers
-
-
-class Handlers:
-   constructor{@info, @opt} =
-      @handlers = {}
-   push{x} =
-      @handlers.push with x
-   merge{handlers} =
-      @handlers ++= handlers.handlers
-   wrap{expr} =
-      @handlers.sort with {x, y} -> x.wrapOrder < y.wrapOrder
-      var x = expr
-      @handlers each handler ->
-         x = handler.wrap{x, @info, @opt}
-      x
+   parse_clauses
 
 
 class PatternInfo:
@@ -42,22 +23,22 @@ class PatternInfo:
          rval = PatternInfo{}
          pinfos.reduce{f, rval} where f{acc, pinfo} =
             acc.merge{pinfo.pinfo or pinfo}
-   constructor{@handlers = {}, @vars = {}, @arguments = {}, @specials = {=}} =
+   constructor{@handlers = {}, @vars = {}, @arguments = {}} =
       pass
    merge{pinfo} =
       @handlers ++= pinfo.handlers
       @vars ++= pinfo.vars
       @arguments ++= pinfo.arguments
-      @specials &: pinfo.specials
       @
-   wrap{expr} =
-      @handlers.sort with {x, y} -> x.wrapOrder < y.wrapOrder
-      var x = expr
-      @handlers each handler ->
-         x = handler.wrap{x, @info, @opt}
-      x
 
 
+;; Options:
+;; strings_as_variables => treat strings as if they were variable names?
+;; wrap_target{x} => called on the value the pattern will be applied to:
+;;    either rhs, or args -> rhs, if args were found embedded in the pattern
+;; declare{vars} => preparation code to declare the variables
+;; success => what to return on success
+;; failure => what to return on failure
 
 class PatternCompiler:
 
@@ -75,7 +56,6 @@ class PatternCompiler:
       @vars = @compiled.pinfo.vars
       @handlers = @compiled.pinfo.handlers
       @arguments = @compiled.pinfo.arguments
-      @specials = @compiled.pinfo.specials
       @compiled
 
    fork{pattern} =
@@ -115,10 +95,7 @@ class PatternCompiler:
             #check{checker_db.null, #ignore}
          #ignore ->
             expr
-         #special{type, handler} ->
-            ;; @specials[type] = true
-            expr & {pinfo = PatternInfo{{}, {}, {}, {type => true}}}
-         #specialX{handler} ->
+         #special{handler} ->
             p = @expand{handler.expand{@info}, tags, toplevel, false}
             p.pinfo.handlers.push with handler
             p
@@ -188,22 +165,16 @@ class PatternCompiler:
                ;;       {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
                ;;        special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
                ;;    }
-            ;; console.log with "------------------------"
-            ;; console.log with @info.gettext{expr}
-            ;; pps each p ->
-            ;;    console.log with p.pinfo
             #any{*pps} &: {pinfo = pps[0] and pps[0].pinfo}
 
          #data{*args} ->
             specs = @parse_specs{args, tags}
 
             var pinfos = {}
-            ;; console.log with #yay{specs}
             pinfos ++= specs.keys each {_, {=> pinfo}} -> pinfo
             pinfos ++= specs.fw each {=> pinfo} -> pinfo
             pinfos ++= specs.bw each {=> pinfo} -> pinfo
             pinfos ++= specs.defaults each {{=> pinfo}, _} -> pinfo
-            ;; console.log with #yayay{pinfos}
             if specs.rest:
                pinfos.push{specs.rest.pinfo}
             pinfo = PatternInfo.mergeAll{pinfos}
@@ -277,7 +248,6 @@ class PatternCompiler:
       fail = @opt.failure{@target}
       assembly = assemble_pattern{@parts, succ, fail}
       #splice with
-         ;; if{expr === null, #splice{}, '[^target = ^expr]}
          if [@expr === null]:
             then: #splice{}
             else: #splice{#declare{@target}, #assign{@target, @expr}}
@@ -293,15 +263,6 @@ class PatternCompiler:
          x = handler.wrap{x, @info, @opt}
       x
       
-
-
-
-
-compile_pattern{pattern, info, opt} =
-   PatternCompiler{pattern, info, opt}.compile{}
-
-
-
 
 class PatternProcessor:
 
@@ -321,7 +282,6 @@ class PatternProcessor:
          [#variable or #symbol] and {single_assignment => true?} when not v ->
             x
          init ->
-            ;; v = #variable{gensym{"t"}}
             set v = v or #symbol{@gen{}}
             v.single_assignment = true
             @temps.push with v
@@ -334,9 +294,6 @@ class PatternProcessor:
             @do{rhs}
          #assign{sym} ->
             @parts.push with fns.assign{sym, rhs}
-         #special{kind, handler} ->
-            @process{..., rhs, fns} with
-               fns.special{pattern, rhs}
 
          #test{condition, subp} ->
             @process{subp, rhs, fns}
@@ -371,9 +328,6 @@ class PatternProcessor:
 
          #any{*xs} ->
             t = @temp{rhs, #symbol{gensym{"bridge"}}}
-            ;; t = #symbol{gensym{"bridge"}}
-            ;; @temps.push with t
-            ;; @do with '[^t := ^rhs]
             @check with
                util.construct{parts, fn, 'false} where
                   fn{x, rest} = '[^x or ^rest]
@@ -424,9 +378,6 @@ class PatternProcessor:
 
             if [rest !== undefined]:
                then:
-                  ;; slice = if{nbw > 0, '{^=pos, ^=[-nbw]}, '{^=pos}} where
-                  ;;    pos = nfw + ndflt
-                  ;; @process{rest, '[[^t].slice ^slice], fns}
                   pos = nfw + ndflt
                   @process{rest, 'Array.prototype.slice.call{^t, ^=pos, ^*end}, fns} where
                      end = if{nbw > 0, {#value{-nbw}}, {}}
@@ -435,7 +386,6 @@ class PatternProcessor:
             enumerate{bw} each {i, m} ->
                @process{m, '___js_fetch{^t, ^len - ^=[nbw - i]}, fns}
 
-      ;; fns.wrap{pattern, rval <<: pattern}
       rval
 
 assemble_conditions{pp} =
@@ -495,129 +445,6 @@ inject_below_uses{match, fn} =
    other ->
       fn{other}
 
-;; Options:
-;; strings_as_variables => treat strings as if they were variable names?
-;; wrap_target{x} => called on the value the pattern will be applied to:
-;;    either rhs, or args -> rhs, if args were found embedded in the pattern
-;; finalize => finalize the pattern?
-;; (if finalizing:)
-;; declare{vars} => preparation code to declare the variables
-;; success => what to return on success
-;; failure => what to return on failure
-
-find_target{rhs, match pattern} =
-   #project{projector, subp, === true} ->
-      find_target{'[^projector]{^rhs}, subp}
-   else ->
-      {rhs, pattern}
-
-
-;; extract_from_rhs{pattern, rhs, opt} =
-
-
-
-parse_pattern{info, pattern, rhs, opt} =
-   pc = PatternCompiler{pattern, info, opt}
-   if opt.finalize:
-      pc.extract_from_rhs{rhs}
-   else:
-      pc.process_for_rhs{rhs}
-      {pc.vars, pc.compiled.pinfo, pc.temps, pc.parts}
-
-
-
-   ;; ;; console.log with #ok{info.gettext{pattern}}
-   ;; cpattern = PatternCompiler{pattern, info, opt}.compile{}
-   ;; parse = cpattern.pinfo
-   ;; ;; console.log with parse
-   ;; if [not opt.allow_arguments and parse.arguments.length]:
-   ;;    throw E.syntax.pattern.arguments with
-   ;;       "Arguments cannot be declared in this pattern"
-   ;;       {args = parse.arguments[0]}
-   ;; [opt.wrap_target or identity]! real_rhs =
-   ;;    if parse.arguments.length:
-   ;;       then:
-   ;;          inject_below_uses{rhs} with {x} ->
-   ;;             util.construct{parse.arguments ++ {x}} with
-   ;;                {args, rest} -> '[^args -> ^rest]
-   ;;       else:
-   ;;          rhs
-   ;; {var target, pattern} = find_target{real_rhs, cpattern}
-
-   ;; var expr = null
-   ;; match target:
-   ;;    #symbol or #variable ->
-   ;;       pass
-   ;;    else ->
-   ;;       {target, expr} = {#variable{info.gensym{"$targ"}}, target}
-
-   ;; proc = PatternProcessor{}
-   ;; proc.process{pattern, target, opt}
-
-   ;; if opt.finalize:
-   ;;    then:
-   ;;       succ = opt.success{target}
-   ;;       fail = opt.failure{target}
-   ;;       assembly = assemble_pattern{proc.parts, succ, fail}
-   ;;       #splice with
-   ;;          ;; if{expr === null, #splice{}, '[^target = ^expr]}
-   ;;          if expr === null:
-   ;;             then: #splice{}
-   ;;             else: #splice{#declare{target}, #assign{target, expr}}
-   ;;          *opt.declare{info, parse.vars}
-   ;;          #multi with
-   ;;             *[proc.temps each t -> #declare{t}]
-   ;;             assembly
-   ;;    else:
-   ;;       {parse.vars, cpattern.pinfo, proc.temps, proc.parts}
-
-
-
-;; parse_pattern{info, pattern, rhs, opt} =
-;;    parse = PatternParser{info, pattern, opt}
-;;    if [not opt.allow_arguments and parse.arguments.length]:
-;;       throw E.syntax.pattern.arguments with
-;;          "Arguments cannot be declared in this pattern"
-;;          {args = parse.arguments[0]}
-;;    [opt.wrap_target or identity]! real_rhs =
-;;       if parse.arguments.length:
-;;          then:
-;;             inject_below_uses{rhs} with {x} ->
-;;                util.construct{parse.arguments ++ {x}} with
-;;                   {args, rest} -> '[^args -> ^rest]
-;;          else:
-;;             rhs
-;;    {var target, pattern} = find_target{real_rhs, parse.pattern}
-
-;;    var expr = null
-;;    match target:
-;;       #symbol or #variable ->
-;;          pass
-;;       else ->
-;;          {target, expr} = {#variable{info.gensym{"$targ"}}, target}
-
-;;    proc = PatternProcessor{}
-;;    proc.process{pattern, target, opt}
-
-;;    if opt.finalize:
-;;       then:
-;;          succ = opt.success{target}
-;;          fail = opt.failure{target}
-;;          assembly = assemble_pattern{proc.parts, succ, fail}
-;;          #splice with
-;;             ;; if{expr === null, #splice{}, '[^target = ^expr]}
-;;             if expr === null:
-;;                then: #splice{}
-;;                else: #splice{#declare{target}, #assign{target, expr}}
-;;             *opt.declare{info, parse.vars}
-;;             #multi with
-;;                *[proc.temps each t -> #declare{t}]
-;;                assembly
-;;       else:
-;;          {parse.vars, parse.handlers, proc.temps, proc.parts}
-
-
-
 
 checkall = {.send, .data, .multi, .assign, .void, .check, .do}
 
@@ -649,71 +476,24 @@ parse_clauses{info, target, stmts, opt} =
    the_parts = info.step_all{#clause, stmts} each
 
       #clause{pattern, body} ->
-         var placeholder = undefined
-         special_fn{#special{match, handler} and expr, value} =
-            .match ->
-               set placeholder = #symbol{info.gensym{.ph}} <<: expr
-               #assign{placeholder}
-            other ->
-               throw E.syntax.pattern.special with
-                  "Special token cannot be used here"
-                  {special = expr}
-
-         {vars, handlers, temps, blocks} =
-            parse_pattern{info, pattern, target} with
-               opt & {
-                  allow_arguments = false
-                  allow_nested = true
-                  special = special_fn
-                  assign{v, value} =
-                     #do{#assign{v, value} <<: v}
-                  finalize = false
-               }
-
+         pc = PatternCompiler{pattern, info} with opt & {
+            allow_arguments = false
+            allow_nested = true
+            assign{v, value} =
+               #do{#assign{v, value} <<: v}
+         }
+         pc.process_for_rhs{target}
+         {=> vars, => temps, parts => blocks} = pc
          all_temps ++= temps
-         if placeholder:
-            vars.push with placeholder
-
          vars2 = {=}
          vars each
             #symbol{xxx} ->
                vars2[xxx] = true
             other ->
                throw E.syntax.unexpected{}
-
          if opt.wrap:
-            handlers.handlers.push with opt
-            ;; handlers.push with {
-            ;;    wrapOrder = 0
-            ;;    wrap{expr, subwrap, info, opt} =
-            ;;       opt.wrap{expr}
-            ;; }
-
-         ;; handlers.sort with {x, y} -> x.wrapOrder < y.wrapOrder
-
-         ;; #clause{vars, vars2, blocks, bod} where bod =
-         ;;    var x = body
-         ;;    handlers each handler ->
-         ;;       body = handler.wrap{info, opt, body}
-         ;;    body
-
-         #clause{vars, vars2, blocks, bod} where
-            bod =
-               if placeholder:
-                  then:
-                     ;; parse_clauses with
-                     ;;    info, placeholder, [Body! body]
-                     ;;    opt
-                     r = parse_clauses with
-                        info, placeholder, [Body! body]
-                        opt & {wrap = null}
-                     if{opt.wrap, opt.wrap{r}, r}
-                  else:
-                     handlers.wrap{body}
-                     ;; var x = body
-                     ;; handlers each handler ->
-                     ;;    x = handler.wrap{x, info, opt}
-                     ;; x
+            pc.handlers.push with opt
+         #clause{vars, vars2, blocks, pc.wrapBody{body}}
 
       #block b ->
          b
@@ -817,186 +597,3 @@ weave_clauses{parts} =
    #multi with
       *[new_temps each t -> #declare{t}]
       helper{reassemble}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; class PatternParser:
-
-;;    constructor{info, pattern, opt} =
-;;       @opt = opt
-;;       @arguments = {}
-;;       @vars = {}
-;;       @specials = {=}
-;;       @handlers = Handlers{info, opt}
-;;       tags = clone{opt.tags or {=}}
-;;       tags.group_id or= gensym{.group}
-;;       @pattern = @expand{info, pattern, tags, true, @opt.indexable}
-
-;;    parse_specs{info, specs, tags} =
-;;       var rest = undefined
-;;       var has_defaults = false
-;;       rval = classify{.fw, .bw, .keys, .defaults} with
-;;          info.step_all{#pattern, specs} each
-;;             #dynsplice{variable} ->
-;;                set rest = @expand{info, variable, tags}
-;;                #ignore
-;;             #assoc{key} ->
-;;                #keys with {key, @expand{info, key, tags}}
-;;             #assoc{key, subp} ->
-;;                #keys with {key, @expand{info, subp, tags}}
-;;             #default{variable, value} ->
-;;                set has_defaults = true
-;;                if rest:
-;;                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
-;;                   else: #defaults with {@expand{info, variable, tags}, value}
-;;             v when rest === undefined and not has_defaults ->
-;;                #fw with @expand{info, v, tags}
-;;             v ->
-;;                #bw with @expand{info, v, tags}
-;;       rval.rest = rest
-;;       rval
-
-;;    regspecial{special and #special{name, handler}} =
-;;       match @specials[name]:
-;;          undefined? ->
-;;             @specials[name] = handler
-;;          === handler ->
-;;             pass
-;;          else ->
-;;             throw E.syntax.pattern.incompatible_specials{
-;;                "Special directive '" + name + "' was given two incompatible handlers."
-;;                {special = special}
-;;             }
-
-;;    expand{info, pattern, tags, toplevel = false, checked = false} =
-;;       expr = info.step{#pattern, pattern}
-;;       rval = match expr:
-;;          #void ->
-;;             #check{checker_db.null, #ignore}
-;;          #ignore ->
-;;             expr
-;;          #special{type, handler} ->
-;;             ;; @regspecial{expr}
-;;             @specials[type] = true
-;;             expr
-;;          #specialX{handler} ->
-;;             @handlers.push with handler
-;;             @expand{info, handler.expand{info}, tags, toplevel, false}
-;;          #symbol or #variable ->
-;;             variable = expr & tags
-;;             @vars.push with variable
-;;             #assign{variable}
-;;          #value{v} when @opt.strings_as_variables ->
-;;             ;; @vars.push with expr
-;;             ;; @vars.push with #symbol{v} <<: expr
-;;             variable = [#symbol{v} & tags] <<: expr
-;;             @vars.push with variable
-;;             #assign{variable}
-;;          #value{v} ->
-;;             #check{checker_db{v}, #ignore}
-;;             ;; #check{mac1{{x} -> '[^x === ^=v]}, #ignore}
-
-;;          #test{condition, subp} ->
-;;             #test{condition, @expand{info, subp, tags, toplevel, false}}
-;;          #project{projector, subp, unconditional = false} ->
-;;             #project{projector
-;;                      @expand{info, subp, tags, toplevel, true}
-;;                      unconditional}
-;;          #check{checker, subp} ->
-;;             #check{checker, @expand{info, subp, tags, toplevel, true}}
-
-;;          #send{f, #data and arguments} ->
-;;             if toplevel:
-;;                then:
-;;                   @arguments.unshift with arguments
-;;                   @expand{info, f, tags, true, false}
-;;                else:
-;;                   throw E.syntax.pattern{msg, {node = expr, arg = arguments}} where
-;;                      msg = "Function arguments can only be declared as a top level pattern."
-                  
-;;          #send{f, arg} ->
-;;             #assign{expr}
-;;             ;; throw E.syntax.pattern{msg, {node = expr, arg = arg}} where
-;;             ;;    msg = {"Function must be declared with an array of arguments"
-;;             ;;           "(did you mean to use ':='?)"}.join{" "}
-
-;;          when not @opt.allow_nested ->
-;;             throw E.syntax.pattern{msg, {node = expr}} where
-;;                msg = "Nested patterns are not allowed here."
-
-;;          #neg{x} ->
-;;             #neg{@expand{info, x, tags}}
-
-;;          #all{*xs} ->
-;;             #all ++ [xs each x -> @expand{info, x, tags}]
-
-;;          #any{*xs} ->
-;;             canon{all} =
-;;                all.sort{}.join{","}
-;;             normalize{vars} =
-;;                canon{...} with
-;;                   vars each #symbol{v} -> v
-;;             pps = xs each x ->
-;;                PatternParser{info, x, @opt & {tags = tags}}
-;;             neighbours{pps} each {pp1, pp2} ->
-;;                pps each pp -> normalize{pp.vars}
-;;                if [normalize{pp1.vars} !== normalize{pp2.vars}]:
-;;                   throw E.syntax.pattern{
-;;                      "Both branches of 'or' must contain the same variables"
-;;                      {vars1 = pp1.vars.sort{} <<: pp1.pattern
-;;                       vars2 = pp2.vars.sort{} <<: pp2.pattern}
-;;                   }
-;;                if keys{pp1.specials} != {} or keys{pp2.specials} != {}:
-;;                   throw E.syntax.pattern{
-;;                      "Neither branch of 'or' may contain special tokens."
-;;                      {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
-;;                       special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
-;;                   }
-;;                ;; if [canon{keys{pp1.specials}} !== canon{keys{pp2.specials}}]:
-;;                ;;    throw E.syntax.pattern{
-;;                ;;       "Both branches of 'or' must contain the same special tokens"
-;;                ;;       {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
-;;                ;;        special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
-;;                ;;    }
-;;             {{=> vars}, *} = pps
-;;             @vars ++= vars
-;;             #any{*patts} where patts = pps each pp -> pp.pattern
-
-;;          #data{*args} ->
-;;             specs = @parse_specs{info, args, tags}
-;;             match specs:
-;;                {keys => {}, => fw, => bw, => defaults, => rest} ->
-;;                   patt = #array_pattern{fw, bw, defaults, rest} <<: pattern
-;;                   if checked:
-;;                      then: patt
-;;                      else: #check{checker_db.Array, patt}
-;;                {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
-;;                   #object_pattern{*keys}
-;;                   ;; each {k, v} -> {k, @expand{info, v, false, false}}}
-;;                other ->
-;;                   throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
-;;                      msg = "Pattern must be an array or an object."
-
-;;          #mode{mode, subp} ->
-;;             @expand{info, subp, tags & {declare_mode = mode}, toplevel, checked}
-
-;;          other ->
-;;             throw E.syntax.pattern{"Illegal pattern: " + other, {node = other}}
-
-;;       [@opt.wrap_pattern or identity]{rval <<: pattern, toplevel}

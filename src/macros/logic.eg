@@ -36,8 +36,8 @@ class MatchHandler:
 accum_flags! mac{"match"}! matchx_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
-         #void{} -> #specialX{MatchHandler{}}
-         other -> #all{other <<: expr, #specialX{MatchHandler{}} <<: form}
+         #void{} -> #special{MatchHandler{}}
+         other -> #all{other <<: expr, #special{MatchHandler{}} <<: form}
    other ->
       opt = util.mkset{flags}
       to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
@@ -56,27 +56,27 @@ accum_flags! mac{"match"}! matchx_mac{match, info, form, expr, flags} =
             }
 
 
-accum_flags! mac{"matchX"}! match_mac{match, info, form, expr, flags} =
-   #pattern ->
-      match expr:
-         #void{} -> #special{.match, true}
-         other -> #all{other <<: expr, #special{.match, true} <<: form}
-   other ->
-      opt = util.mkset{flags}
-      to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
-      {value, body} = match expr:
-         #data{Body! {*b}} -> {#value{null}, b}
-         #data{v, Body! {*b}} -> {v, b}
-      '[let [^to_match = ^value]: ^mbody] where mbody =
-         parse_clauses with
-            info, to_match, body
-            opt & {
-               fallback{target} =
-                  match_error{target}
-                  ;; error_embed_location{..., target} with
-                  ;;    'E.match{"Could not find a match for value", {value = ^target}}
-               wrap = null
-            }
+;; accum_flags! mac{"matchX"}! match_mac{match, info, form, expr, flags} =
+;;    #pattern ->
+;;       match expr:
+;;          #void{} -> #special{.match, true}
+;;          other -> #all{other <<: expr, #special{.match, true} <<: form}
+;;    other ->
+;;       opt = util.mkset{flags}
+;;       to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
+;;       {value, body} = match expr:
+;;          #data{Body! {*b}} -> {#value{null}, b}
+;;          #data{v, Body! {*b}} -> {v, b}
+;;       '[let [^to_match = ^value]: ^mbody] where mbody =
+;;          parse_clauses with
+;;             info, to_match, body
+;;             opt & {
+;;                fallback{target} =
+;;                   match_error{target}
+;;                   ;; error_embed_location{..., target} with
+;;                   ;;    'E.match{"Could not find a match for value", {value = ^target}}
+;;                wrap = null
+;;             }
 
 if_pattern = #seq{#multiple{_elif}, #multiple{_else, 0, 1}} where
    _elif = named_statement_matcher{.elif}

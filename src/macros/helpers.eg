@@ -224,7 +224,7 @@ pattern_handlers = {
             #do{#assign{v, value &: {name = name}} <<: v}
          v ->
             #do{#assign{v, value} <<: v}
-      finalize = true
+      ;; finalize = true
       tags = {declare_mode = .unqualified}
       declare{_, vars} =
          vars each v ->
@@ -249,7 +249,7 @@ pattern_handlers = {
       special = disregard_specials
       assign{#symbol{v} or #value{v}, value, _} =
          #do{#assign{'accum[^=v], value} <<: v}
-      finalize = true
+      ;; finalize = true
       declare{_, vars} =
          {#declare{'accum, '{=}}}
       success{_} = 'accum

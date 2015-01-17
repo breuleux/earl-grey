@@ -11,13 +11,8 @@ require:
       match_error
       Body
    "../pattern" ->
-      parse_pattern
-      PatternParser
       PatternCompiler
       parse_clauses
-      Handlers
-   "../util" as util ->
-      classify_contiguous
 
 
 inject: mac
@@ -37,12 +32,9 @@ mac{"let"}! let_mac{match, _, form, argument} =
          #data{Body! {*bindings}, body} ->
             construct{match} =
                {} -> body
-               ;; {x, *xs} ->
-               ;;    #multi{x, construct{xs}} & {nonrecursive = true}
                {'[^bind = ^val], *xs} ->
                   #multi{'[let ^bind = ^val], construct{xs}} & {nonrecursive = true}
             construct{bindings}
-            ;; #multi{*bindings, body} & {nonrecursive = true}
 
 expr_mac! mac{"letrec"}! letrec_mac{_, form, #data{Body! {*bindings}, body}} =
    #multi{*let_bindings, body} where
@@ -74,12 +66,14 @@ mac{"="}! equal_mac{match, info, form, expr} =
             #assoc{#value{s}, rhs}
          #data{lhs, rhs} ->
             #objsplice with #multi with
-               parse_pattern{info, lhs, #use{info.scope, rhs} <<: rhs} with
-                  pattern_handlers.build_object
+               PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs2} where
+                  opt = pattern_handlers.build_object
+                  rhs2 = #use{info.scope, rhs} <<: rhs
    other ->
       #data{lhs, rhs} = expr
-      parse_pattern{info, lhs, #use{info.scope, rhs} <<: rhs} with
-         pattern_handlers.declare_variables
+      PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs2} where
+         opt = pattern_handlers.declare_variables
+         rhs2 = #use{info.scope, rhs} <<: rhs
 
 mac{"=>"}! fat_arrow_mac{match, {=> env}, _, #data{lhs, rhs}} =
    #pattern ->
@@ -107,19 +101,12 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
             fallback{target} =
                match_error{target}
             tags = {declare_mode = .let}
-            ;; special = {#special{match, handler} and expr, value} ->
-            ;;    .match ->
-            ;;       #assign{'ph}
-            ;;    other ->
-            ;;       throw E.syntax.pattern.special with
-            ;;          "Special token cannot be used here"
-            ;;          {special = expr}
          }
       cpattern = pc.compile{}
 
       match cpattern:
-         #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
-            decls = if{pc.specials.match, {#declare{'ph}}, {}}
+         #array_pattern{fw, {}, {}, undefined?} ->
+            decls = {}
             newargs = zip{fw, args} each {match, arg} ->
                #assign{expr and #symbol{v}} ->
                   expr
@@ -129,70 +116,12 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
                   decls.push with pc2.extract_from_rhs{newv}
                   newv
             _body = pc.wrapBody{body}
-            ;; console.log with body.slice{0}
-            ;; console.log with "---"
-            ;; console.log with _body.slice{0}
-            #lambda{newargs, wrap{#multi{*decls, ...}}, generator} with
-               _body
-               ;; if pc.specials.match:
-               ;;    then: '[match ph: ^_body]
-               ;;    else: _body
+            #lambda{newargs, wrap{#multi{*decls, _body}}, generator}
          other ->
             a = 'arguments <<: arg
             #lambda{{}, wrap{body2}, generator} where
                body2 = ' | match.indexable [^a]:
                             ^arg -> ^body
-
-
-;; mac{"_lambda"}! _lambda_mac{context, info, form, match} =
-;;    #data{#data{*args} and arg, pre, body, post, generator = #value{false}} ->
-;;       wrap{body2} =
-;;          if{pre == #value{null}, body3, #multi{pre, body3}} where
-;;             body3 = if{post == #value{null}, body2, #multi{body2, post}}
-;;       pp = PatternParser{info, arg, {...}} with
-;;          indexable = true
-;;          allow_nested = true
-;;          fallback{target} =
-;;             match_error{target}
-;;       match pp.pattern:
-;;          #array_pattern{fw, {}, {}, undefined?} -> ;; when not pp.specials.match ->
-;;             ;; handlers = Handlers{}
-;;             decls = if{pp.specials.match, {#declare{'ph}}, {}}
-;;             newargs = zip{fw, args} each {match, arg} ->
-;;                #assign{expr and #symbol{v}} ->
-;;                   expr
-;;                other ->
-;;                   ;; newv = #symbol{info.gensym{.temp}} & {env = stdenv}
-;;                   newv = #symbol{info.gensym{.temp}} & {env = info.mkenv{}}
-;;                   decl =
-;;                      parse_pattern{info, arg, newv} with
-;;                         pattern_handlers.declare_variables & {
-;;                            ;; return_handlers = true
-;;                            tags = {declare_mode = .let}
-;;                            special = {#special{match, handler} and expr, value} ->
-;;                               .match ->
-;;                                  #assign{'ph}
-;;                               other ->
-;;                                  throw E.syntax.pattern.special with
-;;                                     "Special token cannot be used here"
-;;                                     {special = expr}
-;;                         }
-;;                   decls.push with decl
-;;                   ;; handlers.merge{_handlers}
-;;                   newv
-;;             _body = pp.handlers.wrap{body}
-;;             ;; console.log with body.slice{0}
-;;             ;; console.log with "---"
-;;             ;; console.log with _body.slice{0}
-;;             #lambda{newargs, wrap{#multi{*decls, ...}}, generator} with
-;;                if pp.specials.match:
-;;                   then: '[match ph: ^_body]
-;;                   else: _body
-;;          other ->
-;;             a = 'arguments <<: arg
-;;             #lambda{{}, wrap{body2}, generator} where
-;;                body2 = ' | match.indexable [^a]:
-;;                             ^arg -> ^body
 
 mac{"*->"}! genarrow_mac{ctx, _, form, match} =
    #data{args, body} ->

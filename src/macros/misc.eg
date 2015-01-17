@@ -9,7 +9,8 @@ require:
       pattern_handlers
       Body
    "../pattern" ->
-      parse_pattern
+      ;; parse_pattern
+      PatternCompiler
 
 inject: mac
 
@@ -115,7 +116,9 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
             set ctor = {args, body}
             #splice{}
          '[^lhs = ^rhs] ->
-            parse_pattern{info, lhs, rhs} with
+            ;; parse_pattern{info, lhs, rhs} with
+
+            PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs} where opt =
                pattern_handlers.build_object & {
                   allow_nested = false
                   assign{#symbol{v} or #value{v}, value} =
