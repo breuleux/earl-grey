@@ -108,6 +108,10 @@ class PatternCompiler:
          #value{v} ->
             #check{checker_db{v}, #ignore}
 
+         #replace{subp, value} ->
+            #replace{csubp, value} &: {pinfo = csubp.pinfo} where
+               csubp = @expand{subp, tags, toplevel, false}
+
          #test{condition, subp} ->
             #test{condition, csubp} &: {pinfo = csubp.pinfo} where
                csubp = @expand{subp, tags, toplevel, false}
@@ -296,6 +300,9 @@ class PatternProcessor:
             @do{rhs}
          #assign{sym} ->
             @parts.push with fns.assign{sym, rhs}
+
+         #replace{subp, value} ->
+            @process{subp, value, fns}
 
          #test{condition, subp} ->
             @process{subp, rhs, fns}

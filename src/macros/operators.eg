@@ -31,6 +31,12 @@ inject: mac
    "each=" => make_assigner{"each"}
 
 
+mac{"is"}! is_mac{match, _, form, #data{x, y}} =
+   #pattern ->
+      #replace{x, y}
+   else ->
+      '[^x == ^y]
+
 mac{"-"}! minus_mac{context, _, form, match expr} =
    #data{#void{}, #value{Number? n}} ->
       #value{-n}

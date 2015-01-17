@@ -204,7 +204,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "and" = {"X_and_Y"}
       "not" = {"not_Y"}
       type = {"X_!_Y", "X_?_Y"}
-      cmp = {"X_==_Y", "X_!=_Y"
+      cmp = {"X_==_Y", "X_!=_Y", "X_is_Y"
              "X_>=_Y", "X_<=_Y"
              "X_>_Y", "X_<_Y"}
       binxor = {"X_^._Y"}

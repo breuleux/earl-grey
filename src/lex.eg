@@ -147,7 +147,7 @@ regexps = {
        \ or "and" or "not" or "or"
        \ or "in" or "mod"
        \ or "each" or "as"
-       \ or "of"
+       \ or "of" or "is"
      [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
 
   ;; `operator`
