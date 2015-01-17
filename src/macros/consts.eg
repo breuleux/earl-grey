@@ -56,6 +56,7 @@ global_variables = {
    .___serialize_ast
 
    .Set, .Map
+   .consume
    .Promise, .promisify, .spawn
 
    .Buffer

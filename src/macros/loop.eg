@@ -63,14 +63,17 @@ mac{"for"}! for_mac{context, info, form, match expr} =
 
 class EachHandler:
 
-   constructor{@placeholder, @loopvar} =
+   constructor{@placeholder, @loopvar, @generator = false} =
       @wrapOrder = 2
 
    expand{info} =
       @placeholder
 
    wrap{expr, info, opt} =
-      '[^[@placeholder] each ^[@loopvar] -> ^expr]
+      if @generator:
+         '[^[@placeholder] each* ^[@loopvar] -> ^expr]
+      else:
+         '[^[@placeholder] each ^[@loopvar] -> ^expr]
 
 
 mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
@@ -123,3 +126,51 @@ mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
       ;; order to return them. Right now, this plays poorly with
       ;; break and continue.
       _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
+
+
+mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
+
+   #pattern ->
+      if [expr == #void{}]:
+         expr = #data{#void{}, #void{}}
+      #data{li, body} = expr
+      #special{EachHandler{ph, lv, true}} where
+         ph = if{li == #void{}, info.env.mark{#symbol{info.gensym{.xs}}}, li}
+         lv = if{body == #void{}, info.env.mark{'match}, body}
+
+   do:
+      #data{li, body} = expr
+      Body! {*clauses} = body
+      var ends_with_test = false
+      _build_loop{wrap, pre, post} =
+         build_loop{info, env, form, li, clauses
+                    wrap, pre, post
+                    {...}} with
+            forof = true
+            wrap_pattern{x, toplevel} =
+               set ends_with_test =
+                  match x:
+                     #test -> toplevel
+                     other -> false
+               x
+            fallback{target} =
+               if ends_with_test:
+                  then: 'false
+                  else: match_error{target}
+
+   #expr{.multi} ->
+      ;; expand{#multi} will call this macro again with either
+      ;; #expr{.ignore} or #expr{.expr}, depending on whether we
+      ;; are in the middle of a block or at the end of one. We want
+      ;; to specialize on that information, so we pass our turn.
+      #nostep{form}
+
+   #expr{.ignore} ->
+      ;; A generator in the middle of a block is a no-op.
+      #multi{}
+
+   other ->
+      ;; Middle of a block. We create a generator and yield the
+      ;; values.
+      '[[{} *-> ^loop]{}] where loop =
+         _build_loop{{x} -> '[yield [^ #multi{x}]], #splice{}, #splice{}}

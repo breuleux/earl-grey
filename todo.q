@@ -100,6 +100,7 @@ X f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}
 X WONTFIX: Compare for equality when the same variable is found multiple times
   in a pattern
   REASON: it's easy enough to do {x, == x} -> ...
+X each* as a generator alternative to each
 
 
 * f{each x, match} will complain that it cannot resolve each; figure
