@@ -257,7 +257,9 @@ class PatternCompiler:
             assembly
 
    wrapBody{body} =
-      @handlers.sort with {x, y} -> x.wrapOrder < y.wrapOrder
+      enumerate{@handlers} each {i, h} ->
+         h.__ord = h.wrapOrder + [i / 1e6]
+      @handlers.sort with {x, y} -> x.__ord < y.__ord
       var x = body
       @handlers each handler ->
          x = handler.wrap{x, @info, @opt}

@@ -34,7 +34,7 @@ X "expr as var"
 X rest arguments!
 X field extraction in pattern matching: {=> name} = {name = "Peter"}
 X default values for arguments in p.m.
-IRRELEVANT try to make #x{y, z} [nearly] as efficient as {.x, y, z}
+X IRRELEVANT try to make #x{y, z} [nearly] as efficient as {.x, y, z}
 X Replace [aslist! args] with [#multi! {*args}]
 X avoid generating spurious ifs when one of the patterns can't fail
 X Change chain to use let
@@ -69,6 +69,7 @@ X match in the arguments list of class members
 X Change exception syntax
 X Support single inheritance
 
+
 X Make ::check etc. non-enumerable
 X [require:] inside [macros:]
 
@@ -96,8 +97,15 @@ X add long strings: """xyz"""
 X try: catch:
 X f{each x} = x + 1 ==> f{xs} = xs each x -> x + 1
 X f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}
+X WONTFIX: Compare for equality when the same variable is found multiple times
+  in a pattern
+  REASON: it's easy enough to do {x, == x} -> ...
 
 
+* f{each x, match} will complain that it cannot resolve each; figure
+  out why that happens *exactly* and fix it.
+* Produce an error when the same variable is found multiple times in a
+  pattern
 * Automatically annotate '[...] with location information
 * Embed promisify
 * Make unconditional transformers for String!, Number! and Boolean!
@@ -105,8 +113,6 @@ X f{chain} = @replace{.a, .b} ==> f{x} -> chain x: @replace{.a, .b}
 * Use ES6 classes
 * Use ES6 splats
 * Handle mix of array and object
-* Compare for equality when the same variable is found multiple times
-  in a pattern
 * revamp the blocktest macro (rename to tests?)
 * match_error could use being more precise
 * fix emacro's interaction with ! when not in a pattern

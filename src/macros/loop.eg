@@ -67,7 +67,6 @@ class EachHandler:
       @wrapOrder = 2
 
    expand{info} =
-      ;; @placeholder = info.env.mark{#symbol{info.gensym{.xs}}}
       @placeholder
 
    wrap{expr, info, opt} =
