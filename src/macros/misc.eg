@@ -17,14 +17,31 @@ inject: mac
 [items{{...}} each {k, v} -> mac{k}{v}] with
    "@" => var_operator{"$it"}
 
-expr_mac! mac{"chain"}! chain_mac{_, form, #data{defn and {=> env}, Body! {*body}}} =
-   it = '[@] & {env = env}
-   construct{match} =
-      {x} -> x
-      {x, *rest} ->
-         ' | let [^it = ^x]:
-              ^construct{rest}
-   construct{{defn} ++ body}
+class ChainHandler:
+   constructor{@env} =
+      @wrapOrder = 2
+   expand{info} =
+      @placeholder = @env.mark{#symbol{info.gensym{.ph}}}
+      @placeholder
+   wrap{expr, info, opt} =
+      'chain{^[@placeholder], ^expr}
+
+mac{"chain"}! chain_mac{match, info, form, expr} =
+   #pattern ->
+      match expr:
+         #void{} -> #special{ChainHandler{form.env}}
+         other -> #all{other <<: expr, #special{ChainHandler{form.env}} <<: form}
+   #expr{.expr} or #expr{.head} ->
+      #data{defn and {=> env}, Body! {*body}} = expr
+      it = '[@] & {env = env}
+      construct{match} =
+         {x} -> x
+         {x, *rest} ->
+            ' | let [^it = ^x]:
+                 ^construct{rest}
+      construct{{defn} ++ body}
+   else ->
+      #nostep{form}
 
 expr_mac! mac{"using"}! using_mac{_, form, #data{defn and {=> env}, body}} =
    it = '[@] & {env = env}
