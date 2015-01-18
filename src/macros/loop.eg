@@ -177,4 +177,6 @@ mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
       ;; Middle of a block. We create a generator and yield the
       ;; values.
       '[[{} *-> ^loop]{}] where loop =
-         _build_loop{{x} -> '[yield [^ #multi{x}]], #splice{}, #splice{}}
+         _build_loop{{x} -> '[temp = ^ #multi{x}, yield temp]
+                     #splice{'[var acc = {}], '[var temp = null]}
+                     'acc}
