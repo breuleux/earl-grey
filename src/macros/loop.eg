@@ -125,7 +125,11 @@ mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
       ;; Middle of a block. We have to accumulate the values in
       ;; order to return them. Right now, this plays poorly with
       ;; break and continue.
-      _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
+
+      ;; _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
+      _build_loop{{x} -> '[temp = ^ #multi{x}, acc.push{temp}]
+                  #splice{'[var acc = {}], '[var temp = null]}
+                  'acc}
 
 
 mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =

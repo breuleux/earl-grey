@@ -101,8 +101,16 @@ X WONTFIX: Compare for equality when the same variable is found multiple times
   in a pattern
   REASON: it's easy enough to do {x, == x} -> ...
 X each* as a generator alternative to each
+X [x = [a, b, c]] can be translated as [a, b, c = x]; treat this case
+  the same way expressions in return positions are treated.
+X allow break/continue in list-building `each` by unhoisting the
+  accum.push(...) as much as possible
+  NOTE: the solution was simpler: [x = ..., accum.push{x}], and push
+        the assignment in when translating
 
 
+
+* change the in operator to actually be useful
 * f{each x, match} will complain that it cannot resolve each; figure
   out why that happens *exactly* and fix it.
 * Produce an error when the same variable is found multiple times in a
@@ -127,8 +135,6 @@ X each* as a generator alternative to each
   idea: macro_require inserts also require(package), which is used to
         resolve symbols in the macro's namespace (requires what the macro
         is using to be provided, though)
-* allow break/continue in list-building `each` by unhoisting the
-  accum.push(...) as much as possible
 * experiment with changing the priority of wide juxtaposition
 * make it possible to do "earl compile src -o lib" instead of having
   to do "earl compile -o lib src"

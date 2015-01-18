@@ -27,7 +27,7 @@ global_variables = {
    ;; .String, .Number, .Boolean
    .Array, .Object, .Symbol
    .RegExp, .Function, .Date
-   .parseInt, .parseFloat, .Math
+   .parseInt, .parseFloat, .Math, .Infinity
    .Error, .TypeError, .ReferenceError
    .console, .process, .eval
 

@@ -162,15 +162,21 @@ class Translator:
             stmts.map{trst}.join{""} + @translate{ret, .return}
          .stmt ->
             b.map{trst}.join{""}
+         #return{variable} ->
+            stmts = b.slice{0, -1}
+            ret = b[b.length - 1]
+            stmts.map{trst}.join{""} + @translate{ret, mode}
          other ->
-            throw E.syntax.mode{"Unknown mode", {mode = mode}}
+            throw E.syntax.mode{"Unknown translate mode", {mode = mode}}
 
    expr{x, mode} =
       match mode:
          .expr -> x
          .stmt -> x + ";"
          .return -> "return " + x + ";"
-         other -> throw "OopsI"
+         #return{variable} ->
+            variable + "=" + x + ";"
+         other -> throw E.syntax.mode{"Unknown translate mode", {mode = mode}}
 
    op{op, a, b} =
       e = match {a, b}:
@@ -327,14 +333,14 @@ class Translator:
 
          #declare{binding, #value{undefined?}} ->
             match mode:
-               [.expr or .return] -> throw "Invalid in expr ctx"
+               [.expr or .return or #return] -> throw "Invalid in expr ctx"
                other ->
                   ["let " + a + ";"] where
                      a = @translate{binding, .expr}
 
          #declare{binding, value} ->
             match mode:
-               [.expr or .return] -> throw "Invalid in expr ctx"
+               [.expr or .return or #return] -> throw "Invalid in expr ctx"
                other ->
                   ["let " + a + "=" + b + ";"] where
                      a = @translate{binding, .expr}
@@ -346,13 +352,18 @@ class Translator:
                b = @translate{msg, .expr}
                c = @translate{rhs, .expr}
 
-         #assign{lhs, rhs} ->
+         #assign{lhs and #variable{_}, rhs} ->
             core = a + "=" + b where
                a = @translate{lhs, .expr}
                b = @translate{rhs, .expr}
+            ;; match mode:
+            ;;    .stmt ->
+            ;;       core + ";"
+            ;;    else ->
+            ;;       @expr{"(" + core + ")", mode}
             match mode:
                .stmt ->
-                  core + ";"
+                  @translate{rhs, #return{@translate{lhs, .expr}}}
                else ->
                   @expr{"(" + core + ")", mode}
 
@@ -371,12 +382,13 @@ class Translator:
             isdecl{match} =
                #declare{variable, value} -> true
                other -> false
-            match:
+            match mode:
                when args.length === 1 ->
                   @translate{args[0], mode}
-               when [mode === "expr"] and [not args.some{isdecl}] ->
-                  var xs = args each x ->
+               .expr when not args.some{isdecl} ->
+                  var xs = args.slice{0, -1} each x ->
                      @translate{x, .expr}
+                  xs.push with @translate{args[args.length - 1], mode}
                   set xs = xs each x when x !== "" -> x
                   ["(" + xs.join{","} + ")"]
                _ -> @body{expr, mode}
@@ -402,20 +414,26 @@ class Translator:
          #js_new{value} ->
             @expr{"(new " + @translate{value, .expr} + ")", mode}
 
+         ;; TODO: some kind of .ignoreexpr mode is needed to
+         ;;       spot usage errors for break, continue, return
+
          #js_break{#value{label} = #value{null}} ->
-            if [mode === "expr"]:
-               then: throw "Invalid break in ctx"
-               else: "break" + if{label, " " + label, ""} + ";"
+            ;; if [mode === "expr"]:
+            ;;    then: throw "Invalid break in ctx"
+            ;;    else: "break" + if{label, " " + label, ""} + ";"
+            "break" + if{label, " " + label, ""} + ";"
 
          #js_continue{#value{label} = #value{null}} ->
-            if [mode === "expr"]:
-               then: throw "Invalid continue in ctx"
-               else: "continue" + if{label, " " + label, ""} + ";"
+            ;; if [mode === "expr"]:
+            ;;    then: throw "Invalid continue in ctx"
+            ;;    else: "continue" + if{label, " " + label, ""} + ";"
+            "continue" + if{label, " " + label, ""} + ";"
 
          #js_return{value} ->
-            if [mode === "expr"]:
-               then: throw "Invalid return in ctx"
-               else: "return " + @translate{value, .expr} + ";"
+            ;; if [mode === "expr"]:
+            ;;    then: throw "Invalid return in ctx"
+            ;;    else: "return " + @translate{value, .expr} + ";"
+            "return " + @translate{value, .expr} + ";"
 
          #js_yield{value, #value{all}} ->
             @expr{"(yield" + star + " " + @translate{value, .expr} + ")", mode} where
