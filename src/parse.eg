@@ -57,7 +57,7 @@ class OperatorGroups:
    get_name{o} =
       @gnames[@get{o}]
 
-   get{o and {fixity, width, name}} =
+   "get"{o and {fixity, width, name}} =
       attempt = @to_gid[fixity][width][name]
       if [undefined? attempt]:
          then:

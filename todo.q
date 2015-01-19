@@ -112,12 +112,15 @@ X Declare values in if, e.g. if [x = f{y}]: x
   OH: Turns out that already works? I guess it would.
 X change the in operator to actually be useful
 X Allow declaring variables like "n > 0 = 3"
+X Figure out what `{x, y} = {1, 2}` should return
+X expression `{x, return, y} = {1, 2, 3}` returns 2
+X expression `{x, yield, y} = {1, 2, 3}` yields 2
 
 
+* quote with 'a + b' instead of '[a + b]
 
-* expression `{x, return, y} = {1, 2, 3}` returns 2
-* expression `{x, yield, y} = {1, 2, 3}` yields 2
-* Figure out what `{x, y} = {1, 2}` should return
+* Come up with a reliable way to mix multiple wrapping handlers in
+  patterns and prevent nonsensical combinations.
 
 * f{each x, match} will complain that it cannot resolve each; figure
   out why that happens *exactly* and fix it.

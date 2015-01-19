@@ -268,7 +268,16 @@ class PatternCompiler:
       @handlers each handler ->
          x = handler.wrap{x, @info, @opt}
       x
-      
+
+   wrapAssignment{expr} =
+      enumerate{@handlers} each {i, h} ->
+         h.__ord = h.wrapBodyOrder + [i / 1e6]
+      @handlers.sort with {x, y} -> x.__ord < y.__ord
+      var x = expr
+      @handlers each handler ->
+         x = handler.wrapAssignment{x, @info, @opt}
+      x
+
 
 class PatternProcessor:
 

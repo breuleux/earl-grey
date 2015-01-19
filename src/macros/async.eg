@@ -2,17 +2,44 @@
 require:
    "./helpers" ->
       expr_mac, expr_mac2
+      AssignmentHandler
 
 inject: mac
 
-expr_mac! mac{"yield"}! yield_mac{_, form, match} =
-   'all[^arg] -> #js_yield{arg, #value{true}}
-   arg -> #js_yield{arg, #value{false}}
 
-expr_mac! mac{"await"}! await_mac{_, form, match} =
-   'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
-   'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
-   arg -> #js_yield{arg, #value{false}}
+mac{"yield"}! yield_mac{match, _, form, arg} =
+   #pattern ->
+      #special{AssignmentHandler{subp, w}} where
+         subp = if{arg == #void{}, null, arg}
+         w{ph} = '[yield ^ph]
+   #expr{.expr} or #expr{.head} ->
+      match arg:
+         'all[^arg] -> #js_yield{arg, #value{true}}
+         arg -> #js_yield{arg, #value{false}}
+   otherwise ->
+      #nostep{form}
+
+mac{"await"}! await_mac{match, _, form, arg} =
+   #pattern ->
+      #special{AssignmentHandler{subp, w}} where
+         subp = if{arg == #void{}, null, arg}
+         w{ph} = '[await ^ph]
+   #expr{.expr} or #expr{.head} ->
+      match arg:
+         'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
+         'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
+         arg -> #js_yield{arg, #value{false}}
+   otherwise ->
+      #nostep{form}
+
+;; expr_mac! mac{"yield"}! yield_mac{_, form, match} =
+;;    'all[^arg] -> #js_yield{arg, #value{true}}
+;;    arg -> #js_yield{arg, #value{false}}
+
+;; expr_mac! mac{"await"}! await_mac{_, form, match} =
+;;    'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
+;;    'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
+;;    arg -> #js_yield{arg, #value{false}}
 
 expr_mac2! mac{"gen"}! gen_mac{match} =
    '{^arg -> ^body} ->

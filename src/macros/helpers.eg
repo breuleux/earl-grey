@@ -33,6 +33,7 @@ provide:
    named_statement_matcher
    grab_statements
    flatmacro
+   AssignmentHandler
 
 
 embed_location{match} =
@@ -332,6 +333,21 @@ flatmacro{pattern, assemble} =
       {result, rest} = grab_statements{pattern, stmts}
       {assemble{result}} ++ rest
 
+
+class AssignmentHandler:
+
+   constructor{@subp, @wrapPlaceholder} =
+      @wrapAssignmentOrder = 1
+
+   expand{info} =
+      @placeholder = info.env.mark{#symbol{info.gensym{"$get"}}}
+      if @subp:
+         #all{@subp, @placeholder}
+      else:
+         @placeholder
+
+   wrapAssignment{expr, info, opt} =
+      #splice{expr, @wrapPlaceholder{@placeholder}}
 
 
 
