@@ -77,16 +77,14 @@ evaluator$0 = (function(temp$0$0) {
   var paths$0;
   var e_module$0;
   var e_require$0;
+  var save$0;
   var __eval$0;
-  var $$103$0;
-  var m$0$0;
-  var ph$0;
+  var $$100$0;
   var options$0;
+  var ph$0$0;
   t0$0 = temp$0$0;
   options$0 = t0$0;
-  ph$0 = t0$0;
-  m$0$0 = ph$0;
-  m$0$0;
+  ph$0$0 = t0$0;
   if (module$0._nodeModulePaths) {
     paths$0 = module$0._nodeModulePaths(options$0.cwd);
     e_module$0 = (new module$0(options$0.showname));
@@ -103,6 +101,12 @@ evaluator$0 = (function(temp$0$0) {
       "paths": paths$0,
       "cache": require.cache
     }))));
+    save$0 = ({
+      "__filename": global.__filename,
+      "__dirname": global.__dirname,
+      "module": global.module,
+      "require": global.require
+    });
     __amp____colon__(global, ({
       "__filename": options$0.filename,
       "__dirname": path$0.dirname(options$0.filename),
@@ -111,8 +115,11 @@ evaluator$0 = (function(temp$0$0) {
     }));
     return (function(code$0) {
       var script$0;
+      var rval$0;
       script$0 = vm$0.createScript(code$0, options$0.showname);
-      return script$0.runInThisContext();
+      rval$0 = script$0.runInThisContext();
+      __amp____colon__(global, save$0);
+      return rval$0;
     });
   } else {
     __eval$0 = eval;
@@ -122,14 +129,20 @@ evaluator$0 = (function(temp$0$0) {
   }
 });
 Pipeline$0 = (function() {
-  var $targ$41;
   var $targ$42;
+  var $targ$43;
   var $it$0;
-  $it$0 = ((!getChecker(Pipeline$0)(this)) ? Object.create(Pipeline$0.prototype) : this);
-  $targ$41 = std$0.make_expander($it$0);
-  ($it$0["_expander"] = $targ$41);
-  $targ$42 = $it$0._expander.mkenv();
-  ($it$0["env"] = $targ$42);
+  if ((!getChecker(Pipeline$0)(this))) {
+    $it$0 = Object.create(Pipeline$0.prototype);
+  } else {
+    $it$0 = this;
+  }
+  $targ$42 = std$0.make_expander($it$0);
+  ($it$0["_expander"] = $targ$42);
+  [];
+  $targ$43 = $it$0._expander.mkenv();
+  ($it$0["env"] = $targ$43);
+  [];
   return $it$0;
 });
 $targ$22 = (function(source$0) {
@@ -154,7 +167,7 @@ $targ$24 = (function(ast$1) {
   var r$0;
   var res$0;
   var tr$0;
-  var rval$0;
+  var rval$1;
   var prep$0;
   var $it$3;
   var self$2;
@@ -162,9 +175,9 @@ $targ$24 = (function(ast$1) {
   self$2 = this;
   res$0 = opt$0.hoist(ast$1);
   tr$0 = Translator$0();
-  rval$0 = tr$0.translate(res$0, "expr");
+  rval$1 = tr$0.translate(res$0, "expr");
   prep$0 = tr$0.dump_store();
-  r$0 = (((prep$0 + ";(") + rval$0) + ")");
+  r$0 = (((prep$0 + ";(") + rval$1) + ")");
   return ({
     "code": to5$0.compile(r$0, []),
     "location": ast$1.location
@@ -189,34 +202,30 @@ $targ$25 = (function(src$0) {
 (Pipeline$0.prototype["evaluate"] = $targ$25);
 $targ$26 = (function(x$0, temp$1$0, end$0) {
   var t0$1;
-  var m$1$0;
-  var ph$1;
   var start$0;
+  var ph$1$0;
   var $it$5;
   var self$4;
   $it$5 = this;
   self$4 = this;
   t0$1 = temp$1$0;
   start$0 = t0$1;
-  ph$1 = t0$1;
-  m$1$0 = ph$1;
-  m$1$0;
+  ph$1$0 = t0$1;
   if (((start$0 === end$0) || (start$0 === "eval"))) {
     return x$0;
   } else {
-    if ((m$1$0 === "source")) {
+    if ((ph$1$0 === "source")) {
       return $it$5.go($it$5.parse(x$0), "parse", end$0);
     } else {
-      if ((m$1$0 === "parse")) {
+      if ((ph$1$0 === "parse")) {
         return $it$5.go($it$5.expand(x$0), "expand", end$0);
       } else {
-        if ((m$1$0 === "expand")) {
+        if ((ph$1$0 === "expand")) {
           return $it$5.go($it$5.translate(x$0), "translate", end$0);
         } else {
-          if ((m$1$0 === "translate")) {
+          if ((ph$1$0 === "translate")) {
             return $it$5.go($it$5.evaluate(x$0), "eval", end$0);
           } else {
-            m$1$0;
             throw ErrorFactory(["pipeline"]).create(("Unknown pipeline stage: " + start$0));
           }
         }
@@ -226,7 +235,6 @@ $targ$26 = (function(x$0, temp$1$0, end$0) {
 });
 (Pipeline$0.prototype["go"] = $targ$26);
 __amp____colon__(Pipeline$0, __amp____colon__((($targ$63 = "Pipeline"), (accum$1 = ({})), (accum$1["::name"] = $targ$63), accum$1), (($targ$64 = true), (accum$2 = ({})), (accum$2["::egclass"] = $targ$64), accum$2)));
-Pipeline$0;
 generate$0 = (function(source$1) {
   return Generator$0().generate(source$1);
 });
@@ -238,26 +246,40 @@ Generator$0 = (function() {
   var $targ$73;
   var t0$2;
   var $targ$70;
-  var m$2$0;
+  var m$0$0;
   var $it$6;
-  $it$6 = ((!getChecker(Generator$0)(this)) ? Object.create(Generator$0.prototype) : this);
-  m$2$0 = arguments;
-  t0$2 = m$2$0.length;
+  if ((!getChecker(Generator$0)(this))) {
+    $it$6 = Object.create(Generator$0.prototype);
+  } else {
+    $it$6 = this;
+  }
+  m$0$0 = arguments;
+  t0$2 = m$0$0.length;
   if (((t0$2 >= 0) && (t0$2 <= 1))) {
-    $targ$70 = ((0 >= t0$2) ? false : m$2$0[0]);
+    if ((0 >= t0$2)) {
+      $targ$70 = false;
+    } else {
+      $targ$70 = m$0$0[0];
+    }
     $targ$68 = Translator$0("require(\"earlgrey-runtime\");");
     ($it$6["tr"] = $targ$68);
+    [];
     $targ$69 = std$0.stdenv.fork();
     ($it$6["env"] = $targ$69);
+    [];
     ($it$6["interactive"] = $targ$70);
+    [];
     $targ$71 = null;
     ($it$6["_eval"] = $targ$71);
+    [];
     $targ$72 = Pipeline$0();
     ($it$6["pipeline"] = $targ$72);
+    [];
     $targ$73 = std$0.make_expander($it$6.pipeline);
     ($it$6["expander"] = $targ$73);
+    [];
   } else {
-    ___match_error(m$2$0);
+    ___match_error(m$0$0);
   }
   return $it$6;
 });
@@ -275,39 +297,63 @@ $targ$29 = (function() {
   var ex$0;
   var $targ$81;
   var $targ$82;
-  var rval$1;
+  var rval$2;
   var t0$3;
   var source$2;
   var dump$0;
   var _to5$0;
-  var m$3$0;
+  var m$1$0;
   var $it$7;
   var self$5;
   $it$7 = this;
   self$5 = this;
-  m$3$0 = arguments;
-  t0$3 = m$3$0.length;
+  m$1$0 = arguments;
+  t0$3 = m$1$0.length;
   if (((t0$3 >= 1) && (t0$3 <= 3))) {
-    source$2 = m$3$0[0];
-    dump$0 = ((1 >= t0$3) ? (!$it$7.interactive) : m$3$0[1]);
-    _to5$0 = ((2 >= t0$3) ? true : m$3$0[2]);
+    source$2 = m$1$0[0];
+    if ((1 >= t0$3)) {
+      dump$0 = (!$it$7.interactive);
+    } else {
+      dump$0 = m$1$0[1];
+    }
+    if ((2 >= t0$3)) {
+      _to5$0 = true;
+    } else {
+      _to5$0 = m$1$0[2];
+    }
     t$1 = tokenize$0(source$2);
     p$0 = parse$0(t$1);
-    $targ$80 = ((stmt$0 = ($it$7.interactive ? (($targ$85 = p$0), (t0$4 = getProjector(Body$0)($targ$85)), ((t0$4[0] && ((t1$0 = t0$4[1]), (t2$0 = t1$0.length), (t2$0 >= 0))) ? (args$0 = Array.prototype.slice.call(t1$0, 0)) : ___match_error($targ$85)), ["interactive"].concat(args$0)) : ["multi", p$0])), $it$7.expander.expand(["top"], exp$0.topscope, $it$7.env.mark(stmt$0)));
+    if ($it$7.interactive) {
+      $targ$85 = p$0;
+      t0$4 = getProjector(Body$0)($targ$85);
+      if ((t0$4[0] && ((t1$0 = t0$4[1]), (t2$0 = t1$0.length), (t2$0 >= 0)))) {
+        args$0 = Array.prototype.slice.call(t1$0, 0);
+      } else {
+        ___match_error($targ$85);
+      }
+      stmt$0 = ["interactive"].concat(args$0);
+    } else {
+      stmt$0 = ["multi", p$0];
+    }
+    $targ$80 = $it$7.expander.expand(["top"], exp$0.topscope, $it$7.env.mark(stmt$0));
     ex$0 = $targ$80;
     $targ$81 = opt$0.hoist(ex$0);
     ex$0 = $targ$81;
     $targ$82 = opt$0.eliminate_spurious_variables(ex$0);
     ex$0 = $targ$82;
-    rval$1 = $it$7.tr.translate(ex$0, "stmt");
-    r$1 = (dump$0 ? ($it$7.tr.dump_store() + rval$1) : rval$1);
+    rval$2 = $it$7.tr.translate(ex$0, "stmt");
+    if (dump$0) {
+      r$1 = ($it$7.tr.dump_store() + rval$2);
+    } else {
+      r$1 = rval$2;
+    }
     if (_to5$0) {
       return to5$0.compile(r$1, []);
     } else {
       return r$1;
     }
   } else {
-    return ___match_error(m$3$0);
+    return ___match_error(m$1$0);
   }
 });
 (Generator$0.prototype["generate"] = $targ$29);
@@ -326,28 +372,37 @@ $targ$30 = (function(source$3) {
       "cwd": file$0
     }));
     ($it$8["_eval"] = $targ$93);
+    [];
   }
   return $it$8._eval($it$8.generate(source$3));
 });
 (Generator$0.prototype["evaluate"] = $targ$30);
 __amp____colon__(Generator$0, __amp____colon__((($targ$94 = "Generator"), (accum$3 = ({})), (accum$3["::name"] = $targ$94), accum$3), (($targ$95 = true), (accum$4 = ({})), (accum$4["::egclass"] = $targ$95), accum$4)));
-Generator$0;
 $targ$96 = evaluator$0;
 (exports["evaluator"] = $targ$96);
+[];
 $targ$97 = Source$0;
 (exports["Source"] = $targ$97);
+[];
 $targ$98 = Location$0;
 (exports["Location"] = $targ$98);
+[];
 $targ$99 = highlight_locations$0;
 (exports["highlight_locations"] = $targ$99);
+[];
 $targ$100 = tokenize$0;
 (exports["tokenize"] = $targ$100);
+[];
 $targ$101 = parse$0;
 (exports["parse"] = $targ$101);
+[];
 $targ$102 = Generator$0;
 (exports["Generator"] = $targ$102);
+[];
 $targ$103 = generate$0;
 (exports["generate"] = $targ$103);
+[];
 $targ$104 = version$0;
 (exports["version"] = $targ$104);
+[];
 //# sourceURL=<compile-source>

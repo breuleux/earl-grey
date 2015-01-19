@@ -31,7 +31,11 @@ GenSym$0 = (function(prefix$0) {
     m$0$0 = arguments;
     t0$0 = m$0$0.length;
     if (((t0$0 >= 0) && (t0$0 <= 1))) {
-      pfx$0 = ((0 >= t0$0) ? "" : m$0$0[0]);
+      if ((0 >= t0$0)) {
+        pfx$0 = "";
+      } else {
+        pfx$0 = m$0$0[0];
+      }
       r$0 = ((pfx$0 + prefix$0) + [true, String(id$0)][1]);
       (id$0++);
       return r$0;
@@ -65,12 +69,13 @@ binsearch$0 = (function(xs$0, x$1) {
     if ((m$1$0 < x$1)) {
       $targ$19 = (mid$0 + 1);
       lo$0 = $targ$19;
+      lo$0;
     } else {
       if ((m$1$0 > x$1)) {
         $targ$20 = (mid$0 - 1);
         hi$0 = $targ$20;
+        hi$0;
       } else {
-        m$1$0;
         return (mid$0 + 1);
       }
     }
@@ -81,8 +86,8 @@ classify$0 = (function() {
   var m$3;
   var results$0;
   var t0$1;
-  var classes$0;
   var xs$1;
+  var classes$0;
   var m$2$0;
   m$2$0 = arguments;
   t0$1 = m$2$0.length;
@@ -100,6 +105,7 @@ classify$0 = (function() {
         cls$0 = m$3;
         $targ$24 = [];
         (results$0[cls$0] = $targ$24);
+        [];
       }
     }
     $2: while (xs$1.length) {
@@ -118,6 +124,7 @@ classify$0 = (function() {
         newxs$0 = Array.prototype.slice.call(m$4$0, 1);
         $targ$27 = newxs$0.concat(xs$1);
         xs$1 = $targ$27;
+        xs$1;
       } else {
         if (((x$2 = m$4$0), ((x$2 instanceof Array) && (x$2[0] === "ignore")))) {
           null;
@@ -169,6 +176,7 @@ classify_contiguous$0 = (function(xs$2, classifier$0) {
         curr$0 = $targ$34;
         $targ$35 = cls$2;
         currcls$0 = $targ$35;
+        currcls$0;
       }
     }
   }
@@ -201,89 +209,99 @@ partition$0 = (function(xs$3, predicate$0) {
   }
   return [t$0, f$0];
 });
-construct$0 = (function(temp$0$0, fn$0, zero$0) {
-  var t0$3;
+construct$0 = (function(ph$0$0, fn$0, zero$0) {
   var x$8;
   var rest$0;
   var x$7;
-  var $$23818$0;
-  var $$23819$0;
-  var m$7$0;
-  var ph$0;
-  ph$0 = temp$0$0;
-  m$7$0 = ph$0;
-  if ((($$23818$0 = (m$7$0 instanceof Array)) && ((t0$3 = m$7$0.length), (t0$3 === 0)))) {
+  var t0$3;
+  var t1$0;
+  var $$25852$0;
+  var $$25853$0;
+  t0$3 = ph$0$0;
+  t1$0 = t0$3.length;
+  if ((t1$0 === 0)) {
     return zero$0;
   } else {
-    if (($$23818$0 && (t0$3 === 1))) {
-      x$7 = m$7$0[0];
+    if ((t1$0 === 1)) {
+      x$7 = t0$3[0];
       return x$7;
     } else {
-      if (($$23818$0 && (t0$3 >= 1))) {
-        x$8 = m$7$0[0];
-        rest$0 = Array.prototype.slice.call(m$7$0, 1);
+      if ((t1$0 >= 1)) {
+        x$8 = t0$3[0];
+        rest$0 = Array.prototype.slice.call(t0$3, 1);
         return fn$0(x$8, construct$0(rest$0, fn$0, zero$0));
       } else {
-        return ___match_error(m$7$0);
+        return ___match_error(ph$0$0);
       }
     }
   }
 });
 mkset$0 = (function(xs$4) {
-  var m$8;
+  var m$7;
   var rval$0;
   rval$0 = ({});
-  m$8 = null;
+  m$7 = null;
   $5: for (var $__0 = xs$4[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__1; !($__1 = $__0.next()).done; ) {
-    m$8 = $__1.value;
+    m$7 = $__1.value;
     {
       var $targ$41;
       var x$9;
-      x$9 = m$8;
+      x$9 = m$7;
       $targ$41 = true;
       (rval$0[x$9] = $targ$41);
+      [];
     }
   }
   return rval$0;
 });
-Body$0 = (function(temp$1$0) {
+Body$0 = (function(temp$0$0) {
   var t0$4;
   var t0$5;
+  var t1$1;
   var xs$5;
-  var m$9$0;
-  var ph$1;
   var x$10;
-  t0$4 = temp$1$0;
+  var ph$1$0;
+  t0$4 = temp$0$0;
   x$10 = t0$4;
-  ph$1 = t0$4;
-  m$9$0 = ph$1;
-  if (((m$9$0 instanceof Array) && ((t0$5 = m$9$0.length), ((t0$5 >= 1) && (m$9$0[0] === "multi"))))) {
-    xs$5 = Array.prototype.slice.call(m$9$0, 1);
+  ph$1$0 = t0$4;
+  t0$5 = ph$1$0;
+  t1$1 = t0$5.length;
+  if (((t1$1 >= 1) && (t0$5[0] === "multi"))) {
+    xs$5 = Array.prototype.slice.call(t0$5, 1);
     return xs$5;
   } else {
-    m$9$0;
     return [x$10];
   }
 });
 $targ$45 = GenSym$0;
 (exports["GenSym"] = $targ$45);
+[];
 $targ$46 = gensym$0;
 (exports["gensym"] = $targ$46);
+[];
 $targ$47 = identity$0;
 (exports["identity"] = $targ$47);
+[];
 $targ$48 = binsearch$0;
 (exports["binsearch"] = $targ$48);
+[];
 $targ$49 = classify$0;
 (exports["classify"] = $targ$49);
+[];
 $targ$50 = classify_contiguous$0;
 (exports["classify_contiguous"] = $targ$50);
+[];
 $targ$51 = partition$0;
 (exports["partition"] = $targ$51);
+[];
 $targ$52 = construct$0;
 (exports["construct"] = $targ$52);
+[];
 $targ$53 = mkset$0;
 (exports["mkset"] = $targ$53);
+[];
 $targ$54 = Body$0;
 (exports["Body"] = $targ$54);
+[];
 //# sourceURL=<compile-source>

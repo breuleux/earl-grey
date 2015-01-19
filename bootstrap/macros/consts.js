@@ -36,12 +36,14 @@ $targ$3 = (function(mac$0, bind$0) {
   var accum$6;
   var m$2;
   var acc$0;
+  var $targ$28;
+  var temp$0;
   var kv$0;
   var global_variables$0;
   var keywords$0;
   var exports$0;
   exports$0 = ({});
-  global_variables$0 = ["+", "-", "*", "/", "mod", "&.", "|.", "^.", "and", "or", "not", "===", "!==", "<", ">", "<=", ">=", "<<", ">>", ">>>", "in", "instanceof", "--", "++", "typeof", "Array", "Object", "RegExp", "Function", "Date", "parseInt", "parseFloat", "Math", "Error", "TypeError", "ReferenceError", "console", "process", "eval", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "___js_fetch", "___node", "arguments", "this", "exports", "send", "object", "keys", "items", "enumerate", "zip", "product", "neighbours", "range", "predicate", "==", "!=", "equal", "nequal", "&", "&:", "clone", "dir", "getProjector", "getChecker", "ErrorFactory", "Node", "___build_array", "___hasprop", "___extend", "___match_error", "___serialize_ast", "Set", "Map", "Promise", "promisify", "spawn", "Buffer", "global"];
+  global_variables$0 = ["+", "-", "*", "/", "mod", "&.", "|.", "^.", "and", "or", "not", "===", "!==", "<", ">", "<=", ">=", "<<", ">>", ">>>", "in", "instanceof", "--", "++", "typeof", "Array", "Object", "Symbol", "RegExp", "Function", "Date", "parseInt", "parseFloat", "Math", "Infinity", "Error", "TypeError", "ReferenceError", "console", "process", "eval", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "___js_fetch", "___node", "arguments", "this", "exports", "send", "object", "keys", "items", "enumerate", "zip", "product", "neighbours", "range", "predicate", "==", "!=", "equal", "nequal", "&", "&:", "clone", "dir", "getProjector", "getChecker", "ErrorFactory", "Node", "___build_array", "___hasprop", "___extend", "___match_error", "___serialize_ast", "Set", "Map", "consume", "Promise", "promisify", "spawn", "Buffer", "global"];
   m$0 = null;
   $1: for (var $__0 = global_variables$0[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__1; !($__1 = $__0.next()).done; ) {
@@ -77,7 +79,7 @@ $targ$3 = (function(mac$0, bind$0) {
         v$0 = t0$0[1];
         bind$0(gvar$1, v$0);
       } else {
-        ___match_error(m$1, "/home/olivier/git/earl-grey/src/macros/consts.eg", 1355, 1407);
+        ___match_error(m$1, "/home/olivier/git/earl-grey/src/macros/consts.eg", 1387, 1439);
       }
     }
   }
@@ -103,12 +105,15 @@ $targ$3 = (function(mac$0, bind$0) {
     return ["data", ["symbol", "true"], ["send", ["symbol", "Boolean"], ["data", x$9]]];
   })), value_mac$0("Boolean", chk$6, proj$2))), (accum$6 = ({})), (accum$6["Boolean"] = $targ$16), accum$6)))))));
   acc$0 = [];
+  $targ$28 = null;
+  temp$0 = $targ$28;
   m$2 = null;
   $3: for (var $__4 = items(kv$0)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     m$2 = $__5.value;
     {
       var t1$1;
+      var $targ$31;
       var t0$1;
       var k$0;
       var v$1;
@@ -116,14 +121,16 @@ $targ$3 = (function(mac$0, bind$0) {
       if (((t0$1 instanceof Array) && ((t1$1 = t0$1.length), (t1$1 === 2)))) {
         k$0 = t0$1[0];
         v$1 = t0$1[1];
-        acc$0.push(mac$0(k$0)(v$1));
+        $targ$31 = mac$0(k$0)(v$1);
+        temp$0 = $targ$31;
+        acc$0.push(temp$0);
       } else {
-        ___match_error(m$2, "/home/olivier/git/earl-grey/src/macros/consts.eg", 1407, 1443);
+        ___match_error(m$2, "/home/olivier/git/earl-grey/src/macros/consts.eg", 1439, 1475);
       }
     }
   }
-  acc$0;
   return exports$0;
 });
 (module["exports"] = $targ$3);
+[];
 //# sourceURL=<compile-source>

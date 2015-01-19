@@ -368,17 +368,24 @@ class Translator:
                   @expr{"(" + core + ")", mode}
 
          #multi{} ->
-            ;;if{mode === .stmt, ";", ""}
             if{mode === .stmt, "", "null"}
 
          #multi{*_args} ->
-            args = flatten{_args} where
+
+            all_args = flatten{_args} where
                flatten{args} =
                   var res = {}
                   args each
-                     #multi{*more} -> res ++= flatten{more}
+                     #multi{*more} or #splice{*more} ->
+                        res ++= flatten{more}
                      other -> res.push with other
                   res
+            args = all_args.slice{0, -1} each match elem ->
+               #value or #symbol or #variable -> continue
+               x -> x
+            if all_args.length > 0:
+               args.push{all_args[all_args.length - 1]}
+
             isdecl{match} =
                #declare{variable, value} -> true
                other -> false
@@ -391,7 +398,7 @@ class Translator:
                   xs.push with @translate{args[args.length - 1], mode}
                   set xs = xs each x when x !== "" -> x
                   ["(" + xs.join{","} + ")"]
-               _ -> @body{expr, mode}
+               _ -> @body{#multi{*args}, mode}
 
          #splice{*args} ->
             @translate{#multi{*args}, mode}

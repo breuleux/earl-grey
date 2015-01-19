@@ -2,6 +2,8 @@
 require("earlgrey-runtime");
 var m$0;
 var acc$0;
+var $targ$10;
+var temp$0;
 var eg$0;
 var $1$0;
 var Source$0;
@@ -23,15 +25,22 @@ load$0 = (function(module$0, file$0) {
   return module$0._compile(compiled$0, file$0);
 });
 acc$0 = [];
+$targ$10 = null;
+temp$0 = $targ$10;
 m$0 = null;
 $2: for (var $__0 = extensions$0[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__1; !($__1 = $__0.next()).done; ) {
   m$0 = $__1.value;
   {
-    var $targ$10;
+    var $targ$12;
+    var $targ$11;
     var ext$0;
     ext$0 = m$0;
-    acc$0.push((($targ$10 = load$0), (require.extensions[ext$0] = $targ$10)));
+    $targ$12 = load$0;
+    (require.extensions[ext$0] = $targ$12);
+    $targ$11 = [];
+    temp$0 = $targ$11;
+    acc$0.push(temp$0);
   }
 }
 acc$0;

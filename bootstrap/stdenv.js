@@ -33,7 +33,7 @@ $1: for (var $__0 = "consts core operators loop quote regexp modularity\n testin
     var $5$0;
     var m$2;
     m$2 = m$1;
-    ($5$0 = require(("./macros/" + m$2)))(mac$0, bind$0);
+    (($5$0 = require(("./macros/" + m$2))), $5$0)(mac$0, bind$0);
   }
 }
 make_expander$0 = (function(pipeline$0) {
@@ -43,6 +43,8 @@ make_expander$0 = (function(pipeline$0) {
 });
 $targ$10 = stdenv$0;
 (exports["stdenv"] = $targ$10);
+[];
 $targ$11 = make_expander$0;
 (exports["make_expander"] = $targ$11);
+[];
 //# sourceURL=<compile-source>

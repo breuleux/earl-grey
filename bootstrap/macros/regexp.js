@@ -6,9 +6,9 @@ var accum_flags$0;
 $0$0 = require("./helpers");
 accum_flags$0 = $0$0.accum_flags;
 $targ$2 = (function(mac$0) {
-  var $targ$62;
+  var $targ$66;
   var accum$0;
-  var $targ$63;
+  var $targ$67;
   var accum$1;
   var t1$9;
   var t0$9;
@@ -25,7 +25,11 @@ $targ$2 = (function(mac$0) {
   exports$0 = ({});
   RegexBuilder$0 = (function() {
     var $it$0;
-    $it$0 = ((!getChecker(RegexBuilder$0)(this)) ? Object.create(RegexBuilder$0.prototype) : this);
+    if ((!getChecker(RegexBuilder$0)(this))) {
+      $it$0 = Object.create(RegexBuilder$0.prototype);
+    } else {
+      $it$0 = this;
+    }
     return $it$0;
   });
   $targ$4 = (function(x$0) {
@@ -95,26 +99,30 @@ $targ$2 = (function(mac$0) {
     var v$1;
     var m$1;
     var acc$0;
+    var $targ$61;
+    var temp$0;
     var m$2;
     var acc$1;
+    var $targ$64;
+    var temp$1;
     var other$0;
     var args$1;
     var args$0;
+    var ph$1$0;
     var a$0;
     var b$0;
-    var ph$1$0;
     var s$0;
     var x$3;
     var ph$0$0;
-    var $$14125$0;
-    var $$14126$0;
-    var $$14127$0;
-    var $$14128$0;
-    var $$14129$0;
-    var $$14130$0;
-    var $$14131$0;
-    var $$14132$0;
-    var $$14133$0;
+    var $$15163$0;
+    var $$15164$0;
+    var $$15165$0;
+    var $$15166$0;
+    var $$15167$0;
+    var $$15168$0;
+    var $$15169$0;
+    var $$15170$0;
+    var $$15171$0;
     var t3$0;
     var t4$0;
     var m$0$0;
@@ -123,7 +131,7 @@ $targ$2 = (function(mac$0) {
     $it$4 = this;
     self$3 = this;
     m$0$0 = expr$0;
-    if ((($$14125$0 = (m$0$0 instanceof Array)) && ((t0$0 = m$0$0.length), (($$14127$0 = (t0$0 === 2)) && (m$0$0[0] === "symbol"))))) {
+    if ((($$15163$0 = (m$0$0 instanceof Array)) && ((t0$0 = m$0$0.length), (($$15165$0 = (t0$0 === 2)) && (m$0$0[0] === "symbol"))))) {
       ph$0$0 = m$0$0[1];
       if ((ph$0$0 === "any")) {
         return ".";
@@ -164,7 +172,7 @@ $targ$2 = (function(mac$0) {
                               if ((ph$0$0 === "b")) {
                                 return "\\b";
                               } else {
-                                return ___match_error(ph$0$0, "/home/olivier/git/earl-grey/src/macros/regexp.eg", 378, 383);
+                                return ___match_error(ph$0$0);
                               }
                             }
                           }
@@ -179,15 +187,15 @@ $targ$2 = (function(mac$0) {
         }
       }
     } else {
-      if (($$14127$0 && (m$0$0[0] === "value"))) {
+      if (($$15165$0 && (m$0$0[0] === "value"))) {
         x$3 = m$0$0[1];
         return $it$4.quote(x$3);
       } else {
-        if (($$14125$0 && (($$14127$0 = (t0$0 === 3)) && (($$14128$0 = (m$0$0[0] === "send")) && ((t1$0 = m$0$0[1]), (($$14130$0 = (t1$0 instanceof Array)) && ((t2$0 = t1$0.length), (($$14132$0 = (t2$0 === 2)) && (($$14133$0 = (t1$0[0] === "symbol")) && ((t1$0[1] === "raw") && (($targ$25 = m$0$0[2]), (t3$0 = $targ$25), ((t3$0 instanceof Array) && (($targ$26 = t3$0.length), (t4$0 = $targ$26), ((t4$0 === 2) && (t3$0[0] === "value"))))))))))))))) {
+        if (($$15163$0 && (($$15165$0 = (t0$0 === 3)) && (($$15166$0 = (m$0$0[0] === "send")) && ((t1$0 = m$0$0[1]), (($$15168$0 = (t1$0 instanceof Array)) && ((t2$0 = t1$0.length), (($$15170$0 = (t2$0 === 2)) && (($$15171$0 = (t1$0[0] === "symbol")) && ((t1$0[1] === "raw") && (($targ$25 = m$0$0[2]), (t3$0 = $targ$25), ((t3$0 instanceof Array) && (($targ$26 = t3$0.length), (t4$0 = $targ$26), ((t4$0 === 2) && (t3$0[0] === "value"))))))))))))))) {
           s$0 = t3$0[1];
           return s$0;
         } else {
-          if (($$14133$0 && ((ph$1$0 = t1$0[1]), ($targ$27 = m$0$0[2]), (t3$0 = $targ$27), ((t3$0 instanceof Array) && (($targ$28 = t3$0.length), (t4$0 = $targ$28), ((t4$0 === 3) && (t3$0[0] === "data"))))))) {
+          if (($$15171$0 && ((ph$1$0 = t1$0[1]), ($targ$27 = m$0$0[2]), (t3$0 = $targ$27), ((t3$0 instanceof Array) && (($targ$28 = t3$0.length), (t4$0 = $targ$28), ((t4$0 === 3) && (t3$0[0] === "data"))))))) {
             a$0 = t3$0[1];
             b$0 = t3$0[2];
             if ((ph$1$0 === "||")) {
@@ -202,6 +210,7 @@ $targ$2 = (function(mac$0) {
                   if (((t0$1 instanceof Array) && ((t1$1 = t0$1.length), ((t1$1 === 1) && (t0$1[0] === "void"))))) {} else {
                     ___match_error($targ$29);
                   }
+                  [];
                   return $it$4.wrap(($it$4.build(b$0) + "*"));
                 } else {
                   if ((ph$1$0 === "+")) {
@@ -210,6 +219,7 @@ $targ$2 = (function(mac$0) {
                     if (((t0$2 instanceof Array) && ((t1$2 = t0$2.length), ((t1$2 === 1) && (t0$2[0] === "void"))))) {} else {
                       ___match_error($targ$32);
                     }
+                    [];
                     return $it$4.wrap(($it$4.build(b$0) + "+"));
                   } else {
                     if ((ph$1$0 === "?")) {
@@ -218,6 +228,7 @@ $targ$2 = (function(mac$0) {
                       if (((t0$3 instanceof Array) && ((t1$3 = t0$3.length), ((t1$3 === 1) && (t0$3[0] === "void"))))) {} else {
                         ___match_error($targ$35);
                       }
+                      [];
                       return $it$4.wrap(($it$4.build(b$0) + "?"));
                     } else {
                       if ((ph$1$0 === "in")) {
@@ -226,6 +237,7 @@ $targ$2 = (function(mac$0) {
                         if (((t0$4 instanceof Array) && ((t1$4 = t0$4.length), ((t1$4 === 1) && (t0$4[0] === "void"))))) {} else {
                           ___match_error($targ$38);
                         }
+                        [];
                         $targ$39 = b$0;
                         t0$5 = $targ$39;
                         if (((t0$5 instanceof Array) && ((t1$5 = t0$5.length), ((t1$5 === 2) && (t0$5[0] === "value"))))) {
@@ -242,6 +254,7 @@ $targ$2 = (function(mac$0) {
                           if (((t0$6 instanceof Array) && ((t1$6 = t0$6.length), ((t1$6 === 1) && (t0$6[0] === "void"))))) {} else {
                             ___match_error($targ$45);
                           }
+                          [];
                           $targ$46 = b$0;
                           t0$7 = $targ$46;
                           if (((t0$7 instanceof Array) && ((t1$7 = t0$7.length), ((t1$7 === 3) && ((t0$7[0] === "send") && ((t2$1 = t0$7[1]), ((t2$1 instanceof Array) && ((t3$1 = t2$1.length), ((t3$1 === 2) && ((t2$1[0] === "symbol") && ((t2$1[1] === "in") && ((t4$1 = t0$7[2]), ((t4$1 instanceof Array) && ((t5$0 = t4$1.length), ((t5$0 === 3) && ((t4$1[0] === "data") && ((t6$0 = t4$1[1]), ((t6$0 instanceof Array) && ((t7$0 = t6$0.length), ((t7$0 === 1) && ((t6$0[0] === "void") && ((t8$0 = t4$1[2]), ((t8$0 instanceof Array) && ((t9$0 = t8$0.length), ((t9$0 === 2) && (t8$0[0] === "value")))))))))))))))))))))))))) {
@@ -252,7 +265,7 @@ $targ$2 = (function(mac$0) {
                           x$5 = $it$4.quote_charset(v$1);
                           return (("[^" + x$5) + "]");
                         } else {
-                          return ___match_error(ph$1$0, "/home/olivier/git/earl-grey/src/macros/regexp.eg", 842, 847);
+                          return ___match_error(ph$1$0);
                         }
                       }
                     }
@@ -261,30 +274,36 @@ $targ$2 = (function(mac$0) {
               }
             }
           } else {
-            if (($$14125$0 && (($$14127$0 = (t0$0 >= 1)) && (m$0$0[0] === "data")))) {
+            if (($$15163$0 && (($$15165$0 = (t0$0 >= 1)) && (m$0$0[0] === "data")))) {
               args$0 = Array.prototype.slice.call(m$0$0, 1);
-              return (("(" + ((acc$0 = []), (m$1 = null), (function() {
+              return (("(" + ((acc$0 = []), ($targ$61 = null), (temp$0 = $targ$61), (m$1 = null), (function() {
                 $5: for (var $__0 = args$0[$traceurRuntime.toProperty(Symbol.iterator)](),
                     $__1; !($__1 = $__0.next()).done; ) {
                   m$1 = $__1.value;
                   {
+                    var $targ$62;
                     var arg$0;
                     arg$0 = m$1;
-                    acc$0.push($it$4.build(arg$0));
+                    $targ$62 = $it$4.build(arg$0);
+                    temp$0 = $targ$62;
+                    acc$0.push(temp$0);
                   }
                 }
               })(), acc$0).join("")) + ")");
             } else {
-              if (($$14127$0 && (m$0$0[0] === "multi"))) {
+              if (($$15165$0 && (m$0$0[0] === "multi"))) {
                 args$1 = Array.prototype.slice.call(m$0$0, 1);
-                return (("(?:" + ((acc$1 = []), (m$2 = null), (function() {
+                return (("(?:" + ((acc$1 = []), ($targ$64 = null), (temp$1 = $targ$64), (m$2 = null), (function() {
                   $10: for (var $__0 = args$1[$traceurRuntime.toProperty(Symbol.iterator)](),
                       $__1; !($__1 = $__0.next()).done; ) {
                     m$2 = $__1.value;
                     {
+                      var $targ$65;
                       var arg$1;
                       arg$1 = m$2;
-                      acc$1.push($it$4.build(arg$1));
+                      $targ$65 = $it$4.build(arg$1);
+                      temp$1 = $targ$65;
+                      acc$1.push(temp$1);
                     }
                   }
                 })(), acc$1).join("")) + ")");
@@ -299,56 +318,57 @@ $targ$2 = (function(mac$0) {
     }
   });
   (RegexBuilder$0.prototype["build"] = $targ$7);
-  __amp____colon__(RegexBuilder$0, __amp____colon__((($targ$62 = "RegexBuilder"), (accum$0 = ({})), (accum$0["::name"] = $targ$62), accum$0), (($targ$63 = true), (accum$1 = ({})), (accum$1["::egclass"] = $targ$63), accum$1)));
-  RegexBuilder$0;
+  __amp____colon__(RegexBuilder$0, __amp____colon__((($targ$66 = "RegexBuilder"), (accum$0 = ({})), (accum$0["::name"] = $targ$66), accum$0), (($targ$67 = true), (accum$1 = ({})), (accum$1["::egclass"] = $targ$67), accum$1)));
   build_regexp$0 = (function(x$6) {
     return RegexBuilder$0().build(x$6);
   });
   accum_flagsf$0 = (function(f$0) {
     return accum_flags$0(f$0, false);
   });
-  $targ$11 = (function(temp$0$0, info$0, form$0, arg$2, flags$0) {
+  $targ$11 = (function(ph$2$0, info$0, form$0, arg$2, flags$0) {
     var x$7;
     var x$8;
-    var $targ$70;
+    var $targ$73;
     var t0$8;
     var text$2;
     var text$1;
-    var m$5$0;
+    var m$4$0;
     var text$0;
     var t6$1;
     var t5$1;
     var t4$2;
     var t3$2;
     var t2$2;
-    var $targ$73;
+    var $targ$76;
     var arg$3;
     var v$2;
-    var $$14524$0;
-    var $$14525$0;
+    var $$15571$0;
+    var $$15572$0;
     var t1$8;
-    var m$4$0;
-    var bridge$$14491$0;
     var m$3$0;
-    var ph$2;
-    ph$2 = temp$0$0;
-    m$3$0 = ph$2;
-    bridge$$14491$0 = m$3$0;
-    if ((((x$7 = bridge$$14491$0), ((x$7 instanceof Array) && (x$7[0] === "check"))) || ((x$8 = bridge$$14491$0), ((x$8 instanceof Array) && (x$8[0] === "project"))))) {
+    var bridge$$15544$0;
+    bridge$$15544$0 = ph$2$0;
+    if ((((x$7 = bridge$$15544$0), ((x$7 instanceof Array) && (x$7[0] === "check"))) || ((x$8 = bridge$$15544$0), ((x$8 instanceof Array) && (x$8[0] === "project"))))) {
       return ["nostep", form$0];
     } else {
-      m$3$0;
-      m$4$0 = arg$2;
-      if ((($$14524$0 = (m$4$0 instanceof Array)) && ((t0$8 = m$4$0.length), ((t0$8 === 2) && ((m$4$0[0] === "value") && (($targ$70 = m$4$0[1]), (t1$8 = $targ$70), (typeof(t1$8) === "string"))))))) {
+      m$3$0 = arg$2;
+      if ((($$15571$0 = (m$3$0 instanceof Array)) && ((t0$8 = m$3$0.length), ((t0$8 === 2) && ((m$3$0[0] === "value") && (($targ$73 = m$3$0[1]), (t1$8 = $targ$73), (typeof(t1$8) === "string"))))))) {
         v$2 = t1$8;
-        text$0 = ((m$5$0 = info$0.gettext(arg$2)), (getChecker(RegExp("^\\\".*\\\"$", ""))(m$5$0) ? ((text$1 = m$5$0), text$1.substring(1, (text$1.length - 1))) : ((text$2 = m$5$0), text$2)));
+        m$4$0 = info$0.gettext(arg$2);
+        if (getChecker(RegExp("^\\\".*\\\"$", ""))(m$4$0)) {
+          text$1 = m$4$0;
+          text$0 = text$1.substring(1, (text$1.length - 1));
+        } else {
+          text$2 = m$4$0;
+          text$0 = text$2;
+        }
         return ["send", ["symbol", "RegExp"], ["data", ["value", text$0], ["value", flags$0.join("")]]];
       } else {
-        if (($$14524$0 && ((t0$8 === 3) && ((m$4$0[0] === "send") && (($targ$73 = m$4$0[1]), (t1$8 = $targ$73), ((t1$8 instanceof Array) && ((t2$2 = t1$8.length), ((t2$2 === 2) && ((t1$8[0] === "symbol") && ((t1$8[1] === "'") && ((t3$2 = m$4$0[2]), ((t3$2 instanceof Array) && ((t4$2 = t3$2.length), ((t4$2 === 3) && ((t3$2[0] === "data") && ((t5$1 = t3$2[1]), ((t5$1 instanceof Array) && ((t6$1 = t5$1.length), ((t6$1 === 1) && (t5$1[0] === "void")))))))))))))))))))) {
+        if (($$15571$0 && ((t0$8 === 3) && ((m$3$0[0] === "send") && (($targ$76 = m$3$0[1]), (t1$8 = $targ$76), ((t1$8 instanceof Array) && ((t2$2 = t1$8.length), ((t2$2 === 2) && ((t1$8[0] === "symbol") && ((t1$8[1] === "'") && ((t3$2 = m$3$0[2]), ((t3$2 instanceof Array) && ((t4$2 = t3$2.length), ((t4$2 === 3) && ((t3$2[0] === "data") && ((t5$1 = t3$2[1]), ((t5$1 instanceof Array) && ((t6$1 = t5$1.length), ((t6$1 === 1) && (t5$1[0] === "void")))))))))))))))))))) {
           arg$3 = t3$2[2];
           return ["send", ["symbol", "RegExp"], ["data", ["value", build_regexp$0(arg$3)], ["value", flags$0.join("")]]];
         } else {
-          return ___match_error(m$4$0);
+          return ___match_error(m$3$0);
         }
       }
     }
@@ -362,4 +382,5 @@ $targ$2 = (function(mac$0) {
   return exports$0;
 });
 (module["exports"] = $targ$2);
+[];
 //# sourceURL=<compile-source>
