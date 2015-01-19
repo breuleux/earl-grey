@@ -163,7 +163,7 @@ regexps = {
            ;; | is equivalent to an indent to its column
            #INDENT{column - 1}
 
-        when op in special_ops ->
+        when special_ops[op] ->
            ;; These operators have predetermined fixities;
            ;; Refer to special_ops before
            fixity = special_ops[op]

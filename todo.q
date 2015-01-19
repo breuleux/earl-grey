@@ -108,9 +108,17 @@ X allow break/continue in list-building `each` by unhoisting the
   NOTE: the solution was simpler: [x = ..., accum.push{x}], and push
         the assignment in when translating
 
+X Declare values in if, e.g. if [x = f{y}]: x
+  OH: Turns out that already works? I guess it would.
+X change the in operator to actually be useful
+X Allow declaring variables like "n > 0 = 3"
 
 
-* change the in operator to actually be useful
+
+* expression `{x, return, y} = {1, 2, 3}` returns 2
+* expression `{x, yield, y} = {1, 2, 3}` yields 2
+* Figure out what `{x, y} = {1, 2}` should return
+
 * f{each x, match} will complain that it cannot resolve each; figure
   out why that happens *exactly* and fix it.
 * Produce an error when the same variable is found multiple times in a
@@ -142,7 +150,6 @@ X allow break/continue in list-building `each` by unhoisting the
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
 
-* expression `{x, return, y} = {1, 2, 3}` returns 2
 * f{match.0, match.1} = a -> b -> c ==> f{x, y} = match x: a -> match y: b -> c
 
 

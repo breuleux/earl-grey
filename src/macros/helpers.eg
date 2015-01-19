@@ -196,8 +196,9 @@ partial_pattern{operator} =
          String? -> #variable{operator}
    {context, _, form, expr} ->
       match {context, expr}:
-         {#pattern, #data{#void{}, val}} ->
-            #check{m, #ignore{}} where
+         {#pattern, #data{subp, val}} ->
+            #check{m, subp2} where
+               subp2 = if{subp == #void, #ignore{}, subp}
                m = mac1 with {x} -> '[^op]{^x, ^val}
          {_, #void{}} ->
             op

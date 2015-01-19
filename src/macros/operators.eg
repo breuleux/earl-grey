@@ -10,6 +10,7 @@ inject: mac
 
    "===" => partial_pattern{"==="}
    "!==" => partial_pattern{"!=="}
+   "in" => partial_pattern{"__in__"}
    "==" => partial_pattern{"equal"}
    "!=" => partial_pattern{"nequal"}
    "<=" => partial_pattern{"<="}
