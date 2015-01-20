@@ -2,18 +2,31 @@
 Earl Grey
 =========
 
-In a nutshell,
+Earl Grey is a new language that compiles to JavaScript (ES6). Here's
+a quick rundown of its amazing features:
 
-* Python-like syntax
-* Pattern matching
-* A powerful hygienic macro system
-* Compiles to JavaScript
+* Python-like syntax!
+* Fully compatible with the node.js ecosystem!
+* Generators and async/await (no callback hell!)
+* Powerful, deeply integrated pattern matching!
+  * Used for assignment, function declaration, looping, exceptions...
+* A DOM-building DSL with customizable behavior!
+* A very powerful hygienic macro system that allows you to define:
+  * Your own control structures!
+  * New kinds of patterns for the pattern matcher!
+  * Modifiers that apply to the rest of a block!
+  * New kinds of macros!
+* And much more!
 
-[Try it here!](http://breuleux.github.io/earl-grey/repl)
+[Try it here!](http://breuleux.github.io/earl-grey/repl) (this is an
+old version that I haven't updated yet)
 
 
 Install
 -------
+
+This won't work at the moment because I'm in the middle of a massive
+rehaul:
 
     npm install -g earlgrey
 
@@ -22,305 +35,333 @@ start an interactive interpreter, or run an EG program as:
 
     earl run file.eg
 
+Compile a program with:
+
+    earl compile file.eg
+    earl compile -o dest.js file.eg
+    earl -o dest/ src/
+
+Note that the generated JavaScript depends on the `earlgrey-runtime`
+package. You will need to `npm install earlgrey-runtime` someplace the
+generated code can access it. I suggest using `browserify` to generate
+a browser-compatible file.
+
 
 Basics
 ------
 
-**Literals**
+First note that at the moment EG only supports two bracket types,
+square brackets and braces. Instead of writing:
 
-* **Strings** use double quotes: `"hello"`, `"abc def"`, `"I said: \"hello\""`
-* Single-word strings can be written with a dot: `.xyz == "xyz"`
-* **Numbers**: `123`, `1e10`, `0.1`; but not `.1` or `1.`
-* **Other radii**: `2r1110 == 14`, `16rFF == 255`
+    console.log(myfunc())
 
-**Comments** start with `;;` and go all the way to the end of the line
+you should write:
 
-    console.log{1234} ;; this is a comment
+    console.log{myfunc{}}
 
-**Function calls** use curly brackets. You can avoid the braces using
-the **with** operator
+Instead of writing:
 
-    console.log{1234}
-    console.log with 1234 ;; same thing
+    x * (y + 1)
 
-    f{x, y}
-    f{x} with y ;; same thing
+write:
 
-You can use the ellipsis `...` to tell `with` where to fill in the
-argument(s).
+    x * [y + 1]
 
-    f{..., z} with y   ;; ==> f{y, z}
-    f{a, ..., d} with
-       b
-       c               ;; ==> f{a, b, c, d}
-
-`with` does *direct* substitution. In the below example the scope for
-`x * x` is the scope active where the ellipsis is.
-
-    {1, 2, 3}.map{{x} -> ...} with x * x
-    ;; {1, 4, 9}
-
-**Declare variables** with the `=` operator **var** for mutable,
-**let** for immutable.
-
-    var x = 12
-    let y = 13
-    x = -3
-    console.log with x + y ;; 10
-
-You can declare a variable directly with `var = value` if there is no
-existing variable called `var` in scope. By default, variables
-declared that way will be read-only.
-
-    foo = 1234
-    foo = 5678 ;; error: the foo variable is read only
-
-Note: for convenience's sake, all variables declared in an interactive
-prompt are mutable.
+If it confuses you, there is a logic behind it: `{}` defines data
+structures: arrays, maps, and yes, argument *lists*. `[]` are just
+grouping brackets (`f[x]` and `f x` are equivalent in EG). Note that
+indented blocks are equivalent to *square* brackets.
 
 
-**Blocks** are sequences of statements, the last of which is
-returned. Statements are separated by commas or newlines (semicolons
-start comments) There are three different ways to make blocks.
+### Comments
 
-Using `[]`:
-
-    f{} = [this_is, a{block}]
-
-Using indent:
-
-    f{} =
-       this_is
-       also a{block}
-
-Or using "|":
-
-    f{} = | this_is
-          | a{block}.too
-
-**Conditionals**: `if` statements:
-
-    if x > 0:
-       console.log with "x is positive"
-
-If you need an `else` clause, you have to put it *in* the body of if,
-like this:
-
-    if x < 0:
-       console.log with "x is positive"
-       else:
-          console.log with "x is non-positive"
-
-For readability you can encapsulate the positive branch with `then`:
-
-    if x < 0:
-       then:
-          console.log with "x is positive"
-       else:
-          console.log with "x is non-positive"
-
-`if` can be written in expression form:
-
-    if{x > 0, "positive", "not positive"}
-
-If you need to write many conditions, you would better use the `match`
-construct instead:
-
-    match:
-       when x > 0 -> "x is positive"
-       when x < 0 -> "x is negative"
-       otherwise -> "x is zero"
+    ;; This is a comment.
 
 
-**Data structures** are defined using braces
+Variables
+---------
 
-    array = {1, 2, 3}
-    object = {a = 1, b = 2}
-    also_object = {"a" => 1, "b" => 2}
-    you_can_mix = {a = 1, "b" => 2, .c => 3}
+Variables can be declared as mutable or immutable
 
+    var x = 123        ;; mutable variable
+    let x = "hello"    ;; const variable (immutable)
 
-**Functions** can be defined using `=`, if you care to give them a
-name. **Anonymous functions** are declared with `->`
+Scoping is lexical: variables declared in a block are only valid in
+that block.
 
-    ;; These two lines are equivalent
-    double{x} = x + x
-    double = {x} -> x + x
+If you simply write:
 
-    ;; These two lines too, notice the "with" idiom
-    xs.forEach{{x} -> console.log{x}}
-    xs.forEach with {x} -> console.log{x}
+    x = {1, 2, 3}
 
-Functions in objects can also be defined in a shorthand way:
+Then what happens depends on whether a variable called `x` already
+exists in scope.
 
-    obj = {toString{} = "foo"}
-    obj.toString{} ;; "foo"
+* It exists and is mutable: the variable is modified.
+* It exists and is immutable: compile time error.
+* It does not exist: it is declared in the current block as *immutable*.
 
+This means that most of the time you can declare variables without the
+`let` keyword, assuming they don't already exist. You only need `let`
+if you are shadowing an existing variable. I recommend only using
+`var` if absolutely necessary -- if you follow that advice it is
+basically impossible to make scoping errors (the compiler will whine
+loudly).
 
-**Properties** are accessed using dot notation, like in JavaScript:
+Note that the `var` and `let` keywords can be used inside
+patterns. For instance:
 
-    obj = {x = 1, y = 2}
-    obj.x + obj.y ;; 3
+    {var {x, y}, let z} = {{1, 2}, 3}   ;; x and y are mutable; z isn't
 
-There are a few alternative notations:
-
-    obj.x
-    obj "x"
-    obj["x"]
-    obj[.x]
-
-In general, `obj[msg] <=> obj msg <=> [obj]msg`. In particular,
-`f{x} <=> f[{x}]`
-
-
-For **looping** there is `while`:
-
-    var x = 3
-    while x > 0:
-       x--
-
-To loop over lists use the `each` operator:
-
-    {1, 2, 3} each x ->
-       console.log{x}
-
-The `each` operator also serves for list comprehensions:
-
-    console.log with {1, 2, 3} each x -> x * x
-    ;; {1, 4, 9}
-
-    xs = {-1, 2, -3, 4} each n when n > 0 -> n
-    ;; {2, 4}
-
-
-## Let and where
-
-You can define temporary variables for a block with the following form
-of **let**:
-
-    let [x = 1, y = 2]:
-       x + y
-
-Alternatively, you can use **where**:
+The **`where`** statement is another alternative to declare variables
+local to single expressions. Here's a funny example:
 
     x + y where
-       x = 1
-       y = 2
+       x = 100
+       y = 200
+       x + y = x - y
+    ;; ==> -100
 
-`where` is a good way to define callback functions in the middle of an
-expression. For instance, `setTimeout` in JavaScript takes a timeout
-argument *after* the callback, which is awkward. `where` makes it look
-better (though you can also use `with` in this instance):
+(Yes, you can do that)
 
-    setTimeout{f, 1000} where f{} =
-       alert{"I am a good pop-up, don't close me!"}
+### Global variables
 
+Global variables need to be declared to be accessible:
 
+    globals:
+       document, google, React
 
-## Optional type annotations
-
-You can declare variables with types. The annotations *will be
-enforced*.
-
-    String? s = "hello"  ;; OK
-    String? s = 1234     ;; error!
-
-This is of course valid for function arguments as well
-
-    f{String? s, Number? n} =
-       s + n.toString{}
-
-    f{"abc", 1} ;; "abc1"
-    f{1, 2}     ;; error!
-
-Regular expressions are valid annotations
-
-    f{R"^x"? s} = s + " is EXTREME"
-    f{"xtreme frisbee"} ;; "xtreme frisbee is EXTREME"
-    f{"frisbee"}        ;; error!
-
-Outside of a declaration, you can write `String? expr` to do an
-instance check:
-
-    console.log{String? "abc"}  ;; true
-    console.log{String? 12345}  ;; false
-
-Also useful:
-
-    true? x       ;; check for a truthy value
-    false? x      ;; check for a falsey value
-    null? x       ;; check for null *specifically*
-    undefined? x  ;; check for undefined *specifically*
+The compiler will complain loudly about undeclared variables.
 
 
-## Coercion
+Literals
+--------
 
-While `String?` checks for a string, `String!` *coerces* into a
-string:
+Strings are defined using double quotes. **Do not use single quotes**:
+they do not define strings (they define AST objects) and the results
+will be confusing if you try.
 
-    String! s = 123  ;; s is "123"
+    "this is a string"
+    .this_is_also_a_string
+    "Escape \" with a backslash"
+    """this is a
+       "long"
+       multiline string"""
 
-    f{String! s, Number? n} =
-       s + n.toString{}
-    f{1, 2}  ;; "12"
+Number syntax is as usual save for binary/hex/other radii:
 
-Coercion is type-specific. `Number!` calls `parseFloat`, as you would
-expect:
+    123                ;; decimal
+    16rDEADBEEF        ;; hex
+    2r100101011.101    ;; binary
 
-    Number! "1.5"  ;; 1.5
+I'm sure you can figure out base 3 numbers.
 
-`Array! x` returns `x` if `x` is an array, otherwise it returns `{x}`
-(a one-element list).
+### Arrays and objects
 
-    Array! {1, 2}  ;; {1, 2}
-    Array! 1       ;; {1}
+Both arrays and object literals are defined with curly braces:
 
-Regular expressions return the list of matched groups where the first
-element of the list is the whole match.
-
-    R"h(.)llo"! "hello"  ;; {"hello", "e"}
-
-
-## Deconstruction
-
-Earl Grey supports argument deconstruction:
-
-    {a, b} = {1, 2}           ;; a is 1, b is 2
-    {a, {b, c}} = {1, {2, 3}} ;; a is 1, b is 2, c is 3
- 
-Note that EG requires an exact argument count:
-
-    {a, b, c} = {1, 2}   ;; error!
-    {a, b} = {1, 2, 3}   ;; error!
-
-`var*` can be used to catch the remainder of arguments regardless of
-where it is located
-
-    {x, rest*} = {1, 2, 3, 4}     ;; x is 1, rest is {2, 3, 4}
-    {rest*, x} = {1, 2, 3, 4}     ;; x is 4, rest is {1, 2, 3}
-    {x, rest*, y} = {1, 2, 3, 4}  ;; x is 1, y is 4, rest is {2, 3}
-    {x, *, y} = {1, 2, 3, 4}      ;; throw away the remainder
-
-You can extract object properties too:
-
-    {=> x, => y} = {y = 1, x = 2} ;; x is 2, y is 1
-    {=> x} = {y = 1, x = 2}       ;; x is 2; you don't have to extract all properties
-    {foo => x} = {foo = 1234}     ;; x is 1234
-
-You can of course combine deconstruction with type checks and with
-coercion, to interesting effects:
-
-    {R"h(.)llo"! {_, m}} = {"hello"} ;; m is now "e"
-
-Note: "_" in a pattern matches anything but does not declare any
-variables.
+    {1, 2, 3}            ;; an array
+    {a = 1, b = 2}       ;; an object
+    {"a" => 1, "b" => 2} ;; the same object
 
 
-## Pattern matching
+`if` and `while`
+----------------
 
-The `match` operator feeds an input into a series of "clauses" and
-enters the body of the first matching clause. It is a switch statement
-on steroids:
+**If statements** are written as they are in Python:
+
+    if x < 0:
+       do_something{}
+    elif x > 0:
+       do_something_else{}
+    else:
+       flail_incoherently{}
+
+`if` can also be written as an expression. It's not a ternary operator
+because I honestly don't think it's worth it:
+
+    if{x < 0, 0, x}
+
+**While statements**
+
+Again, they look like Python's:
+
+    var i = 10
+    while i > 0:
+       print i
+       i--
+
+If you want to give a label to a `while` loop (or to *any* loop), you
+need to use `while.label`, just like this:
+
+    var i = 0
+    while.outer true:
+       var j = 0
+       while.inner true:
+          if i * j == 40:
+             break outer  ;; this will break out of both while loops!
+          j++
+       i++
+
+
+Functions
+---------
+
+Functions can be defined using `=` or `->` depending on the situation:
+
+    square{x} = x * x
+
+The same provisions as before apply regarding `let` or `var`: if there
+is already a variable named `square`, the above is an error.
+
+Anonymous functions are made with `->`:
+
+   {1, 2, 3}.map{{x} -> x * x}
+
+Note that there are more elegant ways to write the above:
+
+   {1, 2, 3}.map with {x} -> x * x
+   {1, 2, 3}.map{f} where f{x} = x * x
+
+`f{x} with y` is equivalent to `f{x, y}`. `where` simply lets you
+define variables after the expression that uses them, and their scope
+is limited to that expression, which limits name pollution.
+
+Operator applications in EG, such as `a + b`, desugar to the function
+call `[+]{a, b}`. You can redefine almost any operator locally and
+it's no harder than this:
+
+    bizarro{a, b} =
+       let x + y = x * y
+       let x - y = x / y
+       a + b - c
+    bizarro{10, 20, 10}  ;; ==> 20
+
+(Be careful, though: you can't just use the old `+` operator inside
+the definition of the new one or it will call itself recursively)
+
+EG's powerful pattern matching engine is fully operational on function
+arguments:
+
+    concat1{String? a, String? b} = a + b
+    concat1{5, 10} ;; ERROR!
+
+    concat2{String! a, String! b} = a + b
+    concat2{5, 10} ;; => "510"
+
+You can define functions in objects easily:
+
+    obj = {toString{} = "Hello!"}
+    String{obj}  ;; ==> "Hello!"
+
+
+Looping
+-------
+
+EG defines `for` statements that are a cross between JavaScript's
+semantics and Python's syntax, which means that it comes in three
+flavors:
+
+    for [var i = 0, i < 10, i++]:
+       print i
+
+    for key in object:
+       print key
+
+    for element of iterable:
+       print element
+
+I'm telling you about them because you are free to use what you see
+fit, but in my opinion, **`for` should not be used**:
+
+### `each`
+
+Instead, EG's **`each`** operator should be used, either as a
+statement:
+
+    1..10 each i -> print i * i
+
+or as an expression:
+
+    squares = 1..10 each i -> i * i
+
+`each` in a statement position compiles to a straight `for..of` loop,
+so it's no less efficient. In expression position, it acts as an array
+comprehension.
+
+Besides doubling up as array comprehensions, what makes `each` a more
+useful looping method than `for` is that it makes use of EG's built-in
+pattern matcher:
+
+    {13, "car", "tramway", 517} each
+       Number? n -> n + 1
+       String? s -> s + "s"
+       else -> throw E.unknown{"I don't know."}
+    ;; ==> {14, "cars", "tramways", 518}
+
+You can also use `when` to filter data:
+
+    1..10 each i when i mod 2 == 0 -> i
+    ;; ==> {2, 4, 6, 8, 10}
+
+`break` and `continue` work with `each`.
+
+* `break` stops the comprehension. It is the only way to halt
+  iteration before the end of the sequence.
+* `continue` starts the next iteration but without accumulating a
+  value. You can use it as an alternative way to filter:
+
+    1..100 each i ->
+       if i > 10:
+          break
+       elif i mod 2 == 0:
+          i
+       else:
+          continue
+    ;; ==> {2, 4, 6, 8, 10}
+
+Note: when using pattern matching with `each`, EG will throw an
+exception if a value does not match any of the patterns *unless* the
+last pattern contains a `when` clause. In other words:
+
+    {1, "x", 2, 3} each
+       Number? n -> n            ;; ERROR! "x" does not match
+
+But these expressions will not throw exceptions:
+
+    {1, "x", 2, 3} each
+       n when Number? n -> n     ;; ==> {1, 2, 3}
+
+    {{1}, {2, 3}, {4}, {5, 6}} each
+       {x, y} when true -> x + y ;; ==> {5, 11}
+
+    {{1}, {2, 3}, {4}, {5, 6}} each
+       {x, y} -> x + y
+       else -> continue          ;; ==> {5, 11}
+
+The first form is recommended if it is easy to express the condition
+as an expression. However, some filters are best expressed by
+patterns, in which case the third form would be preferred (because it
+is clearer -- you can use the second form if you insist on writing a
+one-liner, though).
+
+`each` is *eager*: it will iterate over all elements and execute the
+payload on each, returning an array. The *lazy* version of `each` is
+the `each*` operator. See the section on asynchronous code.
+
+
+Pattern matching
+----------------
+
+Pattern matching is the most elaborate part of EG (maybe a fifth of
+the language's codebase deals with it). It is pervasive: function
+definitions, destructuring assignment, loops, exceptions, etc. I don't
+know of any language with more featureful pattern matching.
+
+Basically, the `match` operator feeds an input into a series of
+"clauses" and enters the body of the first matching clause. In a
+clause, one can check the type of a value, cast or transform it,
+deconstruct an array into elements and bind them to variables, and
+more:
 
     match command:
        {"move", Number! dx, Number! dy} ->
@@ -337,15 +378,76 @@ on steroids:
           enemy.hp -= this.attack
           this.hp -= enemy.attack
 
+A pattern can also be found on the left side of a declaration or
+assignment, for example:
+
+    {String? x, Number? y} = {"apple", 3.14159}
+
+
+### Checkers
+
+A **checker** verifies that the thing to match satisfies some
+predicate, for instance that it is of a certain type.
+
+    Number? n = 123     ;; OK
+    Number? n = "hello" ;; ERROR
+
+
+### Projectors
+
+A **projector** transforms the thing to match, for instance it casts
+it to a certain type or applies some kind of transformation. Further
+pattern matching can be applied on the transformed value.
+
+    Number! n = "123"          ;; n is the number 123
+    Array! a = 5               ;; a is the array {5}
+    Array! {Number! a} = "10"  ;; a is the number 10
+
+
+### Destructuring
+
+An array of patterns matches an array of the same length, and then
+tries to match each value with the corresponding pattern:
+
+    {x, y, z} = {1, 2, 3}      ;; x is 1, y is 2, z is 3
+    {x, y, z} = {1, 2}         ;; ERROR
+    {x, {y, z}} = {1, 2, 3}    ;; ERROR
+
+The `*` operator matches any number of elements:
+
+    {x, *y, z} = {1, 2, 3, 4, 5}   ;; x is 1, y is {2, 3, 4}, z is 5
+    {x, *y, z} = {1, 2}            ;; x is 1, y is {}, z is 2
+
+You can assign a default value to a pattern in case it is missing.
+
+    {x, y, z = "absent"} = {1, 2}  ;; x is 1, y is 2, z is "absent"
+
+This also works to define default values for arguments in
+functions. Note that the default value will be recomputed every time
+it is needed (or not at all, if it is unneeded). For example:
+
+    f{x = [print "missing", 0]} = x
+    f{55}     ==> returns 55
+    f{}       ==> prints "missing", and returns 0
+
+This means that unlike in Python, if you define an empty array `{}` as
+a default value, it will always be a fresh array.
+
+
+### `when` conditions
+
 The **when** operator lets you write arbitrary conditions for a
-clause.
+clause:
 
     match command:
-        {"move", dx, dy} when [dx*dx + dy*dy] > threshold ->
+        {"move", dx, dy} when dx*dx + dy*dy > threshold ->
             running{}
         {"move", dx, dy}
             walking{}
         ...
+
+
+### `or` pattern
 
 **or** will try to match one of a series of patterns
 
@@ -357,21 +459,40 @@ clause.
        Number? x or String? x -> ...
 
        ;; will match {123} or 123, putting 123 in x in both situations
-       {x} or x
+       {x} or x -> ...
 
 Note that **all sub-patterns must contain the same variables**.
 
-**and** will try to match every pattern. That may not be obvious at
-first, but this is very useful to create aliases!
+Also, patterns are evaluated in the order they are defined, so the
+most specific should come first.
 
-    match {1, {2, 3}}:
-       {a, {b, c} and d} ->
-          ;; a is 1, b is 2, c is 3, d is {2, 3}
-          ;; Note how we aliased d to the whole list while also
-          ;; putting its elements in individual variables.
 
-**Comparison operators** can be used partially. The left hand side is
-implicitly filled in by the value we are matching against.
+### `and` pattern
+
+**and** will try to match every pattern (again, in order):
+
+    Number? n and > 0 = -5     ;; ERROR!
+
+That may not be obvious at first, but `and` is useful to create
+aliases:
+
+    {x, y} and z = {1, 2}   ;; x is 1, y is 2, z is {1, 2}
+
+Indeed, `z` as a pattern simply matches anything, which is put in the
+variable `z`.
+
+
+### Operators
+
+**Comparison operators** (`== != < <= > >= in`) can be used partially
+(except for `is` which has a different meaning). The left hand side is
+a pattern, which will only be matched if the predicate on the current
+value is true. In other words:
+
+    n > 0 = 10     ;; n is 10
+    n > 0 = -10    ;; ERROR
+
+You can also leave the left hand side empty:
 
     compare{value, threshold} =
        match value:
@@ -379,10 +500,13 @@ implicitly filled in by the value we are matching against.
           < threshold -> "below"
           == threshold -> "equal"
 
-The above idiom of creating a function and matching one argument is
+
+### Embedded control structures
+
+The previous idiom of creating a function and matching one argument is
 useful enough to have a **shorthand**:
 
-    compare{match, threshold} =
+    compare{match value, threshold} =
        > threshold -> "above"
        < threshold -> "below"
        == threshold -> "equal"
@@ -404,711 +528,309 @@ Here's naive fibonacci using the shorthand:
        1 -> 1
        n -> fib{n - 1} + fib{n - 2}
 
+You can give a name to the match and it will be bound in all clauses:
+
+    fib{match n} =
+       0 -> 0
+       1 -> 1
+       else -> fib{n - 1} + fib{n - 2}
+
 The feature also works for rest arguments:
 
-     concat{*match} =
+    concat{*match} =
         {String? a, String? b} -> a + b
         {Array? a, Array? b} -> a ++ b
 
+Other features can be embedded in arguments. For instance, `each` can
+be used in a pattern:
 
-## Exception handling
+    f{each x} = x * x
+    f{1..5}                 ;; => {1, 4, 9, 16, 25}
 
-**Exceptions** are thrown with the `throw` operator, and caught with
-`try`:
+    enhance{match} =
+       Number? n -> n * n
+       String? s -> s + "s"
+       each x -> enhance{x} ;; short for xs -> xs each x -> enhance{x}
+    enhance{{1, 2, "cake"}} ;; => {1, 4, "cakes"}
 
-    bad{} = throw TypeError{"I'm bad!"}
+`each` in this case can be anywhere in a pattern, and multiple `each`
+found in the same pattern will nest in the order that they are found:
 
-    x =
+    f{each x, each y} = x + y
+    f{{"a", "b"}, {"x", "y"}}
+    ;; ==> {{"ax", "ay"}, {"bx", "by"}}
+
+`chain` can be embedded and you get a nice pipeline going on:
+
+    capitalizeWords{chain} =
+       @trim{}
+       @split{R" +"} each w when w != "" ->
+          w[0].toUpperCase{} + w.slice{1}
+       @join{" "}
+    capitalizeWords{" pulp  fiction "}
+    ;; => "Pulp Fiction"
+
+
+### `is` operator
+
+Sometimes you may need or want to give a value to a variable inside a
+pattern. You can do this with `is`:
+
+    x and y is 10 = 5                     ;; x is 5, y is 10
+    {x, y} or x is 0 and y is 0 = "blah"  ;; x is 0, y is 0
+
+One use case is to remove one level of nesting in the following code:
+
+    f{match, x} =
+       {a, b} ->
+          match x:
+             ...
+
+The above can be rewritten:
+
+    f{match, x} =
+       {a, b} and match is x ->
+          ...
+
+### Assignment wrappers
+
+The keywords `get`, `return`, `yield` and `await` may be used in a
+pattern on the left hand side of an assignment. Normally, an
+assignment returns the variable it declares, or if there is more than
+one variable, an array of the declared variables:
+
+    x = 4                       ;; ==> 4
+    {x, {y, z}} = {1, {2, 3}}   ;; ==> {1, 2, 3}
+    {x, _, y}   = {1, 2, 3}     ;; ==> {1, 2}
+    {x, String! y} = {1, 2}     ;; ==> {1, "2"}
+
+You can, however, modify this behavior:
+
+    {x, get, z} = {1, 2, 3}     ;; ==> 2
+    {_, return, _} = {1, 2, 3}  ;; immediately returns 2 from the function
+    {yield, yield} = {1, 2}     ;; yields 1, then yields 2
+
+Note that it's not particularly useful to declare variables alongside
+`return` since there's no way to use them after the function returns.
+
+Combining more than one of these in the same pattern is currently a
+bit flaky.
+
+
+Asynchronous code
+-----------------
+
+Much like ES6, EG has generators. Much like ES7, it has async and
+await keywords.
+
+### Generators
+
+A generator is a function that can produce (`yield`) an arbitrary
+number of values as they are requested by a consumer. For instance,
+this is a generator for the Fibonacci numbers:
+
+    gen! fib{} =
+       var {a, b} = {0, 1}
+       while true:
+          yield a
+          {a, b} = {b, a + b}
+
+That function is an infinite loop, but at each invocation of `yield
+a`, it sends the value of `a` to the consumer and stops until the
+consumer asks for the next value. The `consume` function can be used
+to retrieve a certain number of values from the generator:
+
+    consume{fib{}, 10} ;; ==> {0, 1, 1, 2, 3, 5, 8, 13, 21, 34}
+
+`each` and `for...of` will consume a generator until a `break`
+statement is encountered. `each*` will create a new generator:
+
+    fibsquared = fib{} each* n -> n * n
+    consume{fibsquared, 5}
+    ;; ==> {0, 1, 1, 4, 9, 25, 64, 169, 441, 1156}
+
+Here the difference between `each` and `each*` is that `each` will
+keep accumulating values until it runs out of memory, whereas `each*`
+is lazy just like `fib`.
+
+### Promises and async/await
+
+Promises and generators are ES6's answer to callback hell and EG
+supports them. `async` and `await` make them even easier to use:
+
+    require: fs
+    readFile = promisify{fs.readFile}
+
+    async! cat{*files} =
        try:
-          bad{}
-          error ->
-             555
-    ;; x is 555
+          var rval = ""
+          files each file ->
+             rval += await readFile{file, .utf8}
+          print rval
+       catch error:
+          console.trace{error}
+          throw error
 
-Alternatively, you can use the `!!` operator.
+    cat{"file1", "file2", "file3"}
+    ;; returns immediately
 
-    x = bad{} !! error -> 555
-    ;; x is 555
+Here's how it works:
 
-The full power of EG's pattern matcher is at your disposal. This means
-you can easily catch a specific kind of error:
+* `require: fs` fetches node.js's filesystem module
 
-    x =
-       try:
-          bad{}
-          TypeError? e -> e
-          ReferenceError? e -> e
-          finally:
-             ;; code to execute no matter what
-    ;; x is a reference to a TypeError
+* `promisify{fs.readFile}` changes `fs.readFile`'s callback-based
+  interface to a Promise-baed interface, which is necessary to work
+  with async.
 
+  `promisify` should work on any function that implements node's callback
+  interface, i.e. where the last argument has the form `{error, result} -> ...`
 
-### Ad hoc exceptions
+* `await readFile{file, .utf8}` reads the file *asynchronously*, in
+  the background. At that moment, the execution of `cat` stops and
+  other tasks can be executed while waiting for the file to be read.
 
-Earl Grey offers a facility by which you can construct error objects
-on the spot that are perfectly tailored to your situation. The syntax
-is `E.tag1.tag2.[...]{message, *arguments}`
+* Once the file is read, the result is given back to `cat`. It keeps
+  going until all the files have been read, and then it prints them.
 
-    never_happy{match} =
-       String? ->
-          throw E.string{"I don't want a string!"}
-       Number? ->
-          throw E.number{"I hate math"}
-       {} ->
-          throw E.array[0]{"Why is there nothing in this array?"}
-       {_} ->
-          throw E.array[1]{"Only one thing?"}
-       {_, _} ->
-          throw E.array[2]{"The number two is my least favorite."}
-       {_, _, _} ->
-          throw E.array[3]{"What am I going to do with all this stuff?"}
-       some_other_nonsense ->
-          throw E["?!?"]{"WHAT IS THIS"}
+* Exceptions raised in `cat` are not printed by default hence the
+  added try/catch block.
 
-    never_happy{"take this"} !!
-       E.string? e ->
-          console.log with e.message
 
-To match an error type, an error needs to contain all the required
-tags, but it can contain more. For instance, `E.array?` will match
-`E.array{...}`, but also `E.array[2]{...}` and even
-`E.bah.humbug.array{...}`.
 
-Ideally, every single exception thrown by your code should have a
-unique set of tags.
+Module system
+-------------
 
+`require` is used to import functionality from other
+modules. `provide` is used to export functionality.
 
-## Chaining
+### `require`
 
-The **chain** macro lets you do method chaining easily. An expression
-is bound to the `@` operator, and `@` is set, in turn, to the result
-of evaluating each statement in the body:
+Ideally, all of a module's imports should be in a single `require`
+block.
 
-    chain {1, 2, 3}:
-        @concat with {4, 5}
-        @reverse{}
-        {7, 6}.concat{@}
-    ;; {7, 6, 5, 4, 3, 2, 1}
+    require:
+       fs, path
+       react as React
+       "./mymodule" ->
+          someFunction, otherFunction as blah
 
-is equivalent to
+This is roughly equivalent to the following JavaScript:
 
-    [var _temp = {1, 2, 3}
-     _temp = _temp.concat with {4, 5}
-     _temp = _temp.reverse{}
-     _temp = {7, 6}.concat{_temp}
-     _temp]
+    fs = require("fs");
+    path = require("path");
+    React = require("react");
+    _temp = require("./mymodule");
+    someFunction = _temp.someFunction;
+    blah = _temp.otherFunction;
 
+### `provide`
 
-## Defining operators
+`provide` fills the module's exports:
 
-Defining new operators is trivial. Earl Grey works with a set of
-reasonable default priorities, which you can check for yourself by
-typing `'[expr]` in the REPL for various combinations of operators.
+    provide:
+       fn1, fn2
+       fn3 as xyz
 
-First, it might be useful to know how operators map to function
-applications:
+It is recommended to put it at the beginning of the file so that it is
+clear what symbols the module provides.
 
-* **Infix**: `[a + b]` is equivalent to `[+]{a, b}`
-* **Prefix**: `[+ a]` is equivalent to `[+]{null, a}`
-* **Postfix**: `[a +]` is equivalent to `[+]{a, null}`
+### `inject`
 
-From EG's perspective, it doesn't matter whether you write `a + b` or
-`[+]{a, b}`. They produce the same AST, and the same code.
+TODO
 
-To define a prefix operator that converts its argument to a string,
-simply write:
 
-    &x = String! x
-    ;; alternatively: [&]{null?, x} = String! x
 
-    &123              ;; "123"
-    &10 + 10          ;; "1010"
-    &Math.log{Math.E} ;; "1"
+Features I think are novel
+--------------------------
 
-(Not as of yet) you can redefine virtually any operator. For instance,
-you can change the meaning of addition:
+This section is for fellow language designers and enthusiasts and is
+meant to answer the following question: what's _new? Like, what
+features does EG have that no other language does? So here are some
+features in EG that I haven't seen in any other language (that I know
+of):
 
-    let x + y = x - y
-    88 + 18 ;; 70
 
-This change won't leak outside of the scope of the declaration, so
-addition in other code will not be affected.
+### Nested matching
 
+The `match` keyword can be used inside patterns to tell the language
+to match the result of the pattern using sub-clauses.
 
-## "Structs"
+Basically, this:
 
-`#name{*args}` is equivalent to `{"name", *args}`, and `#name` is
-equivalent to `{"name"}`. These can act like ad hoc "structs" of
-sorts. Here's an example use:
+    f{match} =
+       {"enhance", match x} ->
+          Number? -> x + 1
+          String? -> x + "s"
+       {"identity", x} ->
+          x
 
-    calc{match} =
-        Number? n -> n
-        #add{m, n} -> calc{m} + calc{n}
-        #sub{m, n} -> calc{m} - calc{n}
-        #mul{m, n} -> calc{m} * calc{n}
-        #div{m, n} -> calc{m} / calc{n}
-        #sub{n} -> -calc{n}
+desugars to this:
 
-    calc with #div{#add{1, 13}, #sub{2}}       ;; -7
-    calc with {.div, {.add, 1, 13}, {.sub, 2}} ;; -7, same thing
+    f{_temp} =
+       match _temp:
+          {"enhance", x} ->
+             match x:
+                Number? -> x + 1
+                String? -> x + "s"
+          {"identity", x} ->
+             x
 
+In my opinion, that feature is a godsend: you can split open and
+operate on complicated data structure without any fluff, temporary
+variable names, or unnecessary nesting.
 
-## Classes
+I have generalized the feature to other control structures, such as
+`each`, `each*` and `chain`. For instance, this:
 
-The **class** macro declares a class.
+    f{each x, each y} =
+       x + y
 
-* The class constructor must be given by the `constructor` field.
-* The self can be accessed using `@`.
-* Subclassing is not supported yet.
+desugars to this:
 
-Example:
+    f{xs, ys} =
+       xs each x ->
+          ys each y ->
+             x + y
 
-    class Person:
-       constructor{String? name, Number! age} =
-          @name = name
-          @age = age
-       describe{} =
-          @name + ":" + [String! @age]
-       describe2{} =
-          @describe{}.replace{":", "~"}
+There is an internal API to define more of these things, but I haven't
+made it public. I will eventually.
 
-    p1 = new Person{.peter, 12}
-    p1.describe2{}               ;; "peter~12"
 
-The `new` keyword is optional when creating instances of classes
-declared with `class`:
+### Exception factories
 
-    p2 = Person{.igor, "34"}     ;; valid
-    Person? p2                   ;; yes
+I believe that every `throw` statement should throw a distinctive
+error, and that this distinctive error should be easy to catch
+specifically. In a lot of languages, one ends up creating subclasses
+of `Error` or `Exception`, but that's time consuming and unless you
+are adding methods on these errors, it's a waste of code.
 
-Static methods can be declared with a **static** block in the body.
+In EG I have what I call "error factories", which you would use a bit
+like this:
 
-One good use of static blocks is customizing the way your class
-behaves with respect to pattern matching.
+    throw E.auth.login.wrong_password{
+             "Authentication failed because of a wrong login password."
+             {user = user}
+          }
 
-    class Person:
-       static:
-          ;; duck typing
-          "::check"{p} = p.name and p.age
-          ;; convert to Person
-          "::project"{p} = Person{p.name, p.age}
-       constructor{@name, @age} =
-          ;; The line above is a shortcut for setting @name and @age to
-          ;; the arguments of the constructor.
-          pass ;; pass means: "do nothing"
+The resulting error will match `Error?`, `E.auth?`, `E.login?`,
+`E.auth.wrong_password?`, and so on. This means you can easily
+identify and match the errors you get. This is ad hoc and there is no
+need to define new classes of error, or to import error classes from
+dependencies to check against.
 
-    Person? {name = .quentin, age = 91}   ;; yes
-    Person? Person{null, null}            ;; nope
-    Person! {name = .quentin, age = 91}   ;; creates a Person
 
+### Function calls as a special case of indexing
 
-## Regular expressions
+A certain number of OO languages desugar `f x` to `f(x)`. With EG I
+opted to desugar to `f[x]` instead. The reason why is that indexing is
+a more general mechanism.
 
-`R"regexp"` specifies a regular expression using the same semantics as
-JavaScript. `R.gi"regexp"` is equivalent to JS's `/regexp/gi`.
+Indeed, in EG, `f{x} == f[{x}]`: indexing a function with an array
+simply calls that function, whereas indexing it with a string or a
+number has the usual meaning. This means that splicing arguments to a
+function like `f{*args}` can also be written `f[args]` or `f args`.
 
-Earl Grey also provides a regular expression sub-language used like
-`R'[expr]` where:
-
-* `any` matches one arbitrary character
-* `start` and `end` match the beginning/end of the string
-* `x` is equivalent to the regular expression `/\x/`, for most x
-* `*expr` ==> `/expr*/`
-* `+expr` ==> `/expr+/`
-* `?expr` ==> `/expr?/`
-* `e1 or e2` ==> `/e1|e2/`
-* `in "..."` ==> `/[...]/`
-* `not in "..."` ==> `/[^...]/`
-* `[e1, e2, ...]` ==> `(?:e1e2...)` (non-capturing)
-* `{...}` ==> `(...)` (capturing)
-* `raw <regexp>` inserts a regular expression verbatim
-
-Examples:
-
-    R'any                      ==> /./
-    R'[start, *"a", end]       ==> /^a*$/
-    R'["'", * not in "'", "'"] ==> /'[^']*'/
-    R'[start, [raw "."] or end]  ==> /^(?:.|$)/
-
-The operators are prefix to make blocks more natural to write. Note
-that `|` does not mean "or".
-
-    R' | start
-       | + in "0-9_"
-       | ? [".", {+ digit}]
-       | ? | in "eE"
-           | {? in "+-", + digit}
-    ==> /^[0-9_]+(?:\.(\d+))(?:[eE]([+\-]\d+))?/
-
-This domain specific language should be primarily used in situations
-where standard regular expression syntax becomes unwieldy (long
-regular expressions, or that require a lot of escaping).
-
-
-## Testing
-
-Earl Grey comes with a powerful testing sub-language,
-**blocktest**. That language is not yet complete and the format of the
-results is subject to change (it's lacking a lot of useful information
-for the time being).
-
-In its simplest form, you can simply write one condition per line:
-
-    test_results = blocktest "test":
-       1 + 2 == 3
-       .test == "test"
-       1 == 2           ;; surely not!
-
-`test_result` will contain a flat array of test results. Here I
-annotate a series of tests with what each test will produce. Note that
-`test_results` is *flat*: there is no nested structure, which makes
-writing reports more straightforward.
-
-    test_results = blocktest "test":
-
-       ;; simple tests
-       1 + 2 == 3       ;; #result{{"test"}, #success{true}}
-       1 == 2           ;; #result{{"test"}, #failure{false}}
-       bachi-bouzouk    ;; #result{{"test"}, #error{<ReferenceError: bachi>}}
-
-       ;; you can group and label tests
-       "more tests" =>
-          1 == 1        ;; #result{{"test", "more tests"}, #success{true}}
-
-       ;; preparation code
-       do:
-          ;; the statements are executed but produce no test results
-          x = 10 + 10
-
-       ;; test generation
-       {10, 20, 30} each x -> x == 20
-       ;; produces:
-       ;; #result{{"test", 0}, #failure{false}}
-       ;; #result{{"test", 1}, #success{true}}
-       ;; #result{{"test", 2}, #failure{false}}
-
-       "prep" =>
-          do:
-             bachi-bouzouk ;; #error{{"test", "prep"}, <ReferenceError: bachi>}
-          ;; Errors in preparation code aborts the rest of the tests
-          ;; in the group
-          1 == 1           ;; #aborted{{"test", "prep"}}
-
-       ;; Not affected by the failure in "prep"
-       true
-
-
-
-It is up to you to choose how to report the results. Here's a simple
-report:
-
-    yay and nay and errs and notrun = 0
-    test_results each
-       ;; note: a bug currently prevents match from being used here
-       #test_result{path, match} ->
-          ;; A test was run
-          #success{_} ->
-             ;; The test was a success :)
-             yay++
-          #failure{_} ->
-             ;; The test yielded a wrong result
-             nay++
-             console.log with "Test: " + path.join{"/"} + " failed."
-          #error{String! err} ->
-             ;; The test failed by throwing an exception
-             nay++
-             console.log with
-                "Test: " + path.join{"/"} + " raised an error " + err
-       #error{String! err} ->
-          ;; Non-test code (e.g. preparation code) raised an error
-          errs++
-          console.log with
-             "Code for: " + path.join{"/"} + " raised an error " + err
-       #aborted{_} ->
-          ;; Tests that depend on preparation code that failed are
-          ;; not run, but they produce #aborted tokens
-          notrun++
-          console.log with
-             "Test: " + path.join{"/"} + " could not be run"
-    console.log{"Succeeded: ", yay}
-    console.log{"Failed: ", yay + errs}
-    console.log{"Not run: ", notrun}
-
-
-## Macros
-
-NOTE: the interface might be subject to change.
-
-Macros can be defined using the `macro` directive. Earl Grey's macro
-system is fairly powerful, and it's important to understand how it
-works.
-
-First off, it does *not* let you change the language's syntax --
-essentially, a macro lets you define a token called, say, `mac` so
-that when `mac xyz` is seen, `mac` receives the *code* for `xyz`,
-manipulates it in arbitrary ways, and then returns new code to execute
-where the macro was found. To this purpose, note that:
-
-    mac: xyz      ==> mac {xyz}
-    mac abc: xyz  ==> mac {abc, xyz}
-    mac with xyz  ==> mac {xyz}
-
-Now, a macro is a function that takes four arguments:
-
-* **context**: this tells you where the macro was found. For instance,
-  `#expr{.data}` means it was found inside `{...}`, whereas
-  `#pattern{}` means it was found in a pattern (for instance on the
-  left of `=`).
-
-* **scope**: this is an object representing the scope in which the
-  macro is going to be evaluated. It also contains handy methods, for
-  instance `gensym{}` to generate new symbols, `expand{}` to run the
-  macro expander, and `step{}` to run a single expansion step.
-
-* **form**: this is the complete expression for the macro, including
-  the macro itself and its argument if it has any.
-
-* **arg**: this is the argument for the macro. As a special case, it
-  may be the expression `#void{}`. That expression means that the
-  macro was found in a position where it does not have an argument at
-  all.
-
-Here's how some uses of the `mac` macro will translate into calls to
-its macro function:
-
-    mac 1          ==> mac{#expr{.expr}, <scope>, '[mac 1], '1}
-    {mac}          ==> mac{#expr{.data}, <scope>, 'mac, #void{}}
-    [mac{1, 2}, 3] ==> mac{#expr{.multi}, <scope>, 'mac{1, 2}, '{1, 2}}
-    4 + mac        ==> mac{#expr{.expr}, <scope>, 'mac, #void{}}
-    mac x = 55     ==> mac{#pattern{}, <scope>, '[mac x], 'x}
-    {mac} = 77     ==> mac{#pattern{}, <scope>, 'mac, #void{}}
-
-
-The first three arguments you might want to ignore most of the
-time. For instance, here's a straightforward definition of `unless`:
-
-    macro unless{*, #data{cond, body}}:
-       'if{^cond, null, ^body}
-
-    unless [x < 0]:
-       console.log with "positive"
-
-Note that `#data{cond, body}` will match the code generated by `{cond,
-body}` (as explained before, `a b: c` is shorthand for `a{b, c}`). If
-`unless` gets something different, the system will throw an exception.
-
-As for the generated code:
-
-    'if{^cond, null, ^body}
-
-Let me explain what it means. The single quote is a prefix operator
-that "quotes" its argument and produces an AST. So, for instance:
-
-    '{a, b} <==> #data{#symbol{"a"}, #symbol{"b"}}
-
-(whew!) The caret, on the other hand, "unquotes" its argument and
-splices it inside the AST. For instance:
-
-    x = 123
-    '{a, ^x} <==> #data{#symbol{"a"}, 123}
-
-Be careful, though, because `123` is not actually a valid AST
-node. You can check this yourself by producing an AST that contains a
-literal:
-
-    '{a, 123} <==> #data{#symbol{"a"}, #value{123}}
-
-There are a few equivalent solutions (also required to embed strings,
-`null`, etc):
-
-    x = #value{123}
-    '{a, ^x}
-
-    x = '123
-    '{a, ^x}
-
-    x = 123
-    '{a, ^=x}
-
-
-### Environments
-
-Earl Grey's macro system is *hygienic*. What this means is that the
-variables found in a macro are distinct from the variables found in
-user code: even if they have the same names, they are invisible to
-each other. For instance, the following macro swaps two variables:
-
-    macro [<=>]{*, #data{a, b}}:
-       '[temp = ^a, ^a = ^b, ^b = temp]
-
-You can use the macro like this:
-
-    var temp = 1
-    var z = 2
-    temp <=> z
-    ;; temp is now 2, z is now 1
-
-Now, if it was only a matter of straight subsitution, the above would
-translate to
-
-    temp = temp
-    temp = temp
-    z = temp
-
-Of course, that wouldn't work. Thankfully, EG keeps track of the
-environment each variable is defined and produces something like this
-instead, which will work just fine.
-
-    temp$0 = temp
-    temp = z
-    z = temp$0
-
-Essentially, every node in the AST is associated to an
-*environment*. All of the user's source code belongs to the specific
-"user" environment, whereas the macro's productions belong to
-another. This means that a macro will work the same regardless of
-whatever unholy ways you might mangle your own namespace (and vice
-versa).
-
-On the other hand, it means that if you want your macro to define
-variables for the user, you'll have to jump through a few hoops (not
-too many, I promise). Imagine you want to create a macro that defines
-the variable "one" to 1, "two" to 2, and so on, and expose these new
-variables to the user. In other words, you want this
-
-    numbers:
-       console.log with three + four
-
-to print "7".
-
-In order for the `numbers` macro to create these variables, it needs
-to do three things:
-
-1. Get a reference to the user environment.
-2. Bind the AST nodes for the new variables to this environment.
-3. Generate proper declarations for these doctored variables.
-
-Step 1 is easy, because `form.env` and `arg.env` will typically
-contain the environment you want. Step 2 is easy as well: just set the
-`env` field of your new variables. Step 3 is just a matter of
-generating `var = value`.
-
-    macro numbers{*, #data{body}}:
-       nums = {'zero, 'one, 'two, 'three, 'four
-               'five, 'six, 'seven, 'eight, 'nine}
-       decls = enumerate{nums} each {i, v} ->
-          v.env = body.env
-          '[^v = ^=i]
-       '[^*decls, ^body]
-
-Feel free to play around with the code, and notice that removing the
-`v.env = body.env` line causes a reference error on the variable
-`three`. That is because by default our variables would be
-instantiated in a fresh environment that user code cannot see.
-
-
-### Contexts
-
-Each macro expansion is done in a certain *context*, and macros can
-have different semantics in different contexts. A macro can also
-*pass* on expanding in some context. In some situations, the expander
-will try *again* with a different context. For instance, if a macro
-refuses to expand in the `#expr{.data}` context, the expander will try
-again later with `#expr{.array}` or `#expr{.object}` once it figures
-out whether `{...}` defines one or the other. If that fails, it will
-try `#expr{.expr}`. That's the last resort, so make sure you do
-something then.
-
-In order to *pass* on a context, you must return:
-
-    #nostep{form}
-
-If you throw an exception, the expander will fail right then and
-there.
-
-It can be important to expand at the right time. For instance, the
-`#expr{.multi}` context accepts `#declare` nodes that declare
-variables, leading to the creation of a new scope. *Then*, with that
-new scope, the expander tries again -- this time with
-`#expr{.expr}`. So consider the following code:
-
-    if{x, y, z} = x + y + z
-    if{1, 2, 3}
-
-What does it return? Well, it depends on two things:
-
-* What `if` does in the `#pattern` context. If it returns itself, then
-  it lets the system override its binding.
-
-* But even then, it also depends on *when* `if` decides to expand. If
-  it expands when `#expr{.multi}` then the result is `2`. If it
-  expands when `#expr{.expr}`, then by that time `if` is now bound to
-  something else, so the result is 6.
-
-Here is a list of contexts you may run into. The arrow indicates what
-the expander will try next, if you return `#nostep{form}`.
-
-    #expr{.expr}
-       Generic "you are in an expression"
-    #expr{.head}
-       Whatever you return will be applied on an argument
-    #expr{.data} -> #expr{.array} OR #expr{.object}
-       You are in `{...}`
-    #expr{.array} -> #expr{.expr}
-       You are in `{...}`, when the system figures out it's an array
-    #expr{.object} -> #expr{.expr}
-       You are in `{...}`, when the system figures out it's an object
-    #expr{.multi} -> #expr{.ignore} OR #expr{.expr}
-       You are in `[...]`. This is not triggered by `[x]`, only by `[x, y, ...]`.
-    #expr{.ignore} -> #expr{.expr}
-       Happens when the macro is not at the end of a `[...]` block. It
-       means that your return value won't be needed. Note that the
-       expander, at this point, knows in what order the expressions
-       are -- and it only knows this after trying `#expr{.multi}` on
-       all of them.
-
-    #pattern{}
-       You are in a pattern (left of "=", or left of "->")
-       Passing here means that users can define variables with the
-       name of your macro. The expander will not try anything else.
-
-    #clause{}
-       You are in the body of "match"
-
-
-### Special AST nodes
-
-Macros are not limited to produce AST nodes that are found in the
-wild. For instance, it can return special `#splice`, `#sink` and
-`#float` directives. These directives respectively splice nodes into
-the parent, float them to the beginning of the parent, and sink them
-to the end. To illustrate:
-
-    macro up{*, x}:
-       #float{x}
-    
-    macro down{*, x}:
-       #sink{x}
-    
-    macro all{*, #data{*xs}}:
-       #splice{*xs}
-    
-    console.log with
-       {1, 2, up 3, down 4, up 5, down 6, all{7, 8, 9}, 10}
-
-    ;; ==> {3, 5, 1, 2, 7, 8, 9, 10, 4, 6}
-
-These work recursively, so you can also do this:
-
-    macro updown{*, #data{x, y}}:
-       #splice{#float{x}, #sink{y}}
-
-    console.log with
-       {1, 2, updown{3, 4}, 5, 6}
-
-    ;; ==> {3, 1, 2, 5, 6, 4}
-
-To give you an idea of the uses, `provide` uses `#sink` to make sure
-that the exports are evaluated at the end. That way, you can put the
-provide directives at the top of the file, and it'll work just fine.
-
-This is a bit more advanced, but you can also return anonymous macros
-with `#macro{macro_function}`. They will be applied like any normal
-macro:
-
-    macro addnums{*, expr}:
-       f{accum, match} =
-          #void{} ->
-             #value{accum}
-          #value{Number? n} ->
-             #macro{m} where
-                m{*, expr} = f{accum + n, expr}
-       f{0, expr}
-   
-    console.log with
-       addnums[1][2][3][4][5][6][7][8][9][10]
-
-`addnums[1]` will return a macro, which will take `[2]` as its own
-argument, and so on. `#void{}` is the special value the expander gives
-when there is no argument to apply the macro to, so it can be used as
-the stopping condition.
-
-Note: `addnums 1 2 3 ...` won't work, but that's simply because wide
-spacing between arguments is right-associative :)
-
-Here's an incomplete list of the special nodes you can return, and in
-what context:
-
-    Any context that involves a sequence of instructions
-       #splice, #float, #sink
-
-    #expr{.data} context:
-       #assoc{x, y}  ==> define a key/value pair
-       #dynsplice{x} ==> splice the result of the evaluation of x
-       #objsplice{x} ==> same as above, but for objects
-
-    #expr{.head} context:
-       #macro{m}
-
-    #expr:
-       #if{test, iftrue, iffalse} ==> this produces an if statement directly
-       #js_while{test, body} ==> produces a JavaScript while loop
-       #js_for{start, test, recur, body} ==> produces a JavaScript for loop
-       #js_for_in{x, y, body} ==> produces a JavaScript for(x in y) loop
-       #js_break, #js_continue, #js_new, #js_return, #js_throw, etc.
-
-    #pattern{} context:
-       #check{checker, subp} ==> #pattern context, instruct to produce
-          '[^checker]{^value_to_match}
-          and then check the subpattern (the "?" macro returns this)
-       #project{projector, subp} ==> #pattern, instruct to produce
-          '[^projector]{^value_to_match}
-          take the result, and check subpattern on result (the "!" macro returns this)
-          Note, the projector must return `{bool, value}`; the boolean
-          is used to match
-       #all{*patterns}
-       #any{*patterns}
-       #special{.placeholder} ==> this is what `match` evaluates to in a pattern
-
-    #clause{} context:
-       #clause{pattern, body}
-       #block{stmt}
-
-Note that you can define your own contexts if you feel like it,
-although the default implementations won't acknowledge them (I'm still
-working on an elegant way to extend them). `scope.step{context, expr}`
-will do one step of expansion with the given context. That leaves with
-you the responsibility to manipulate the result, including nodes with
-semantics specific to your context. `scope.step_all{context,
-list_of_exprs}` is also very practical: it steps all the expressions
-in the list and takes care of #splice, #sink and #float for you.
-
-
-### Error reporting
-
-Ideally, to give users the best feedback, you should handle your own
-errors. They should look like this:
-
-    throw E.syntax.macro_name{message, {node1 = ..., node2 = ..., ...}}
-
-`node1`, `node2`, etc. can be any label. Each piece of information you
-give, if it is associated to a source code location (don't worry about
-it -- the parser and expander keep track of this for you), will be
-highlighted.
-
-This being said, the expander will *try* to figure out what went
-wrong, and this will often be sufficient, so you don't necessarily
-need to put a lot of effort into it.
-
-Tip: use pattern matching to filter the correct context/expressions
-for your macro. Match errors always contain a reference to what didn't
-match and Earl Grey can exploit the information. For instance, if you
-try to match some specific context, it will see that the value that
-failed to match is the same one that it gave you as the "context"
-argument and it will infer that "the macro was used in the wrong
-context".
-
-Similarly, pattern matching on the AST will tell the expander what it
-is, exactly, that you failed to match, so that it can highlight the
-correct location in the error report, even if it's deeply nested.
+This design choice may appear a bit less useful, but it is more
+syntactically consistent and internal representation is much
+simplified: there is only *one* operation on objects.
 

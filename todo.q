@@ -113,20 +113,34 @@ X Declare values in if, e.g. if [x = f{y}]: x
 X change the in operator to actually be useful
 X Allow declaring variables like "n > 0 = 3"
 X Figure out what `{x, y} = {1, 2}` should return
+X expression `{x, get, y} = {1, 2, 3}` has value 2
 X expression `{x, return, y} = {1, 2, 3}` returns 2
 X expression `{x, yield, y} = {1, 2, 3}` yields 2
+X info.gettext{node}
 
 
 * quote with 'a + b' instead of '[a + b]
+* maybe replace ... with ??? and make ... an exclusive range
+* outer
+* tag scope and restore scope
+* `macro` should generate #restmacro to allow for its use below its
+  definition in the same scope
+* info.mark{*nodes}
+* `require` should fail when importing symbols that were not exported
+  by a module
+* {[^Symbol.project]{x} = ...}
+* `[x >> x + 1] = 5` ==> x is 6
+
 
 * Come up with a reliable way to mix multiple wrapping handlers in
   patterns and prevent nonsensical combinations.
-
 * f{each x, match} will complain that it cannot resolve each; figure
   out why that happens *exactly* and fix it.
+
 * Produce an error when the same variable is found multiple times in a
   pattern
-* Automatically annotate '[...] with location information
+* '[...] should annotate the result with location information,
+  otherwise embedded R"..." or S[...] do not work.
 * Embed promisify
 * Make unconditional transformers for String!, Number! and Boolean!
 * maybe use \ for unquote?
@@ -161,15 +175,11 @@ X expression `{x, yield, y} = {1, 2, 3}` yields 2
 * Review how `with works: could it be a prefix operator?
 * Add a where... or with... operator instead of with, when ... is used?
 
-* '[...] should annotate the result with location information,
-  otherwise embedded R"..." or S[...] do not work.
-
 * fix obj[m]{...} so that it binds the function to this...
 
 * index.eg
 
 * language definition via: ||||| lang
-* scope.gettext{node}
 * Create closures for variables inside loops
 * define super for subclasses
 * @@ for static methods
