@@ -72,7 +72,8 @@ expr_mac2{mac}{match, info, f, e} =
                x ->
                   mac.call{info, #data{x} <<: x}
       else ->
-         mac.call{info, e}
+         #nostep{#macro{f}} where
+            f{_ctx, _info, _form, _e} = '{^=true, ^mac.call{_info, _e}}
    #expr ->
       mac.call{info, e}
 

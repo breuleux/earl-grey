@@ -121,6 +121,7 @@ X emacro --> macro; macro --> cmacro?
 X change macro{ctx, scope, form, expr} to cmacro{ctx, expr}
   and make scope and form available in this (only for user code)
 X info.mark{*nodes}
+X fix emacro's interaction with ! when not in a pattern
 
 
 * left-priority of `each` should be higher
@@ -158,7 +159,6 @@ X info.mark{*nodes}
 * Handle mix of array and object
 * revamp the blocktest macro (rename to tests?)
 * match_error could use being more precise
-* fix emacro's interaction with ! when not in a pattern
 * make sure macros fail in non-supported contexts and don't have blanket
   [match context: ..., else -> blah] clauses
 * let macros insert setup code at their definition site
