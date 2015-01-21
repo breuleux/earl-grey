@@ -20,23 +20,30 @@ wrap_macro{info, mac} =
       env.mark{r}
    #macro{mac2}
 
+wrap_macro_func{info, args, body} =
+   it = info.env.mark{'[@]}
+   '_lambda{^args, ^it = this, ^body, ^=null}
+
+
 mac{"macro"}! macro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, arguments}, ast} ->
-      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
-      #declare_raw{name, wrap_macro{info, mac}}
+      let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
+      #declare_raw{name, wrap_macro{info, expr_mac2{mac}}}
 
 mac{"cmacro"}! cmacro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, arguments}, ast} ->
-      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
       #declare_raw{name, wrap_macro{info, ctx_mac{mac}}}
-
-mac{"emacro"}! emacro_mac{context, info, form, match} =
-   #data{#send{name and #symbol{sym}, argument}, ast} ->
-      let mac = info.go{'[{^argument} -> ^ast], .parse, .eval}
-      #declare_raw{name, wrap_macro{info, expr_mac2{mac}}}
 
 mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
    the_macros = info.go{body, .parse, .eval}
    #splice{*[...]} with
       items{the_macros} each {k, v} ->
          #declare_raw{#symbol{k} &: {env = env}, #macro{v}}
+
+
+
+mac{"oldmacro"}! oldmacro_mac{context, info, form, match} =
+   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      #declare_raw{name, wrap_macro{info, mac}}

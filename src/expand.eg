@@ -146,6 +146,10 @@ class Info:
    mkenv{} =
       @expander.mkenv{}
 
+   mark{*match} =
+      {x} -> @env.mark{x}
+      xs -> xs each x -> @env.mark{x}
+
    step{context, expr} =
       @expander.step{context, @scope, expr}
 

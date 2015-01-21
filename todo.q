@@ -117,19 +117,28 @@ X expression `{x, get, y} = {1, 2, 3}` has value 2
 X expression `{x, return, y} = {1, 2, 3}` returns 2
 X expression `{x, yield, y} = {1, 2, 3}` yields 2
 X info.gettext{node}
+X emacro --> macro; macro --> cmacro?
+X change macro{ctx, scope, form, expr} to cmacro{ctx, expr}
+  and make scope and form available in this (only for user code)
+X info.mark{*nodes}
 
 
+* left-priority of `each` should be higher
 * quote with 'a + b' instead of '[a + b]
 * maybe replace ... with ??? and make ... an exclusive range
 * outer
 * tag scope and restore scope
 * `macro` should generate #restmacro to allow for its use below its
   definition in the same scope
-* info.mark{*nodes}
 * `require` should fail when importing symbols that were not exported
   by a module
 * {[^Symbol.project]{x} = ...}
 * `[x >> x + 1] = 5` ==> x is 6
+* A wrapper to print stack traces when calling an async functions
+* `global x = 123`?
+* Extend functions, e.g. `extend.top! f{x} = ...` and
+  `extend.bottom! f{x} = ...`, or bind previous function to super...
+* New macros should extend existing macros
 
 
 * Come up with a reliable way to mix multiple wrapping handlers in
@@ -150,9 +159,6 @@ X info.gettext{node}
 * revamp the blocktest macro (rename to tests?)
 * match_error could use being more precise
 * fix emacro's interaction with ! when not in a pattern
-* emacro --> macro; macro --> cmacro?
-* change macro{ctx, scope, form, expr} to cmacro{ctx, expr}
-  and make scope and form available in this (only for user code)
 * make sure macros fail in non-supported contexts and don't have blanket
   [match context: ..., else -> blah] clauses
 * let macros insert setup code at their definition site
