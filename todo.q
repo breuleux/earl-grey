@@ -122,10 +122,12 @@ X change macro{ctx, scope, form, expr} to cmacro{ctx, expr}
   and make scope and form available in this (only for user code)
 X info.mark{*nodes}
 X fix emacro's interaction with ! when not in a pattern
+X Embed promisify
+X quasiquote with `a + b` instead of '[a + b]
 
 
+* insert async/gen automatically if await/yield is seen in the body
 * left-priority of `each` should be higher
-* quote with 'a + b' instead of '[a + b]
 * maybe replace ... with ??? and make ... an exclusive range
 * outer
 * tag scope and restore scope
@@ -151,7 +153,6 @@ X fix emacro's interaction with ! when not in a pattern
   pattern
 * '[...] should annotate the result with location information,
   otherwise embedded R"..." or S[...] do not work.
-* Embed promisify
 * Make unconditional transformers for String!, Number! and Boolean!
 * maybe use \ for unquote?
 * Use ES6 classes
@@ -172,6 +173,7 @@ X fix emacro's interaction with ! when not in a pattern
 * string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
 * fix nested each so that inner each is evaluated with #expr{.ignore}
   if outer each is
+
 
 * f{match.0, match.1} = a -> b -> c ==> f{x, y} = match x: a -> match y: b -> c
 

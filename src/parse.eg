@@ -476,6 +476,7 @@ finalize{match token} =
    #ILLEGAL{value} -> #char{value} <<: token
    #NUM{value} -> #value{value} <<: token
    #STR{value} -> #value{value} <<: token
+   #QUASI{value} -> #send{#symbol{"`"}, #value{value} <<: token} <<: token
    #VOID{} -> #void{} <<: token
 
    {var ops, *[var args]} ->

@@ -36,9 +36,11 @@ regexps = {
    {num,    num_f}
    {str2,   str_f}
    {str,    str_f}
+   {quasi2, quasi_f}
+   {quasi,  quasi_f}
    {op,     op_f}
    {op2,    op_f}
-   {op4,    op_f}
+   ;; {op4,    op_f}
    {indent, indent_f}
    {indent2, indent2_f}
    {cmnt,   cmnt_f}
@@ -101,6 +103,20 @@ regexps = {
   ;;    r = m[1].replace{R.g'{"\\\"" or "\\\\" or "\\n"}, {m} -> repl[m]}
   ;;    #STR{r}
 
+  ;; Quasiquote
+  quasi = R'
+     start
+     "`"
+     {*[["\\", any] or [not in "`"]]}
+     "`"
+
+  quasi2 = R"^[`]{3,}((?:[\\.]|[^`]|``?[^`])*)[`]{3,}"
+
+  quasi_f = {m} ->
+     #QUASI{m[1]}
+
+
+
   ;; Strings (no interpolation)
   str = R'
      start
@@ -150,10 +166,10 @@ regexps = {
        \ or "of" or "is"
      [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
 
-  ;; `operator`
-  op4 = R'
-     start
-     "`", {+ in "A-Za-z0-9_$"}, "`"
+  ;; ;; `operator`
+  ;; op4 = R'
+  ;;    start
+  ;;    "`", {+ in "A-Za-z0-9_$"}, "`"
 
   op_f = {m, column} ->
      let op = m[1] or m[0]

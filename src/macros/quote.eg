@@ -1,4 +1,7 @@
 
+require:
+   "../location" -> Source
+
 inject: mac
 
 ;;;;;;;;;;;
@@ -29,4 +32,10 @@ qq{match expr} =
 
 mac{"'"}! quote_mac{context, _, form, #data{#void{}, expr}} =
    qq{expr}
+
+mac{"`"}! quote2_mac{context, info, form, expr and #value{s}} =
+   ;; print expr
+   ;; print expr.location.makeSource{}
+   qq{expr} where
+      expr = info.go{Source{s, "<quasiquote>"}, .source, .parse}
 
