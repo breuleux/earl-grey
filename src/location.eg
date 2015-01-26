@@ -5,6 +5,8 @@ require:
    "./pp" ->
       <>, repr
    fs
+   opg ->
+      Source, Location
 
 provide:
    Source, Location
@@ -13,72 +15,13 @@ provide:
    <<:, ++:
    format_error, display_error
 
-class Source:
 
-   constructor{text, url = false} =
-      @text = text
-      @url = url
-      @counts = {}
-      var curr = 0
-      text.split{"\n"} each line ->
-         @counts.push with curr
-         curr += line.length + 1
-      @counts.push with curr
-      @nlines = @counts.length - 1
 
-   linecol{pos} =
-      line = binsearch{@counts, pos}
-      col = pos - @counts[line - 1]
-      {line, col}
+Source.prototype.highlight_lines{l1, l2, spans} =
+   highlight_lines{this.text, this.counts, {l1 - 1, l2 - 1}, spans}
 
-   highlight_lines{l1, l2, spans} =
-      highlight_lines{@text, @counts, {l1 - 1, l2 - 1}, spans}
-
-class Location:
-
-   constructor{source, start, end} =
-      @source = source or Source{"", null}
-      @start = start
-      @end = end
-
-   text{} =
-      @source.text.slice{@start, @end}
-
-   at_start{} =
-      Location{@source, @start, @start}
-
-   at_end{} =
-      Location{@source, @end, @end}
-
-   linerange{} =
-      match @linecol{}:
-         {{l1, _}, match} ->
-            null? -> {l1, l1}
-            {l2, _} -> {l1, l2}
-
-   linecol{} =
-      {start, end} where
-         start = @source.linecol{@start}
-         end = if [@start === @end]:
-                  then: null
-                  else: @source.linecol{@end - 1}
-
-   ref{} =
-      match @linecol{}:
-         {{String! l1, String! c1}, match} ->
-            null? ->
-               l1 + ":" + c1
-            {String! l2, String! c2} ->
-               match:
-                  when l1 === l2 and c1 === c2 ->
-                     l1 + ":" + c1
-                  when l1 === l2 ->
-                     l1 + ":" + c1 + "-" + c2
-                  otherwise ->
-                     l1 + ":" + c1 + "-" + l2 + ":" + c2
-
-   highlight{cls = .hl1, context = 0} =
-      highlight_locations{{{@, cls}}, context}
+Location.prototype.highlight{cls = .hl1, context = 0} =
+   highlight_locations{{{this, cls}}, context}
 
 
 
