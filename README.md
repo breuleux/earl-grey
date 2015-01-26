@@ -215,12 +215,12 @@ is already a variable named `square`, the above is an error.
 
 Anonymous functions are made with `->`:
 
-   {1, 2, 3}.map{{x} -> x * x}
+    {1, 2, 3}.map{{x} -> x * x}
 
 Note that there are more elegant ways to write the above:
 
-   {1, 2, 3}.map with {x} -> x * x
-   {1, 2, 3}.map{f} where f{x} = x * x
+    {1, 2, 3}.map with {x} -> x * x
+    {1, 2, 3}.map{f} where f{x} = x * x
 
 `f{x} with y` is equivalent to `f{x, y}`. `where` simply lets you
 define variables after the expression that uses them, and their scope
@@ -308,7 +308,7 @@ You can also use `when` to filter data:
 * `break` stops the comprehension. It is the only way to halt
   iteration before the end of the sequence.
 * `continue` starts the next iteration but without accumulating a
-  value. You can use it as an alternative way to filter:
+  value. You can use it as an alternative way to filter.
 
     1..100 each i ->
        if i > 10:
@@ -646,7 +646,7 @@ to retrieve a certain number of values from the generator:
 statement is encountered. `each*` will create a new generator:
 
     fibsquared = fib{} each* n -> n * n
-    consume{fibsquared, 5}
+    consume{fibsquared, 10}
     ;; ==> {0, 1, 1, 4, 9, 25, 64, 169, 441, 1156}
 
 Here the difference between `each` and `each*` is that `each` will
