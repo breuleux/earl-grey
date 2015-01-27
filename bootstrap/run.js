@@ -105,7 +105,7 @@ display_error$0 = (function(temp$0$0) {
       var n$0;
       var t0$3;
       var s$0;
-      var $$22296$0;
+      var $$22135$0;
       t0$3 = ph$1$0;
       if ((typeof(t0$3) === "string")) {
         s$0 = t0$3;
@@ -223,26 +223,26 @@ extract_options$0 = (function(temp$3$0, opttable$0, optmessage$0) {
     var name$2;
     var $targ$52;
     var name$0;
-    var $$22445$0;
-    var $$22446$0;
-    var $$22447$0;
-    var $$22448$0;
+    var $$22284$0;
+    var $$22285$0;
+    var $$22286$0;
+    var $$22287$0;
     var m$4$0;
     m$4$0 = send(opttable$0, opt$0);
     if ((m$4$0 === (void 0))) {
       return usage_error$0(((("Unrecognized " + optmessage$0) + ": ") + original$0));
     } else {
-      if ((($$22445$0 = (m$4$0 instanceof Array)) && ((t0$6 = m$4$0.length), (($$22447$0 = (t0$6 === 2)) && (m$4$0[0] === "flag"))))) {
+      if ((($$22284$0 = (m$4$0 instanceof Array)) && ((t0$6 = m$4$0.length), (($$22286$0 = (t0$6 === 2)) && (m$4$0[0] === "flag"))))) {
         name$0 = m$4$0[1];
         $targ$51 = true;
         (results$0[name$0] = $targ$51);
         return [];
       } else {
-        if (($$22447$0 && (($$22448$0 = (m$4$0[0] === "value")) && (($targ$52 = m$4$0[1]), last$0)))) {
+        if (($$22286$0 && (($$22287$0 = (m$4$0[0] === "value")) && (($targ$52 = m$4$0[1]), last$0)))) {
           associate$0 = $targ$52;
           return associate$0;
         } else {
-          if ($$22448$0) {
+          if ($$22287$0) {
             name$2 = m$4$0[1];
             $targ$53 = true;
             (results$0[name$2] = $targ$53);
@@ -492,11 +492,11 @@ compile_path$0 = (function(p$0, opts$1) {
   var name$4;
   var m$12$0;
   var noext$0;
-  var $$22959$0;
+  var $$22798$0;
   var m$11$0;
   var data$2;
   var code$0;
-  var $$22801$0;
+  var $$22640$0;
   var m$9$0;
   var stats$1;
   stats$1 = fs$0.statSync(p$0);
@@ -529,9 +529,9 @@ compile_path$0 = (function(p$0, opts$1) {
       var t0$11;
       var t1$5;
       var d$0;
-      var $$22829$0;
-      var $$22830$0;
-      var $$22831$0;
+      var $$22668$0;
+      var $$22669$0;
+      var $$22670$0;
       var t0$10;
       var ph$3$0;
       var m$10$0;
@@ -541,7 +541,7 @@ compile_path$0 = (function(p$0, opts$1) {
         ph$3$0 = Array.prototype.slice.call(m$10$0, 0);
         t0$11 = ph$3$0;
         t1$5 = t0$11.length;
-        if ((($$22831$0 = (t1$5 === 2)) && (t0$11[0] === "dir"))) {
+        if ((($$22670$0 = (t1$5 === 2)) && (t0$11[0] === "dir"))) {
           d$0 = t0$11[1];
           from$0 = path$0.join(p$0, d$0);
           if (opts$1.output) {
@@ -563,7 +563,7 @@ compile_path$0 = (function(p$0, opts$1) {
             return rval$1;
           }
         } else {
-          if (($$22831$0 && (t0$11[0] === "file"))) {
+          if (($$22670$0 && (t0$11[0] === "file"))) {
             ph$4$0 = t0$11[1];
             t0$12 = getProjector(RegExp("(?:^((?:.*))\\.eg$)", ""))(ph$4$0);
             if ((t0$12[0] && ((results$1 = t0$12[1]), results$1))) {
@@ -693,7 +693,7 @@ _run$0 = (function(ph$5$0, opts$3) {
   var result$1;
   var t1$12;
   var t0$22;
-  var $$23242$0;
+  var $$23081$0;
   var m$15$0;
   var code$1;
   var $targ$158;
@@ -704,20 +704,20 @@ _run$0 = (function(ph$5$0, opts$3) {
   var temp$6;
   var paths$0;
   var p$1;
-  var $$23213$0;
-  var $$23214$0;
+  var $$23052$0;
+  var $$23053$0;
   var t0$23;
   var m$14$0;
   var $targ$152;
   var o$1;
   var rest$1;
-  var bridge$$23079$0;
+  var bridge$$22918$0;
   var data$6;
   var $12$0;
   var beaut$1;
   var data$7;
   var otherwise$0;
-  var $$23320$0;
+  var $$23159$0;
   var m$17$0;
   var out$1;
   var stats$2;
@@ -736,23 +736,23 @@ _run$0 = (function(ph$5$0, opts$3) {
   var t0$16;
   var t1$9;
   var rawargs$0;
-  var bridge$$23075$0;
-  var $$23083$0;
-  var $$23084$0;
-  var $$23085$0;
+  var bridge$$22914$0;
+  var $$22922$0;
+  var $$22923$0;
+  var $$22924$0;
   if (opts$3.help) {
     return console.log(usage$0);
   } else {
     if (opts$3.version) {
       return console.log("Earl Grey version", eg$0.version);
     } else {
-      bridge$$23075$0 = ph$5$0;
-      if ((((bridge$$23075$0 instanceof Array) && ((t0$17 = bridge$$23075$0.length), (t0$17 === 0))) || ((bridge$$23075$0 instanceof Array) && ((t0$18 = bridge$$23075$0.length), ((t0$18 === 1) && (bridge$$23075$0[0] === "run")))))) {
+      bridge$$22914$0 = ph$5$0;
+      if ((((bridge$$22914$0 instanceof Array) && ((t0$17 = bridge$$22914$0.length), (t0$17 === 0))) || ((bridge$$22914$0 instanceof Array) && ((t0$18 = bridge$$22914$0.length), ((t0$18 === 1) && (bridge$$22914$0[0] === "run")))))) {
         return _run$0(["run", "-i"], opts$3);
       } else {
         t0$16 = ph$5$0;
         t1$9 = t0$16.length;
-        if ((($$23085$0 = (t1$9 >= 1)) && (t0$16[0] === "run"))) {
+        if ((($$22924$0 = (t1$9 >= 1)) && (t0$16[0] === "run"))) {
           rawargs$0 = Array.prototype.slice.call(t0$16, 1);
           $targ$139 = extract_options$0(rawargs$0, ({
             "e": ["value", "evaluate"],
@@ -818,7 +818,7 @@ _run$0 = (function(ph$5$0, opts$3) {
             return interactive$0(g$2, e$6);
           }
         } else {
-          if (($$23085$0 && (t0$16[0] === "compile"))) {
+          if (($$22924$0 && (t0$16[0] === "compile"))) {
             rawargs$1 = Array.prototype.slice.call(t0$16, 1);
             $targ$152 = extract_options$0(rawargs$1, ({
               "o": ["value", "output"],
@@ -852,10 +852,10 @@ _run$0 = (function(ph$5$0, opts$3) {
                 return console.log(code$1);
               }
             } else {
-              if ((($$23213$0 = (m$14$0 instanceof Array)) && (($targ$158 = m$14$0.length), (t0$23 = $targ$158), (t0$23 === 0)))) {
+              if ((($$23052$0 = (m$14$0 instanceof Array)) && (($targ$158 = m$14$0.length), (t0$23 = $targ$158), (t0$23 === 0)))) {
                 return usage_error$0("Must provide at least one file or directory to compile.");
               } else {
-                if (($$23213$0 && (t0$23 === 1))) {
+                if (($$23052$0 && (t0$23 === 1))) {
                   p$1 = m$14$0[0];
                   return compile_path$0(p$1, o$1);
                 } else {
@@ -889,7 +889,7 @@ _run$0 = (function(ph$5$0, opts$3) {
               }
             }
           } else {
-            if (((t1$9 >= 2) && ((bridge$$23079$0 = t0$16[0]), ((bridge$$23079$0 === "tr") || (bridge$$23079$0 === "translate"))))) {
+            if (((t1$9 >= 2) && ((bridge$$22918$0 = t0$16[0]), ((bridge$$22918$0 === "tr") || (bridge$$22918$0 === "translate"))))) {
               file$4 = t0$16[1];
               args$2 = Array.prototype.slice.call(t0$16, 2);
               out$1 = args$2[0];
@@ -919,9 +919,9 @@ _run$0 = (function(ph$5$0, opts$3) {
                   var t0$25;
                   var t1$13;
                   var d$1;
-                  var $$23344$0;
-                  var $$23345$0;
-                  var $$23346$0;
+                  var $$23183$0;
+                  var $$23184$0;
+                  var $$23185$0;
                   var t0$24;
                   var ph$7$0;
                   var m$18$0;
@@ -931,7 +931,7 @@ _run$0 = (function(ph$5$0, opts$3) {
                     ph$7$0 = Array.prototype.slice.call(m$18$0, 0);
                     t0$25 = ph$7$0;
                     t1$13 = t0$25.length;
-                    if ((($$23346$0 = (t1$13 === 2)) && (t0$25[0] === "dir"))) {
+                    if ((($$23185$0 = (t1$13 === 2)) && (t0$25[0] === "dir"))) {
                       d$1 = t0$25[1];
                       from$3 = path$0.join(file$4, d$1);
                       to$3 = path$0.join(out$1, d$1);
@@ -951,7 +951,7 @@ _run$0 = (function(ph$5$0, opts$3) {
                       }
                       return rval$3;
                     } else {
-                      if (($$23346$0 && (t0$25[0] === "file"))) {
+                      if (($$23185$0 && (t0$25[0] === "file"))) {
                         ph$8$0 = t0$25[1];
                         t0$26 = getProjector(RegExp("(?:^((?:.*))\\.eg$)", ""))(ph$8$0);
                         if ((t0$26[0] && ((results$2 = t0$26[1]), results$2))) {
@@ -995,7 +995,7 @@ _run$0 = (function(ph$5$0, opts$3) {
                 }
               }
             } else {
-              if ((($$23085$0 = (t1$9 === 2)) && (t0$16[0] === "tok"))) {
+              if ((($$22924$0 = (t1$9 === 2)) && (t0$16[0] === "tok"))) {
                 s$1 = t0$16[1];
                 acc$5 = [];
                 $targ$190 = null;
@@ -1017,7 +1017,7 @@ _run$0 = (function(ph$5$0, opts$3) {
                 }
                 return acc$5;
               } else {
-                if (($$23085$0 && (t0$16[0] === "pa"))) {
+                if (($$22924$0 && (t0$16[0] === "pa"))) {
                   s$2 = t0$16[1];
                   walkloc$0 = (function(temp$8$0) {
                     var t0$28;
@@ -1031,9 +1031,9 @@ _run$0 = (function(ph$5$0, opts$3) {
                     var t0$29;
                     var t1$15;
                     var x$2;
-                    var $$23521$0;
-                    var $$23522$0;
-                    var $$23523$0;
+                    var $$23360$0;
+                    var $$23361$0;
+                    var $$23362$0;
                     var node$0;
                     var ph$9$0;
                     t0$28 = temp$8$0;
@@ -1041,12 +1041,12 @@ _run$0 = (function(ph$5$0, opts$3) {
                     ph$9$0 = t0$28;
                     t0$29 = ph$9$0;
                     t1$15 = t0$29.length;
-                    if ((($$23523$0 = (t1$15 === 2)) && (t0$29[0] === "symbol"))) {
+                    if ((($$23362$0 = (t1$15 === 2)) && (t0$29[0] === "symbol"))) {
                       x$2 = t0$29[1];
                       __lt____gt__$0(null, node$0);
                       return __lt____gt__$0(null, (node$0.location && node$0.location.highlight()));
                     } else {
-                      if (($$23523$0 && (t0$29[0] === "value"))) {
+                      if (($$23362$0 && (t0$29[0] === "value"))) {
                         x$3 = t0$29[1];
                         __lt____gt__$0(null, node$0);
                         return __lt____gt__$0(null, (node$0.location && node$0.location.highlight()));

@@ -1,5 +1,6 @@
 
 require:
+   "../location" -> Source
    "./helpers" -> accum_flags
 
 inject: mac
@@ -14,10 +15,10 @@ class RegexBuilder:
       "(?:" + x + ")"
 
    quote{x} =
-      x.replace{R.g'{in ".?*+^$[](){}|\\\\"}, "\\$1"}
+      x.replace{R.g`{in ".?*+^$[](){}|\\\\"}`, "\\$1"}
 
    quote_charset{x} =
-      x.replace{R.g'{in "[](){}^"}, "\\$1"}
+      x.replace{R.g`{in "[](){}^"}`, "\\$1"}
 
    build{expr} =
       match expr:
@@ -90,6 +91,9 @@ accum_flagsf! mac{"R"}! regexp_mac{match, info, form, arg, flags} =
                match info.gettext{arg}:
                   R"^\".*\"$"? text -> text.substring{1, text.length - 1}
                   text -> text
-            'RegExp{^=text, ^=[flags.join{""}]}
+            `RegExp{^=text, ^=[flags.join{""}]}`
          #send{#symbol{"'"}, #data{#void{}, arg}} ->
-            'RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}
+            `RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}`
+         #send{#symbol{"`"}, #value{s}} ->
+            arg = info.go{Source{s, "<quasiquote>"}, .source, .parse}
+            `RegExp{^=build_regexp{arg}, ^=[flags.join{""}]}`

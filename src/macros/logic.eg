@@ -42,7 +42,7 @@ accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
       {value, body} = match expr:
          #data{Body! {*b}} -> {#value{null}, b}
          #data{v, Body! {*b}} -> {v, b}
-      '[let [^to_match = ^value]: ^mbody] where mbody =
+      `let [^to_match = ^value]: ^mbody` where mbody =
          parse_clauses with
             info, to_match, body
             opt & {
@@ -61,9 +61,9 @@ mac{"if"}! if_mac{ctx, _, form, match} =
    #data{test, a, b} ->
       #if{test, a, b}
    #data{test, #multi! #multi{*match}} ->
-      {'then{^a}} ->
+      {`then{^a}`} ->
          #if{test, a, #value{undefined}}
-      {'then{^a}, 'else{^b}} ->
+      {`then{^a}`, `else{^b}`} ->
          #if{test, a, b}
       body ->
          match ctx:
@@ -71,9 +71,9 @@ mac{"if"}! if_mac{ctx, _, form, match} =
                flatmacro{if_pattern} with
                   {#seq{#multiple{*elifs}, #multiple{*elses}}} ->
                      var rval = #value{undefined}
-                     elses each 'else{^body} ->
+                     elses each `else{^body}` ->
                         rval = body
-                     elifs.reverse{} each 'elif{^cond, ^body} ->
+                     elifs.reverse{} each `elif{^cond, ^body}` ->
                         rval = #if{cond, body, rval}
                      #if{test, #multi{*body}, rval}
             else ->
@@ -117,7 +117,7 @@ mac{"when"}! when_mac{context, _, form, #data{match, condition}} =
 mac{"?"}! check_mac{match context, info, form, #data{chk, target}} =
    do:
       checker = match info.step{#check{context}, chk}:
-         === chk -> 'getChecker{^chk}
+         === chk -> `getChecker{^chk}`
          checker -> checker
    #pattern ->
       subp = if{target == #void, #ignore, target}
@@ -129,12 +129,12 @@ mac{"?"}! check_mac{match context, info, form, #data{chk, target}} =
    when target == #void ->
       checker
    other ->
-      '[^checker]{^target}
+      `[^checker]{^target}`
 
 mac{"!"}! project_mac{match context, info, form, #data{proj, target}} =
    do:
       projector = match info.step{#project{context}, proj}:
-         === proj -> 'getProjector{^proj}
+         === proj -> `getProjector{^proj}`
          projector -> projector
    #pattern ->
       subp = if{target == #void, #ignore, target}
@@ -146,6 +146,6 @@ mac{"!"}! project_mac{match context, info, form, #data{proj, target}} =
          else ->
             #project{projector, subp}
    when target == #void ->
-      '[{x} -> [^projector]{x}[1]]
+      `{x} -> [^projector]{x}[1]`
    other ->
-      '[^projector]{^target}[1]
+      `[^projector]{^target}[1]`

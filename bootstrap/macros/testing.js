@@ -67,27 +67,27 @@ $targ$4 = (function(mac$0) {
         var t0$0;
         var i$0;
         var stmt$0;
-        var $$15720$0;
-        var $$15721$0;
-        var $$15722$0;
-        var $$15723$0;
+        var $$15555$0;
+        var $$15556$0;
+        var $$15557$0;
+        var $$15558$0;
         var t2$0;
         var t3$0;
         t0$0 = m$0;
-        if ((($$15721$0 = (t0$0 instanceof Array)) && ((t1$0 = t0$0.length), (($$15723$0 = (t1$0 === 2)) && ((i$0 = t0$0[0]), ($targ$17 = t0$0[1]), (t2$0 = $targ$17), ((t2$0 instanceof Array) && (($targ$18 = t2$0.length), (t3$0 = $targ$18), ((t3$0 === 2) && (t2$0[0] === "do"))))))))) {
+        if ((($$15556$0 = (t0$0 instanceof Array)) && ((t1$0 = t0$0.length), (($$15558$0 = (t1$0 === 2)) && ((i$0 = t0$0[0]), ($targ$17 = t0$0[1]), (t2$0 = $targ$17), ((t2$0 instanceof Array) && (($targ$18 = t2$0.length), (t3$0 = $targ$18), ((t3$0 === 2) && (t2$0[0] === "do"))))))))) {
           stmt$0 = t2$0[1];
           $targ$19 = stmt$0;
           temp$0 = $targ$19;
           acc$0.push(temp$0);
         } else {
-          if (($$15723$0 && ((i$1 = t0$0[0]), ($targ$20 = t0$0[1]), (t2$0 = $targ$20), ((t2$0 instanceof Array) && (($targ$21 = t2$0.length), (t3$0 = $targ$21), ((t3$0 === 3) && (t2$0[0] === "blocktest"))))))) {
+          if (($$15558$0 && ((i$1 = t0$0[0]), ($targ$20 = t0$0[1]), (t2$0 = $targ$20), ((t2$0 instanceof Array) && (($targ$21 = t2$0.length), (t3$0 = $targ$21), ((t3$0 === 3) && (t2$0[0] === "blocktest"))))))) {
             more_labels$0 = t2$0[1];
             more_tests$0 = t2$0[2];
             $targ$22 = ["send", ["symbol", "let"], ["data", ["send", ["symbol", "="], ["data", ["symbol", "label"], ["send", ["send", ["symbol", "label"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "concat"]]]], ["data", ["send", ["symbol", "!"], ["data", ["symbol", "Array"], more_labels$0]]]]]], ["send", ["symbol", "="], ["data", ["send", ["symbol", "set"], ["symbol", "acc"]], ["send", ["send", ["symbol", "acc"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "concat"]]]], ["data", _blocktest_mac$0(info$0, more_tests$0)]]]]]];
             temp$0 = $targ$22;
             acc$0.push(temp$0);
           } else {
-            if (($$15723$0 && ((i$2 = t0$0[0]), ($targ$23 = t0$0[1]), (t2$0 = $targ$23), ((t2$0 instanceof Array) && (($targ$24 = t2$0.length), (t3$0 = $targ$24), ((t3$0 === 3) && ((t2$0[0] === "test_factory") && ((elements$0 = t2$0[1]), (clauses$0 = t2$0[2]), ___hasprop(t2$0, "env"))))))))) {
+            if (($$15558$0 && ((i$2 = t0$0[0]), ($targ$23 = t0$0[1]), (t2$0 = $targ$23), ((t2$0 instanceof Array) && (($targ$24 = t2$0.length), (t3$0 = $targ$24), ((t3$0 === 3) && ((t2$0[0] === "test_factory") && ((elements$0 = t2$0[1]), (clauses$0 = t2$0[2]), ___hasprop(t2$0, "env"))))))))) {
               env$0 = t2$0.env;
               wrap$0 = (function(expr$1, index$0) {
                 return ["send", ["symbol", "let"], ["data", ["send", ["symbol", "="], ["data", ["symbol", "label"], ["send", ["send", ["symbol", "label"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "concat"]]]], ["data", ["data", index$0]]]]], blocktest_wrap$0(expr$1)]];
@@ -99,7 +99,7 @@ $targ$4 = (function(mac$0) {
               temp$0 = $targ$25;
               acc$0.push(temp$0);
             } else {
-              if ($$15723$0) {
+              if ($$15558$0) {
                 i$3 = t0$0[0];
                 expr$2 = t0$0[1];
                 if ((n$0 === 1)) {
@@ -135,8 +135,8 @@ $targ$4 = (function(mac$0) {
     var t0$2;
     var t1$2;
     var tests$1;
-    var $$15849$0;
-    var $$15850$0;
+    var $$15684$0;
+    var $$15685$0;
     var t2$1;
     var t3$1;
     var t4$0;

@@ -113,8 +113,8 @@ $targ$11 = (function(mac$0) {
     var v$0;
     var b$1;
     var b$0;
-    var $$10025$0;
-    var $$10026$0;
+    var $$9988$0;
+    var $$9989$0;
     var t1$0;
     var t2$0;
     var t3$0;
@@ -143,11 +143,11 @@ $targ$11 = (function(mac$0) {
       opt$1 = util$0.mkset(flags$0);
       to_match$0 = __amp__(["symbol", info$2.gensym("m")], ({"single_assignment": true}));
       m$1$0 = expr$1;
-      if ((($$10025$0 = (m$1$0 instanceof Array)) && ((t0$1 = m$1$0.length), ((t0$1 === 2) && ((m$1$0[0] === "data") && (($targ$43 = getProjector(Body$0)(m$1$0[1])), (t1$0 = $targ$43), (t1$0[0] && (($targ$44 = t1$0[1]), (t2$0 = $targ$44), ($targ$45 = t2$0.length), (t3$0 = $targ$45), (t3$0 >= 0))))))))) {
+      if ((($$9988$0 = (m$1$0 instanceof Array)) && ((t0$1 = m$1$0.length), ((t0$1 === 2) && ((m$1$0[0] === "data") && (($targ$43 = getProjector(Body$0)(m$1$0[1])), (t1$0 = $targ$43), (t1$0[0] && (($targ$44 = t1$0[1]), (t2$0 = $targ$44), ($targ$45 = t2$0.length), (t3$0 = $targ$45), (t3$0 >= 0))))))))) {
         b$0 = Array.prototype.slice.call(t2$0, 0);
         $targ$40 = [["value", null], b$0];
       } else {
-        if (($$10025$0 && ((t0$1 === 3) && ((m$1$0[0] === "data") && ((v$0 = m$1$0[1]), ($targ$46 = getProjector(Body$0)(m$1$0[2])), (t1$0 = $targ$46), (t1$0[0] && (($targ$47 = t1$0[1]), (t2$0 = $targ$47), ($targ$48 = t2$0.length), (t3$0 = $targ$48), (t3$0 >= 0)))))))) {
+        if (($$9988$0 && ((t0$1 === 3) && ((m$1$0[0] === "data") && ((v$0 = m$1$0[1]), ($targ$46 = getProjector(Body$0)(m$1$0[2])), (t1$0 = $targ$46), (t1$0[0] && (($targ$47 = t1$0[1]), (t2$0 = $targ$47), ($targ$48 = t2$0.length), (t3$0 = $targ$48), (t3$0 >= 0)))))))) {
           b$1 = Array.prototype.slice.call(t2$0, 0);
           $targ$40 = [v$0, b$1];
         } else {
@@ -207,8 +207,8 @@ $targ$11 = (function(mac$0) {
     var t0$5;
     var t1$4;
     var a$1;
-    var $$10134$0;
-    var $$10135$0;
+    var $$10097$0;
+    var $$10098$0;
     var t2$2;
     var t3$2;
     var t4$1;
@@ -222,8 +222,8 @@ $targ$11 = (function(mac$0) {
     var test$0;
     var a$0;
     var b$2;
-    var $$10136$0;
-    var $$10137$0;
+    var $$10099$0;
+    var $$10100$0;
     t0$4 = ph$1$0;
     t1$3 = t0$4.length;
     if (((t1$3 === 4) && (t0$4[0] === "data"))) {
@@ -286,7 +286,7 @@ $targ$11 = (function(mac$0) {
                       rval$0 = $targ$97;
                       rval$0;
                     } else {
-                      ___match_error(m$3, "/home/olivier/git/earl-grey/src/macros/logic.eg", 2003, 2087);
+                      ___match_error(m$3, "/home/olivier/git/earl-grey/src/macros/logic.eg", 2005, 2090);
                     }
                   }
                 }
@@ -312,7 +312,7 @@ $targ$11 = (function(mac$0) {
                       rval$0 = $targ$104;
                       rval$0;
                     } else {
-                      ___match_error(m$4, "/home/olivier/git/earl-grey/src/macros/logic.eg", 2087, 2205);
+                      ___match_error(m$4, "/home/olivier/git/earl-grey/src/macros/logic.eg", 2090, 2209);
                     }
                   }
                 }
@@ -359,7 +359,7 @@ $targ$11 = (function(mac$0) {
     var x$3;
     var x$4;
     var other$2;
-    var bridge$$10485$0;
+    var bridge$$10448$0;
     var rhs$0;
     var arg$0;
     t0$12 = temp$5$0;
@@ -369,8 +369,8 @@ $targ$11 = (function(mac$0) {
     } else {
       ___match_error(temp$5$0);
     }
-    bridge$$10485$0 = ph$4$0;
-    if ((((x$2 = bridge$$10485$0), ((x$2 instanceof Array) && (x$2[0] === "check"))) || ((x$3 = bridge$$10485$0), ((x$3 instanceof Array) && (x$3[0] === "project"))))) {
+    bridge$$10448$0 = ph$4$0;
+    if ((((x$2 = bridge$$10448$0), ((x$2 instanceof Array) && (x$2[0] === "check"))) || ((x$3 = bridge$$10448$0), ((x$3 instanceof Array) && (x$3[0] === "project"))))) {
       return ["nostep", form$3];
     } else {
       if (((x$4 = ph$4$0), ((x$4 instanceof Array) && (x$4[0] === "pattern")))) {
@@ -394,7 +394,7 @@ $targ$11 = (function(mac$0) {
     var x$6;
     var x$7;
     var other$3;
-    var bridge$$10555$0;
+    var bridge$$10518$0;
     var lhs$0;
     var rhs$1;
     var arg$1;
@@ -406,8 +406,8 @@ $targ$11 = (function(mac$0) {
     } else {
       ___match_error(temp$7$0);
     }
-    bridge$$10555$0 = ph$5$0;
-    if ((((x$5 = bridge$$10555$0), ((x$5 instanceof Array) && (x$5[0] === "check"))) || ((x$6 = bridge$$10555$0), ((x$6 instanceof Array) && (x$6[0] === "project"))))) {
+    bridge$$10518$0 = ph$5$0;
+    if ((((x$5 = bridge$$10518$0), ((x$5 instanceof Array) && (x$5[0] === "check"))) || ((x$6 = bridge$$10518$0), ((x$6 instanceof Array) && (x$6[0] === "project"))))) {
       return ["nostep", form$4];
     } else {
       if (((x$7 = ph$5$0), ((x$7 instanceof Array) && (x$7[0] === "pattern")))) {
@@ -431,7 +431,7 @@ $targ$11 = (function(mac$0) {
     var x$9;
     var x$10;
     var other$4;
-    var bridge$$10615$0;
+    var bridge$$10578$0;
     var lhs$1;
     var rhs$2;
     var arg$2;
@@ -443,8 +443,8 @@ $targ$11 = (function(mac$0) {
     } else {
       ___match_error(temp$9$0);
     }
-    bridge$$10615$0 = ph$6$0;
-    if ((((x$8 = bridge$$10615$0), ((x$8 instanceof Array) && (x$8[0] === "check"))) || ((x$9 = bridge$$10615$0), ((x$9 instanceof Array) && (x$9[0] === "project"))))) {
+    bridge$$10578$0 = ph$6$0;
+    if ((((x$8 = bridge$$10578$0), ((x$8 instanceof Array) && (x$8[0] === "check"))) || ((x$9 = bridge$$10578$0), ((x$9 instanceof Array) && (x$9[0] === "project"))))) {
       return ["nostep", form$5];
     } else {
       if (((x$10 = ph$6$0), ((x$10 instanceof Array) && (x$10[0] === "pattern")))) {
@@ -563,9 +563,9 @@ $targ$11 = (function(mac$0) {
     var t0$27;
     var projector$4;
     var projector$3;
-    var $$10869$0;
-    var $$10870$0;
-    var $$10871$0;
+    var $$10832$0;
+    var $$10833$0;
+    var $$10834$0;
     var m$8$0;
     var subp$1;
     var other$7;
@@ -598,11 +598,11 @@ $targ$11 = (function(mac$0) {
         subp$1 = target$2;
       }
       m$8$0 = projector$1;
-      if ((($$10869$0 = (m$8$0 instanceof Array)) && ((t0$27 = m$8$0.length), (($$10871$0 = (t0$27 === 2)) && (m$8$0[0] === "raw"))))) {
+      if ((($$10832$0 = (m$8$0 instanceof Array)) && ((t0$27 = m$8$0.length), (($$10834$0 = (t0$27 === 2)) && (m$8$0[0] === "raw"))))) {
         projector$3 = m$8$0[1];
         return projector$3;
       } else {
-        if (($$10871$0 && (m$8$0[0] === "unconditional"))) {
+        if (($$10834$0 && (m$8$0[0] === "unconditional"))) {
           projector$4 = m$8$0[1];
           return ["project", projector$4, subp$1, true];
         } else {

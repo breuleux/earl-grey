@@ -21,8 +21,8 @@ wrap_macro{info, mac} =
    #macro{mac2}
 
 wrap_macro_func{info, args, body} =
-   it = info.env.mark{'[@]}
-   '_lambda{^args, ^it = this, ^body, ^=null}
+   it = info.env.mark{`@`}
+   `_lambda{^args, ^it = this, ^body, ^=null}`
 
 
 mac{"macro"}! macro_mac{context, info, form, match} =
@@ -45,5 +45,5 @@ mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
 
 mac{"oldmacro"}! oldmacro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, arguments}, ast} ->
-      let mac = info.go{'[^arguments -> ^ast], .parse, .eval}
+      let mac = info.go{`^arguments -> ^ast`, .parse, .eval}
       #declare_raw{name, wrap_macro{info, mac}}

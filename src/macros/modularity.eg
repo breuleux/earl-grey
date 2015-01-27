@@ -14,7 +14,7 @@ mac{"require"}! require_mac{context, info, form, match} =
       stmts = {}
 
       topfetch{pkg, v} =
-         stmts.push with '[^v = [^req]{^pkg}]
+         stmts.push with `^v = [^req]{^pkg}`
          v
 
       produce{match expr, fetch} =
@@ -39,7 +39,7 @@ mac{"require"}! require_mac{context, info, form, match} =
          #send{#symbol{"->"}, #data{pkg, subp}} ->
             pkgv = produce{pkg, fetch}
             produce{subp} with {pkg, v} ->
-                stmts.push with '[^v = ^pkgv ^pkg]
+                stmts.push with `^v = ^pkgv ^pkg`
                 v
 
       produce{expr, topfetch}
@@ -52,28 +52,28 @@ mac{"require"}! require_mac{context, info, form, match} =
       #send{#variable{.require}, arg}
 
 mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
-   exp = form.env.mark{'exports}
+   exp = form.env.mark{`exports`}
    #sink with
       #multi ++
          expr each
             s and #symbol{name} ->
-               '[[^exp][^=name] = ^s]
-            '[^s as ^[#symbol{name} or #value{name}]] ->
-               '[[^exp][^=name] = ^s]
+               `[^exp][^=name] = ^s`
+            `^s as ^[#symbol{name} or #value{name}]` ->
+               `[^exp][^=name] = ^s`
             other ->
                throw E.syntax.provide with
                   "Each clause of provide must be 'sym' or 'sym as name'"
 
 mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
    #restmacro with {stmts} ->
-      exp = form.env.mark{'exports}
-      {'[
+      exp = form.env.mark{`exports`}
+      {```
           globals: module
           module.exports{^*expr} =
              var ^exp = {=}
              ^[#multi{*stmts}]
              ^exp
-       ]}
+       ```}
 
 mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
    #splice{*[...]} with

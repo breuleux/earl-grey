@@ -73,8 +73,8 @@ class OperatorGroups:
 
 
 parse_op_description{match} =
-   do: rx = R'[start, {?"X"}, {? in " _"}, {* not in " _Y"}
-               {? in " _"}, {? "Y"}, end]
+   do: rx = R`[start, {?"X"}, {? in " _"}, {* not in " _Y"}
+               {? in " _"}, {? "Y"}, end]`
    Function? f -> f
    rx! {_, x, w1, op, w2, y} ->
       {fixity, short} =

@@ -1,46 +1,47 @@
 "use strict";
 require("earlgrey-runtime");
-var $targ$139;
-var accum$1;
-var $targ$140;
-var accum$2;
-var $targ$141;
-var accum$3;
 var $targ$142;
+var accum$1;
+var $targ$143;
+var accum$2;
+var $targ$144;
+var accum$3;
+var $targ$145;
 var accum$4;
-var $targ$150;
-var accum$5;
-var $targ$151;
-var accum$6;
-var $targ$152;
-var accum$7;
 var $targ$153;
+var accum$5;
+var $targ$154;
+var accum$6;
+var $targ$155;
+var accum$7;
+var $targ$156;
 var accum$8;
-var $targ$197;
-var accum$9;
-var $targ$198;
-var accum$10;
-var $targ$199;
 var $targ$200;
+var accum$9;
 var $targ$201;
-var $targ$202;
-var $targ$203;
-var $targ$204;
-var $targ$205;
-var $targ$206;
-var $targ$207;
-var $targ$208;
-var $targ$209;
-var $targ$210;
-var $targ$211;
-var $targ$212;
-var $targ$213;
-var $targ$214;
-var $targ$215;
-var $targ$216;
-var $targ$217;
-var $targ$218;
-var $targ$219;
+var accum$10;
+var $targ$228;
+var $targ$229;
+var $targ$230;
+var $targ$231;
+var $targ$232;
+var $targ$233;
+var $targ$234;
+var $targ$235;
+var $targ$236;
+var $targ$237;
+var $targ$238;
+var $targ$239;
+var $targ$240;
+var $targ$241;
+var $targ$242;
+var $targ$243;
+var $targ$244;
+var $targ$245;
+var $targ$246;
+var $targ$247;
+var $targ$248;
+var $targ$249;
 var $0$0;
 var __lt____lt____colon__$0;
 var $1$0;
@@ -74,6 +75,8 @@ var flatmacro$0;
 var AssignmentHandler$0;
 var $targ$30;
 var $targ$31;
+var qqstruct$0;
+var qq$0;
 $0$0 = require("../location");
 __lt____lt____colon__$0 = $0$0["<<:"];
 $1$0 = require("../expand");
@@ -128,14 +131,14 @@ match_error$0 = (function(temp$0$0) {
 });
 drop_ctx$0 = (function(f$0) {
   return (function(context$0, info$0, form$0, arg$0) {
-    var $targ$41;
-    var $targ$40;
+    var $targ$43;
+    var $targ$42;
     var rval$0;
-    $targ$40 = false;
-    rval$0 = $targ$40;
+    $targ$42 = false;
+    rval$0 = $targ$42;
     try {
-      $targ$41 = f$0(context$0, info$0, form$0, arg$0);
-      rval$0 = $targ$41;
+      $targ$43 = f$0(context$0, info$0, form$0, arg$0);
+      rval$0 = $targ$43;
       rval$0;
     } catch (excv$0) {
       var t0$4;
@@ -143,19 +146,19 @@ drop_ctx$0 = (function(f$0) {
       var t3$0;
       var t2$2;
       var t1$2;
-      var $targ$48;
-      var $targ$49;
+      var $targ$50;
+      var $targ$51;
       var e$0;
       var t0$3;
       t0$3 = excv$0;
       if ((getChecker(ErrorFactory(["match"]))(t0$3) && (___hasprop(t0$3, "args") && ((t1$2 = t0$3.args), ((t1$2 instanceof Array) && ((t2$2 = t1$2.length), ((t2$2 === 1) && ((t3$0 = t1$2[0]), (___hasprop(t3$0, "value") && ((t4$0 = t3$0.value), ((t4$0 === context$0) && (!((t4$0 instanceof Array) && ((t0$4 = t4$0.length), ((t0$4 === 2) && ((t4$0[0] === "expr") && (t4$0[1] === "expr"))))))))))))))))) {
-        $targ$48 = ["nostep", form$0];
-        rval$0 = $targ$48;
+        $targ$50 = ["nostep", form$0];
+        rval$0 = $targ$50;
         rval$0;
       } else {
         e$0 = excv$0;
         throw e$0;
-        rval$0 = $targ$49;
+        rval$0 = $targ$51;
         rval$0;
       }
     }
@@ -167,9 +170,9 @@ expr_mac$0 = (function(f$1) {
     var t0$5;
     var t0$6;
     var otherwise$0;
-    var bridge$$8454$0;
-    bridge$$8454$0 = ph$2$0;
-    if ((((bridge$$8454$0 instanceof Array) && ((t0$5 = bridge$$8454$0.length), ((t0$5 === 2) && ((bridge$$8454$0[0] === "expr") && (bridge$$8454$0[1] === "expr"))))) || ((bridge$$8454$0 instanceof Array) && ((t0$6 = bridge$$8454$0.length), ((t0$6 === 2) && ((bridge$$8454$0[0] === "expr") && (bridge$$8454$0[1] === "head"))))))) {
+    var bridge$$8187$0;
+    bridge$$8187$0 = ph$2$0;
+    if ((((bridge$$8187$0 instanceof Array) && ((t0$5 = bridge$$8187$0.length), ((t0$5 === 2) && ((bridge$$8187$0[0] === "expr") && (bridge$$8187$0[1] === "expr"))))) || ((bridge$$8187$0 instanceof Array) && ((t0$6 = bridge$$8187$0.length), ((t0$6 === 2) && ((bridge$$8187$0[0] === "expr") && (bridge$$8187$0[1] === "head"))))))) {
       return f$1(info$1, form$1, arg$1);
     } else {
       otherwise$0 = ph$2$0;
@@ -181,6 +184,7 @@ expr_mac2$0 = (function(mac$0) {
   return (function(ph$3$0, info$2, f$2, e$1) {
     var x$0;
     var mac3$0;
+    var f$4;
     var x$3;
     var t0$7;
     var t1$3;
@@ -218,7 +222,10 @@ expr_mac2$0 = (function(mac$0) {
         });
         return ["unconditional", ["macro", mac3$0]];
       } else {
-        return mac$0.call(info$2, e$1);
+        f$4 = (function(_ctx$0, _info$0, _form$0, _e$0) {
+          return ["data", ["value", true], mac$0.call(_info$0, _e$0)];
+        });
+        return ["nostep", ["macro", f$4]];
       }
     } else {
       if (((x$3 = ph$3$0), ((x$3 instanceof Array) && (x$3[0] === "expr")))) {
@@ -230,7 +237,7 @@ expr_mac2$0 = (function(mac$0) {
   });
 });
 ctx_mac$0 = (function(mac$1) {
-  return (function(ctx$0, info$4, f$4, e$2) {
+  return (function(ctx$0, info$4, f$5, e$2) {
     return mac$1.call(info$4, ctx$0, e$2);
   });
 });
@@ -319,7 +326,7 @@ value_mac$0 = (function() {
     return ___match_error(m$0$0);
   }
 });
-overridable$0 = (function(f$5) {
+overridable$0 = (function(f$6) {
   return (function(temp$4$0, info$5, form$3, arg$3) {
     var t0$14;
     var x$10;
@@ -340,7 +347,7 @@ overridable$0 = (function(f$5) {
         return ["nostep", form$3];
       } else {
         other$2 = ph$7$0;
-        return f$5(context$1, info$5, form$3, arg$3);
+        return f$6(context$1, info$5, form$3, arg$3);
       }
     }
   });
@@ -378,11 +385,11 @@ var_operator$0 = (function(name$3) {
     var t0$19;
     var s$0;
     var ph$10$0;
-    var $$8866$0;
-    var $$8867$0;
+    var $$8607$0;
+    var $$8608$0;
     var m$7$0;
     var sym$0;
-    var bridge$$8827$0;
+    var bridge$$8568$0;
     var env$1;
     t0$17 = temp$6$0;
     if (___hasprop(t0$17, "env")) {
@@ -390,16 +397,16 @@ var_operator$0 = (function(name$3) {
     } else {
       ___match_error(temp$6$0);
     }
-    bridge$$8827$0 = ph$9$0;
-    if ((((x$12 = bridge$$8827$0), ((x$12 instanceof Array) && (x$12[0] === "check"))) || ((x$13 = bridge$$8827$0), ((x$13 instanceof Array) && (x$13[0] === "project"))))) {
+    bridge$$8568$0 = ph$9$0;
+    if ((((x$12 = bridge$$8568$0), ((x$12 instanceof Array) && (x$12[0] === "check"))) || ((x$13 = bridge$$8568$0), ((x$13 instanceof Array) && (x$13[0] === "project"))))) {
       return ["nostep", form$5];
     } else {
       sym$0 = __amp__(["symbol", name$3], ({"env": env$1}));
       m$7$0 = expr$0;
-      if ((($$8866$0 = (m$7$0 instanceof Array)) && ((t0$18 = m$7$0.length), ((t0$18 === 1) && (m$7$0[0] === "void"))))) {
+      if ((($$8607$0 = (m$7$0 instanceof Array)) && ((t0$18 = m$7$0.length), ((t0$18 === 1) && (m$7$0[0] === "void"))))) {
         return sym$0;
       } else {
-        if (($$8866$0 && ((t0$18 === 3) && ((m$7$0[0] === "data") && ((x$14 = m$7$0[1]), ((x$14 instanceof Array) && (x$14[0] === "void"))))))) {
+        if (($$8607$0 && ((t0$18 === 3) && ((m$7$0[0] === "data") && ((x$14 = m$7$0[1]), ((x$14 instanceof Array) && (x$14[0] === "void"))))))) {
           ph$10$0 = m$7$0[2];
           t0$19 = ph$10$0;
           if (((t0$19 instanceof Array) && ((t1$9 = t0$19.length), ((t1$9 === 2) && (t0$19[0] === "symbol"))))) {
@@ -433,7 +440,7 @@ accum_flags$0 = (function() {
     }
     make$0 = (function(flags$0) {
       return (function(context$2, info$6, form$6, ph$11$0) {
-        var $targ$100;
+        var $targ$103;
         var t9$0;
         var t8$0;
         var t7$0;
@@ -443,18 +450,18 @@ accum_flags$0 = (function() {
         var t3$1;
         var t2$5;
         var other$6;
-        var $targ$101;
+        var $targ$104;
         var flag$1;
         var t0$21;
         var flag$0;
-        var $$8941$0;
+        var $$8682$0;
         var t1$10;
         t0$21 = ph$11$0;
-        if (((t0$21 instanceof Array) && (($targ$100 = t0$21.length), (t1$10 = $targ$100), ((t1$10 === 2) && ((t0$21[0] === "value") && ((flag$0 = t0$21[1]), also_values$0)))))) {
+        if (((t0$21 instanceof Array) && (($targ$103 = t0$21.length), (t1$10 = $targ$103), ((t1$10 === 2) && ((t0$21[0] === "value") && ((flag$0 = t0$21[1]), also_values$0)))))) {
           return ["macro", make$0(flags$0.concat([flag$0]))];
         } else {
-          $targ$101 = t0$21.length;
-          t1$10 = $targ$101;
+          $targ$104 = t0$21.length;
+          t1$10 = $targ$104;
           if (((t1$10 === 3) && ((t0$21[0] === "send") && ((t2$5 = t0$21[1]), ((t2$5 instanceof Array) && ((t3$1 = t2$5.length), ((t3$1 === 2) && ((t2$5[0] === "symbol") && ((t2$5[1] === ".") && ((t4$1 = t0$21[2]), ((t4$1 instanceof Array) && ((t5$0 = t4$1.length), ((t5$0 === 3) && ((t4$1[0] === "data") && ((t6$0 = t4$1[1]), ((t6$0 instanceof Array) && ((t7$0 = t6$0.length), ((t7$0 === 1) && ((t6$0[0] === "void") && ((t8$0 = t4$1[2]), ((t8$0 instanceof Array) && ((t9$0 = t8$0.length), ((t9$0 === 2) && (t8$0[0] === "symbol")))))))))))))))))))))))) {
             flag$1 = t8$0[1];
             return ["macro", make$0(flags$0.concat([flag$1]))];
@@ -473,15 +480,15 @@ accum_flags$0 = (function() {
 build_loop$0 = (function(info$7, env$2, form$7, li$0, clauses$0, wrap$0, pre$0, post$0, opt$0) {
   var t0$22;
   var t0$23;
-  var $targ$122;
+  var $targ$125;
   var accum$0;
   var lbl$0;
   var freshenv$0;
   var i$0;
   var len$0;
-  var $targ$114;
+  var $targ$117;
   var first_mac$0;
-  var $targ$115;
+  var $targ$118;
   var last_mac$0;
   var newscope$0;
   var m$9;
@@ -493,31 +500,31 @@ build_loop$0 = (function(info$7, env$2, form$7, li$0, clauses$0, wrap$0, pre$0, 
   freshenv$0 = info$7.expander.mkenv();
   i$0 = __amp__(["symbol", "i"], ({"env": freshenv$0}));
   len$0 = __amp__(["symbol", "len"], ({"env": freshenv$0}));
-  $targ$114 = (function(temp$7$0, temp$8$0, form$8, subp$0) {
+  $targ$117 = (function(temp$7$0, temp$8$0, form$8, subp$0) {
     var x$15;
     if (((x$15 = temp$7$0), ((x$15 instanceof Array) && (x$15[0] === "pattern")))) {} else {
       ___match_error(temp$7$0);
     }
     return ["test", ["send", ["symbol", "==="], ["data", i$0, ["value", 0]]], subp$0];
   });
-  t0$22 = getProjector(drop_ctx$0)($targ$114);
+  t0$22 = getProjector(drop_ctx$0)($targ$117);
   if (t0$22[0]) {
     first_mac$0 = t0$22[1];
   } else {
-    ___match_error($targ$114);
+    ___match_error($targ$117);
   }
-  $targ$115 = (function(temp$9$0, temp$10$0, form$9, subp$1) {
+  $targ$118 = (function(temp$9$0, temp$10$0, form$9, subp$1) {
     var x$16;
     if (((x$16 = temp$9$0), ((x$16 instanceof Array) && (x$16[0] === "pattern")))) {} else {
       ___match_error(temp$9$0);
     }
     return ["test", ["send", ["symbol", "==="], ["data", i$0, ["send", ["symbol", "-"], ["data", len$0, ["value", 1]]]]], subp$1];
   });
-  t0$23 = getProjector(drop_ctx$0)($targ$115);
+  t0$23 = getProjector(drop_ctx$0)($targ$118);
   if (t0$23[0]) {
     last_mac$0 = t0$23[1];
   } else {
-    ___match_error($targ$115);
+    ___match_error($targ$118);
   }
   newscope$0 = Scope$0(info$7.scope);
   env$2.bind(newscope$0, "first", ["macro", first_mac$0]);
@@ -526,9 +533,9 @@ build_loop$0 = (function(info$7, env$2, form$7, li$0, clauses$0, wrap$0, pre$0, 
   if (opt$0.forof) {
     return ["multi", pre$0, ["send", ["send", ["symbol", "for"], lbl$0], ["data", ["send", ["symbol", "of"], ["data", m$9, li$0]], parse_clauses$0(info$7.with_scope(newscope$0), m$9, clauses$0, __amp__(opt$0, ({"wrap": wrap$0})))]], post$0];
   } else {
-    return ["multi", pre$0, ["send", ["symbol", "let"], ["data", ["multi", ["send", ["symbol", "="], ["data", ["symbol", "temp"], li$0]], ["send", ["symbol", "="], ["data", len$0, ["send", ["symbol", "temp"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "length"]]]]]]], ["send", ["send", ["symbol", "for"], lbl$0], ["data", ["multi", ["send", ["symbol", "="], ["data", ["send", ["symbol", "var"], i$0], ["value", 0]]], ["send", ["symbol", "<"], ["data", i$0, len$0]], ["send", ["symbol", "++"], ["data", i$0, ["void"]]]], ["multi", ["send", ["symbol", "="], ["data", m$9, ["send", ["symbol", "___js_fetch"], ["data", ["symbol", "temp"], i$0]]]], parse_clauses$0(info$7.with_scope(newscope$0), m$9, clauses$0, __amp__(opt$0, (($targ$122 = (function(x$17) {
+    return ["multi", pre$0, ["send", ["symbol", "let"], ["data", ["multi", ["send", ["symbol", "="], ["data", ["symbol", "temp"], li$0]], ["send", ["symbol", "="], ["data", len$0, ["send", ["symbol", "temp"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "length"]]]]]]], ["send", ["send", ["symbol", "for"], lbl$0], ["data", ["multi", ["send", ["symbol", "="], ["data", ["send", ["symbol", "var"], i$0], ["value", 0]]], ["send", ["symbol", "<"], ["data", i$0, len$0]], ["send", ["symbol", "++"], ["data", i$0, ["void"]]]], ["multi", ["send", ["symbol", "="], ["data", m$9, ["send", ["symbol", "___js_fetch"], ["data", ["symbol", "temp"], i$0]]]], parse_clauses$0(info$7.with_scope(newscope$0), m$9, clauses$0, __amp__(opt$0, (($targ$125 = (function(x$17) {
       return wrap$0(x$17, i$0);
-    })), (accum$0 = ({})), (accum$0["wrap"] = $targ$122), accum$0)))]]]]], post$0];
+    })), (accum$0 = ({})), (accum$0["wrap"] = $targ$125), accum$0)))]]]]], post$0];
   }
 });
 partial_pattern$0 = (function(operator$0) {
@@ -547,24 +554,24 @@ partial_pattern$0 = (function(operator$0) {
   }
   return (function(context$3, temp$11$0, form$10, expr$1) {
     var x$19;
-    var $targ$130;
-    var $targ$129;
+    var $targ$133;
+    var $targ$132;
     var t0$24;
     var subp2$0;
     var m$12;
-    var $targ$134;
-    var $targ$133;
+    var $targ$137;
+    var $targ$136;
     var other$7;
     var subp$2;
     var val$0;
-    var $$9139$0;
-    var $$9140$0;
-    var $$9141$0;
+    var $$8880$0;
+    var $$8881$0;
+    var $$8882$0;
     var t1$11;
     var t2$6;
     var m$11$0;
     m$11$0 = [context$3, expr$1];
-    if ((($$9139$0 = (m$11$0 instanceof Array)) && ((t0$24 = m$11$0.length), (($$9141$0 = (t0$24 === 2)) && (((x$19 = m$11$0[0]), ((x$19 instanceof Array) && (x$19[0] === "pattern"))) && (($targ$129 = m$11$0[1]), (t1$11 = $targ$129), ((t1$11 instanceof Array) && (($targ$130 = t1$11.length), (t2$6 = $targ$130), ((t2$6 === 3) && (t1$11[0] === "data")))))))))) {
+    if ((($$8880$0 = (m$11$0 instanceof Array)) && ((t0$24 = m$11$0.length), (($$8882$0 = (t0$24 === 2)) && (((x$19 = m$11$0[0]), ((x$19 instanceof Array) && (x$19[0] === "pattern"))) && (($targ$132 = m$11$0[1]), (t1$11 = $targ$132), ((t1$11 instanceof Array) && (($targ$133 = t1$11.length), (t2$6 = $targ$133), ((t2$6 === 3) && (t1$11[0] === "data")))))))))) {
       subp$2 = t1$11[1];
       val$0 = t1$11[2];
       if (equal(subp$2, ["void"])) {
@@ -577,7 +584,7 @@ partial_pattern$0 = (function(operator$0) {
       }));
       return ["check", m$12, subp2$0];
     } else {
-      if (($$9141$0 && (m$11$0[0], ($targ$133 = m$11$0[1]), (t1$11 = $targ$133), ((t1$11 instanceof Array) && (($targ$134 = t1$11.length), (t2$6 = $targ$134), ((t2$6 === 1) && (t1$11[0] === "void"))))))) {
+      if (($$8882$0 && (m$11$0[0], ($targ$136 = m$11$0[1]), (t1$11 = $targ$136), ((t1$11 instanceof Array) && (($targ$137 = t1$11.length), (t2$6 = $targ$137), ((t2$6 === 1) && (t1$11[0] === "void"))))))) {
         return op$0;
       } else {
         other$7 = m$11$0;
@@ -621,7 +628,7 @@ pattern_handlers$0 = ({
     "allow_nested": true,
     "allow_arguments": true,
     "special": disregard_specials$0
-  }), __amp____colon__((($targ$139 = (function(temp$15$0, value$2) {
+  }), __amp____colon__((($targ$142 = (function(temp$15$0, value$2) {
     var t0$27;
     var v$1;
     var t0$28;
@@ -641,83 +648,83 @@ pattern_handlers$0 = ({
       v$1 = ph$12$0;
       return ["do", __lt____lt____colon__$0(["assign", v$1, value$2], v$1)];
     }
-  })), (accum$1 = ({})), (accum$1["assign"] = $targ$139), accum$1), __amp____colon__(({"tags": ({"declare_mode": "unqualified"})}), __amp____colon__((($targ$140 = (function(temp$16$0, vars$0) {
+  })), (accum$1 = ({})), (accum$1["assign"] = $targ$142), accum$1), __amp____colon__(({"tags": ({"declare_mode": "unqualified"})}), __amp____colon__((($targ$143 = (function(temp$16$0, vars$0) {
     var m$13;
     var acc$0;
-    var $targ$147;
+    var $targ$150;
     var temp$17;
     acc$0 = [];
-    $targ$147 = null;
-    temp$17 = $targ$147;
+    $targ$150 = null;
+    temp$17 = $targ$150;
     m$13 = null;
     $4: for (var $__0 = vars$0[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__1; !($__1 = $__0.next()).done; ) {
       m$13 = $__1.value;
       {
         var m$14$0;
-        var $targ$148;
+        var $targ$151;
         var v$2;
         v$2 = m$13;
         m$14$0 = v$2.declare_mode;
         if ((m$14$0 === "set")) {
-          $targ$148 = ["splice"];
+          $targ$151 = ["splice"];
         } else {
           if ((m$14$0 === "let")) {
-            $targ$148 = ["declare", __amp__(v$2, ({"mutable": false}))];
+            $targ$151 = ["declare", __amp__(v$2, ({"mutable": false}))];
           } else {
             if ((m$14$0 === "var")) {
-              $targ$148 = ["declare", __amp__(v$2, ({"mutable": true}))];
+              $targ$151 = ["declare", __amp__(v$2, ({"mutable": true}))];
             } else {
               if ((m$14$0 === "unqualified")) {
-                $targ$148 = ["declare", __amp__(v$2, ({
+                $targ$151 = ["declare", __amp__(v$2, ({
                   "mutable": false,
                   "use_previous": true
                 }))];
               } else {
-                $targ$148 = ___match_error(m$14$0);
+                $targ$151 = ___match_error(m$14$0);
               }
             }
           }
         }
-        temp$17 = $targ$148;
+        temp$17 = $targ$151;
         acc$0.push(temp$17);
       }
     }
     return acc$0;
-  })), (accum$2 = ({})), (accum$2["declare"] = $targ$140), accum$2), __amp____colon__((($targ$141 = (function(temp$18$0) {
+  })), (accum$2 = ({})), (accum$2["declare"] = $targ$143), accum$2), __amp____colon__((($targ$144 = (function(temp$18$0) {
     return ["multi"];
-  })), (accum$3 = ({})), (accum$3["success"] = $targ$141), accum$3), __amp____colon__((($targ$142 = (function(target$2) {
+  })), (accum$3 = ({})), (accum$3["success"] = $targ$144), accum$3), __amp____colon__((($targ$145 = (function(target$2) {
     return match_error$0(target$2);
-  })), (accum$4 = ({})), (accum$4["failure"] = $targ$142), accum$4), ({"wrapOrder": 0}))))))),
+  })), (accum$4 = ({})), (accum$4["failure"] = $targ$145), accum$4), ({"wrapOrder": 0}))))))),
   "build_object": __amp____colon__(({
     "strings_as_variables": true,
     "allow_nested": true,
     "allow_arguments": true,
     "special": disregard_specials$0
-  }), __amp____colon__((($targ$150 = (function(temp$19$0, value$3, temp$20$0) {
+  }), __amp____colon__((($targ$153 = (function(temp$19$0, value$3, temp$20$0) {
     var t0$29;
     var t0$30;
-    var bridge$$9363$0;
+    var bridge$$9104$0;
     var v$3;
-    bridge$$9363$0 = temp$19$0;
-    if ((((bridge$$9363$0 instanceof Array) && ((t0$29 = bridge$$9363$0.length), ((t0$29 === 2) && ((bridge$$9363$0[0] === "symbol") && ((v$3 = bridge$$9363$0[1]), true))))) || ((bridge$$9363$0 instanceof Array) && ((t0$30 = bridge$$9363$0.length), ((t0$30 === 2) && ((bridge$$9363$0[0] === "value") && ((v$3 = bridge$$9363$0[1]), true))))))) {} else {
+    bridge$$9104$0 = temp$19$0;
+    if ((((bridge$$9104$0 instanceof Array) && ((t0$29 = bridge$$9104$0.length), ((t0$29 === 2) && ((bridge$$9104$0[0] === "symbol") && ((v$3 = bridge$$9104$0[1]), true))))) || ((bridge$$9104$0 instanceof Array) && ((t0$30 = bridge$$9104$0.length), ((t0$30 === 2) && ((bridge$$9104$0[0] === "value") && ((v$3 = bridge$$9104$0[1]), true))))))) {} else {
       ___match_error(temp$19$0);
     }
     return ["do", __lt____lt____colon__$0(["assign", ["send", ["symbol", "accum"], ["value", v$3]], value$3], v$3)];
-  })), (accum$5 = ({})), (accum$5["assign"] = $targ$150), accum$5), __amp____colon__((($targ$151 = (function(temp$21$0, vars$1) {
+  })), (accum$5 = ({})), (accum$5["assign"] = $targ$153), accum$5), __amp____colon__((($targ$154 = (function(temp$21$0, vars$1) {
     return [["declare", ["symbol", "accum"], ["data", ["symbol", "="]]]];
-  })), (accum$6 = ({})), (accum$6["declare"] = $targ$151), accum$6), __amp____colon__((($targ$152 = (function(temp$22$0) {
+  })), (accum$6 = ({})), (accum$6["declare"] = $targ$154), accum$6), __amp____colon__((($targ$155 = (function(temp$22$0) {
     return ["symbol", "accum"];
-  })), (accum$7 = ({})), (accum$7["success"] = $targ$152), accum$7), __amp____colon__((($targ$153 = (function(target$3) {
+  })), (accum$7 = ({})), (accum$7["success"] = $targ$155), accum$7), __amp____colon__((($targ$156 = (function(target$3) {
     return match_error$0(target$3);
-  })), (accum$8 = ({})), (accum$8["failure"] = $targ$153), accum$8), ({"wrapOrder": 0}))))))
+  })), (accum$8 = ({})), (accum$8["failure"] = $targ$156), accum$8), ({"wrapOrder": 0}))))))
 });
 named_statement_matcher$0 = (function(name$5) {
   var t0$32;
-  var $targ$157;
+  var $targ$160;
   var p$0;
-  var $targ$158;
-  $targ$157 = (function(ph$13$0) {
+  var $targ$161;
+  $targ$160 = (function(ph$13$0) {
     var t3$2;
     var t2$7;
     var t0$31;
@@ -731,16 +738,16 @@ named_statement_matcher$0 = (function(name$5) {
       return false;
     }
   });
-  t0$32 = getProjector(predicate)($targ$157);
+  t0$32 = getProjector(predicate)($targ$160);
   if (t0$32[0]) {
     p$0 = t0$32[1];
   } else {
-    ___match_error($targ$157);
+    ___match_error($targ$160);
   }
-  $targ$158 = (function() {
+  $targ$161 = (function() {
     return name$5;
   });
-  (p$0["toString"] = $targ$158);
+  (p$0["toString"] = $targ$161);
   [];
   return p$0;
 });
@@ -751,20 +758,20 @@ grab_statements$0 = (function() {
   var rest$0;
   var m$16$0;
   var m$17;
-  var bridge$$9588$0;
+  var bridge$$9329$0;
   var n$0;
   var m$20$0;
   var matches$0;
-  var $targ$175;
+  var $targ$178;
   var rest$2;
   var t1$20;
   var t0$38;
   var t1$21;
   var t0$39;
-  var $targ$181;
+  var $targ$184;
   var one$0;
   var rest1$0;
-  var $targ$182;
+  var $targ$185;
   var two$0;
   var rest2$0;
   var pattern$2;
@@ -777,8 +784,8 @@ grab_statements$0 = (function() {
   var opts$0;
   var t0$34;
   var pattern$0;
-  var $$9482$0;
-  var $$9483$0;
+  var $$9223$0;
+  var $$9224$0;
   var t1$16;
   var t0$33;
   var descr$0;
@@ -823,18 +830,18 @@ grab_statements$0 = (function() {
             var t0$36;
             var m$19;
             var rest$1;
-            var $$9558$0;
-            var $$9559$0;
-            var $$9560$0;
+            var $$9299$0;
+            var $$9300$0;
+            var $$9301$0;
             var m$18$0;
             var opt$1;
             opt$1 = m$17;
             m$18$0 = grab_statements$0(opt$1, all$0, transform$0);
-            if ((($$9558$0 = (m$18$0 instanceof Array)) && ((t0$36 = m$18$0.length), (($$9560$0 = (t0$36 === 2)) && (m$18$0[0] === null))))) {
+            if ((($$9299$0 = (m$18$0 instanceof Array)) && ((t0$36 = m$18$0.length), (($$9301$0 = (t0$36 === 2)) && (m$18$0[0] === null))))) {
               m$18$0[1];
               undefined;
             } else {
-              if ($$9560$0) {
+              if ($$9301$0) {
                 m$19 = m$18$0[0];
                 rest$1 = m$18$0[1];
                 return [m$19, rest$1];
@@ -864,20 +871,20 @@ grab_statements$0 = (function() {
             err$0 = t0$34[4];
           }
           matches$0 = [];
-          $targ$175 = all$0;
-          rest$2 = $targ$175;
+          $targ$178 = all$0;
+          rest$2 = $targ$178;
           $6: while (true) {
             var t1$19;
             var t0$37;
-            var $targ$176;
+            var $targ$179;
             var _matches$0;
-            $targ$176 = grab_statements$0(pattern$1, rest$2, transform$0);
-            t0$37 = $targ$176;
+            $targ$179 = grab_statements$0(pattern$1, rest$2, transform$0);
+            t0$37 = $targ$179;
             if (((t0$37 instanceof Array) && ((t1$19 = t0$37.length), (t1$19 === 2)))) {
               _matches$0 = t0$37[0];
               rest$2 = t0$37[1];
             } else {
-              ___match_error($targ$176);
+              ___match_error($targ$179);
             }
             [_matches$0, rest$2];
             if (equal(_matches$0, null)) {
@@ -890,8 +897,8 @@ grab_statements$0 = (function() {
           }
           m$20$0 = matches$0.length;
           n$0 = m$20$0;
-          bridge$$9588$0 = m$20$0;
-          if (((bridge$$9588$0 < min$0) || (bridge$$9588$0 > max$0))) {
+          bridge$$9329$0 = m$20$0;
+          if (((bridge$$9329$0 < min$0) || (bridge$$9329$0 > max$0))) {
             if (err$0) {
               throw ErrorFactory(["syntax", "wrong_multiplicity"]).create(((((((((n$0 + " instances of the pattern '") + pattern$1) + "' were found.") + " between ") + min$0) + " and ") + max$0) + " were expected."), ({
                 "pattern": pattern$1,
@@ -909,25 +916,25 @@ grab_statements$0 = (function() {
             if (((t1$17 >= 2) && (t0$34[0] === "seq"))) {
               pattern$2 = t0$34[1];
               others$0 = Array.prototype.slice.call(t0$34, 2);
-              $targ$181 = grab_statements$0(pattern$2, all$0, transform$0);
-              t0$38 = $targ$181;
+              $targ$184 = grab_statements$0(pattern$2, all$0, transform$0);
+              t0$38 = $targ$184;
               if (((t0$38 instanceof Array) && ((t1$20 = t0$38.length), (t1$20 === 2)))) {
                 one$0 = t0$38[0];
                 rest1$0 = t0$38[1];
               } else {
-                ___match_error($targ$181);
+                ___match_error($targ$184);
               }
               [one$0, rest1$0];
               if ((one$0 === null)) {
                 return [null, all$0];
               }
-              $targ$182 = grab_statements$0(["seq"].concat(others$0), rest1$0, transform$0);
-              t0$39 = $targ$182;
+              $targ$185 = grab_statements$0(["seq"].concat(others$0), rest1$0, transform$0);
+              t0$39 = $targ$185;
               if (((t0$39 instanceof Array) && ((t1$21 = t0$39.length), (t1$21 === 2)))) {
                 two$0 = t0$39[0];
                 rest2$0 = t0$39[1];
               } else {
-                ___match_error($targ$182);
+                ___match_error($targ$185);
               }
               [two$0, rest2$0];
               if ((two$0 === null)) {
@@ -949,23 +956,23 @@ flatmacro$0 = (function(pattern$3, assemble$0) {
   return ["restmacro", (function(stmts$0) {
     var t1$22;
     var t0$40;
-    var $targ$187;
+    var $targ$190;
     var result$0;
     var rest$3;
-    $targ$187 = grab_statements$0(pattern$3, stmts$0);
-    t0$40 = $targ$187;
+    $targ$190 = grab_statements$0(pattern$3, stmts$0);
+    t0$40 = $targ$190;
     if (((t0$40 instanceof Array) && ((t1$22 = t0$40.length), (t1$22 === 2)))) {
       result$0 = t0$40[0];
       rest$3 = t0$40[1];
     } else {
-      ___match_error($targ$187);
+      ___match_error($targ$190);
     }
     [result$0, rest$3];
     return [assemble$0(result$0)].concat(rest$3);
   })];
 });
 AssignmentHandler$0 = (function(temp$23$0, temp$24$0) {
-  var $targ$191;
+  var $targ$194;
   var $it$0;
   if ((!getChecker(AssignmentHandler$0)(this))) {
     $it$0 = Object.create(AssignmentHandler$0.prototype);
@@ -974,19 +981,19 @@ AssignmentHandler$0 = (function(temp$23$0, temp$24$0) {
   }
   ($it$0["subp"] = temp$23$0);
   ($it$0["wrapPlaceholder"] = temp$24$0);
-  $targ$191 = 1;
-  ($it$0["wrapAssignmentOrder"] = $targ$191);
+  $targ$194 = 1;
+  ($it$0["wrapAssignmentOrder"] = $targ$194);
   [];
   return $it$0;
 });
 $targ$30 = (function(info$8) {
-  var $targ$194;
+  var $targ$197;
   var $it$1;
   var self$0;
   $it$1 = this;
   self$0 = this;
-  $targ$194 = info$8.env.mark(["symbol", info$8.gensym("$get")]);
-  ($it$1["placeholder"] = $targ$194);
+  $targ$197 = info$8.env.mark(["symbol", info$8.gensym("$get")]);
+  ($it$1["placeholder"] = $targ$197);
   [];
   if ($it$1.subp) {
     return ["all", $it$1.subp, $it$1.placeholder];
@@ -1003,68 +1010,221 @@ $targ$31 = (function(expr$3, info$9, opt$2) {
   return ["splice", expr$3, $it$2.wrapPlaceholder($it$2.placeholder)];
 });
 (AssignmentHandler$0.prototype["wrapAssignment"] = $targ$31);
-__amp____colon__(AssignmentHandler$0, __amp____colon__((($targ$197 = "AssignmentHandler"), (accum$9 = ({})), (accum$9["::name"] = $targ$197), accum$9), (($targ$198 = true), (accum$10 = ({})), (accum$10["::egclass"] = $targ$198), accum$10)));
-$targ$199 = embed_location$0;
-(exports["embed_location"] = $targ$199);
+__amp____colon__(AssignmentHandler$0, __amp____colon__((($targ$200 = "AssignmentHandler"), (accum$9 = ({})), (accum$9["::name"] = $targ$200), accum$9), (($targ$201 = true), (accum$10 = ({})), (accum$10["::egclass"] = $targ$201), accum$10)));
+qqstruct$0 = (function(name$6, args$0) {
+  return ["data", ["value", name$6]].concat(args$0);
+});
+qq$0 = (function(temp$25$0) {
+  var t0$41;
+  var $targ$210;
+  var $targ$209;
+  var $targ$208;
+  var $targ$207;
+  var t3$3;
+  var t2$8;
+  var $targ$214;
+  var $targ$213;
+  var $targ$212;
+  var $targ$211;
+  var $targ$218;
+  var $targ$217;
+  var $targ$216;
+  var $targ$215;
+  var m$21;
+  var acc$1;
+  var $targ$220;
+  var temp$26;
+  var m$22;
+  var acc$2;
+  var $targ$223;
+  var temp$27;
+  var m$23;
+  var acc$3;
+  var $targ$226;
+  var temp$28;
+  var name$7;
+  var args$2;
+  var ops$0;
+  var args$1;
+  var insert$2;
+  var insert$1;
+  var insert$0;
+  var v$4;
+  var s$2;
+  var t0$42;
+  var t1$23;
+  var s$1;
+  var $$9522$0;
+  var $$9523$0;
+  var $$9524$0;
+  var $$9525$0;
+  var $$9526$0;
+  var $$9527$0;
+  var $$9528$0;
+  var $$9529$0;
+  var $$9530$0;
+  var t4$2;
+  var t5$1;
+  var t6$1;
+  var t7$1;
+  var expr$4;
+  var ph$16$0;
+  t0$41 = temp$25$0;
+  expr$4 = t0$41;
+  ph$16$0 = t0$41;
+  t0$42 = ph$16$0;
+  t1$23 = t0$42.length;
+  if ((($$9524$0 = (t1$23 === 2)) && (t0$42[0] === "symbol"))) {
+    s$1 = t0$42[1];
+    return qqstruct$0("symbol", [["value", s$1]]);
+  } else {
+    if (($$9524$0 && (t0$42[0] === "char"))) {
+      s$2 = t0$42[1];
+      return qqstruct$0("char", [["value", s$2]]);
+    } else {
+      if (((t1$23 === 1) && (t0$42[0] === "void"))) {
+        return qqstruct$0("void", []);
+      } else {
+        if (((t1$23 === 2) && (t0$42[0] === "value"))) {
+          v$4 = t0$42[1];
+          return qqstruct$0("value", [expr$4]);
+        } else {
+          if ((($$9524$0 = (t1$23 === 3)) && (($$9525$0 = (t0$42[0] === "send")) && ((t2$8 = t0$42[1]), (($$9527$0 = (t2$8 instanceof Array)) && ((t3$3 = t2$8.length), (($$9529$0 = (t3$3 === 2)) && (($$9530$0 = (t2$8[0] === "symbol")) && ((t2$8[1] === "^") && (($targ$207 = t0$42[2]), (t4$2 = $targ$207), ((t4$2 instanceof Array) && (($targ$208 = t4$2.length), (t5$1 = $targ$208), ((t5$1 === 3) && ((t4$2[0] === "data") && (($targ$209 = t4$2[1]), (t6$1 = $targ$209), ((t6$1 instanceof Array) && (($targ$210 = t6$1.length), (t7$1 = $targ$210), ((t7$1 === 1) && (t6$1[0] === "void"))))))))))))))))))) {
+            insert$0 = t4$2[2];
+            return insert$0;
+          } else {
+            if (($$9530$0 && ((t2$8[1] === "^=") && (($targ$211 = t0$42[2]), (t4$2 = $targ$211), ((t4$2 instanceof Array) && (($targ$212 = t4$2.length), (t5$1 = $targ$212), ((t5$1 === 3) && ((t4$2[0] === "data") && (($targ$213 = t4$2[1]), (t6$1 = $targ$213), ((t6$1 instanceof Array) && (($targ$214 = t6$1.length), (t7$1 = $targ$214), ((t7$1 === 1) && (t6$1[0] === "void"))))))))))))) {
+              insert$1 = t4$2[2];
+              return qqstruct$0("value", [insert$1]);
+            } else {
+              if (($$9530$0 && ((t2$8[1] === "^*") && (($targ$215 = t0$42[2]), (t4$2 = $targ$215), ((t4$2 instanceof Array) && (($targ$216 = t4$2.length), (t5$1 = $targ$216), ((t5$1 === 3) && ((t4$2[0] === "data") && (($targ$217 = t4$2[1]), (t6$1 = $targ$217), ((t6$1 instanceof Array) && (($targ$218 = t6$1.length), (t7$1 = $targ$218), ((t7$1 === 1) && (t6$1[0] === "void"))))))))))))) {
+                insert$2 = t4$2[2];
+                return ["send", ["symbol", "*"], ["data", ["void"], insert$2]];
+              } else {
+                if (((t1$23 >= 2) && (t0$42[0] === "mismix"))) {
+                  ops$0 = t0$42[1];
+                  args$1 = Array.prototype.slice.call(t0$42, 2);
+                  return qqstruct$0("mismix", [["data"].concat(((acc$1 = []), ($targ$220 = null), (temp$26 = $targ$220), (m$21 = null), (function() {
+                    $7: for (var $__0 = ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                        $__1; !($__1 = $__0.next()).done; ) {
+                      m$21 = $__1.value;
+                      {
+                        var $targ$221;
+                        var op$2;
+                        op$2 = m$21;
+                        $targ$221 = qq$0(op$2);
+                        temp$26 = $targ$221;
+                        acc$1.push(temp$26);
+                      }
+                    }
+                  })(), acc$1))].concat(((acc$2 = []), ($targ$223 = null), (temp$27 = $targ$223), (m$22 = null), (function() {
+                    $8: for (var $__0 = args$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                        $__1; !($__1 = $__0.next()).done; ) {
+                      m$22 = $__1.value;
+                      {
+                        var $targ$224;
+                        var arg$5;
+                        arg$5 = m$22;
+                        $targ$224 = qq$0(arg$5);
+                        temp$27 = $targ$224;
+                        acc$2.push(temp$27);
+                      }
+                    }
+                  })(), acc$2)));
+                } else {
+                  if ((t1$23 >= 1)) {
+                    name$7 = t0$42[0];
+                    args$2 = Array.prototype.slice.call(t0$42, 1);
+                    return qqstruct$0(name$7, ((acc$3 = []), ($targ$226 = null), (temp$28 = $targ$226), (m$23 = null), (function() {
+                      $9: for (var $__0 = args$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+                          $__1; !($__1 = $__0.next()).done; ) {
+                        m$23 = $__1.value;
+                        {
+                          var $targ$227;
+                          var arg$6;
+                          arg$6 = m$23;
+                          $targ$227 = qq$0(arg$6);
+                          temp$28 = $targ$227;
+                          acc$3.push(temp$28);
+                        }
+                      }
+                    })(), acc$3));
+                  } else {
+                    return ___match_error(ph$16$0);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+$targ$228 = embed_location$0;
+(exports["embed_location"] = $targ$228);
 [];
-$targ$200 = error_embed_location$0;
-(exports["error_embed_location"] = $targ$200);
+$targ$229 = error_embed_location$0;
+(exports["error_embed_location"] = $targ$229);
 [];
-$targ$201 = match_error$0;
-(exports["match_error"] = $targ$201);
+$targ$230 = match_error$0;
+(exports["match_error"] = $targ$230);
 [];
-$targ$202 = drop_ctx$0;
-(exports["drop_ctx"] = $targ$202);
+$targ$231 = drop_ctx$0;
+(exports["drop_ctx"] = $targ$231);
 [];
-$targ$203 = expr_mac$0;
-(exports["expr_mac"] = $targ$203);
+$targ$232 = expr_mac$0;
+(exports["expr_mac"] = $targ$232);
 [];
-$targ$204 = expr_mac2$0;
-(exports["expr_mac2"] = $targ$204);
+$targ$233 = expr_mac2$0;
+(exports["expr_mac2"] = $targ$233);
 [];
-$targ$205 = ctx_mac$0;
-(exports["ctx_mac"] = $targ$205);
+$targ$234 = ctx_mac$0;
+(exports["ctx_mac"] = $targ$234);
 [];
-$targ$206 = value_mac$0;
-(exports["value_mac"] = $targ$206);
+$targ$235 = value_mac$0;
+(exports["value_mac"] = $targ$235);
 [];
-$targ$207 = overridable$0;
-(exports["overridable"] = $targ$207);
+$targ$236 = overridable$0;
+(exports["overridable"] = $targ$236);
 [];
-$targ$208 = protected_value$0;
-(exports["protected_value"] = $targ$208);
+$targ$237 = protected_value$0;
+(exports["protected_value"] = $targ$237);
 [];
-$targ$209 = var_operator$0;
-(exports["var_operator"] = $targ$209);
+$targ$238 = var_operator$0;
+(exports["var_operator"] = $targ$238);
 [];
-$targ$210 = accum_flags$0;
-(exports["accum_flags"] = $targ$210);
+$targ$239 = accum_flags$0;
+(exports["accum_flags"] = $targ$239);
 [];
-$targ$211 = build_loop$0;
-(exports["build_loop"] = $targ$211);
+$targ$240 = build_loop$0;
+(exports["build_loop"] = $targ$240);
 [];
-$targ$212 = partial_pattern$0;
-(exports["partial_pattern"] = $targ$212);
+$targ$241 = partial_pattern$0;
+(exports["partial_pattern"] = $targ$241);
 [];
-$targ$213 = make_assigner$0;
-(exports["make_assigner"] = $targ$213);
+$targ$242 = make_assigner$0;
+(exports["make_assigner"] = $targ$242);
 [];
-$targ$214 = pattern_handlers$0;
-(exports["pattern_handlers"] = $targ$214);
+$targ$243 = pattern_handlers$0;
+(exports["pattern_handlers"] = $targ$243);
 [];
-$targ$215 = Body$0;
-(exports["Body"] = $targ$215);
+$targ$244 = Body$0;
+(exports["Body"] = $targ$244);
 [];
-$targ$216 = named_statement_matcher$0;
-(exports["named_statement_matcher"] = $targ$216);
+$targ$245 = named_statement_matcher$0;
+(exports["named_statement_matcher"] = $targ$245);
 [];
-$targ$217 = grab_statements$0;
-(exports["grab_statements"] = $targ$217);
+$targ$246 = grab_statements$0;
+(exports["grab_statements"] = $targ$246);
 [];
-$targ$218 = flatmacro$0;
-(exports["flatmacro"] = $targ$218);
+$targ$247 = flatmacro$0;
+(exports["flatmacro"] = $targ$247);
 [];
-$targ$219 = AssignmentHandler$0;
-(exports["AssignmentHandler"] = $targ$219);
+$targ$248 = AssignmentHandler$0;
+(exports["AssignmentHandler"] = $targ$248);
+[];
+$targ$249 = qq$0;
+(exports["qq"] = $targ$249);
 [];
 //# sourceURL=<compile-source>

@@ -23,7 +23,7 @@ special_ops = {
    "," => .IFX
    ;; ":" => .IFX
    "." => .PFX
-   "'" => .PFX
+   ;; "'" => .PFX
    "not" => .PFX
    ;; "?" => .IFX
    ;; "!" => .IFX
@@ -49,11 +49,12 @@ regexps = {
 
   ;; Identifiers
   ;; ex. abc, Abc123, _x, $, a$b$c
-  id = R'
+  id = R```
      start
      "..." or
         in "a-zA-Z$_" or ["\\_", any]
         * [in "a-zA-Z$_0-9" or ["\\_", any]]
+  ```
 
   id_f = {m} ->
      #ID{m[0].replace{R.g"\\_(.)", {_, x} -> x}}
@@ -61,11 +62,12 @@ regexps = {
 
   ;; Numbers with arbitrary radii
   ;; ex. 2r1110, 36rZ, 4r312.33
-  numr = R'
+  numr = R```
      start
      {+d}, in "rR"
      {+ in"A-Za-z0-9_"}
      ?[".", {+ in "A-Za-z0-9_"}]
+  ```
 
   numr_f = {m} ->
      {_, radix, intp, frac} = m
@@ -77,11 +79,12 @@ regexps = {
 
 
   ;; Base 10 numbers
-  num = R'
+  num = R```
      start
      {+ in "0-9_"}
      ?[".", {+d}]
      ?[in "eE", {? in "+-", + in "0-9_"}]
+  ```
 
   num_f = {m} ->
      #NUM{parseFloat{m[0].replace{R.g"_", ""}}}
@@ -104,11 +107,12 @@ regexps = {
   ;;    #STR{r}
 
   ;; Quasiquote
-  quasi = R'
+  quasi = R```
      start
      "`"
      {*[["\\", any] or [not in "`"]]}
      "`"
+  ```
 
   quasi2 = R"^[`]{3,}((?:[\\.]|[^`]|``?[^`])*)[`]{3,}"
 
@@ -118,11 +122,12 @@ regexps = {
 
 
   ;; Strings (no interpolation)
-  str = R'
+  str = R```
      start
      "\""
      {*[["\\", any] or [not in "\""]]}
      "\""
+  ```
 
   ;; Strings (no interpolation)
   str2 = R"^[\"]{3,}((?:[\\.]|[^\"]|\"\"?[^\"])*)[\"]{3,}"
@@ -147,17 +152,19 @@ regexps = {
 
   ;; Operators
   ;; ex. +, -, **+, ^%, ...
-  op = R'
+  op = R```
      start
      + in "+\\-*/~^<>=%&|?!@#.:'"
+  ```
 
   ;; brackets: [], {}
-  op2 = R'
+  op2 = R```
      start
      in "[{}],"
+  ```
 
   ;; Word operators: with, each, each?, where%+%, etc.
-  op3 = R'
+  op3 = R```
      start
      "with" or "where" or "when"
        \ or "and" or "not" or "or"
@@ -165,6 +172,7 @@ regexps = {
        \ or "each" or "as"
        \ or "of" or "is"
      [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
+  ```
 
   ;; ;; `operator`
   ;; op4 = R'
@@ -190,10 +198,11 @@ regexps = {
 
 
   ;; Indent
-  indent = R'
+  indent = R```
      start
      *["\n", *" ", ";", * not in "\n"]
      +["\n", {*" "}]
+  ```
 
   indent_f = {m} ->
      ilen = m[1].length
@@ -201,27 +210,30 @@ regexps = {
 
 
   ;; Indent 2
-  indent2 = R'
+  indent2 = R```
      start
      "\\\\"
+  ```
 
   indent2_f = {m, column} ->
      #INDENT{column - 2}
      
 
   ;; Comment
-  cmnt = R'
+  cmnt = R```
      start
      ";"
      * not in "\n"
+  ```
 
   cmnt_f = {m} -> #IGNORE{}
 
 
   ;; Anything else is an error
-  unkn = R'
+  unkn = R```
      start
      any
+  ```
 
   unkn_f = {m} ->
      #ILLEGAL{m[0]}
@@ -229,8 +241,8 @@ regexps = {
 
 
 ;; TODO: ignore blank lines before continuation
-ws_re = R'[start, *" ", *["\n", *" ", "\\ ", *" "]]
-eol_re = R'[start, *" ", "\n" or end]
+ws_re = R`[start, *" ", *["\n", *" ", "\\ ", *" "]]`
+eol_re = R`[start, *" ", "\n" or end]`
 
 
 produce{src} =

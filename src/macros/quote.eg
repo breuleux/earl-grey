@@ -1,6 +1,7 @@
 
 require:
    "../location" -> Source
+   "./helpers" -> qq
 
 inject: mac
 
@@ -8,34 +9,12 @@ inject: mac
 ;; QUOTE ;;
 ;;;;;;;;;;;
 
-qqstruct{name, args} =
-   #data{#value{name}, *args}
-
-qq{match expr} =
-   #symbol{s} -> qqstruct{.symbol, {#value{s}}}
-   #char{s} -> qqstruct{.char, {#value{s}}}
-   #void{} -> qqstruct{.void, {}}
-   #value{v} ->
-      qqstruct{.value, {expr}}
-   #send{#symbol{"^"}, #data{#void{}, insert}} ->
-      insert
-   #send{#symbol{"^="}, #data{#void{}, insert}} ->
-      qqstruct{.value, {insert}}
-   #send{#symbol{"^*"}, #data{#void{}, insert}} ->
-      '[* ^insert]
-   #mismix{ops, *args} ->
-      qqstruct{.mismix
-               {#data{*[ops each op -> qq{op}]}
-                *[args each arg -> qq{arg}]}}
-   {name, *args} ->
-      qqstruct{name, args each arg -> qq{arg}}
-
-mac{"'"}! quote_mac{context, _, form, #data{#void{}, expr}} =
-   qq{expr}
+;; mac{"'"}! quote_mac{context, _, form, #data{#void{}, expr}} =
+;;    qq{expr}
 
 mac{"`"}! quote2_mac{context, info, form, expr and #value{s}} =
    ;; print expr
    ;; print expr.location.makeSource{}
-   qq{expr} where
+   info.mark{qq{expr}} where
       expr = info.go{Source{s, "<quasiquote>"}, .source, .parse}
 

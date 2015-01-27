@@ -36,7 +36,7 @@ mac{"is"}! is_mac{match, _, form, #data{x, y}} =
    #pattern ->
       #replace{x, y}
    else ->
-      '[^x == ^y]
+      `^x == ^y`
 
 mac{"-"}! minus_mac{context, _, form, match expr} =
    #data{#void{}, #value{Number? n}} ->
@@ -49,18 +49,18 @@ mac{"-"}! minus_mac{context, _, form, match expr} =
 mac{"++"}! append_mac{context, _, form, match} =
    #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
    #data{x, #void{}} -> #send{#variable{"++"}, #data{x, #void{}}}
-   #data{x, y} -> '[^x].concat{^y}
-   #void{} -> '[{x, y} -> x.concat{y}]
-   other -> '[___build_array{^other}]
+   #data{x, y} -> `[^x].concat{^y}`
+   #void{} -> `{x, y} -> x.concat{y}`
+   other -> `___build_array{^other}`
 
 mac{".."}! range_mac{context, _, form, match} =
-   #data{#void{}, x} -> 'range{1, ^x}
-   #data{x, #void{}} -> 'range{^x}
-   #data{x, y} -> 'range{^x, ^y}
-   #void{} -> 'range
+   #data{#void{}, x} -> `range{1, ^x}`
+   #data{x, #void{}} -> `range{^x}`
+   #data{x, y} -> `range{^x, ^y}`
+   #void{} -> `range`
 
 mac{"//"}! floor_mac{context, _, form, #data{a, b}} =
-   'Math.floor{^a / ^b}
+   `Math.floor{^a / ^b}`
 
 mac{"*"}! times_mac{context, _, form, expr} =
    match {context, expr}:
@@ -80,6 +80,6 @@ mac{"**"}! exp_mac{context, _, form, expr} =
       {#pattern or #expr{.data}, #data{#void{}, val}} ->
          #objsplice{val}
       {_, #void{}} ->
-         'Math.pow
+         `Math.pow`
       {_, #data{a, b}} ->
-         'Math.pow{^a, ^b}
+         `Math.pow{^a, ^b}`

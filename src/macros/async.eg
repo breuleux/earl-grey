@@ -11,10 +11,10 @@ mac{"yield"}! yield_mac{match, _, form, arg} =
    #pattern ->
       #special{AssignmentHandler{subp, w}} where
          subp = if{arg == #void{}, null, arg}
-         w{ph} = '[yield ^ph]
+         w{ph} = `yield ^ph`
    #expr{.expr} or #expr{.head} ->
       match arg:
-         'all[^arg] -> #js_yield{arg, #value{true}}
+         `all[^arg]` -> #js_yield{arg, #value{true}}
          arg -> #js_yield{arg, #value{false}}
    otherwise ->
       #nostep{form}
@@ -23,11 +23,11 @@ mac{"await"}! await_mac{match, _, form, arg} =
    #pattern ->
       #special{AssignmentHandler{subp, w}} where
          subp = if{arg == #void{}, null, arg}
-         w{ph} = '[await ^ph]
+         w{ph} = `await ^ph`
    #expr{.expr} or #expr{.head} ->
       match arg:
-         'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
-         'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
+         `all[^arg]` -> #js_yield{`Promise.all{^arg}`, #value{false}}
+         `any[^arg]` -> #js_yield{`Promise.race{^arg}`, #value{false}}
          arg -> #js_yield{arg, #value{false}}
    otherwise ->
       #nostep{form}
@@ -42,14 +42,14 @@ mac{"await"}! await_mac{match, _, form, arg} =
 ;;    arg -> #js_yield{arg, #value{false}}
 
 expr_mac2! mac{"gen"}! gen_mac{match} =
-   '{^arg -> ^body} ->
-      '[^arg *-> ^body]
-   '{_lambda{^arg, ^pre, ^body, ^post, ^_}} ->
-      '_lambda{^arg, ^pre, ^body, ^post, ^=true}
+   `{^arg -> ^body}` ->
+      `^arg *-> ^body`
+   `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
+      `_lambda{^arg, ^pre, ^body, ^post, ^=true}`
 
 expr_mac2! mac{"async"}! async_mac{match} =
-   '{^arg -> ^body} ->
-      '[^arg -> spawn{{} *-> ^body}]
-   '{_lambda{^arg, ^pre, ^body, ^post, ^_}} ->
+   `{^arg -> ^body}` ->
+      `^arg -> spawn{{} *-> ^body}`
+   `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
       ;; TODO: this is wrong; post should be inside the spawn
-      '_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}
+      `_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}`

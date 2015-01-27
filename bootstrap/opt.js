@@ -52,15 +52,15 @@ varstats$0 = (function(temp$0$0, stats$1) {
   var $targ$11;
   var v1$0;
   var v2$0;
-  var $$15980$0;
-  var $$15981$0;
-  var $$15982$0;
-  var $$15983$0;
-  var $$15984$0;
-  var $$15985$0;
-  var $$15986$0;
-  var $$15987$0;
-  var $$15988$0;
+  var $$15815$0;
+  var $$15816$0;
+  var $$15817$0;
+  var $$15818$0;
+  var $$15819$0;
+  var $$15820$0;
+  var $$15821$0;
+  var $$15822$0;
+  var $$15823$0;
   var t0$1;
   var t1$0;
   var expr$0;
@@ -72,13 +72,13 @@ varstats$0 = (function(temp$0$0, stats$1) {
   t0$1 = $targ$10;
   $targ$11 = t0$1.length;
   t1$0 = $targ$11;
-  if ((($$15982$0 = (t1$0 === 3)) && (($$15983$0 = (t0$1[0] === "assign")) && ((t2$0 = t0$1[1]), (($$15985$0 = (t2$0 instanceof Array)) && ((t3$0 = t2$0.length), (($$15987$0 = (t3$0 === 2)) && (($$15988$0 = (t2$0[0] === "variable")) && ((v1$0 = t2$0[1]), (t4$0 = t0$1[2]), ((t4$0 instanceof Array) && ((t5$0 = t4$0.length), ((t5$0 === 2) && (t4$0[0] === "variable"))))))))))))) {
+  if ((($$15817$0 = (t1$0 === 3)) && (($$15818$0 = (t0$1[0] === "assign")) && ((t2$0 = t0$1[1]), (($$15820$0 = (t2$0 instanceof Array)) && ((t3$0 = t2$0.length), (($$15822$0 = (t3$0 === 2)) && (($$15823$0 = (t2$0[0] === "variable")) && ((v1$0 = t2$0[1]), (t4$0 = t0$1[2]), ((t4$0 instanceof Array) && ((t5$0 = t4$0.length), ((t5$0 === 2) && (t4$0[0] === "variable"))))))))))))) {
     v2$0 = t4$0[1];
     (s$0(stats$1, v1$0)["assigns"] = (s$0(stats$1, v1$0).assigns + 1));
     (s$0(stats$1, v2$0)["uses"] = (s$0(stats$1, v2$0).uses + 1));
     return s$0(stats$1, v2$0).transfers.push(v1$0);
   } else {
-    if ($$15988$0) {
+    if ($$15823$0) {
       v1$1 = t2$0[1];
       expr$1 = t0$1[2];
       (s$0(stats$1, v1$1)["assigns"] = (s$0(stats$1, v1$1).assigns + 1));
@@ -198,14 +198,14 @@ replaceVars$0 = (function(temp$2$0, repl$0) {
   var $targ$38;
   var vars$2;
   var body$2;
-  var bridge$$16145$0;
+  var bridge$$15980$0;
   var v1$2;
   var v2$1;
   var $targ$28;
   var v$4;
-  var $$16150$0;
-  var $$16151$0;
-  var $$16152$0;
+  var $$15985$0;
+  var $$15986$0;
+  var $$15987$0;
   var t0$5;
   var t1$3;
   var expr$2;
@@ -215,14 +215,14 @@ replaceVars$0 = (function(temp$2$0, repl$0) {
   ph$1$0 = t0$4;
   $targ$28 = ph$1$0;
   t0$5 = $targ$28;
-  if ((($$16151$0 = (t0$5 instanceof Array)) && (($targ$29 = t0$5.length), (t1$3 = $targ$29), ((t1$3 === 2) && ((t0$5[0] === "variable") && ((v$4 = t0$5[1]), (Object.hasOwnProperty.call(repl$0, v$4) && send(repl$0, v$4)))))))) {
+  if ((($$15986$0 = (t0$5 instanceof Array)) && (($targ$29 = t0$5.length), (t1$3 = $targ$29), ((t1$3 === 2) && ((t0$5[0] === "variable") && ((v$4 = t0$5[1]), (Object.hasOwnProperty.call(repl$0, v$4) && send(repl$0, v$4)))))))) {
     return ["variable", send(repl$0, v$4)];
   } else {
-    if (($$16151$0 && ((t1$3 === 3) && ((t0$5[0] === "assign") && ((t2$1 = t0$5[1]), ((t2$1 instanceof Array) && ((t3$1 = t2$1.length), ((t3$1 === 2) && ((t2$1[0] === "variable") && ((v1$2 = t2$1[1]), (t4$1 = t0$5[2]), ((t4$1 instanceof Array) && ((t5$1 = t4$1.length), ((t5$1 === 2) && ((t4$1[0] === "variable") && ((v2$1 = t4$1[1]), (equal(send(repl$0, v1$2), v2$1) || equal(send(repl$0, v2$1), v1$2))))))))))))))))) {
+    if (($$15986$0 && ((t1$3 === 3) && ((t0$5[0] === "assign") && ((t2$1 = t0$5[1]), ((t2$1 instanceof Array) && ((t3$1 = t2$1.length), ((t3$1 === 2) && ((t2$1[0] === "variable") && ((v1$2 = t2$1[1]), (t4$1 = t0$5[2]), ((t4$1 instanceof Array) && ((t5$1 = t4$1.length), ((t5$1 === 2) && ((t4$1[0] === "variable") && ((v2$1 = t4$1[1]), (equal(send(repl$0, v1$2), v2$1) || equal(send(repl$0, v2$1), v1$2))))))))))))))))) {
       return ["multi"];
     } else {
-      bridge$$16145$0 = ph$1$0;
-      if ((((x$2 = bridge$$16145$0), ((x$2 instanceof Array) && (x$2[0] === "variable"))) || ((x$3 = bridge$$16145$0), ((x$3 instanceof Array) && (x$3[0] === "value"))))) {
+      bridge$$15980$0 = ph$1$0;
+      if ((((x$2 = bridge$$15980$0), ((x$2 instanceof Array) && (x$2[0] === "variable"))) || ((x$3 = bridge$$15980$0), ((x$3 instanceof Array) && (x$3[0] === "value"))))) {
         return expr$2;
       } else {
         $targ$37 = ph$1$0;
@@ -385,7 +385,7 @@ hoist_helper$0 = (function(temp$4$0) {
   var t0$10;
   var x$5;
   var x$6;
-  var bridge$$16404$0;
+  var bridge$$16239$0;
   var x$7;
   var t1$9;
   var t0$12;
@@ -422,19 +422,19 @@ hoist_helper$0 = (function(temp$4$0) {
   var $targ$68;
   var vars$4;
   var body$4;
-  var bridge$$16403$0;
-  var $$16410$0;
-  var $$16411$0;
-  var $$16412$0;
-  var $$16413$0;
+  var bridge$$16238$0;
+  var $$16245$0;
+  var $$16246$0;
+  var $$16247$0;
+  var $$16248$0;
   var t1$8;
   var expr$5;
   var ph$2$0;
   t0$10 = temp$4$0;
   expr$5 = t0$10;
   ph$2$0 = t0$10;
-  bridge$$16403$0 = ph$2$0;
-  if ((((bridge$$16404$0 = bridge$$16403$0), (((x$5 = bridge$$16404$0), ((x$5 instanceof Array) && (x$5[0] === "symbol"))) || ((x$6 = bridge$$16404$0), ((x$6 instanceof Array) && (x$6[0] === "value"))))) || ((x$7 = bridge$$16403$0), ((x$7 instanceof Array) && (x$7[0] === "variable"))))) {
+  bridge$$16238$0 = ph$2$0;
+  if ((((bridge$$16239$0 = bridge$$16238$0), (((x$5 = bridge$$16239$0), ((x$5 instanceof Array) && (x$5[0] === "symbol"))) || ((x$6 = bridge$$16239$0), ((x$6 instanceof Array) && (x$6[0] === "value"))))) || ((x$7 = bridge$$16238$0), ((x$7 instanceof Array) && (x$7[0] === "variable"))))) {
     return [expr$5, []];
   } else {
     t0$11 = ph$2$0;
@@ -469,7 +469,7 @@ hoist_helper$0 = (function(temp$4$0) {
         [newbody$1, inner$2];
         return [["lambda", vars$5, ["scope", inner$2, newbody$1], generator$2], []];
       } else {
-        if ((($$16411$0 = (t0$11 instanceof Array)) && (($targ$75 = t0$11.length), (t1$8 = $targ$75), (($$16413$0 = (t1$8 >= 1)) && ((type$0 = t0$11[0]), (args$0 = Array.prototype.slice.call(t0$11, 1)), (hoistable$0.indexOf(type$0) !== -1)))))) {
+        if ((($$16246$0 = (t0$11 instanceof Array)) && (($targ$75 = t0$11.length), (t1$8 = $targ$75), (($$16248$0 = (t1$8 >= 1)) && ((type$0 = t0$11[0]), (args$0 = Array.prototype.slice.call(t0$11, 1)), (hoistable$0.indexOf(type$0) !== -1)))))) {
           $targ$76 = [];
           accum$0 = $targ$76;
           acc$2 = [];
@@ -506,7 +506,7 @@ hoist_helper$0 = (function(temp$4$0) {
           newargs$0 = acc$2;
           return [[type$0].concat(newargs$0), accum$0];
         } else {
-          if (($$16413$0 && ((type$1 = t0$11[0]), (args$1 = Array.prototype.slice.call(t0$11, 1)), (not_hoistable$0.indexOf(type$1) !== -1)))) {
+          if (($$16248$0 && ((type$1 = t0$11[0]), (args$1 = Array.prototype.slice.call(t0$11, 1)), (not_hoistable$0.indexOf(type$1) !== -1)))) {
             acc$3 = [];
             $targ$86 = null;
             temp$6 = $targ$86;

@@ -202,7 +202,7 @@ class Translator:
                      "\n" => "\\n"
                      "\\" => "\\\\"
                   }
-                  set v = v.replace{R.g'{"\"" or "\\" or "\n"}, {m} -> repl[m]}
+                  set v = v.replace{R.g`{"\"" or "\\" or "\n"}`, {m} -> repl[m]}
                   "\"" + v + "\""
                undefined? ->
                   "(void 0)"
@@ -236,7 +236,7 @@ class Translator:
          #send{f, msg and #value{s}} ->
             match:
                when [[typeof{s} === "string"]
-                     \ and s.match{R'[start, + in "a-zA-Z_$", end]}] ->
+                     \ and s.match{R`[start, + in "a-zA-Z_$", end]`}] ->
                   @expr{trf + "." + trmsg, mode} where
                      trf = match @translate{f, .expr}:
                         R"^\d+$"? x -> "(" + x + ")"

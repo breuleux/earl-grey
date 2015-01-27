@@ -206,7 +206,7 @@ compile_path{p, opts} =
                   to = path.join{out, d}
                   fs.mkdirSync{to} !! e -> "ignore error"
             {.file, match} ->
-               R'[start, {*any}, ".eg", end]! results when results ->
+               R`[start, {*any}, ".eg", end]`! results when results ->
                   {x, name} = results
                   from = path.join{p, x}
                   to = path.join{out, name + ".js"}
@@ -368,7 +368,7 @@ _run{match, opts} =
                   to = path.join{out, d}
                   fs.mkdirSync{to} !! e -> "ignore error"
                {.file, match} ->
-                  R'[start, {*any}, ".eg", end]! results when results ->
+                  R`[start, {*any}, ".eg", end]`! results when results ->
                      {x, name} = results
                      from = path.join{file, x}
                      to = path.join{out, name + ".js"}

@@ -9,8 +9,8 @@ require:
 
 
 setup_label{label, env, body} =
-   #bind{'break & {env = env}, #macro{break_mac{label}}
-         #bind{'continue & {env = env}, #macro{continue_mac{label}}
+   #bind{`break` & {env = env}, #macro{break_mac{label}}
+         #bind{`continue` & {env = env}, #macro{continue_mac{label}}
                #js_label{#value{label}, body}}}
 
 break_mac{default_label} = overridable with
@@ -34,7 +34,7 @@ inject: mac
    "continue" => continue_mac{null}
 
 expr_mac! mac{"while"}! while_mac{info, form, match {=> env}} =
-   '[. ^[#symbol{label}]] or #value{label} ->
+   `[. ^[#symbol{label}]]` or #value{label} ->
       #macro with {context, _, form, #data{test, body}} ->
          setup_label{label, env, #js_while{test, body}}
    #data{test, body} ->
@@ -46,15 +46,15 @@ mac{"for"}! for_mac{context, info, form, match expr} =
          #multi with
             a
             setup_label{label, env, #js_for{#multi{}, b, c, body}}
-      '[^a in ^b] ->
+      `^a in ^b` ->
          #multi with
             #declare{a, #value{null}} ;; this is to show the symbol as resolved
             setup_label{label, env, #js_for_in{a, b, body}}
-      '[of]{^a, ^b} ->
+      `^a of ^b` ->
          #multi with
             #declare{a, #value{null}} ;; this is to show the symbol as resolved
             setup_label{label, env, #js_for_of{a, b, body}}
-   '[. ^[#symbol{label}]] or #value{label} ->
+   `[. ^[#symbol{label}]]` or #value{label} ->
       #macro with {context, _, form, #data{spec, body}} ->
          setup_for{label, expr.env, spec, body}
    #data{spec, body} ->
@@ -71,9 +71,9 @@ class EachHandler:
 
    wrap{expr, info, opt} =
       if @generator:
-         '[^[@placeholder] each* ^[@loopvar] -> ^expr]
+         `^[@placeholder] each* ^[@loopvar] -> ^expr`
       else:
-         '[^[@placeholder] each ^[@loopvar] -> ^expr]
+         `^[@placeholder] each ^[@loopvar] -> ^expr`
 
 
 mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
@@ -84,7 +84,7 @@ mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
       #data{li, body} = expr
       #special{EachHandler{ph, lv}} where
          ph = if{li == #void{}, info.env.mark{#symbol{info.gensym{.xs}}}, li}
-         lv = if{body == #void{}, info.env.mark{'match}, body}
+         lv = if{body == #void{}, info.env.mark{`match`}, body}
 
    do:
       #data{li, body} = expr
@@ -103,7 +103,7 @@ mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
                x
             fallback{target} =
                if ends_with_test:
-                  then: 'false
+                  then: `false`
                   else: match_error{target}
 
    #test ->
@@ -127,9 +127,9 @@ mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
       ;; break and continue.
 
       ;; _build_loop{{x} -> 'acc.push{^ #multi{x}}, '[var acc = {}], 'acc}
-      _build_loop{{x} -> '[temp = ^ #multi{x}, acc.push{temp}]
-                  #splice{'[var acc = {}], '[var temp = null]}
-                  'acc}
+      _build_loop{{x} -> `temp = ^ #multi{x}, acc.push{temp}`
+                  #splice{`var acc = {}`, `var temp = null`}
+                  `acc`}
 
 
 mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
@@ -140,7 +140,7 @@ mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
       #data{li, body} = expr
       #special{EachHandler{ph, lv, true}} where
          ph = if{li == #void{}, info.env.mark{#symbol{info.gensym{.xs}}}, li}
-         lv = if{body == #void{}, info.env.mark{'match}, body}
+         lv = if{body == #void{}, info.env.mark{`match`}, body}
 
    do:
       #data{li, body} = expr
@@ -159,7 +159,7 @@ mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
                x
             fallback{target} =
                if ends_with_test:
-                  then: 'false
+                  then: `false`
                   else: match_error{target}
 
    #expr{.multi} ->
@@ -176,7 +176,7 @@ mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
    other ->
       ;; Middle of a block. We create a generator and yield the
       ;; values.
-      '[[{} *-> ^loop]{}] where loop =
-         _build_loop{{x} -> '[temp = ^ #multi{x}, yield temp]
-                     #splice{'[var acc = {}], '[var temp = null]}
-                     'acc}
+      `[{} *-> ^loop]{}` where loop =
+         _build_loop{{x} -> `temp = ^ #multi{x}, yield temp`
+                     #splice{`var acc = {}`, `var temp = null`}
+                     `acc`}

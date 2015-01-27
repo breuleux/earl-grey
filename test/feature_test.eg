@@ -135,7 +135,7 @@ results = blocktest:
       "cabbage".replace{re, "arria"} === "carriage"
 
       do:
-         re = R'[start, +"a", {+"b"}, "a", end]
+         re = R`[start, +"a", {+"b"}, "a", end]`
       ;; TODO: REACTIVATE
       ;; [{...} each re! {_, s} -> R"b+"? s] with
       ;;    "abba", "abbbbbba", "aaaaaba"

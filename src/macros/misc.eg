@@ -24,7 +24,7 @@ class ChainHandler:
       @placeholder = @env.mark{#symbol{info.gensym{.ph}}}
       @placeholder
    wrap{expr, info, opt} =
-      'chain{^[@placeholder], ^expr}
+      `chain{^[@placeholder], ^expr}`
 
 mac{"chain"}! chain_mac{match, info, form, expr} =
    #pattern ->
@@ -33,20 +33,18 @@ mac{"chain"}! chain_mac{match, info, form, expr} =
          other -> #all{other <<: expr, #special{ChainHandler{form.env}} <<: form}
    #expr{.expr} or #expr{.head} ->
       #data{defn and {=> env}, Body! {*body}} = expr
-      it = '[@] & {env = env}
+      it = `@` & {env = env}
       construct{match} =
          {x} -> x
          {x, *rest} ->
-            ' | let [^it = ^x]:
-                 ^construct{rest}
+            `let [^it = ^x]: ^construct{rest}`
       construct{{defn} ++ body}
    else ->
       #nostep{form}
 
 expr_mac! mac{"using"}! using_mac{_, form, #data{defn and {=> env}, body}} =
-   it = '[@] & {env = env}
-   ' | let [^it = ^defn]:
-        ^body
+   it = `@` & {env = env}
+   `let [^it = ^defn]: ^body`
 
 overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
    #clause ->
@@ -64,7 +62,7 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
       else -> pass
 
    var tags = #data{}
-   kv = '{=}
+   kv = `{=}`
 
    parse{match whole} =
       #void{} -> null
@@ -72,11 +70,11 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
          tags.push with #value{s}
       #value{String! x} ->
          tags.push with #value{x}
-      '[. ^[#symbol{x} or #value{String! x}]] ->
+      `[. ^[#symbol{x} or #value{String! x}]]` ->
          tags.push with #value{"." + x}
       #send{#symbol{"^"}, #data{#void{}, expr}} ->
          tags.push with expr
-      '[^_ = ^_] ->
+      `[^_ = ^_]` ->
          kv.push with whole
       #send{expr, rest} ->
          parse{expr}, parse{rest}
@@ -90,20 +88,20 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
       #multi{*args} ->
          xs = {}
          args each
-            pair and '[^k = ^v] ->
+            pair and `[^k = ^v]` ->
                kv.push with pair
-            spl and '[** ^_] ->
+            spl and `[** ^_]` ->
                kv.push with spl
             other ->
                xs.push with other
          #array{*xs}
-      pair and '[^k = ^v] ->
+      pair and `[^k = ^v]` ->
          kv.push with pair
          #array{}
       x -> x
 
-   node = form.env.mark{'Node}
-   '[^node]{^tags, ^kv, ^contents}
+   node = form.env.mark{`Node`}
+   `[^node]{^tags, ^kv, ^contents}`
 
 mac{"S"}! S_mac{context, info, form, arg} =
    #value with
@@ -113,9 +111,9 @@ mac{"S"}! S_mac{context, info, form, arg} =
 
 mac{"print"}! print_mac{context, info, form, match} =
    #void{} ->
-      'console.log{}
+      `console.log{}`
    arg ->
-      '[t = ^arg, console.log{t}, t]
+      `t = ^arg, console.log{t}, t`
 
 
 
@@ -125,35 +123,35 @@ mac{"print"}! print_mac{context, info, form, match} =
 
 mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
    helper{name, super, stmts} =
-      var statics = #data{'[=]}
+      var statics = #data{`[=]`}
       var ctor = {#data{}, #multi{} & {env = env}}
       new_stmts = stmts each
-         #send{'static, #data{Body! {*methods}}} ->
+         #send{`static`, #data{Body! {*methods}}} ->
             statics ++= methods
-         '[constructor[^args] = ^body] or '[constructor = ^args -> ^body] ->
+         `constructor[^args] = ^body` or `constructor = ^args -> ^body` ->
             set ctor = {args, body}
             #splice{}
-         '[^lhs = ^rhs] ->
+         `^lhs = ^rhs` ->
             ;; parse_pattern{info, lhs, rhs} with
 
             PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs} where opt =
                pattern_handlers.build_object & {
                   allow_nested = false
                   assign{#symbol{v} or #value{v}, value} =
-                     #do{#assign{'[^name].prototype[^=v], value} <<: v}
+                     #do{#assign{`[^name].prototype[^=v]`, value} <<: v}
                   declare{vars} = {}
                   wrap_target{match} =
-                     '[^args -> ^body] ->
+                     `^args -> ^body` ->
                         {env => other_env} = body
                         it = #symbol{"@"} & {env = other_env}
                         it2 = #symbol{"self"} & {env = other_env}
-                        '_lambda{
+                        `_lambda{
                            ^args
                            splice: [let ^it = this, let ^it2 = this]
                            ^body
                            ^=null
                            ^=false
-                        }
+                        }`
                      other ->
                         other
                   success{_} = #splice{}
@@ -165,32 +163,32 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
          {env => env2} = ctor_body
          it = #symbol{"@"} & {env = env2}
          cls =
-            '_lambda{
+            `_lambda{
                ^ctor_args
                ^it = if{not [^name]? this, Object.create{[^name].prototype}, this}
                ^ctor_body
                ^it
                ^=false
-            }
+            }`
          if super:
-            then: '___extend{^cls, ^super}
+            then: `___extend{^cls, ^super}`
             else: cls
 
       match name:
          #symbol{name_str} ->
             statics.push with
-               '["::name" = ^=name_str]
+               `["::name" = ^=name_str]`
          else ->
             pass
 
       statics.push with
-         '["::egclass" = true]
+         `["::egclass" = true]`
 
       node =
          #splice{
-            '[let ^name = ^ctor_expr]
-            '[^*new_stmts]
-            '[[^name] &: ^statics]
+            `let ^name = ^ctor_expr`
+            `^*new_stmts`
+            `[[^name] &: ^statics]`
             name
          }
 
@@ -200,9 +198,9 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
 
    match expr:
       #data{match, Body! {*stmts}} ->
-         '[^name {^super}] ->
+         `[^name {^super}]` ->
             helper{name, super, stmts}
-         '[^name {}] or [#symbol{_} and name] ->
+         `[^name {}]` or [#symbol{_} and name] ->
             helper{name, null, stmts}
       #data{Body! {*stmts}} ->
          helper{#symbol{info.gensym{}}, null, stmts}
@@ -218,9 +216,9 @@ mac{"E"}! E_mac = errf_macro{{}} where
       ctx ->
          match expr:
             #void{} ->
-               'ErrorFactory{{^*tags}}
+               `ErrorFactory{{^*tags}}`
             #data{*args} ->
-               'ErrorFactory{{^*tags}}.create{^*args}
+               `ErrorFactory{{^*tags}}.create{^*args}`
             other ->
                #macro with errf_macro{tags ++ {other}}
 

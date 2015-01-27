@@ -80,21 +80,21 @@ items{keywords} each {gvar, v} ->
 
 [items{kv} each {k, v} -> mac{k}{v}] where kv = {
    "null" = value_mac{.null, chk} where
-      chk{x} = '[^x === ^=null]
+      chk{x} = `^x === ^=null`
    "undefined" = value_mac{.undefined, chk} where
-      chk{x} = '[^x === ^=undefined]
+      chk{x} = `^x === ^=undefined`
    "true" = value_mac{.true, chk} where
-      chk{x} = 'if{^x, true, false}
+      chk{x} = `if{^x, true, false}`
    "false" = value_mac{.false, chk} where
-      chk{x} = '[not ^x]
+      chk{x} = `not ^x`
    "String" = value_mac{.String, chk, proj} where
-      chk{x} = '[typeof{^x} === .string]
-      proj{x} = '{true, String{^x}}
+      chk{x} = `typeof{^x} === .string`
+      proj{x} = `{true, String{^x}}`
    "Number" = value_mac{.Number, chk, proj} where
-      chk{x} = '[typeof{^x} === .number]
-      proj{x} = '{true, parseFloat{^x}}
+      chk{x} = `typeof{^x} === .number`
+      proj{x} = `{true, parseFloat{^x}}`
    "Boolean" = value_mac{.Boolean, chk, proj} where
-      chk{x} = '[typeof{^x} === .boolean]
-      proj{x} = '{true, Boolean{^x}}
+      chk{x} = `typeof{^x} === .boolean`
+      proj{x} = `{true, Boolean{^x}}`
 }
 

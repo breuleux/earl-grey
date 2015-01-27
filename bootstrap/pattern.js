@@ -230,12 +230,12 @@ $targ$17 = (function(specs$0, tags$1) {
         var key$0;
         var t0$1;
         var variable$0;
-        var $$18686$0;
-        var $$18687$0;
-        var $$18688$0;
-        var $$18689$0;
+        var $$18525$0;
+        var $$18526$0;
+        var $$18527$0;
+        var $$18528$0;
         t0$1 = m$1;
-        if ((($$18687$0 = (t0$1 instanceof Array)) && ((t1$0 = t0$1.length), (($$18689$0 = (t1$0 === 2)) && (t0$1[0] === "dynsplice"))))) {
+        if ((($$18526$0 = (t0$1 instanceof Array)) && ((t1$0 = t0$1.length), (($$18528$0 = (t1$0 === 2)) && (t0$1[0] === "dynsplice"))))) {
           variable$0 = t0$1[1];
           $targ$78 = $it$5.expand(variable$0, tags$1);
           rest$0 = $targ$78;
@@ -243,20 +243,20 @@ $targ$17 = (function(specs$0, tags$1) {
           temp$3 = $targ$77;
           acc$2.push(temp$3);
         } else {
-          if (($$18689$0 && (t0$1[0] === "assoc"))) {
+          if (($$18528$0 && (t0$1[0] === "assoc"))) {
             key$0 = t0$1[1];
             $targ$79 = ["keys", [key$0, $it$5.expand(key$0, tags$1)]];
             temp$3 = $targ$79;
             acc$2.push(temp$3);
           } else {
-            if (($$18687$0 && (($$18689$0 = (t1$0 === 3)) && (t0$1[0] === "assoc")))) {
+            if (($$18526$0 && (($$18528$0 = (t1$0 === 3)) && (t0$1[0] === "assoc")))) {
               key$1 = t0$1[1];
               subp$0 = t0$1[2];
               $targ$80 = ["keys", [key$1, $it$5.expand(subp$0, tags$1)]];
               temp$3 = $targ$80;
               acc$2.push(temp$3);
             } else {
-              if (($$18689$0 && (t0$1[0] === "default"))) {
+              if (($$18528$0 && (t0$1[0] === "default"))) {
                 variable$1 = t0$1[1];
                 value$0 = t0$1[2];
                 $targ$82 = true;
@@ -360,7 +360,7 @@ $targ$18 = (function() {
   var bw$0;
   var defaults$0;
   var rest$1;
-  var $$19155$0;
+  var $$18994$0;
   var t0$10;
   var t1$6;
   var m$8$0;
@@ -390,12 +390,12 @@ $targ$18 = (function() {
   var value$1;
   var v$3;
   var v$2;
-  var bridge$$18820$0;
+  var bridge$$18659$0;
   var handler$0;
-  var $$18836$0;
-  var $$18837$0;
-  var $$18838$0;
-  var $$18839$0;
+  var $$18675$0;
+  var $$18676$0;
+  var $$18677$0;
+  var $$18678$0;
   var t0$3;
   var m$3$0;
   var $targ$167;
@@ -440,32 +440,32 @@ $targ$18 = (function() {
           p$0.pinfo.handlers.push(handler$0);
           rval$3 = p$0;
         } else {
-          bridge$$18820$0 = m$3$0;
-          if ((((x$2 = bridge$$18820$0), ((x$2 instanceof Array) && (x$2[0] === "symbol"))) || ((x$3 = bridge$$18820$0), ((x$3 instanceof Array) && (x$3[0] === "variable"))))) {
+          bridge$$18659$0 = m$3$0;
+          if ((((x$2 = bridge$$18659$0), ((x$2 instanceof Array) && (x$2[0] === "symbol"))) || ((x$3 = bridge$$18659$0), ((x$3 instanceof Array) && (x$3[0] === "variable"))))) {
             variable$2 = __amp__(expr$0, tags$2);
             rval$3 = __amp____colon__(["assign", variable$2], ({"pinfo": PatternInfo$0([], [variable$2])}));
           } else {
-            if ((($$18836$0 = (m$3$0 instanceof Array)) && (($targ$100 = m$3$0.length), (t0$3 = $targ$100), (($$18838$0 = (t0$3 === 2)) && (($$18839$0 = (m$3$0[0] === "value")) && ((v$2 = m$3$0[1]), $it$6.opt.strings_as_variables)))))) {
+            if ((($$18675$0 = (m$3$0 instanceof Array)) && (($targ$100 = m$3$0.length), (t0$3 = $targ$100), (($$18677$0 = (t0$3 === 2)) && (($$18678$0 = (m$3$0[0] === "value")) && ((v$2 = m$3$0[1]), $it$6.opt.strings_as_variables)))))) {
               variable$3 = __lt____lt____colon__$0(__amp__(["symbol", v$2], tags$2), expr$0);
               rval$3 = __amp____colon__(["assign", variable$3], ({"pinfo": PatternInfo$0([], [variable$3])}));
             } else {
-              if ($$18839$0) {
+              if ($$18678$0) {
                 v$3 = m$3$0[1];
                 rval$3 = ["check", checker_db$0(v$3), ["ignore"]];
               } else {
-                if (($$18836$0 && (($$18838$0 = (t0$3 === 3)) && (m$3$0[0] === "replace")))) {
+                if (($$18675$0 && (($$18677$0 = (t0$3 === 3)) && (m$3$0[0] === "replace")))) {
                   subp$1 = m$3$0[1];
                   value$1 = m$3$0[2];
                   csubp$0 = $it$6.expand(subp$1, tags$2, toplevel$0, false);
                   rval$3 = __amp____colon__(["replace", csubp$0, value$1], ({"pinfo": csubp$0.pinfo}));
                 } else {
-                  if (($$18838$0 && (m$3$0[0] === "test"))) {
+                  if (($$18677$0 && (m$3$0[0] === "test"))) {
                     condition$0 = m$3$0[1];
                     subp$2 = m$3$0[2];
                     csubp$1 = $it$6.expand(subp$2, tags$2, toplevel$0, false);
                     rval$3 = __amp____colon__(["test", condition$0, csubp$1], ({"pinfo": csubp$1.pinfo}));
                   } else {
-                    if (($$18836$0 && (((t0$3 >= 3) && (t0$3 <= 4)) && (m$3$0[0] === "project")))) {
+                    if (($$18675$0 && (((t0$3 >= 3) && (t0$3 <= 4)) && (m$3$0[0] === "project")))) {
                       projector$0 = m$3$0[1];
                       subp$3 = m$3$0[2];
                       if ((3 >= t0$3)) {
@@ -476,13 +476,13 @@ $targ$18 = (function() {
                       csubp$2 = $it$6.expand(subp$3, tags$2, toplevel$0, true);
                       rval$3 = __amp____colon__(["project", projector$0, csubp$2, unconditional$0], ({"pinfo": csubp$2.pinfo}));
                     } else {
-                      if (($$18836$0 && (($$18838$0 = (t0$3 === 3)) && (m$3$0[0] === "check")))) {
+                      if (($$18675$0 && (($$18677$0 = (t0$3 === 3)) && (m$3$0[0] === "check")))) {
                         checker$0 = m$3$0[1];
                         subp$4 = m$3$0[2];
                         csubp$3 = $it$6.expand(subp$4, tags$2, toplevel$0, true);
                         rval$3 = __amp____colon__(["check", checker$0, csubp$3], ({"pinfo": csubp$3.pinfo}));
                       } else {
-                        if (($$18838$0 && (($$18839$0 = (m$3$0[0] === "send")) && ((f$2 = m$3$0[1]), (t1$1 = m$3$0[2]), (x$4 = t1$1), ((x$4 instanceof Array) && (x$4[0] === "data")))))) {
+                        if (($$18677$0 && (($$18678$0 = (m$3$0[0] === "send")) && ((f$2 = m$3$0[1]), (t1$1 = m$3$0[2]), (x$4 = t1$1), ((x$4 instanceof Array) && (x$4[0] === "data")))))) {
                           args$0 = t1$1;
                           if (toplevel$0) {
                             fn$0 = $it$6.expand(f$2, tags$2, true, false);
@@ -498,7 +498,7 @@ $targ$18 = (function() {
                             }));
                           }
                         } else {
-                          if ($$18839$0) {
+                          if ($$18678$0) {
                             f$3 = m$3$0[1];
                             arg$0 = m$3$0[2];
                             rval$3 = ["assign", expr$0];
@@ -507,12 +507,12 @@ $targ$18 = (function() {
                               msg$1 = "Nested patterns are not allowed here.";
                               throw ErrorFactory(["syntax", "pattern"]).create(msg$1, ({"node": expr$0}));
                             } else {
-                              if ((($$18836$0 = (m$3$0 instanceof Array)) && (($targ$112 = m$3$0.length), (t0$3 = $targ$112), ((t0$3 === 2) && (m$3$0[0] === "neg"))))) {
+                              if ((($$18675$0 = (m$3$0 instanceof Array)) && (($targ$112 = m$3$0.length), (t0$3 = $targ$112), ((t0$3 === 2) && (m$3$0[0] === "neg"))))) {
                                 x$5 = m$3$0[1];
                                 cx$0 = $it$6.expand(x$5, tags$2);
                                 rval$3 = __amp____colon__(["neg", cx$0], ({"pinfo": cx$0.pinfo}));
                               } else {
-                                if (($$18836$0 && (($$18838$0 = (t0$3 >= 1)) && (m$3$0[0] === "all")))) {
+                                if (($$18675$0 && (($$18677$0 = (t0$3 >= 1)) && (m$3$0[0] === "all")))) {
                                   xs$0 = Array.prototype.slice.call(m$3$0, 1);
                                   acc$3 = [];
                                   $targ$116 = null;
@@ -533,7 +533,7 @@ $targ$18 = (function() {
                                   cxs$0 = acc$3;
                                   rval$3 = __amp____colon__(["all"].concat(cxs$0), ({"pinfo": PatternInfo$0.mergeAll(cxs$0)}));
                                 } else {
-                                  if (($$18838$0 && (m$3$0[0] === "any"))) {
+                                  if (($$18677$0 && (m$3$0[0] === "any"))) {
                                     xs$1 = Array.prototype.slice.call(m$3$0, 1);
                                     canon$0 = (function(all$0) {
                                       return all$0.sort().join(",");
@@ -612,7 +612,7 @@ $targ$18 = (function() {
                                     }
                                     rval$3 = __amp____colon__(["any"].concat(pps$0), ({"pinfo": (pps$0[0] && pps$0[0].pinfo)}));
                                   } else {
-                                    if (($$18838$0 && (m$3$0[0] === "data"))) {
+                                    if (($$18677$0 && (m$3$0[0] === "data"))) {
                                       args$1 = Array.prototype.slice.call(m$3$0, 1);
                                       specs$1 = $it$6.parse_specs(args$1, tags$2);
                                       $targ$134 = [];
@@ -707,7 +707,7 @@ $targ$18 = (function() {
                                       }
                                       pinfo$3 = PatternInfo$0.mergeAll(pinfos$2);
                                       m$8$0 = specs$1;
-                                      if ((($$19155$0 = ___hasprop(m$8$0, "keys")) && (($targ$157 = m$8$0.keys), (t0$10 = $targ$157), ((t0$10 instanceof Array) && (($targ$158 = t0$10.length), (t1$6 = $targ$158), ((t1$6 === 0) && (___hasprop(m$8$0, "fw") && ((fw$0 = m$8$0.fw), (___hasprop(m$8$0, "bw") && ((bw$0 = m$8$0.bw), (___hasprop(m$8$0, "defaults") && ((defaults$0 = m$8$0.defaults), ___hasprop(m$8$0, "rest"))))))))))))) {
+                                      if ((($$18994$0 = ___hasprop(m$8$0, "keys")) && (($targ$157 = m$8$0.keys), (t0$10 = $targ$157), ((t0$10 instanceof Array) && (($targ$158 = t0$10.length), (t1$6 = $targ$158), ((t1$6 === 0) && (___hasprop(m$8$0, "fw") && ((fw$0 = m$8$0.fw), (___hasprop(m$8$0, "bw") && ((bw$0 = m$8$0.bw), (___hasprop(m$8$0, "defaults") && ((defaults$0 = m$8$0.defaults), ___hasprop(m$8$0, "rest"))))))))))))) {
                                         rest$1 = m$8$0.rest;
                                         patt$0 = __amp____colon__(__lt____lt____colon__$0(["array_pattern", fw$0, bw$0, defaults$0, rest$1], pattern$1), ({"pinfo": pinfo$3}));
                                         if (checked$0) {
@@ -716,7 +716,7 @@ $targ$18 = (function() {
                                           rval$3 = __amp____colon__(["check", checker_db$0.Array, patt$0], ({"pinfo": pinfo$3}));
                                         }
                                       } else {
-                                        if (($$19155$0 && ((keys$0 = m$8$0.keys), (___hasprop(m$8$0, "fw") && (($targ$160 = m$8$0.fw), (t0$10 = $targ$160), ((t0$10 instanceof Array) && (($targ$161 = t0$10.length), (t1$6 = $targ$161), ((t1$6 === 0) && (___hasprop(m$8$0, "bw") && ((t2$2 = m$8$0.bw), ((t2$2 instanceof Array) && ((t3$0 = t2$2.length), ((t3$0 === 0) && (___hasprop(m$8$0, "defaults") && ((t4$0 = m$8$0.defaults), ((t4$0 instanceof Array) && ((t5$0 = t4$0.length), ((t5$0 === 0) && (___hasprop(m$8$0, "rest") && (m$8$0.rest === (void 0))))))))))))))))))))) {
+                                        if (($$18994$0 && ((keys$0 = m$8$0.keys), (___hasprop(m$8$0, "fw") && (($targ$160 = m$8$0.fw), (t0$10 = $targ$160), ((t0$10 instanceof Array) && (($targ$161 = t0$10.length), (t1$6 = $targ$161), ((t1$6 === 0) && (___hasprop(m$8$0, "bw") && ((t2$2 = m$8$0.bw), ((t2$2 instanceof Array) && ((t3$0 = t2$2.length), ((t3$0 === 0) && (___hasprop(m$8$0, "defaults") && ((t4$0 = m$8$0.defaults), ((t4$0 instanceof Array) && ((t5$0 = t4$0.length), ((t5$0 === 0) && (___hasprop(m$8$0, "rest") && (m$8$0.rest === (void 0))))))))))))))))))))) {
                                           rval$3 = __amp____colon__(["object_pattern"].concat(keys$0), ({"pinfo": pinfo$3}));
                                         } else {
                                           other$0 = m$8$0;
@@ -728,7 +728,7 @@ $targ$18 = (function() {
                                         }
                                       }
                                     } else {
-                                      if (($$18836$0 && ((t0$3 === 3) && (m$3$0[0] === "mode")))) {
+                                      if (($$18675$0 && ((t0$3 === 3) && (m$3$0[0] === "mode")))) {
                                         mode$0 = m$3$0[1];
                                         subp$5 = m$3$0[2];
                                         rval$3 = $it$6.expand(subp$5, __amp__(tags$2, ({"declare_mode": mode$0})), toplevel$0, checked$0);
@@ -797,7 +797,7 @@ $targ$20 = (function(rhs$1) {
   var t1$9;
   var t0$15;
   var $targ$190;
-  var bridge$$19454$0;
+  var bridge$$19293$0;
   var m$13$0;
   var t0$16;
   var $targ$175;
@@ -849,8 +849,8 @@ $targ$20 = (function(rhs$1) {
   $targ$177 = null;
   expr$1 = $targ$177;
   m$13$0 = target$0;
-  bridge$$19454$0 = m$13$0;
-  if ((((x$9 = bridge$$19454$0), ((x$9 instanceof Array) && (x$9[0] === "symbol"))) || ((x$10 = bridge$$19454$0), ((x$10 instanceof Array) && (x$10[0] === "variable"))))) {
+  bridge$$19293$0 = m$13$0;
+  if ((((x$9 = bridge$$19293$0), ((x$9 instanceof Array) && (x$9[0] === "symbol"))) || ((x$10 = bridge$$19293$0), ((x$10 instanceof Array) && (x$10[0] === "variable"))))) {
     undefined;
   } else {
     $targ$190 = [["variable", $it$8.info.gensym("$targ")], target$0];
@@ -1083,7 +1083,7 @@ $targ$27 = (function() {
   var $targ$236;
   var $targ$237;
   var init$0;
-  var bridge$$19836$0;
+  var bridge$$19675$0;
   var m$21$0;
   var t0$20;
   var x$15;
@@ -1103,8 +1103,8 @@ $targ$27 = (function() {
       v$5 = m$20$0[1];
     }
     m$21$0 = x$15;
-    bridge$$19836$0 = m$21$0;
-    if (((((x$16 = bridge$$19836$0), ((x$16 instanceof Array) && (x$16[0] === "variable"))) || ((x$17 = bridge$$19836$0), ((x$17 instanceof Array) && (x$17[0] === "symbol")))) && (___hasprop(m$21$0, "single_assignment") && ((m$21$0.single_assignment ? true : false) && (!v$5))))) {
+    bridge$$19675$0 = m$21$0;
+    if (((((x$16 = bridge$$19675$0), ((x$16 instanceof Array) && (x$16[0] === "variable"))) || ((x$17 = bridge$$19675$0), ((x$17 instanceof Array) && (x$17[0] === "symbol")))) && (___hasprop(m$21$0, "single_assignment") && ((m$21$0.single_assignment ? true : false) && (!v$5))))) {
       return x$15;
     } else {
       init$0 = m$21$0;
@@ -1184,10 +1184,10 @@ $targ$28 = (function(pattern$3, rhs$3, fns$0) {
   var subp$7;
   var value$2;
   var sym$0;
-  var $$19905$0;
-  var $$19906$0;
-  var $$19907$0;
-  var $$19908$0;
+  var $$19744$0;
+  var $$19745$0;
+  var $$19746$0;
+  var $$19747$0;
   var m$22$0;
   var rval$4;
   var $it$16;
@@ -1198,32 +1198,32 @@ $targ$28 = (function(pattern$3, rhs$3, fns$0) {
   if (((x$18 = m$22$0), ((x$18 instanceof Array) && (x$18[0] === "ignore")))) {
     rval$4 = $it$16.do(rhs$3);
   } else {
-    if ((($$19905$0 = (m$22$0 instanceof Array)) && ((t0$21 = m$22$0.length), ((t0$21 === 2) && (m$22$0[0] === "assign"))))) {
+    if ((($$19744$0 = (m$22$0 instanceof Array)) && ((t0$21 = m$22$0.length), ((t0$21 === 2) && (m$22$0[0] === "assign"))))) {
       sym$0 = m$22$0[1];
       rval$4 = $it$16.parts.push(fns$0.assign(sym$0, rhs$3));
     } else {
-      if (($$19905$0 && (($$19907$0 = (t0$21 === 3)) && (m$22$0[0] === "replace")))) {
+      if (($$19744$0 && (($$19746$0 = (t0$21 === 3)) && (m$22$0[0] === "replace")))) {
         subp$7 = m$22$0[1];
         value$2 = m$22$0[2];
         rval$4 = $it$16.process(subp$7, value$2, fns$0);
       } else {
-        if (($$19907$0 && (m$22$0[0] === "test"))) {
+        if (($$19746$0 && (m$22$0[0] === "test"))) {
           condition$1 = m$22$0[1];
           subp$8 = m$22$0[2];
           $it$16.process(subp$8, rhs$3, fns$0);
           rval$4 = $it$16.check(condition$1, ({"test": true}));
         } else {
-          if (($$19907$0 && (($$19908$0 = (m$22$0[0] === "check")) && ((checker$1 = m$22$0[1]), (x$19 = m$22$0[2]), ((x$19 instanceof Array) && (x$19[0] === "ignore")))))) {
+          if (($$19746$0 && (($$19747$0 = (m$22$0[0] === "check")) && ((checker$1 = m$22$0[1]), (x$19 = m$22$0[2]), ((x$19 instanceof Array) && (x$19[0] === "ignore")))))) {
             rval$4 = $it$16.check(["send", checker$1, ["data", rhs$3]]);
           } else {
-            if ($$19908$0) {
+            if ($$19747$0) {
               checker$2 = m$22$0[1];
               subp$9 = m$22$0[2];
               t$1 = $it$16.temp(rhs$3);
               $it$16.check(["send", checker$2, ["data", t$1]]);
               rval$4 = $it$16.process(subp$9, t$1, fns$0);
             } else {
-              if (($$19905$0 && ((t0$21 === 4) && (m$22$0[0] === "project")))) {
+              if (($$19744$0 && ((t0$21 === 4) && (m$22$0[0] === "project")))) {
                 projector$2 = m$22$0[1];
                 subp$10 = m$22$0[2];
                 t1$12 = m$22$0[3];
@@ -1238,11 +1238,11 @@ $targ$28 = (function(pattern$3, rhs$3, fns$0) {
                   rval$4 = $it$16.process(subp$10, ["send", t$3, ["value", 1]], fns$0);
                 }
               } else {
-                if (($$19905$0 && ((t0$21 === 2) && (m$22$0[0] === "neg")))) {
+                if (($$19744$0 && ((t0$21 === 2) && (m$22$0[0] === "neg")))) {
                   patt$1 = m$22$0[1];
                   rval$4 = $it$16.check(["send", ["symbol", "not"], ["data", ["void"], ((pp$0 = PatternProcessor$0()), pp$0.process(patt$1, rhs$3, fns$0), assemble_conditions$0(pp$0))]]);
                 } else {
-                  if (($$19905$0 && (($$19907$0 = (t0$21 >= 1)) && (m$22$0[0] === "all")))) {
+                  if (($$19744$0 && (($$19746$0 = (t0$21 >= 1)) && (m$22$0[0] === "all")))) {
                     xs$2 = Array.prototype.slice.call(m$22$0, 1);
                     t$4 = $it$16.temp(rhs$3);
                     m$23 = null;
@@ -1257,7 +1257,7 @@ $targ$28 = (function(pattern$3, rhs$3, fns$0) {
                     }
                     rval$4 = null;
                   } else {
-                    if (($$19907$0 && (m$22$0[0] === "any"))) {
+                    if (($$19746$0 && (m$22$0[0] === "any"))) {
                       xs$3 = Array.prototype.slice.call(m$22$0, 1);
                       t$5 = $it$16.temp(rhs$3, ["symbol", gensym$0("bridge")]);
                       rval$4 = $it$16.check(((fn$1 = (function(x$21, rest$3) {
@@ -1280,7 +1280,7 @@ $targ$28 = (function(pattern$3, rhs$3, fns$0) {
                         }
                       })(), acc$11)), util$0.construct(parts$0, fn$1, ["symbol", "false"])));
                     } else {
-                      if (($$19907$0 && (m$22$0[0] === "object_pattern"))) {
+                      if (($$19746$0 && (m$22$0[0] === "object_pattern"))) {
                         subp$11 = Array.prototype.slice.call(m$22$0, 1);
                         t$6 = $it$16.temp(rhs$3);
                         acc$12 = [];
@@ -1313,7 +1313,7 @@ $targ$28 = (function(pattern$3, rhs$3, fns$0) {
                         }
                         rval$4 = acc$12;
                       } else {
-                        if (($$19905$0 && ((t0$21 === 5) && (m$22$0[0] === "array_pattern")))) {
+                        if (($$19744$0 && ((t0$21 === 5) && (m$22$0[0] === "array_pattern")))) {
                           fw$1 = m$22$0[1];
                           bw$1 = m$22$0[2];
                           dflt$0 = m$22$0[3];
@@ -1447,8 +1447,8 @@ assemble_conditions$0 = (function(pp$2) {
     var rest$5;
     var t0$26;
     var t1$17;
-    var $$20299$0;
-    var $$20300$0;
+    var $$20138$0;
+    var $$20139$0;
     var t2$5;
     var t3$3;
     t0$26 = ph$2$0;
@@ -1531,17 +1531,17 @@ assemble_pattern$0 = (function() {
         var x$27;
         var t0$28;
         var x$26;
-        var $$20416$0;
-        var $$20417$0;
-        var $$20418$0;
-        var $$20419$0;
+        var $$20255$0;
+        var $$20256$0;
+        var $$20257$0;
+        var $$20258$0;
         t0$28 = m$34;
-        if ((($$20417$0 = (t0$28 instanceof Array)) && ((t1$18 = t0$28.length), (($$20419$0 = (t1$18 === 2)) && (t0$28[0] === "do"))))) {
+        if ((($$20256$0 = (t0$28 instanceof Array)) && ((t1$18 = t0$28.length), (($$20258$0 = (t1$18 === 2)) && (t0$28[0] === "do"))))) {
           x$26 = t0$28[1];
           lead$0.push(x$26);
           parts$1.shift();
         } else {
-          if (($$20419$0 && (t0$28[0] === "check"))) {
+          if (($$20258$0 && (t0$28[0] === "check"))) {
             x$27 = t0$28[1];
             break $25;
           } else {
@@ -1560,17 +1560,17 @@ assemble_pattern$0 = (function() {
         var x$29;
         var t0$29;
         var x$28;
-        var $$20423$0;
-        var $$20424$0;
-        var $$20425$0;
-        var $$20426$0;
+        var $$20262$0;
+        var $$20263$0;
+        var $$20264$0;
+        var $$20265$0;
         t0$29 = m$35;
-        if ((($$20424$0 = (t0$29 instanceof Array)) && ((t1$19 = t0$29.length), (($$20426$0 = (t1$19 === 2)) && (t0$29[0] === "do"))))) {
+        if ((($$20263$0 = (t0$29 instanceof Array)) && ((t1$19 = t0$29.length), (($$20265$0 = (t1$19 === 2)) && (t0$29[0] === "do"))))) {
           x$28 = t0$29[1];
           trail$0.unshift(x$28);
           parts$1.pop();
         } else {
-          if (($$20426$0 && (t0$29[0] === "check"))) {
+          if (($$20265$0 && (t0$29[0] === "check"))) {
             x$29 = t0$29[1];
             break $26;
           } else {
@@ -1594,8 +1594,8 @@ assemble_pattern$0 = (function() {
       var rest$7;
       var t0$30;
       var t1$20;
-      var $$20487$0;
-      var $$20488$0;
+      var $$20326$0;
+      var $$20327$0;
       var t2$6;
       var t3$4;
       t0$30 = ph$3$0;
@@ -1684,13 +1684,13 @@ same_block$0 = (function(ph$5$0, ban1$0, ban2$0) {
   var $targ$326;
   var v1$1;
   var v2$1;
-  var $$20591$0;
-  var $$20592$0;
-  var $$20593$0;
-  var $$20594$0;
-  var $$20595$0;
-  var $$20596$0;
-  var $$20597$0;
+  var $$20430$0;
+  var $$20431$0;
+  var $$20432$0;
+  var $$20433$0;
+  var $$20434$0;
+  var $$20435$0;
+  var $$20436$0;
   var t1$22;
   var t2$7;
   var t3$5;
@@ -1699,19 +1699,19 @@ same_block$0 = (function(ph$5$0, ban1$0, ban2$0) {
   t0$32 = ph$5$0;
   $targ$326 = t0$32.length;
   t1$22 = $targ$326;
-  if ((($$20593$0 = (t1$22 === 2)) && (($targ$327 = t0$32[0]), (t2$7 = $targ$327), (($$20595$0 = (t2$7 instanceof Array)) && (($targ$328 = t2$7.length), (t3$5 = $targ$328), (($$20597$0 = (t3$5 === 2)) && ((t2$7[0] === "variable") && ((v1$1 = t2$7[1]), ($targ$329 = t0$32[1]), (t4$1 = $targ$329), ((t4$1 instanceof Array) && (($targ$330 = t4$1.length), (t5$1 = $targ$330), ((t5$1 === 2) && (t4$1[0] === "variable")))))))))))) {
+  if ((($$20432$0 = (t1$22 === 2)) && (($targ$327 = t0$32[0]), (t2$7 = $targ$327), (($$20434$0 = (t2$7 instanceof Array)) && (($targ$328 = t2$7.length), (t3$5 = $targ$328), (($$20436$0 = (t3$5 === 2)) && ((t2$7[0] === "variable") && ((v1$1 = t2$7[1]), ($targ$329 = t0$32[1]), (t4$1 = $targ$329), ((t4$1 instanceof Array) && (($targ$330 = t4$1.length), (t5$1 = $targ$330), ((t5$1 === 2) && (t4$1[0] === "variable")))))))))))) {
     v2$1 = t4$1[1];
     return (v1$1 === v2$1);
   } else {
-    if (($$20597$0 && ((t2$7[0] === "symbol") && ((s1$0 = t2$7[1]), ($targ$331 = t0$32[1]), (t4$1 = $targ$331), ((t4$1 instanceof Array) && (($targ$332 = t4$1.length), (t5$1 = $targ$332), ((t5$1 === 2) && (t4$1[0] === "symbol")))))))) {
+    if (($$20436$0 && ((t2$7[0] === "symbol") && ((s1$0 = t2$7[1]), ($targ$331 = t0$32[1]), (t4$1 = $targ$331), ((t4$1 instanceof Array) && (($targ$332 = t4$1.length), (t5$1 = $targ$332), ((t5$1 === 2) && (t4$1[0] === "symbol")))))))) {
       s2$0 = t4$1[1];
       return (((!send(ban1$0, s1$0)) && (!send(ban2$0, s2$0))) && (s1$0 === s2$0));
     } else {
-      if (($$20597$0 && ((t2$7[0] === "value") && ((v1$2 = t2$7[1]), ($targ$333 = t0$32[1]), (t4$1 = $targ$333), ((t4$1 instanceof Array) && (($targ$334 = t4$1.length), (t5$1 = $targ$334), ((t5$1 === 2) && (t4$1[0] === "value")))))))) {
+      if (($$20436$0 && ((t2$7[0] === "value") && ((v1$2 = t2$7[1]), ($targ$333 = t0$32[1]), (t4$1 = $targ$333), ((t4$1 instanceof Array) && (($targ$334 = t4$1.length), (t5$1 = $targ$334), ((t5$1 === 2) && (t4$1[0] === "value")))))))) {
         v2$2 = t4$1[1];
         return (v1$2 === v2$2);
       } else {
-        if (($$20597$0 && ((t2$7[0] === "macro") && ((m1$0 = t2$7[1]), ($targ$335 = t0$32[1]), (t4$1 = $targ$335), ((t4$1 instanceof Array) && (($targ$336 = t4$1.length), (t5$1 = $targ$336), ((t5$1 === 2) && (t4$1[0] === "macro")))))))) {
+        if (($$20436$0 && ((t2$7[0] === "macro") && ((m1$0 = t2$7[1]), ($targ$335 = t0$32[1]), (t4$1 = $targ$335), ((t4$1 instanceof Array) && (($targ$336 = t4$1.length), (t5$1 = $targ$336), ((t5$1 === 2) && (t4$1[0] === "macro")))))))) {
           m2$0 = t4$1[1];
           return (m1$0 === m2$0);
         } else {
@@ -1790,7 +1790,7 @@ parse_clauses$0 = (function(info$0, target$1, stmts$0, opt$0) {
       var t0$33;
       var pattern$4;
       var body$1;
-      var $$20739$0;
+      var $$20578$0;
       t0$33 = m$37;
       if (((t0$33 instanceof Array) && ((t1$23 = t0$33.length), ((t1$23 === 3) && (t0$33[0] === "clause"))))) {
         pattern$4 = t0$33[1];
@@ -2131,20 +2131,20 @@ opt_clauses$0 = (function(clauses$0) {
             var t0$42;
             var j$0;
             var x$38;
-            var $$21194$0;
-            var $$21195$0;
-            var $$21196$0;
-            var $$21197$0;
+            var $$21033$0;
+            var $$21034$0;
+            var $$21035$0;
+            var $$21036$0;
             var t2$10;
             var t3$8;
             t0$42 = m$47;
-            if ((($$21195$0 = (t0$42 instanceof Array)) && ((t1$31 = t0$42.length), (($$21197$0 = (t1$31 === 2)) && ((j$0 = t0$42[0]), ($targ$419 = t0$42[1]), (t2$10 = $targ$419), ((t2$10 instanceof Array) && (($targ$420 = t2$10.length), (t3$8 = $targ$420), ((t3$8 === 2) && (t2$10[0] === "check"))))))))) {
+            if ((($$21034$0 = (t0$42 instanceof Array)) && ((t1$31 = t0$42.length), (($$21036$0 = (t1$31 === 2)) && ((j$0 = t0$42[0]), ($targ$419 = t0$42[1]), (t2$10 = $targ$419), ((t2$10 instanceof Array) && (($targ$420 = t2$10.length), (t3$8 = $targ$420), ((t3$8 === 2) && (t2$10[0] === "check"))))))))) {
               x$38 = t2$10[1];
               $targ$421 = ["check", ["assign", send(temps$1, (shared_last$0 + j$0)), x$38]];
               temp$24 = $targ$421;
               acc$22.push(temp$24);
             } else {
-              if (($$21197$0 && ((j$1 = t0$42[0]), ($targ$422 = t0$42[1]), (t2$10 = $targ$422), ((t2$10 instanceof Array) && (($targ$423 = t2$10.length), (t3$8 = $targ$423), ((t3$8 === 2) && (t2$10[0] === "do"))))))) {
+              if (($$21036$0 && ((j$1 = t0$42[0]), ($targ$422 = t0$42[1]), (t2$10 = $targ$422), ((t2$10 instanceof Array) && (($targ$423 = t2$10.length), (t3$8 = $targ$423), ((t3$8 === 2) && (t2$10[0] === "do"))))))) {
                 x$39 = t2$10[1];
                 $targ$424 = ["do", x$39];
                 temp$24 = $targ$424;
@@ -2219,12 +2219,12 @@ weave_clauses$0 = (function(parts$2) {
       var elems$1;
       var t0$44;
       var elems$0;
-      var $$21310$0;
-      var $$21311$0;
-      var $$21312$0;
-      var $$21313$0;
+      var $$21149$0;
+      var $$21150$0;
+      var $$21151$0;
+      var $$21152$0;
       t0$44 = m$48;
-      if ((($$21311$0 = (t0$44 instanceof Array)) && ((t1$33 = t0$44.length), (($$21313$0 = (t1$33 >= 1)) && (t0$44[0] === "clause"))))) {
+      if ((($$21150$0 = (t0$44 instanceof Array)) && ((t1$33 = t0$44.length), (($$21152$0 = (t1$33 >= 1)) && (t0$44[0] === "clause"))))) {
         elems$0 = Array.prototype.slice.call(t0$44, 1);
         $targ$436 = opt_clauses$0(elems$0);
         t0$45 = $targ$436;
@@ -2238,7 +2238,7 @@ weave_clauses$0 = (function(parts$2) {
         new_temps$0 = new_temps$0.concat(ts$0);
         reassemble$0 = reassemble$0.concat(new_clauses$1);
       } else {
-        if (($$21313$0 && (t0$44[0] === "block"))) {
+        if (($$21152$0 && (t0$44[0] === "block"))) {
           elems$1 = Array.prototype.slice.call(t0$44, 1);
           reassemble$0 = reassemble$0.concat(elems$1);
         } else {
@@ -2267,23 +2267,23 @@ weave_clauses$0 = (function(parts$2) {
     var rest$10;
     var t0$46;
     var t1$35;
-    var $$21381$0;
-    var $$21382$0;
-    var $$21383$0;
-    var $$21384$0;
-    var $$21385$0;
-    var $$21386$0;
+    var $$21220$0;
+    var $$21221$0;
+    var $$21222$0;
+    var $$21223$0;
+    var $$21224$0;
+    var $$21225$0;
     t0$46 = ph$6$0;
     t1$35 = t0$46.length;
     if ((t1$35 === 0)) {
       return ["multi"];
     } else {
-      if ((($$21383$0 = (t1$35 >= 1)) && ((t2$11 = t0$46[0]), (($$21385$0 = (t2$11 instanceof Array)) && ((t3$9 = t2$11.length), ((t3$9 === 2) && ((t2$11[0] === "block") && ((t4$2 = getProjector(Body$0)(t2$11[1])), (t4$2[0] && ((t5$2 = t4$2[1]), (t6$0 = t5$2.length), (t6$0 >= 0))))))))))) {
+      if ((($$21222$0 = (t1$35 >= 1)) && ((t2$11 = t0$46[0]), (($$21224$0 = (t2$11 instanceof Array)) && ((t3$9 = t2$11.length), ((t3$9 === 2) && ((t2$11[0] === "block") && ((t4$2 = getProjector(Body$0)(t2$11[1])), (t4$2[0] && ((t5$2 = t4$2[1]), (t6$0 = t5$2.length), (t6$0 >= 0))))))))))) {
         body$4 = Array.prototype.slice.call(t5$2, 0);
         rest$10 = Array.prototype.slice.call(t0$46, 1);
         return ["multi"].concat(body$4).concat([helper$0(rest$10)]);
       } else {
-        if (($$21385$0 && ((t3$9 === 5) && (t2$11[0] === "clause")))) {
+        if (($$21224$0 && ((t3$9 === 5) && (t2$11[0] === "clause")))) {
           vars$4 = t2$11[1];
           varsd$2 = t2$11[2];
           blocks$3 = t2$11[3];
@@ -2297,7 +2297,7 @@ weave_clauses$0 = (function(parts$2) {
               $__3; !($__3 = $__2.next()).done; ) {
             m$49 = $__3.value;
             {
-              var bridge$$21460$0;
+              var bridge$$21299$0;
               var m$50$0;
               var $targ$449;
               var v$8;
@@ -2312,8 +2312,8 @@ weave_clauses$0 = (function(parts$2) {
                   if ((m$50$0 === "var")) {
                     $targ$449 = ["declare", __amp__(v$8, ({"mutable": true}))];
                   } else {
-                    bridge$$21460$0 = m$50$0;
-                    if (((bridge$$21460$0 === "unqualified") || (bridge$$21460$0 === (void 0)))) {
+                    bridge$$21299$0 = m$50$0;
+                    if (((bridge$$21299$0 === "unqualified") || (bridge$$21299$0 === (void 0)))) {
                       $targ$449 = ["declare", __amp__(v$8, ({"mutable": false}))];
                     } else {
                       $targ$449 = ___match_error(m$50$0);

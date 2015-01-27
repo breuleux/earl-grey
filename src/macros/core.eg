@@ -33,16 +33,16 @@ mac{"let"}! let_mac{match, _, form, argument} =
          #data{Body! {*bindings}, body} ->
             construct{match} =
                {} -> body
-               {'[^bind = ^val], *xs} ->
-                  #multi{'[let ^bind = ^val], construct{xs}} & {nonrecursive = true}
+               {`^bind = ^val`, *xs} ->
+                  #multi{`let ^bind = ^val`, construct{xs}} & {nonrecursive = true}
             construct{bindings}
 
 expr_mac! mac{"letrec"}! letrec_mac{_, form, #data{Body! {*bindings}, body}} =
    #multi{*let_bindings, body} where
-      let_bindings = bindings each '[^b = ^v] -> '[let ^b = ^v]
+      let_bindings = bindings each `^b = ^v` -> `let ^b = ^v`
 
 mac{"where"}! where_mac{context, _, form, #data{body, bindings}} =
-   'letrec{^bindings, ^body}
+   `letrec{^bindings, ^body}`
 
 mac{"."}! dot_mac{context, _, form, #data{#void{}, expr}} =
    f{expr} where f{match} =
@@ -125,14 +125,13 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
             _body = pc.wrapBody{body}
             #lambda{newargs, wrap{#multi{*decls, _body}}, generator}
          other ->
-            a = 'arguments <<: arg
+            a = `arguments` <<: arg
             #lambda{{}, wrap{body2}, generator} where
-               body2 = ' | match.indexable [^a]:
-                            ^arg -> ^body
+               body2 = `match.indexable [^a]: ^arg -> ^body`
 
 mac{"*->"}! genarrow_mac{ctx, _, form, match} =
    #data{args, body} ->
-      '_lambda{^args, ^=null, ^body, ^=null, ^=true}
+      `_lambda{^args, ^=null, ^body, ^=null, ^=true}`
    other ->
       throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
@@ -146,7 +145,7 @@ mac{"->"}! arrow_mac{match, _, form, expr} =
    other ->
       match expr:
          #data{args, body} ->
-            '_lambda{^args, ^=null, ^body, ^=null}
+            `_lambda{^args, ^=null, ^body, ^=null}`
          other ->
             throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
@@ -161,50 +160,52 @@ mac{"try"}! try_mac{#expr{.multi}, info, form, #data{body}} =
          env = info.mkenv{}
          clauses = {}
          var finally = #void{}
-         catches each 'catch{^p, ^body} ->
+         catches each `catch{^p, ^body}` ->
             clauses.push with
-               env.mark with '[^p -> ^body]
-         finallies each 'finally{^body} ->
+               env.mark with `^p -> ^body`
+         finallies each `finally{^body}` ->
             finally = body
          clauses.push with
-            env.mark{'[e -> throw e]}
+            env.mark{`e -> throw e`}
          make_ebody{wrap} =
             parse_clauses with
-               info, 'excv, clauses
+               info, `excv`, clauses
                {wrap = wrap}
          #macro{m} where ctx_mac! m{match, e} =
             #expr{.multi} ->
                #nostep{this.form}
             #expr{.ignore} ->
-               #js_try{body, '[{excv} -> ^make_ebody{{x} -> x}], finally}
+               #js_try{body, `{excv} -> ^make_ebody{{x} -> x}`, finally}
             #expr{.expr} ->
-               '[var rval = false
-                 ^[#js_try{'[set rval = ^body]
-                           '[{excv} -> ^make_ebody{{x} -> '[set rval = ^x]}]
-                           finally}]
-                 rval]
+               trystmt = #js_try{
+                  `set rval = ^body`
+                  ```{excv} -> ^make_ebody{{x} -> `set rval = ^x`}```
+                  finally
+               }
+               `[var rval = false
+                 ^trystmt
+                 rval]`
 
 mac{"!!"}! tryop_mac{match, info, form, #data{expr, Body! {*clauses}}} =
    #expr{.multi} ->
       #nostep{form}
    #expr{.ignore} ->
       clauses.push with
-         info.mkenv{}.mark{'[e -> throw e]}
-      #js_try{expr, ..., #void{}} with
-         ' | {excv} ->
-              ^ | parse_clauses with
-                   info, 'excv, clauses
-                   {wrap = {x} -> x}
+         info.mkenv{}.mark{`e -> throw e`}
+      parsed_clauses =
+         parse_clauses with
+            info, `excv`, clauses
+            {wrap = {x} -> x}
+      #js_try{expr, `{excv} -> ^parsed_clauses`, #void{}}
    other ->
       clauses.push with
-         info.mkenv{}.mark{'[e -> throw e]}
-      ' | let [var rval = false]:
-           ^ #js_try{'[set rval = ^expr], ..., #void{}} with
-              ' | {excv} ->
-                   ^ | parse_clauses with
-                        info, 'excv, clauses
-                        {wrap = {x} -> '[set rval = ^x]}
-           rval
+         info.mkenv{}.mark{`e -> throw e`}
+      parsed_clauses =
+         parse_clauses with
+            info, `excv`, clauses
+            {wrap = {x} -> `set rval = ^x`}
+      trystmt = #js_try{`set rval = ^expr`, `{excv} -> ^parsed_clauses`, #void{}}
+      `let [var rval = false]: [^trystmt, rval]`
 
 expr_mac! mac{"throw"}! throw_mac{_, form, arg} =
    #js_throw{arg}
@@ -224,7 +225,7 @@ mac{"return"}! return_mac{match, _, form, arg} =
    #pattern ->
       #special{AssignmentHandler{subp, w}} where
          subp = if{arg == #void{}, null, arg}
-         w{ph} = '[return ^ph]
+         w{ph} = `return ^ph`
    #expr{.expr} or #expr{.head} ->
       #js_return{arg}
    otherwise ->
@@ -247,24 +248,23 @@ mac{"#"}! hash_mac{context, _, form, #data{#void{}, #symbol{var tag}}} =
    #macro{f} where f{match, _, form, expr} =
       #pattern ->
          checker_mac = #macro with {context, _, form, #data{expr}} ->
-            ' | let [x = ^expr]:
-                 [[instanceof]{x, Array} and x[0] === ^tag]
+            ```let [x = ^expr]: [[instanceof]{x, Array} and x[0] === ^tag]```
          match expr:
-            #data{*subp} -> '{^tag, ^*subp}
+            #data{*subp} -> `{^tag, ^*subp}`
             #void{} -> #check{checker_mac, #ignore{}}
             other -> #check{checker_mac, expr}
       #check ->
-         'getChecker{{^tag}}
+         `getChecker{{^tag}}`
       #project ->
-         'getProjector{{^tag}}
+         `getProjector{{^tag}}`
       _ ->
          match expr:
             #void{} ->
-               '{^tag}
+               `{^tag}`
             #data{*args} ->
-               '{^tag, ^*args}
+               `{^tag, ^*args}`
             other ->
-               '{^tag}[^other]
+               `{^tag}[^other]`
 
 mac{"_"}! placeholder_mac{#pattern, _, form, #void{}} =
    #ignore{}

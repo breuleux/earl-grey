@@ -34,22 +34,23 @@ provide:
    grab_statements
    flatmacro
    AssignmentHandler
+   qq
 
 
 embed_location{match} =
    {location => {source => {=> url}, => start, => end}} ->
-      '[#location{^=url, ^=start, ^=end}]
+      `#location{^=url, ^=start, ^=end}`
    other ->
-      '[#location{null, 0, 0}]
+      `#location{null, 0, 0}`
 
 error_embed_location{error, target} =
-   '[throw [^error &: {location = ^embed_location{target}}]]
+   `throw [^error &: {location = ^embed_location{target}}]`
 
 match_error{match target} =
    {location => {source => {=> url}, => start, => end}} ->
-      '___match_error{^target, ^=url, ^=start, ^=end}
+      `___match_error{^target, ^=url, ^=start, ^=end}`
    other ->
-      '___match_error{^other}
+      `___match_error{^other}`
 
 drop_ctx{f}{context, info, form, arg} =
    f{context, info, form, arg} !!
@@ -73,7 +74,7 @@ expr_mac2{mac}{match, info, f, e} =
                   mac.call{info, #data{x} <<: x}
       else ->
          #nostep{#macro{f}} where
-            f{_ctx, _info, _form, _e} = '{^=true, ^mac.call{_info, _e}}
+            f{_ctx, _info, _form, _e} = `{^=true, ^mac.call{_info, _e}}`
    #expr ->
       mac.call{info, e}
 
@@ -81,7 +82,7 @@ ctx_mac{mac}{ctx, info, f, e} =
    mac.call{info, ctx, e}
 
 _default_proj{name}{x} =
-   '[throw E.project{"Cannot project a value with '" + ^=name + "!'"}]
+   `throw E.project{"Cannot project a value with '" + ^=name + "!'"}`
 value_mac{name, chk, proj = _default_proj{name}}{match ctx, _, form, arg} =
    #check ->
       #nostep{#macro{m}} where
@@ -131,7 +132,7 @@ accum_flags{mac, also_values = true} =
    make{flags}{context, info, form, match} =
       #value{flag} when also_values ->
          #macro{make{flags ++ {flag}}}
-      '[. ^[#symbol{flag}]] ->
+      `. ^[#symbol{flag}]` ->
          #macro{make{flags ++ {flag}}}
       other ->
          mac{context, info, form, other, flags}
@@ -159,37 +160,39 @@ build_loop{info, env, form, li, clauses, wrap, pre, post, opt} =
          else: #value{info.gensym{}}
 
    freshenv = info.expander.mkenv{}
-   i = 'i & {env = freshenv}
-   len = 'len & {env = freshenv}
+   i = `i` & {env = freshenv}
+   len = `len` & {env = freshenv}
 
    drop_ctx! first_mac{#pattern, _, form, subp} =
-      #test{'[^i === 0], subp}
+      #test{`^i === 0`, subp}
    drop_ctx! last_mac{#pattern, _, form, subp} =
-      #test{'[^i === [^len - 1]], subp}
+      #test{`^i === [^len - 1]`, subp}
 
    newscope = Scope{info.scope}
    env.bind{newscope, "first", #macro{first_mac}}
    env.bind{newscope, "last", #macro{last_mac}}
 
-   m = 'm <<: form ;; transfer location, for error printing purposes
-   if opt.forof:
-      '[^pre
-        for[^lbl] [^m of ^li]:
-           ^parse_clauses{
-                info.with_scope{newscope}, m, clauses
-                opt & {wrap = wrap} ;; & {wrap{x} = wrap{x, '0}}
-            }
-        ^post]
-   else:
-      '[^pre
-        let [temp = ^li, ^len = temp.length]:
-           for[^lbl] [var ^i = 0, ^i < ^len, ^i++]:
-              ^m = ___js_fetch{temp, ^i}
-              ^parse_clauses{
-                   info.with_scope{newscope}, m, clauses
-                   opt & {wrap{x} = wrap{x, i}}
-               }
-        ^post]
+   m = `m` <<: form ;; transfer location, for error printing purposes
+   if opt.forof: ```
+      ^pre
+      for[^lbl] [^m of ^li]:
+         ^parse_clauses{
+              info.with_scope{newscope}, m, clauses
+              opt & {wrap = wrap} ;; & {wrap{x} = wrap{x, '0}}
+          }
+      ^post
+   ```
+   else: ```
+      ^pre
+      let [temp = ^li, ^len = temp.length]:
+         for[^lbl] [var ^i = 0, ^i < ^len, ^i++]:
+            ^m = ___js_fetch{temp, ^i}
+            ^parse_clauses{
+                 info.with_scope{newscope}, m, clauses
+                 opt & {wrap{x} = wrap{x, i}}
+             }
+      ^post
+   ```
 
 partial_pattern{operator} =
    op =
@@ -201,7 +204,7 @@ partial_pattern{operator} =
          {#pattern, #data{subp, val}} ->
             #check{m, subp2} where
                subp2 = if{subp == #void, #ignore{}, subp}
-               m = mac1 with {x} -> '[^op]{^x, ^val}
+               m = mac1 with {x} -> `[^op]{^x, ^val}`
          {_, #void{}} ->
             op
          other ->
@@ -251,11 +254,11 @@ pattern_handlers = {
       allow_arguments = true
       special = disregard_specials
       assign{#symbol{v} or #value{v}, value, _} =
-         #do{#assign{'accum[^=v], value} <<: v}
+         #do{#assign{`accum[^=v]`, value} <<: v}
       ;; finalize = true
       declare{_, vars} =
-         {#declare{'accum, '{=}}}
-      success{_} = 'accum
+         {#declare{`accum`, `{=}`}}
+      success{_} = `accum`
       failure{target} =
          match_error{target}
          ;; error_embed_location{..., target} with
@@ -352,4 +355,24 @@ class AssignmentHandler:
 
 
 
+qqstruct{name, args} =
+   #data{#value{name}, *args}
 
+qq{match expr} =
+   #symbol{s} -> qqstruct{.symbol, {#value{s}}}
+   #char{s} -> qqstruct{.char, {#value{s}}}
+   #void{} -> qqstruct{.void, {}}
+   #value{v} ->
+      qqstruct{.value, {expr}}
+   #send{#symbol{"^"}, #data{#void{}, insert}} ->
+      insert
+   #send{#symbol{"^="}, #data{#void{}, insert}} ->
+      qqstruct{.value, {insert}}
+   #send{#symbol{"^*"}, #data{#void{}, insert}} ->
+      `[* ^insert]`
+   #mismix{ops, *args} ->
+      qqstruct{.mismix
+               {#data{*[ops each op -> qq{op}]}
+                *[args each arg -> qq{arg}]}}
+   {name, *args} ->
+      qqstruct{name, args each arg -> qq{arg}}

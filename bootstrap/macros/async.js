@@ -39,7 +39,7 @@ $targ$4 = (function(mac$0) {
     var arg$1;
     var m$0$0;
     var otherwise$0;
-    var bridge$$5824$0;
+    var bridge$$5538$0;
     if (((x$0 = ph$0$0), ((x$0 instanceof Array) && (x$0[0] === "pattern")))) {
       if (equal(arg$0, ["void"])) {
         subp$0 = null;
@@ -51,8 +51,8 @@ $targ$4 = (function(mac$0) {
       });
       return ["special", AssignmentHandler$0(subp$0, w$0)];
     } else {
-      bridge$$5824$0 = ph$0$0;
-      if ((((bridge$$5824$0 instanceof Array) && ((t0$0 = bridge$$5824$0.length), ((t0$0 === 2) && ((bridge$$5824$0[0] === "expr") && (bridge$$5824$0[1] === "expr"))))) || ((bridge$$5824$0 instanceof Array) && ((t0$1 = bridge$$5824$0.length), ((t0$1 === 2) && ((bridge$$5824$0[0] === "expr") && (bridge$$5824$0[1] === "head"))))))) {
+      bridge$$5538$0 = ph$0$0;
+      if ((((bridge$$5538$0 instanceof Array) && ((t0$0 = bridge$$5538$0.length), ((t0$0 === 2) && ((bridge$$5538$0[0] === "expr") && (bridge$$5538$0[1] === "expr"))))) || ((bridge$$5538$0 instanceof Array) && ((t0$1 = bridge$$5538$0.length), ((t0$1 === 2) && ((bridge$$5538$0[0] === "expr") && (bridge$$5538$0[1] === "head"))))))) {
         m$0$0 = arg$0;
         if (((m$0$0 instanceof Array) && ((t0$2 = m$0$0.length), ((t0$2 === 3) && ((m$0$0[0] === "send") && ((t1$0 = m$0$0[1]), ((t1$0 instanceof Array) && ((t2$0 = t1$0.length), ((t2$0 === 2) && ((t1$0[0] === "symbol") && (t1$0[1] === "all"))))))))))) {
           arg$1 = m$0$0[2];
@@ -85,18 +85,18 @@ $targ$4 = (function(mac$0) {
     var arg$6;
     var arg$5;
     var arg$4;
-    var $$5965$0;
-    var $$5966$0;
-    var $$5967$0;
-    var $$5968$0;
-    var $$5969$0;
-    var $$5970$0;
-    var $$5971$0;
-    var $$5972$0;
-    var $$5973$0;
+    var $$5679$0;
+    var $$5680$0;
+    var $$5681$0;
+    var $$5682$0;
+    var $$5683$0;
+    var $$5684$0;
+    var $$5685$0;
+    var $$5686$0;
+    var $$5687$0;
     var m$1$0;
     var otherwise$1;
-    var bridge$$5914$0;
+    var bridge$$5628$0;
     if (((x$1 = ph$2$0), ((x$1 instanceof Array) && (x$1[0] === "pattern")))) {
       if (equal(arg$3, ["void"])) {
         subp$1 = null;
@@ -108,14 +108,14 @@ $targ$4 = (function(mac$0) {
       });
       return ["special", AssignmentHandler$0(subp$1, w$1)];
     } else {
-      bridge$$5914$0 = ph$2$0;
-      if ((((bridge$$5914$0 instanceof Array) && ((t0$4 = bridge$$5914$0.length), ((t0$4 === 2) && ((bridge$$5914$0[0] === "expr") && (bridge$$5914$0[1] === "expr"))))) || ((bridge$$5914$0 instanceof Array) && ((t0$5 = bridge$$5914$0.length), ((t0$5 === 2) && ((bridge$$5914$0[0] === "expr") && (bridge$$5914$0[1] === "head"))))))) {
+      bridge$$5628$0 = ph$2$0;
+      if ((((bridge$$5628$0 instanceof Array) && ((t0$4 = bridge$$5628$0.length), ((t0$4 === 2) && ((bridge$$5628$0[0] === "expr") && (bridge$$5628$0[1] === "expr"))))) || ((bridge$$5628$0 instanceof Array) && ((t0$5 = bridge$$5628$0.length), ((t0$5 === 2) && ((bridge$$5628$0[0] === "expr") && (bridge$$5628$0[1] === "head"))))))) {
         m$1$0 = arg$3;
-        if ((($$5965$0 = (m$1$0 instanceof Array)) && ((t0$6 = m$1$0.length), (($$5967$0 = (t0$6 === 3)) && (($$5968$0 = (m$1$0[0] === "send")) && ((t1$1 = m$1$0[1]), (($$5970$0 = (t1$1 instanceof Array)) && ((t2$1 = t1$1.length), (($$5972$0 = (t2$1 === 2)) && (($$5973$0 = (t1$1[0] === "symbol")) && (t1$1[1] === "all"))))))))))) {
+        if ((($$5679$0 = (m$1$0 instanceof Array)) && ((t0$6 = m$1$0.length), (($$5681$0 = (t0$6 === 3)) && (($$5682$0 = (m$1$0[0] === "send")) && ((t1$1 = m$1$0[1]), (($$5684$0 = (t1$1 instanceof Array)) && ((t2$1 = t1$1.length), (($$5686$0 = (t2$1 === 2)) && (($$5687$0 = (t1$1[0] === "symbol")) && (t1$1[1] === "all"))))))))))) {
           arg$4 = m$1$0[2];
           return ["js_yield", ["send", ["send", ["symbol", "Promise"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "all"]]]], ["data", arg$4]], ["value", false]];
         } else {
-          if (($$5973$0 && (t1$1[1] === "any"))) {
+          if (($$5687$0 && (t1$1[1] === "any"))) {
             arg$5 = m$1$0[2];
             return ["js_yield", ["send", ["send", ["symbol", "Promise"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "race"]]]], ["data", arg$5]], ["value", false]];
           } else {
@@ -152,30 +152,30 @@ $targ$4 = (function(mac$0) {
     var t1$2;
     var arg$7;
     var body$0;
-    var $$6017$0;
-    var $$6018$0;
-    var $$6019$0;
-    var $$6020$0;
-    var $$6021$0;
-    var $$6022$0;
-    var $$6023$0;
-    var $$6024$0;
-    var $$6025$0;
-    var $$6026$0;
-    var $$6027$0;
-    var $$6028$0;
-    var $$6029$0;
-    var $$6030$0;
+    var $$5731$0;
+    var $$5732$0;
+    var $$5733$0;
+    var $$5734$0;
+    var $$5735$0;
+    var $$5736$0;
+    var $$5737$0;
+    var $$5738$0;
+    var $$5739$0;
+    var $$5740$0;
+    var $$5741$0;
+    var $$5742$0;
+    var $$5743$0;
+    var $$5744$0;
     var t6$0;
     var t7$0;
     t0$8 = ph$4$0;
     t1$2 = t0$8.length;
-    if ((($$6019$0 = (t1$2 === 2)) && (($$6020$0 = (t0$8[0] === "data")) && ((t2$2 = t0$8[1]), (($$6022$0 = (t2$2 instanceof Array)) && ((t3$0 = t2$2.length), (($$6024$0 = (t3$0 === 3)) && (($$6025$0 = (t2$2[0] === "send")) && ((t4$0 = t2$2[1]), (($$6027$0 = (t4$0 instanceof Array)) && ((t5$0 = t4$0.length), (($$6029$0 = (t5$0 === 2)) && (($$6030$0 = (t4$0[0] === "symbol")) && ((t4$0[1] === "->") && (($targ$38 = t2$2[2]), (t6$0 = $targ$38), ((t6$0 instanceof Array) && (($targ$39 = t6$0.length), (t7$0 = $targ$39), ((t7$0 === 3) && (t6$0[0] === "data"))))))))))))))))))) {
+    if ((($$5733$0 = (t1$2 === 2)) && (($$5734$0 = (t0$8[0] === "data")) && ((t2$2 = t0$8[1]), (($$5736$0 = (t2$2 instanceof Array)) && ((t3$0 = t2$2.length), (($$5738$0 = (t3$0 === 3)) && (($$5739$0 = (t2$2[0] === "send")) && ((t4$0 = t2$2[1]), (($$5741$0 = (t4$0 instanceof Array)) && ((t5$0 = t4$0.length), (($$5743$0 = (t5$0 === 2)) && (($$5744$0 = (t4$0[0] === "symbol")) && ((t4$0[1] === "->") && (($targ$38 = t2$2[2]), (t6$0 = $targ$38), ((t6$0 instanceof Array) && (($targ$39 = t6$0.length), (t7$0 = $targ$39), ((t7$0 === 3) && (t6$0[0] === "data"))))))))))))))))))) {
       arg$7 = t6$0[1];
       body$0 = t6$0[2];
       return ["send", ["symbol", "*->"], ["data", arg$7, body$0]];
     } else {
-      if (($$6030$0 && ((t4$0[1] === "_lambda") && (($targ$40 = t2$2[2]), (t6$0 = $targ$40), ((t6$0 instanceof Array) && (($targ$41 = t6$0.length), (t7$0 = $targ$41), ((t7$0 === 6) && (t6$0[0] === "data")))))))) {
+      if (($$5744$0 && ((t4$0[1] === "_lambda") && (($targ$40 = t2$2[2]), (t6$0 = $targ$40), ((t6$0 instanceof Array) && (($targ$41 = t6$0.length), (t7$0 = $targ$41), ((t7$0 === 6) && (t6$0[0] === "data")))))))) {
         arg$8 = t6$0[1];
         pre$0 = t6$0[2];
         body$1 = t6$0[3];
@@ -210,30 +210,30 @@ $targ$4 = (function(mac$0) {
     var t1$4;
     var arg$9;
     var body$2;
-    var $$6107$0;
-    var $$6108$0;
-    var $$6109$0;
-    var $$6110$0;
-    var $$6111$0;
-    var $$6112$0;
-    var $$6113$0;
-    var $$6114$0;
-    var $$6115$0;
-    var $$6116$0;
-    var $$6117$0;
-    var $$6118$0;
-    var $$6119$0;
-    var $$6120$0;
+    var $$5821$0;
+    var $$5822$0;
+    var $$5823$0;
+    var $$5824$0;
+    var $$5825$0;
+    var $$5826$0;
+    var $$5827$0;
+    var $$5828$0;
+    var $$5829$0;
+    var $$5830$0;
+    var $$5831$0;
+    var $$5832$0;
+    var $$5833$0;
+    var $$5834$0;
     var t6$1;
     var t7$1;
     t0$10 = ph$5$0;
     t1$4 = t0$10.length;
-    if ((($$6109$0 = (t1$4 === 2)) && (($$6110$0 = (t0$10[0] === "data")) && ((t2$3 = t0$10[1]), (($$6112$0 = (t2$3 instanceof Array)) && ((t3$1 = t2$3.length), (($$6114$0 = (t3$1 === 3)) && (($$6115$0 = (t2$3[0] === "send")) && ((t4$1 = t2$3[1]), (($$6117$0 = (t4$1 instanceof Array)) && ((t5$1 = t4$1.length), (($$6119$0 = (t5$1 === 2)) && (($$6120$0 = (t4$1[0] === "symbol")) && ((t4$1[1] === "->") && (($targ$50 = t2$3[2]), (t6$1 = $targ$50), ((t6$1 instanceof Array) && (($targ$51 = t6$1.length), (t7$1 = $targ$51), ((t7$1 === 3) && (t6$1[0] === "data"))))))))))))))))))) {
+    if ((($$5823$0 = (t1$4 === 2)) && (($$5824$0 = (t0$10[0] === "data")) && ((t2$3 = t0$10[1]), (($$5826$0 = (t2$3 instanceof Array)) && ((t3$1 = t2$3.length), (($$5828$0 = (t3$1 === 3)) && (($$5829$0 = (t2$3[0] === "send")) && ((t4$1 = t2$3[1]), (($$5831$0 = (t4$1 instanceof Array)) && ((t5$1 = t4$1.length), (($$5833$0 = (t5$1 === 2)) && (($$5834$0 = (t4$1[0] === "symbol")) && ((t4$1[1] === "->") && (($targ$50 = t2$3[2]), (t6$1 = $targ$50), ((t6$1 instanceof Array) && (($targ$51 = t6$1.length), (t7$1 = $targ$51), ((t7$1 === 3) && (t6$1[0] === "data"))))))))))))))))))) {
       arg$9 = t6$1[1];
       body$2 = t6$1[2];
       return ["send", ["symbol", "->"], ["data", arg$9, ["send", ["symbol", "spawn"], ["data", ["send", ["symbol", "*->"], ["data", ["data"], body$2]]]]]];
     } else {
-      if (($$6120$0 && ((t4$1[1] === "_lambda") && (($targ$52 = t2$3[2]), (t6$1 = $targ$52), ((t6$1 instanceof Array) && (($targ$53 = t6$1.length), (t7$1 = $targ$53), ((t7$1 === 6) && (t6$1[0] === "data")))))))) {
+      if (($$5834$0 && ((t4$1[1] === "_lambda") && (($targ$52 = t2$3[2]), (t6$1 = $targ$52), ((t6$1 instanceof Array) && (($targ$53 = t6$1.length), (t7$1 = $targ$53), ((t7$1 === 6) && (t6$1[0] === "data")))))))) {
         arg$10 = t6$1[1];
         pre$1 = t6$1[2];
         body$3 = t6$1[3];

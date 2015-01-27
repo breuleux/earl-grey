@@ -90,26 +90,26 @@ transform$0 = (function(expr$0, cb$0) {
     var args$0;
     var v$0;
     var s$0;
-    var $$16712$0;
-    var $$16713$0;
-    var $$16714$0;
+    var $$16547$0;
+    var $$16548$0;
+    var $$16549$0;
     var m$0$0;
     var $targ$26;
     var e$0;
     e$0 = excv$0;
     m$0$0 = expr$0;
-    if ((($$16712$0 = (m$0$0 instanceof Array)) && ((t0$0 = m$0$0.length), ((t0$0 === 1) && (m$0$0[0] === "void"))))) {
+    if ((($$16547$0 = (m$0$0 instanceof Array)) && ((t0$0 = m$0$0.length), ((t0$0 === 1) && (m$0$0[0] === "void"))))) {
       $targ$26 = ["void"];
     } else {
-      if (($$16712$0 && (($$16714$0 = (t0$0 === 2)) && (m$0$0[0] === "symbol")))) {
+      if (($$16547$0 && (($$16549$0 = (t0$0 === 2)) && (m$0$0[0] === "symbol")))) {
         s$0 = m$0$0[1];
         $targ$26 = expr$0;
       } else {
-        if (($$16714$0 && (m$0$0[0] === "value"))) {
+        if (($$16549$0 && (m$0$0[0] === "value"))) {
           v$0 = m$0$0[1];
           $targ$26 = expr$0;
         } else {
-          if (($$16712$0 && (t0$0 >= 1))) {
+          if (($$16547$0 && (t0$0 >= 1))) {
             name$0 = m$0$0[0];
             args$0 = Array.prototype.slice.call(m$0$0, 1);
             $targ$26 = [name$0].concat(args$0.map(tr$0));
@@ -374,7 +374,7 @@ parse_op_description$0 = (function(ph$0$0) {
   var t2$0;
   var t1$6;
   var otherwise$0;
-  var $$17082$0;
+  var $$16917$0;
   var m$7$0;
   var t1$7;
   var t0$8;
@@ -581,7 +581,7 @@ $targ$10 = (function(op1$0, op2$0) {
   var t2$3;
   var t1$11;
   var t0$12;
-  var $$17315$0;
+  var $$17150$0;
   var m$11$0;
   var i1$0;
   var i2$0;
@@ -804,7 +804,7 @@ oparse$0 = (function(next$0, order$0, finalize$1) {
     var $targ$167;
     var $targ$168;
     var other$1;
-    var bridge$$17626$0;
+    var bridge$$17461$0;
     var m$12$0;
     var o$2;
     if (((!left_op$0) && (!right_op$0))) {
@@ -839,8 +839,8 @@ oparse$0 = (function(next$0, order$0, finalize$1) {
           right_op$0 = $targ$164;
           right_op$0;
         } else {
-          bridge$$17626$0 = m$12$0;
-          if (((bridge$$17626$0 === BOTH$0) || (bridge$$17626$0 === NONE$0))) {
+          bridge$$17461$0 = m$12$0;
+          if (((bridge$$17461$0 === BOTH$0) || (bridge$$17461$0 === NONE$0))) {
             current$0[0].push(right_op$0);
             current$0.push(between$0);
             $targ$166 = right_op$0;
@@ -896,23 +896,23 @@ finalize$0 = (function(temp$8$0) {
   var f$6;
   var orig_args$0;
   var args$3;
-  var $$18057$0;
-  var $$18058$0;
+  var $$17896$0;
+  var $$17897$0;
   var t0$26;
   var m$18$0;
   var $targ$198;
   var inserted$0;
   var result$1;
   var t0$27;
-  var bridge$$17768$0;
+  var bridge$$17607$0;
   var $targ$222;
   var f$7;
   var t0$29;
   var $targ$228;
   var other$5;
   var x$4;
-  var $$18161$0;
-  var $$18162$0;
+  var $$18000$0;
+  var $$18001$0;
   var m$19$0;
   var $targ$220;
   var result$2;
@@ -932,10 +932,10 @@ finalize$0 = (function(temp$8$0) {
   var a$1;
   var b$1;
   var t0$31;
-  var $$17774$0;
-  var $$17775$0;
-  var $$17776$0;
-  var $$17777$0;
+  var $$17613$0;
+  var $$17614$0;
+  var $$17615$0;
+  var $$17616$0;
   var m$20;
   var acc$8;
   var $targ$246;
@@ -953,13 +953,13 @@ finalize$0 = (function(temp$8$0) {
   var f$3;
   var arg$1;
   var body$0;
-  var $$17779$0;
-  var $$17780$0;
-  var $$17781$0;
-  var $$17782$0;
-  var $$17783$0;
-  var $$17784$0;
-  var $$17785$0;
+  var $$17618$0;
+  var $$17619$0;
+  var $$17620$0;
+  var $$17621$0;
+  var $$17622$0;
+  var $$17623$0;
+  var $$17624$0;
   var t1$20;
   var t2$4;
   var t3$3;
@@ -973,15 +973,16 @@ finalize$0 = (function(temp$8$0) {
   var other$7;
   var ops$0;
   var args$1;
+  var value$4;
   var value$3;
   var value$2;
   var value$1;
   var t0$20;
   var t1$18;
   var value$0;
-  var $$17719$0;
-  var $$17720$0;
-  var $$17721$0;
+  var $$17555$0;
+  var $$17556$0;
+  var $$17557$0;
   var token$0;
   var ph$7$0;
   t0$19 = temp$8$0;
@@ -989,304 +990,309 @@ finalize$0 = (function(temp$8$0) {
   ph$7$0 = t0$19;
   t0$20 = ph$7$0;
   t1$18 = t0$20.length;
-  if ((($$17721$0 = (t1$18 === 2)) && (t0$20[0] === "ID"))) {
+  if ((($$17557$0 = (t1$18 === 2)) && (t0$20[0] === "ID"))) {
     value$0 = t0$20[1];
     return __lt____lt____colon__$0(["symbol", value$0], token$0);
   } else {
-    if (($$17721$0 && (t0$20[0] === "ILLEGAL"))) {
+    if (($$17557$0 && (t0$20[0] === "ILLEGAL"))) {
       value$1 = t0$20[1];
       return __lt____lt____colon__$0(["char", value$1], token$0);
     } else {
-      if (($$17721$0 && (t0$20[0] === "NUM"))) {
+      if (($$17557$0 && (t0$20[0] === "NUM"))) {
         value$2 = t0$20[1];
         return __lt____lt____colon__$0(["value", value$2], token$0);
       } else {
-        if (($$17721$0 && (t0$20[0] === "STR"))) {
+        if (($$17557$0 && (t0$20[0] === "STR"))) {
           value$3 = t0$20[1];
           return __lt____lt____colon__$0(["value", value$3], token$0);
         } else {
-          if (((t1$18 === 1) && (t0$20[0] === "VOID"))) {
-            return __lt____lt____colon__$0(["void"], token$0);
+          if (($$17557$0 && (t0$20[0] === "QUASI"))) {
+            value$4 = t0$20[1];
+            return __lt____lt____colon__$0(["send", ["symbol", "`"], __lt____lt____colon__$0(["value", value$4], token$0)], token$0);
           } else {
-            if ((t1$18 >= 1)) {
-              ops$0 = t0$20[0];
-              args$1 = Array.prototype.slice.call(t0$20, 1);
-              $targ$173 = ops$0[0].location;
-              sumloc$0 = $targ$173;
-              m$14 = null;
-              $12: for (var $__0 = ops$0.slice(1)[$traceurRuntime.toProperty(Symbol.iterator)](),
-                  $__1; !($__1 = $__0.next()).done; ) {
-                m$14 = $__1.value;
-                {
-                  var $targ$177;
-                  var op$2;
-                  op$2 = m$14;
-                  $targ$177 = __plus____plus____colon__$0(sumloc$0, op$2);
-                  sumloc$0 = $targ$177;
-                  sumloc$0;
-                }
-              }
-              m$15 = null;
-              $13: for (var $__2 = args$1[$traceurRuntime.toProperty(Symbol.iterator)](),
-                  $__3; !($__3 = $__2.next()).done; ) {
-                m$15 = $__3.value;
-                {
-                  var t1$19;
-                  var $targ$180;
-                  var arg$0;
-                  var t0$21;
-                  t0$21 = m$15;
-                  if (((t0$21 instanceof Array) && ((t1$19 = t0$21.length), ((t1$19 === 1) && (t0$21[0] === "void"))))) {
-                    undefined;
-                  } else {
-                    arg$0 = m$15;
-                    $targ$180 = __plus____plus____colon__$0(sumloc$0, arg$0);
-                    sumloc$0 = $targ$180;
+            if (((t1$18 === 1) && (t0$20[0] === "VOID"))) {
+              return __lt____lt____colon__$0(["void"], token$0);
+            } else {
+              if ((t1$18 >= 1)) {
+                ops$0 = t0$20[0];
+                args$1 = Array.prototype.slice.call(t0$20, 1);
+                $targ$173 = ops$0[0].location;
+                sumloc$0 = $targ$173;
+                m$14 = null;
+                $12: for (var $__0 = ops$0.slice(1)[$traceurRuntime.toProperty(Symbol.iterator)](),
+                    $__1; !($__1 = $__0.next()).done; ) {
+                  m$14 = $__1.value;
+                  {
+                    var $targ$177;
+                    var op$2;
+                    op$2 = m$14;
+                    $targ$177 = __plus____plus____colon__$0(sumloc$0, op$2);
+                    sumloc$0 = $targ$177;
                     sumloc$0;
                   }
                 }
-              }
-              orig_ops$0 = ops$0;
-              acc$7 = [];
-              $targ$182 = null;
-              temp$9 = $targ$182;
-              m$16 = null;
-              $14: for (var $__4 = ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
-                  $__5; !($__5 = $__4.next()).done; ) {
-                m$16 = $__5.value;
-                {
-                  var $targ$183;
-                  var o$3;
-                  o$3 = m$16;
-                  $targ$183 = o$3[2];
-                  temp$9 = $targ$183;
-                  acc$7.push(temp$9);
+                m$15 = null;
+                $13: for (var $__2 = args$1[$traceurRuntime.toProperty(Symbol.iterator)](),
+                    $__3; !($__3 = $__2.next()).done; ) {
+                  m$15 = $__3.value;
+                  {
+                    var t1$19;
+                    var $targ$180;
+                    var arg$0;
+                    var t0$21;
+                    t0$21 = m$15;
+                    if (((t0$21 instanceof Array) && ((t1$19 = t0$21.length), ((t1$19 === 1) && (t0$21[0] === "void"))))) {
+                      undefined;
+                    } else {
+                      arg$0 = m$15;
+                      $targ$180 = __plus____plus____colon__$0(sumloc$0, arg$0);
+                      sumloc$0 = $targ$180;
+                      sumloc$0;
+                    }
+                  }
                 }
-              }
-              $targ$175 = acc$7;
-              ops$0 = $targ$175;
-              op$1 = ops$0[0];
-              m$13$0 = [ops$0, args$1];
-              if ((($$17779$0 = (m$13$0 instanceof Array)) && ((t0$22 = m$13$0.length), (($$17781$0 = (t0$22 === 2)) && (($targ$186 = m$13$0[0]), (t1$20 = $targ$186), (($$17783$0 = (t1$20 instanceof Array)) && (($targ$187 = t1$20.length), (t2$4 = $targ$187), ((t2$4 === 2) && ((t1$20[0] === "WHITE") && ((t1$20[1] === ":") && (($targ$188 = m$13$0[1]), (t3$3 = $targ$188), ((t3$3 instanceof Array) && (($targ$189 = t3$3.length), (t4$1 = $targ$189), (t4$1 === 3)))))))))))))) {
-                f$3 = t3$3[0];
-                arg$1 = t3$3[1];
-                body$0 = t3$3[2];
-                return __lt____lt____colon__$0(["send", f$3, __lt____lt____colon__$0(["data", arg$1, body$0], __plus____plus____colon__$0(arg$1, body$0))], sumloc$0);
-              } else {
-                if (($$17783$0 && (($$17785$0 = (t2$4 === 1)) && ((t1$20[0] === ":") && (($targ$190 = m$13$0[1]), (t3$3 = $targ$190), ((t3$3 instanceof Array) && (($targ$191 = t3$3.length), (t4$1 = $targ$191), (t4$1 === 2)))))))) {
-                  f$4 = t3$3[0];
-                  body$1 = t3$3[1];
-                  return __lt____lt____colon__$0(["send", f$4, __lt____lt____colon__$0(["data", body$1], body$1)], sumloc$0);
+                orig_ops$0 = ops$0;
+                acc$7 = [];
+                $targ$182 = null;
+                temp$9 = $targ$182;
+                m$16 = null;
+                $14: for (var $__4 = ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                    $__5; !($__5 = $__4.next()).done; ) {
+                  m$16 = $__5.value;
+                  {
+                    var $targ$183;
+                    var o$3;
+                    o$3 = m$16;
+                    $targ$183 = o$3[2];
+                    temp$9 = $targ$183;
+                    acc$7.push(temp$9);
+                  }
+                }
+                $targ$175 = acc$7;
+                ops$0 = $targ$175;
+                op$1 = ops$0[0];
+                m$13$0 = [ops$0, args$1];
+                if ((($$17618$0 = (m$13$0 instanceof Array)) && ((t0$22 = m$13$0.length), (($$17620$0 = (t0$22 === 2)) && (($targ$186 = m$13$0[0]), (t1$20 = $targ$186), (($$17622$0 = (t1$20 instanceof Array)) && (($targ$187 = t1$20.length), (t2$4 = $targ$187), ((t2$4 === 2) && ((t1$20[0] === "WHITE") && ((t1$20[1] === ":") && (($targ$188 = m$13$0[1]), (t3$3 = $targ$188), ((t3$3 instanceof Array) && (($targ$189 = t3$3.length), (t4$1 = $targ$189), (t4$1 === 3)))))))))))))) {
+                  f$3 = t3$3[0];
+                  arg$1 = t3$3[1];
+                  body$0 = t3$3[2];
+                  return __lt____lt____colon__$0(["send", f$3, __lt____lt____colon__$0(["data", arg$1, body$0], __plus____plus____colon__$0(arg$1, body$0))], sumloc$0);
                 } else {
-                  if (($$17785$0 && ((t1$20[0] === "with") && (($targ$192 = m$13$0[1]), (t3$3 = $targ$192), ((t3$3 instanceof Array) && (($targ$193 = t3$3.length), (t4$1 = $targ$193), ((t4$1 === 2) && ((target$0 = t3$3[0]), (t5$1 = t3$3[1]), (_b$0 = t5$1), (t6$1 = getProjector(Body$0)(t5$1)), (t6$1[0] && ((t7$1 = t6$1[1]), (t8$0 = t7$1.length), (t8$0 >= 0))))))))))) {
-                    body$2 = Array.prototype.slice.call(t7$1, 0);
-                    $targ$198 = false;
-                    inserted$0 = $targ$198;
-                    result$1 = transform$0(target$0, (function(temp$10$0) {
-                      var t0$23;
-                      var $targ$203;
-                      var t3$4;
-                      var t2$5;
-                      var $targ$204;
-                      var m$17;
-                      var tr$2;
-                      var $targ$209;
-                      var res$0;
-                      var $targ$207;
-                      var args$2;
-                      var x$2;
-                      var f$5;
-                      var a$0;
-                      var b$0;
-                      var t0$24;
-                      var $targ$202;
-                      var $$17956$0;
-                      var t1$21;
-                      var expr$1;
-                      var ph$9$0;
-                      t0$23 = temp$10$0;
-                      expr$1 = t0$23;
-                      ph$9$0 = t0$23;
-                      t0$24 = ph$9$0;
-                      $targ$202 = t0$24.length;
-                      t1$21 = $targ$202;
-                      if (((t1$21 === 2) && ((t0$24[0] === "symbol") && (t0$24[1] === "...")))) {
-                        $targ$203 = true;
-                        inserted$0 = $targ$203;
-                        return __lt____lt____colon__$0(["multi"].concat(body$2), _b$0);
-                      } else {
-                        x$2 = t0$24;
-                        if ((x$2.fromop && ((t0$24 instanceof Array) && (($targ$204 = t0$24.length), (t1$21 = $targ$204), ((t1$21 === 3) && ((t0$24[0] === "send") && ((f$5 = t0$24[1]), (t2$5 = t0$24[2]), ((t2$5 instanceof Array) && ((t3$4 = t2$5.length), ((t3$4 === 3) && (t2$5[0] === "data"))))))))))) {
-                          a$0 = t2$5[1];
-                          b$0 = t2$5[2];
-                          return ["send", this(f$5), __lt____lt____colon__$0(["data", this(a$0), this(b$0)], __plus____plus____colon__$0(a$0, b$0))];
+                  if (($$17622$0 && (($$17624$0 = (t2$4 === 1)) && ((t1$20[0] === ":") && (($targ$190 = m$13$0[1]), (t3$3 = $targ$190), ((t3$3 instanceof Array) && (($targ$191 = t3$3.length), (t4$1 = $targ$191), (t4$1 === 2)))))))) {
+                    f$4 = t3$3[0];
+                    body$1 = t3$3[1];
+                    return __lt____lt____colon__$0(["send", f$4, __lt____lt____colon__$0(["data", body$1], body$1)], sumloc$0);
+                  } else {
+                    if (($$17624$0 && ((t1$20[0] === "with") && (($targ$192 = m$13$0[1]), (t3$3 = $targ$192), ((t3$3 instanceof Array) && (($targ$193 = t3$3.length), (t4$1 = $targ$193), ((t4$1 === 2) && ((target$0 = t3$3[0]), (t5$1 = t3$3[1]), (_b$0 = t5$1), (t6$1 = getProjector(Body$0)(t5$1)), (t6$1[0] && ((t7$1 = t6$1[1]), (t8$0 = t7$1.length), (t8$0 >= 0))))))))))) {
+                      body$2 = Array.prototype.slice.call(t7$1, 0);
+                      $targ$198 = false;
+                      inserted$0 = $targ$198;
+                      result$1 = transform$0(target$0, (function(temp$10$0) {
+                        var t0$23;
+                        var $targ$203;
+                        var t3$4;
+                        var t2$5;
+                        var $targ$204;
+                        var m$17;
+                        var tr$2;
+                        var $targ$209;
+                        var res$0;
+                        var $targ$207;
+                        var args$2;
+                        var x$2;
+                        var f$5;
+                        var a$0;
+                        var b$0;
+                        var t0$24;
+                        var $targ$202;
+                        var $$17795$0;
+                        var t1$21;
+                        var expr$1;
+                        var ph$9$0;
+                        t0$23 = temp$10$0;
+                        expr$1 = t0$23;
+                        ph$9$0 = t0$23;
+                        t0$24 = ph$9$0;
+                        $targ$202 = t0$24.length;
+                        t1$21 = $targ$202;
+                        if (((t1$21 === 2) && ((t0$24[0] === "symbol") && (t0$24[1] === "...")))) {
+                          $targ$203 = true;
+                          inserted$0 = $targ$203;
+                          return __lt____lt____colon__$0(["multi"].concat(body$2), _b$0);
                         } else {
-                          $targ$207 = t0$24.length;
-                          t1$21 = $targ$207;
-                          if (((t1$21 >= 1) && (t0$24[0] === "data"))) {
-                            args$2 = Array.prototype.slice.call(t0$24, 1);
-                            tr$2 = this;
-                            $targ$209 = ["data"];
-                            res$0 = $targ$209;
-                            m$17 = null;
-                            $15: for (var $__6 = args$2[$traceurRuntime.toProperty(Symbol.iterator)](),
-                                $__7; !($__7 = $__6.next()).done; ) {
-                              m$17 = $__7.value;
-                              {
-                                var t1$22;
-                                var $targ$212;
-                                var other$2;
-                                var t0$25;
-                                t0$25 = m$17;
-                                if (((t0$25 instanceof Array) && ((t1$22 = t0$25.length), ((t1$22 === 2) && ((t0$25[0] === "symbol") && (t0$25[1] === "...")))))) {
-                                  $targ$212 = true;
-                                  inserted$0 = $targ$212;
-                                  res$0 = res$0.concat(body$2);
-                                } else {
-                                  other$2 = m$17;
-                                  res$0.push(__lt____lt____colon__$0(tr$2(other$2), other$2));
+                          x$2 = t0$24;
+                          if ((x$2.fromop && ((t0$24 instanceof Array) && (($targ$204 = t0$24.length), (t1$21 = $targ$204), ((t1$21 === 3) && ((t0$24[0] === "send") && ((f$5 = t0$24[1]), (t2$5 = t0$24[2]), ((t2$5 instanceof Array) && ((t3$4 = t2$5.length), ((t3$4 === 3) && (t2$5[0] === "data"))))))))))) {
+                            a$0 = t2$5[1];
+                            b$0 = t2$5[2];
+                            return ["send", this(f$5), __lt____lt____colon__$0(["data", this(a$0), this(b$0)], __plus____plus____colon__$0(a$0, b$0))];
+                          } else {
+                            $targ$207 = t0$24.length;
+                            t1$21 = $targ$207;
+                            if (((t1$21 >= 1) && (t0$24[0] === "data"))) {
+                              args$2 = Array.prototype.slice.call(t0$24, 1);
+                              tr$2 = this;
+                              $targ$209 = ["data"];
+                              res$0 = $targ$209;
+                              m$17 = null;
+                              $15: for (var $__6 = args$2[$traceurRuntime.toProperty(Symbol.iterator)](),
+                                  $__7; !($__7 = $__6.next()).done; ) {
+                                m$17 = $__7.value;
+                                {
+                                  var t1$22;
+                                  var $targ$212;
+                                  var other$2;
+                                  var t0$25;
+                                  t0$25 = m$17;
+                                  if (((t0$25 instanceof Array) && ((t1$22 = t0$25.length), ((t1$22 === 2) && ((t0$25[0] === "symbol") && (t0$25[1] === "...")))))) {
+                                    $targ$212 = true;
+                                    inserted$0 = $targ$212;
+                                    res$0 = res$0.concat(body$2);
+                                  } else {
+                                    other$2 = m$17;
+                                    res$0.push(__lt____lt____colon__$0(tr$2(other$2), other$2));
+                                  }
                                 }
                               }
-                            }
-                            return __lt____lt____colon__$0(res$0, expr$1);
-                          } else {
-                            return ___match_error(ph$9$0);
-                          }
-                        }
-                      }
-                    }));
-                    if ((!inserted$0)) {
-                      m$18$0 = target$0;
-                      if (((m$18$0 instanceof Array) && (($targ$214 = m$18$0.length), (t0$26 = $targ$214), ((t0$26 === 1) && (m$18$0[0] === "void"))))) {
-                        return __lt____lt____colon__$0(["data"].concat(body$2), sumloc$0);
-                      } else {
-                        if (target$0.fromop) {
-                          return __lt____lt____colon__$0(["send", target$0, __lt____lt____colon__$0(["data"].concat(body$2), _b$0)], sumloc$0);
-                        } else {
-                          if ((($$18057$0 = (m$18$0 instanceof Array)) && (($targ$215 = m$18$0.length), (t0$26 = $targ$215), ((t0$26 === 3) && ((m$18$0[0] === "send") && ((f$6 = m$18$0[1]), (t1$23 = m$18$0[2]), (orig_args$0 = t1$23), ((t1$23 instanceof Array) && ((t2$6 = t1$23.length), ((t2$6 >= 1) && (t1$23[0] === "data")))))))))) {
-                            args$3 = Array.prototype.slice.call(t1$23, 1);
-                            return __lt____lt____colon__$0(["send", f$6, __lt____lt____colon__$0(["data"].concat(args$3).concat(body$2), __plus____plus____colon__$0(orig_args$0, _b$0))], sumloc$0);
-                          } else {
-                            if (($$18057$0 && ((t0$26 >= 1) && (m$18$0[0] === "data")))) {
-                              args$4 = Array.prototype.slice.call(m$18$0, 1);
-                              return __lt____lt____colon__$0(target$0.concat(body$2), sumloc$0);
+                              return __lt____lt____colon__$0(res$0, expr$1);
                             } else {
-                              other$3 = m$18$0;
-                              return __lt____lt____colon__$0(["send", target$0, __lt____lt____colon__$0(["data"].concat(body$2), _b$0)], sumloc$0);
+                              return ___match_error(ph$9$0);
                             }
                           }
                         }
-                      }
-                    } else {
-                      return __lt____lt____colon__$0(result$1, sumloc$0);
-                    }
-                  } else {
-                    if (($$17781$0 && ((bridge$$17768$0 = m$13$0[0]), ((((bridge$$17768$0 instanceof Array) && ((t0$27 = bridge$$17768$0.length), ((t0$27 >= 2) && ((bridge$$17768$0[0] === "[") && ((commas$0 = Array.prototype.slice.call(bridge$$17768$0, 1, -1)), (bridge$$17768$0[(t0$27 - 1)] === "]")))))) || ((commas$0 = bridge$$17768$0), true)) && (m$13$0[1], commas$0.every((function(x$3) {
-                      return equal(x$3, ",");
-                    }))))))) {
-                      if ((op$1 === "[")) {
-                        $targ$222 = args$1.slice(1, -1);
-                        args$1 = $targ$222;
-                        args$1;
-                      }
-                      f$7 = (function(ph$10$0) {
-                        var other$4;
-                        var t0$28;
-                        var t1$24;
-                        t0$28 = ph$10$0;
-                        t1$24 = t0$28.length;
-                        if (((t1$24 === 1) && (t0$28[0] === "void"))) {
-                          return false;
+                      }));
+                      if ((!inserted$0)) {
+                        m$18$0 = target$0;
+                        if (((m$18$0 instanceof Array) && (($targ$214 = m$18$0.length), (t0$26 = $targ$214), ((t0$26 === 1) && (m$18$0[0] === "void"))))) {
+                          return __lt____lt____colon__$0(["data"].concat(body$2), sumloc$0);
                         } else {
-                          other$4 = ph$10$0;
-                          return true;
-                        }
-                      });
-                      $targ$220 = args$1.filter(f$7);
-                      args$1 = $targ$220;
-                      m$19$0 = args$1;
-                      if ((($$18161$0 = (m$19$0 instanceof Array)) && ((t0$29 = m$19$0.length), (t0$29 === 0)))) {
-                        result$2 = ["multi"];
-                      } else {
-                        if (($$18161$0 && (t0$29 === 1))) {
-                          x$4 = m$19$0[0];
-                          if (((!isNaN(sumloc$0.start)) && (!isNaN(sumloc$0.end)))) {
-                            $targ$228 = sumloc$0;
-                            (x$4["location"] = $targ$228);
-                            [];
+                          if (target$0.fromop) {
+                            return __lt____lt____colon__$0(["send", target$0, __lt____lt____colon__$0(["data"].concat(body$2), _b$0)], sumloc$0);
+                          } else {
+                            if ((($$17896$0 = (m$18$0 instanceof Array)) && (($targ$215 = m$18$0.length), (t0$26 = $targ$215), ((t0$26 === 3) && ((m$18$0[0] === "send") && ((f$6 = m$18$0[1]), (t1$23 = m$18$0[2]), (orig_args$0 = t1$23), ((t1$23 instanceof Array) && ((t2$6 = t1$23.length), ((t2$6 >= 1) && (t1$23[0] === "data")))))))))) {
+                              args$3 = Array.prototype.slice.call(t1$23, 1);
+                              return __lt____lt____colon__$0(["send", f$6, __lt____lt____colon__$0(["data"].concat(args$3).concat(body$2), __plus____plus____colon__$0(orig_args$0, _b$0))], sumloc$0);
+                            } else {
+                              if (($$17896$0 && ((t0$26 >= 1) && (m$18$0[0] === "data")))) {
+                                args$4 = Array.prototype.slice.call(m$18$0, 1);
+                                return __lt____lt____colon__$0(target$0.concat(body$2), sumloc$0);
+                              } else {
+                                other$3 = m$18$0;
+                                return __lt____lt____colon__$0(["send", target$0, __lt____lt____colon__$0(["data"].concat(body$2), _b$0)], sumloc$0);
+                              }
+                            }
                           }
-                          result$2 = x$4;
-                        } else {
-                          other$5 = m$19$0;
-                          result$2 = ["multi"].concat(args$1);
                         }
+                      } else {
+                        return __lt____lt____colon__$0(result$1, sumloc$0);
                       }
-                      return __lt____lt____colon__$0(result$2, sumloc$0);
                     } else {
-                      if (($$17781$0 && (($targ$229 = m$13$0[0]), (t1$20 = $targ$229), (($$17783$0 = (t1$20 instanceof Array)) && (($targ$230 = t1$20.length), (t2$4 = $targ$230), ((t2$4 >= 2) && ((t1$20[0] === "{") && ((commas$1 = Array.prototype.slice.call(t1$20, 1, -1)), ((t1$20[(t2$4 - 1)] === "}") && (m$13$0[1], commas$1.every((function(x$5) {
-                        return equal(x$5, ",");
-                      })))))))))))) {
-                        f$8 = (function(ph$11$0) {
-                          var other$6;
-                          var t0$30;
-                          var t1$25;
-                          t0$30 = ph$11$0;
-                          t1$25 = t0$30.length;
-                          if (((t1$25 === 1) && (t0$30[0] === "void"))) {
+                      if (($$17620$0 && ((bridge$$17607$0 = m$13$0[0]), ((((bridge$$17607$0 instanceof Array) && ((t0$27 = bridge$$17607$0.length), ((t0$27 >= 2) && ((bridge$$17607$0[0] === "[") && ((commas$0 = Array.prototype.slice.call(bridge$$17607$0, 1, -1)), (bridge$$17607$0[(t0$27 - 1)] === "]")))))) || ((commas$0 = bridge$$17607$0), true)) && (m$13$0[1], commas$0.every((function(x$3) {
+                        return equal(x$3, ",");
+                      }))))))) {
+                        if ((op$1 === "[")) {
+                          $targ$222 = args$1.slice(1, -1);
+                          args$1 = $targ$222;
+                          args$1;
+                        }
+                        f$7 = (function(ph$10$0) {
+                          var other$4;
+                          var t0$28;
+                          var t1$24;
+                          t0$28 = ph$10$0;
+                          t1$24 = t0$28.length;
+                          if (((t1$24 === 1) && (t0$28[0] === "void"))) {
                             return false;
                           } else {
-                            other$6 = ph$11$0;
+                            other$4 = ph$10$0;
                             return true;
                           }
                         });
-                        return __lt____lt____colon__$0(["data"].concat(args$1.slice(1, -1).filter(f$8)), sumloc$0);
-                      } else {
-                        if (($$17783$0 && (($$17785$0 = (t2$4 === 1)) && (t1$20[0] === "WHITE")))) {
-                          m$13$0[1];
-                          return __lt____lt____colon__$0(["send"].concat(args$1), sumloc$0);
+                        $targ$220 = args$1.filter(f$7);
+                        args$1 = $targ$220;
+                        m$19$0 = args$1;
+                        if ((($$18000$0 = (m$19$0 instanceof Array)) && ((t0$29 = m$19$0.length), (t0$29 === 0)))) {
+                          result$2 = ["multi"];
                         } else {
-                          if ($$17785$0) {
-                            t1$20[0];
-                            ph$8$0 = m$13$0[1];
-                            t0$31 = ph$8$0;
-                            if ((($$17775$0 = (t0$31 instanceof Array)) && ((t1$26 = t0$31.length), (($$17777$0 = (t1$26 === 2)) && ((t2$7 = t0$31[0]), ((t2$7 instanceof Array) && ((t3$5 = t2$7.length), ((t3$5 === 1) && ((t2$7[0] === "void") && ((t4$2 = t0$31[1]), ((t4$2 instanceof Array) && ((t5$2 = t4$2.length), ((t5$2 === 1) && (t4$2[0] === "void")))))))))))))) {
-                              return __lt____lt____colon__$0(["symbol", op$1], orig_ops$0[0]);
-                            } else {
-                              if ($$17777$0) {
-                                a$1 = t0$31[0];
-                                b$1 = t0$31[1];
-                                oloc$0 = orig_ops$0[0].location;
-                                abloc$0 = __plus____plus____colon__$0(a$1, b$1);
-                                oabloc$0 = __plus____plus____colon__$0(orig_ops$0[0], abloc$0);
-                                rval$2 = __lt____lt____colon__$0(["send", __lt____lt____colon__$0(["symbol", op$1], oloc$0), __lt____lt____colon__$0(["data", a$1, b$1], abloc$0)], __plus____plus____colon__$0(oloc$0, abloc$0));
-                                $targ$244 = true;
-                                (rval$2["fromop"] = $targ$244);
-                                [];
-                                return rval$2;
-                              } else {
-                                return ___match_error(ph$8$0);
-                              }
+                          if (($$18000$0 && (t0$29 === 1))) {
+                            x$4 = m$19$0[0];
+                            if (((!isNaN(sumloc$0.start)) && (!isNaN(sumloc$0.end)))) {
+                              $targ$228 = sumloc$0;
+                              (x$4["location"] = $targ$228);
+                              [];
                             }
+                            result$2 = x$4;
                           } else {
-                            if ($$17781$0) {
-                              op_strings$0 = m$13$0[0];
-                              args$5 = m$13$0[1];
-                              return __lt____lt____colon__$0(["mismix", ((acc$8 = []), ($targ$246 = null), (temp$11 = $targ$246), (m$20 = null), (function() {
-                                $16: for (var $__6 = orig_ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
-                                    $__7; !($__7 = $__6.next()).done; ) {
-                                  m$20 = $__7.value;
-                                  {
-                                    var $targ$247;
-                                    var op$3;
-                                    op$3 = m$20;
-                                    $targ$247 = __lt____lt____colon__$0(["symbol", op$3[2]], op$3);
-                                    temp$11 = $targ$247;
-                                    acc$8.push(temp$11);
-                                  }
-                                }
-                              })(), acc$8)].concat(args$5), sumloc$0);
+                            other$5 = m$19$0;
+                            result$2 = ["multi"].concat(args$1);
+                          }
+                        }
+                        return __lt____lt____colon__$0(result$2, sumloc$0);
+                      } else {
+                        if (($$17620$0 && (($targ$229 = m$13$0[0]), (t1$20 = $targ$229), (($$17622$0 = (t1$20 instanceof Array)) && (($targ$230 = t1$20.length), (t2$4 = $targ$230), ((t2$4 >= 2) && ((t1$20[0] === "{") && ((commas$1 = Array.prototype.slice.call(t1$20, 1, -1)), ((t1$20[(t2$4 - 1)] === "}") && (m$13$0[1], commas$1.every((function(x$5) {
+                          return equal(x$5, ",");
+                        })))))))))))) {
+                          f$8 = (function(ph$11$0) {
+                            var other$6;
+                            var t0$30;
+                            var t1$25;
+                            t0$30 = ph$11$0;
+                            t1$25 = t0$30.length;
+                            if (((t1$25 === 1) && (t0$30[0] === "void"))) {
+                              return false;
                             } else {
-                              return ___match_error(m$13$0);
+                              other$6 = ph$11$0;
+                              return true;
+                            }
+                          });
+                          return __lt____lt____colon__$0(["data"].concat(args$1.slice(1, -1).filter(f$8)), sumloc$0);
+                        } else {
+                          if (($$17622$0 && (($$17624$0 = (t2$4 === 1)) && (t1$20[0] === "WHITE")))) {
+                            m$13$0[1];
+                            return __lt____lt____colon__$0(["send"].concat(args$1), sumloc$0);
+                          } else {
+                            if ($$17624$0) {
+                              t1$20[0];
+                              ph$8$0 = m$13$0[1];
+                              t0$31 = ph$8$0;
+                              if ((($$17614$0 = (t0$31 instanceof Array)) && ((t1$26 = t0$31.length), (($$17616$0 = (t1$26 === 2)) && ((t2$7 = t0$31[0]), ((t2$7 instanceof Array) && ((t3$5 = t2$7.length), ((t3$5 === 1) && ((t2$7[0] === "void") && ((t4$2 = t0$31[1]), ((t4$2 instanceof Array) && ((t5$2 = t4$2.length), ((t5$2 === 1) && (t4$2[0] === "void")))))))))))))) {
+                                return __lt____lt____colon__$0(["symbol", op$1], orig_ops$0[0]);
+                              } else {
+                                if ($$17616$0) {
+                                  a$1 = t0$31[0];
+                                  b$1 = t0$31[1];
+                                  oloc$0 = orig_ops$0[0].location;
+                                  abloc$0 = __plus____plus____colon__$0(a$1, b$1);
+                                  oabloc$0 = __plus____plus____colon__$0(orig_ops$0[0], abloc$0);
+                                  rval$2 = __lt____lt____colon__$0(["send", __lt____lt____colon__$0(["symbol", op$1], oloc$0), __lt____lt____colon__$0(["data", a$1, b$1], abloc$0)], __plus____plus____colon__$0(oloc$0, abloc$0));
+                                  $targ$244 = true;
+                                  (rval$2["fromop"] = $targ$244);
+                                  [];
+                                  return rval$2;
+                                } else {
+                                  return ___match_error(ph$8$0);
+                                }
+                              }
+                            } else {
+                              if ($$17620$0) {
+                                op_strings$0 = m$13$0[0];
+                                args$5 = m$13$0[1];
+                                return __lt____lt____colon__$0(["mismix", ((acc$8 = []), ($targ$246 = null), (temp$11 = $targ$246), (m$20 = null), (function() {
+                                  $16: for (var $__6 = orig_ops$0[$traceurRuntime.toProperty(Symbol.iterator)](),
+                                      $__7; !($__7 = $__6.next()).done; ) {
+                                    m$20 = $__7.value;
+                                    {
+                                      var $targ$247;
+                                      var op$3;
+                                      op$3 = m$20;
+                                      $targ$247 = __lt____lt____colon__$0(["symbol", op$3[2]], op$3);
+                                      temp$11 = $targ$247;
+                                      acc$8.push(temp$11);
+                                    }
+                                  }
+                                })(), acc$8)].concat(args$5), sumloc$0);
+                              } else {
+                                return ___match_error(m$13$0);
+                              }
                             }
                           }
                         }
@@ -1294,10 +1300,10 @@ finalize$0 = (function(temp$8$0) {
                     }
                   }
                 }
+              } else {
+                other$7 = ph$7$0;
+                throw ErrorFactory(["should_never_happen"]).create("unknown node (B)", ({"node": token$0}));
               }
-            } else {
-              other$7 = ph$7$0;
-              throw ErrorFactory(["should_never_happen"]).create("unknown node (B)", ({"node": token$0}));
             }
           }
         }

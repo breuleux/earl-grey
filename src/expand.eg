@@ -504,14 +504,14 @@ class Expander:
                r = match arr_parts:
                   {} when is_obj ->
                      util.construct{obj_parts, ..., #object{}} with
-                        {x, rest} -> '[^x &: ^rest]
+                        {x, rest} -> `[^x &: ^rest]`
 
                   when is_obj ->
                      throw E.syntax.array.object{"Cannot mix array and object notations."}
    
                   other ->
                      util.construct{arr_parts.reverse{}, ..., #array{}} with
-                        {x, rest} -> '[^rest].concat{^x}
+                        {x, rest} -> `[^rest].concat{^x}`
                helper{context, scope, @mkenv{}.mark{r}}
    
             #assign{target, value} ->
@@ -616,25 +616,25 @@ checker_db{match} =
       if [__chk_ncache[n]]:
          then: __chk_ncache[n]
          else:
-            v = mac1{{x} -> '[^x === ^=n]}
+            v = mac1{{x} -> `[^x === ^=n]`}
             __chk_ncache[n] = v
             v
    String? s ->
       if Object.prototype.hasOwnProperty.call{__chk_scache, s}:
          then: __chk_scache[s]
          else:
-            v = mac1{{x} -> '[^x === ^=s]}
+            v = mac1{{x} -> `[^x === ^=s]`}
             __chk_scache[s] = v
             v
 
 checker_db &: {
-   String = mac1 with {x} -> '[typeof{^x} === "string"]
-   Number = mac1 with {x} -> '[typeof{^x} === "number"]
-   Array = mac1 with {x} -> '[[instanceof]{^x, Array}]
+   String = mac1 with {x} -> `[typeof{^x} === "string"]`
+   Number = mac1 with {x} -> `[typeof{^x} === "number"]`
+   Array = mac1 with {x} -> `[[instanceof]{^x, Array}]`
    true = mac1 with {x} -> x
-   false = mac1 with {x} -> '[not ^x]
-   null = mac1{{x} -> '[^x === ^=null]}
-   undefined = mac1{{x} -> '[^x === ^=undefined]}
+   false = mac1 with {x} -> `[not ^x]`
+   null = mac1{{x} -> `[^x === ^=null]`}
+   undefined = mac1{{x} -> `[^x === ^=undefined]`}
 }
 
 topscope = Scope{null, .top}

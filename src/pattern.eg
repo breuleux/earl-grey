@@ -209,7 +209,7 @@ class PatternCompiler:
 
    shift_rhs{match pattern, rhs} =
       #project{projector, subp, === true} ->
-         @shift_rhs{subp, '[^projector]{^rhs}}
+         @shift_rhs{subp, `[^projector]{^rhs}`}
       else ->
          {pattern, rhs}
 
@@ -225,7 +225,7 @@ class PatternCompiler:
             then:
                inject_below_uses{rhs} with {x} ->
                   util.construct{@arguments ++ {x}} with
-                     {args, rest} -> '[^args -> ^rest]
+                     {args, rest} -> `[^args -> ^rest]`
             else:
                rhs
       {cpattern, var target} = @shift_rhs{@compiled, real_rhs}
@@ -300,7 +300,7 @@ class PatternProcessor:
             set v = v or #symbol{@gen{}}
             v.single_assignment = true
             @temps.push with v
-            @do with '[set ^v = ^init]
+            @do with `[set ^v = ^init]`
             v
 
    process{pattern, rhs, fns} =
@@ -318,23 +318,23 @@ class PatternProcessor:
             @check{condition, {test = true}}
 
          #check{checker, #ignore} ->
-            @check with '[^checker]{^rhs}
+            @check with `[^checker]{^rhs}`
          #check{checker, subp} ->
             t = @temp{rhs}
-            @check with '[^checker]{^t}
+            @check with `[^checker]{^t}`
             @process{subp, t, fns}
 
          #project{projector, subp, match unconditional} ->
             true? ->
-               t = @temp{'[^projector]{^rhs}}
+               t = @temp{`[^projector]{^rhs}`}
                @process{subp, t, fns}
             else ->
-               t = @temp{'[^projector]{^rhs}}
-               @check with '[^t][0]
-               @process{subp, '[^t][1], fns}
+               t = @temp{`[^projector]{^rhs}`}
+               @check with `[^t][0]`
+               @process{subp, `[^t][1]`, fns}
 
          #neg{patt} ->
-            @check{'[not ^[...]]} with
+            @check{`[not ^x]`} where x =
                pp = PatternProcessor{}
                pp.process{patt, rhs, fns}
                assemble_conditions{pp}
@@ -347,8 +347,8 @@ class PatternProcessor:
          #any{*xs} ->
             t = @temp{rhs, #symbol{gensym{"bridge"}}}
             @check with
-               util.construct{parts, fn, 'false} where
-                  fn{x, rest} = '[^x or ^rest]
+               util.construct{parts, fn, `false`} where
+                  fn{x, rest} = `[^x or ^rest]`
                   parts = xs each x ->
                      pp = PatternProcessor{}
                      pp.process{x, t, fns}
@@ -357,8 +357,8 @@ class PatternProcessor:
          #object_pattern{*subp} ->
             t = @temp{rhs}
             subp each {#value{k}, v} ->
-               @check with '[___hasprop{^t, ^=k}]
-               @process{v, '[^t][^=k], fns}
+               @check with `[___hasprop{^t, ^=k}]`
+               @process{v, `[^t][^=k]`, fns}
 
          #array_pattern{fw, bw, dflt, rest} ->
             ;; {a, b, c = 123, *rest, d, e}
@@ -376,33 +376,33 @@ class PatternProcessor:
             hi = lo + ndflt
 
             t = @temp{rhs}
-            len = @temp{'[^t].length}
+            len = @temp{`[^t].length`}
 
             @check with
                match rest:
                   true? ->
-                     '[^len >= ^=lo]
+                     `[^len >= ^=lo]`
                   when lo === hi ->
-                     '[^len === ^=lo]
+                     `[^len === ^=lo]`
                   otherwise ->
-                     '[^len >= ^=lo and ^len <= ^=hi]
+                     `[^len >= ^=lo and ^len <= ^=hi]`
 
             enumerate{fw} each {i, m} ->
-               @process{m, '[^t][^=i], fns}
+               @process{m, `[^t][^=i]`, fns}
 
             enumerate{dflt} each {i, {patt, value}} ->
                idx = i + nfw
-               @process{patt, 'if{^=[idx + nbw] >= ^len, ^value, [^t][^=idx]}, fns}
+               @process{patt, `if{^=[idx + nbw] >= ^len, ^value, [^t][^=idx]}`, fns}
 
             if [rest !== undefined]:
                then:
                   pos = nfw + ndflt
-                  @process{rest, 'Array.prototype.slice.call{^t, ^=pos, ^*end}, fns} where
+                  @process{rest, `Array.prototype.slice.call{^t, ^=pos, ^*end}`, fns} where
                      end = if{nbw > 0, {#value{-nbw}}, {}}
                else: {}
 
             enumerate{bw} each {i, m} ->
-               @process{m, '___js_fetch{^t, ^len - ^=[nbw - i]}, fns}
+               @process{m, `___js_fetch{^t, ^len - ^=[nbw - i]}`, fns}
 
       rval
 
@@ -413,7 +413,7 @@ assemble_conditions{pp} =
          #multi{x, construct{rest}}
       {#check{x}} -> x
       {#check{x}, *rest} ->
-         '[^x and ^construct{rest}]
+         `[^x and ^construct{rest}]`
    if pp.temps.length:
       then:
          #multi{*decls, construct{pp.parts}} where
@@ -442,7 +442,7 @@ assemble_pattern{parts, t, f = null} =
          #multi{x, construct{rest}}
       {#check{x}} -> x
       {#check{x}, *rest} ->
-         '[^x and ^construct{rest}]
+         `[^x and ^construct{rest}]`
       other ->
          throw E.oops{"?!?", other}
 
@@ -451,8 +451,8 @@ assemble_pattern{parts, t, f = null} =
          test = construct{parts}
          #multi{*lead, ...} with
             if f:
-               then: 'if{^test, [^*trail, ^t], ^f}
-               else: 'if{^test, [^*trail, ^t]}
+               then: `if{^test, [^*trail, ^t], ^f}`
+               else: `if{^test, [^*trail, ^t]}`
       else:
          #multi{*lead, *trail, t}
 
@@ -595,7 +595,7 @@ weave_clauses{parts} =
          #multi{}
 
       {#block{Body! {*body}}, *rest} ->
-         '[^*body, ^helper{rest}]
+         `[^*body, ^helper{rest}]`
 
       {#clause{vars, varsd, blocks, body}, *rest} ->
          decls = vars each v -> ;;#declare{v}
@@ -605,12 +605,14 @@ weave_clauses{parts} =
                .var -> #declare{v & {mutable = true}}
                .unqualified or undefined? ->
                   #declare{v & {mutable = false}}
-         #tagscope{.back} with
-            ' | ^*decls
-              | ^ | assemble_pattern with
-                     blocks
-                     body
-                     #use{.back, helper{rest}}
+         #tagscope{.back} with ```
+            ^*decls
+            ^assemble_pattern{
+               blocks
+               body
+               #use{.back, helper{rest}}
+            }
+         ```
 
    #multi with
       *[new_temps each t -> #declare{t}]

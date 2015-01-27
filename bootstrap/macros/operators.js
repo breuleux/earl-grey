@@ -109,8 +109,8 @@ $targ$3 = (function(mac$0) {
     var t0$4;
     var t1$2;
     var n$0;
-    var $$14315$0;
-    var $$14316$0;
+    var $$14290$0;
+    var $$14291$0;
     var expr$0;
     var ph$1$0;
     t0$3 = temp$3$0;
@@ -148,22 +148,22 @@ $targ$3 = (function(mac$0) {
     var t0$6;
     var t1$3;
     var x$2;
-    var $$14386$0;
-    var $$14387$0;
-    var $$14388$0;
-    var $$14389$0;
+    var $$14361$0;
+    var $$14362$0;
+    var $$14363$0;
+    var $$14364$0;
     var t2$1;
     var t3$1;
     t0$6 = ph$2$0;
     t1$3 = t0$6.length;
-    if ((($$14388$0 = (t1$3 === 3)) && (($$14389$0 = (t0$6[0] === "data")) && (($targ$29 = t0$6[1]), (t2$1 = $targ$29), ((t2$1 instanceof Array) && (($targ$30 = t2$1.length), (t3$1 = $targ$30), ((t3$1 === 1) && (t2$1[0] === "void")))))))) {
+    if ((($$14363$0 = (t1$3 === 3)) && (($$14364$0 = (t0$6[0] === "data")) && (($targ$29 = t0$6[1]), (t2$1 = $targ$29), ((t2$1 instanceof Array) && (($targ$30 = t2$1.length), (t3$1 = $targ$30), ((t3$1 === 1) && (t2$1[0] === "void")))))))) {
       x$2 = t0$6[2];
       return ["send", ["variable", "++"], ["data", ["void"], x$2]];
     } else {
-      if (($$14389$0 && ((x$3 = t0$6[1]), ($targ$31 = t0$6[2]), (t2$1 = $targ$31), ((t2$1 instanceof Array) && (($targ$32 = t2$1.length), (t3$1 = $targ$32), ((t3$1 === 1) && (t2$1[0] === "void"))))))) {
+      if (($$14364$0 && ((x$3 = t0$6[1]), ($targ$31 = t0$6[2]), (t2$1 = $targ$31), ((t2$1 instanceof Array) && (($targ$32 = t2$1.length), (t3$1 = $targ$32), ((t3$1 === 1) && (t2$1[0] === "void"))))))) {
         return ["send", ["variable", "++"], ["data", x$3, ["void"]]];
       } else {
-        if ($$14389$0) {
+        if ($$14364$0) {
           x$4 = t0$6[1];
           y$1 = t0$6[2];
           return ["send", ["send", x$4, ["send", ["symbol", "."], ["data", ["void"], ["symbol", "concat"]]]], ["data", y$1]];
@@ -195,22 +195,22 @@ $targ$3 = (function(mac$0) {
     var t0$8;
     var t1$4;
     var x$5;
-    var $$14453$0;
-    var $$14454$0;
-    var $$14455$0;
-    var $$14456$0;
+    var $$14428$0;
+    var $$14429$0;
+    var $$14430$0;
+    var $$14431$0;
     var t2$2;
     var t3$2;
     t0$8 = ph$3$0;
     t1$4 = t0$8.length;
-    if ((($$14455$0 = (t1$4 === 3)) && (($$14456$0 = (t0$8[0] === "data")) && (($targ$36 = t0$8[1]), (t2$2 = $targ$36), ((t2$2 instanceof Array) && (($targ$37 = t2$2.length), (t3$2 = $targ$37), ((t3$2 === 1) && (t2$2[0] === "void")))))))) {
+    if ((($$14430$0 = (t1$4 === 3)) && (($$14431$0 = (t0$8[0] === "data")) && (($targ$36 = t0$8[1]), (t2$2 = $targ$36), ((t2$2 instanceof Array) && (($targ$37 = t2$2.length), (t3$2 = $targ$37), ((t3$2 === 1) && (t2$2[0] === "void")))))))) {
       x$5 = t0$8[2];
       return ["send", ["symbol", "range"], ["data", ["value", 1], x$5]];
     } else {
-      if (($$14456$0 && ((x$6 = t0$8[1]), ($targ$38 = t0$8[2]), (t2$2 = $targ$38), ((t2$2 instanceof Array) && (($targ$39 = t2$2.length), (t3$2 = $targ$39), ((t3$2 === 1) && (t2$2[0] === "void"))))))) {
+      if (($$14431$0 && ((x$6 = t0$8[1]), ($targ$38 = t0$8[2]), (t2$2 = $targ$38), ((t2$2 instanceof Array) && (($targ$39 = t2$2.length), (t3$2 = $targ$39), ((t3$2 === 1) && (t2$2[0] === "void"))))))) {
         return ["send", ["symbol", "range"], ["data", x$6]];
       } else {
-        if ($$14456$0) {
+        if ($$14431$0) {
           x$7 = t0$8[1];
           y$2 = t0$8[2];
           return ["send", ["symbol", "range"], ["data", x$7, y$2]];
@@ -261,26 +261,26 @@ $targ$3 = (function(mac$0) {
     var t3$3;
     var $targ$53;
     var $targ$52;
-    var bridge$$14547$0;
+    var bridge$$14522$0;
     var $targ$57;
     var $targ$56;
     var other$2;
     var val$0;
-    var $$14550$0;
-    var $$14551$0;
-    var $$14552$0;
+    var $$14525$0;
+    var $$14526$0;
+    var $$14527$0;
     var t1$6;
     var t2$3;
     var m$1$0;
     m$1$0 = [context$4, expr$1];
-    if ((($$14550$0 = (m$1$0 instanceof Array)) && ((t0$12 = m$1$0.length), (($$14552$0 = (t0$12 === 2)) && (((x$8 = m$1$0[0]), ((x$8 instanceof Array) && (x$8[0] === "pattern"))) && (($targ$47 = m$1$0[1]), (t1$6 = $targ$47), ((t1$6 instanceof Array) && (($targ$48 = t1$6.length), (t2$3 = $targ$48), ((t2$3 === 1) && (t1$6[0] === "void")))))))))) {
+    if ((($$14525$0 = (m$1$0 instanceof Array)) && ((t0$12 = m$1$0.length), (($$14527$0 = (t0$12 === 2)) && (((x$8 = m$1$0[0]), ((x$8 instanceof Array) && (x$8[0] === "pattern"))) && (($targ$47 = m$1$0[1]), (t1$6 = $targ$47), ((t1$6 instanceof Array) && (($targ$48 = t1$6.length), (t2$3 = $targ$48), ((t2$3 === 1) && (t1$6[0] === "void")))))))))) {
       return ["dynsplice", ["ignore"]];
     } else {
-      if (($$14552$0 && ((bridge$$14547$0 = m$1$0[0]), ((((x$9 = bridge$$14547$0), ((x$9 instanceof Array) && (x$9[0] === "pattern"))) || ((bridge$$14547$0 instanceof Array) && ((t0$13 = bridge$$14547$0.length), ((t0$13 === 2) && ((bridge$$14547$0[0] === "expr") && (bridge$$14547$0[1] === "data")))))) && (($targ$52 = m$1$0[1]), (t1$6 = $targ$52), ((t1$6 instanceof Array) && (($targ$53 = t1$6.length), (t2$3 = $targ$53), ((t2$3 === 3) && ((t1$6[0] === "data") && ((t3$3 = t1$6[1]), ((t3$3 instanceof Array) && ((t4$1 = t3$3.length), ((t4$1 === 1) && (t3$3[0] === "void")))))))))))))) {
+      if (($$14527$0 && ((bridge$$14522$0 = m$1$0[0]), ((((x$9 = bridge$$14522$0), ((x$9 instanceof Array) && (x$9[0] === "pattern"))) || ((bridge$$14522$0 instanceof Array) && ((t0$13 = bridge$$14522$0.length), ((t0$13 === 2) && ((bridge$$14522$0[0] === "expr") && (bridge$$14522$0[1] === "data")))))) && (($targ$52 = m$1$0[1]), (t1$6 = $targ$52), ((t1$6 instanceof Array) && (($targ$53 = t1$6.length), (t2$3 = $targ$53), ((t2$3 === 3) && ((t1$6[0] === "data") && ((t3$3 = t1$6[1]), ((t3$3 instanceof Array) && ((t4$1 = t3$3.length), ((t4$1 === 1) && (t3$3[0] === "void")))))))))))))) {
         val$0 = t1$6[2];
         return ["dynsplice", val$0];
       } else {
-        if (($$14552$0 && (m$1$0[0], ($targ$56 = m$1$0[1]), (t1$6 = $targ$56), ((t1$6 instanceof Array) && (($targ$57 = t1$6.length), (t2$3 = $targ$57), ((t2$3 === 1) && (t1$6[0] === "void"))))))) {
+        if (($$14527$0 && (m$1$0[0], ($targ$56 = m$1$0[1]), (t1$6 = $targ$56), ((t1$6 instanceof Array) && (($targ$57 = t1$6.length), (t2$3 = $targ$57), ((t2$3 === 1) && (t1$6[0] === "void"))))))) {
           return ["variable", "*"];
         } else {
           other$2 = m$1$0;
@@ -306,34 +306,34 @@ $targ$3 = (function(mac$0) {
     var t3$4;
     var $targ$68;
     var $targ$67;
-    var bridge$$14654$0;
+    var bridge$$14629$0;
     var $targ$72;
     var $targ$71;
     var a$1;
     var b$1;
     var val$1;
-    var $$14657$0;
-    var $$14658$0;
-    var $$14659$0;
-    var $$14660$0;
-    var $$14661$0;
-    var $$14662$0;
-    var $$14663$0;
+    var $$14632$0;
+    var $$14633$0;
+    var $$14634$0;
+    var $$14635$0;
+    var $$14636$0;
+    var $$14637$0;
+    var $$14638$0;
     var t1$7;
     var t2$4;
     var m$2$0;
     m$2$0 = [context$5, expr$2];
-    if ((($$14657$0 = (m$2$0 instanceof Array)) && ((t0$15 = m$2$0.length), (($$14659$0 = (t0$15 === 2)) && (((x$10 = m$2$0[0]), ((x$10 instanceof Array) && (x$10[0] === "pattern"))) && (($targ$62 = m$2$0[1]), (t1$7 = $targ$62), ((t1$7 instanceof Array) && (($targ$63 = t1$7.length), (t2$4 = $targ$63), ((t2$4 === 1) && (t1$7[0] === "void")))))))))) {
+    if ((($$14632$0 = (m$2$0 instanceof Array)) && ((t0$15 = m$2$0.length), (($$14634$0 = (t0$15 === 2)) && (((x$10 = m$2$0[0]), ((x$10 instanceof Array) && (x$10[0] === "pattern"))) && (($targ$62 = m$2$0[1]), (t1$7 = $targ$62), ((t1$7 instanceof Array) && (($targ$63 = t1$7.length), (t2$4 = $targ$63), ((t2$4 === 1) && (t1$7[0] === "void")))))))))) {
       return ["objsplice", ["ignore"]];
     } else {
-      if (($$14659$0 && ((bridge$$14654$0 = m$2$0[0]), ((((x$11 = bridge$$14654$0), ((x$11 instanceof Array) && (x$11[0] === "pattern"))) || ((bridge$$14654$0 instanceof Array) && ((t0$16 = bridge$$14654$0.length), ((t0$16 === 2) && ((bridge$$14654$0[0] === "expr") && (bridge$$14654$0[1] === "data")))))) && (($targ$67 = m$2$0[1]), (t1$7 = $targ$67), ((t1$7 instanceof Array) && (($targ$68 = t1$7.length), (t2$4 = $targ$68), ((t2$4 === 3) && ((t1$7[0] === "data") && ((t3$4 = t1$7[1]), ((t3$4 instanceof Array) && ((t4$2 = t3$4.length), ((t4$2 === 1) && (t3$4[0] === "void")))))))))))))) {
+      if (($$14634$0 && ((bridge$$14629$0 = m$2$0[0]), ((((x$11 = bridge$$14629$0), ((x$11 instanceof Array) && (x$11[0] === "pattern"))) || ((bridge$$14629$0 instanceof Array) && ((t0$16 = bridge$$14629$0.length), ((t0$16 === 2) && ((bridge$$14629$0[0] === "expr") && (bridge$$14629$0[1] === "data")))))) && (($targ$67 = m$2$0[1]), (t1$7 = $targ$67), ((t1$7 instanceof Array) && (($targ$68 = t1$7.length), (t2$4 = $targ$68), ((t2$4 === 3) && ((t1$7[0] === "data") && ((t3$4 = t1$7[1]), ((t3$4 instanceof Array) && ((t4$2 = t3$4.length), ((t4$2 === 1) && (t3$4[0] === "void")))))))))))))) {
         val$1 = t1$7[2];
         return ["objsplice", val$1];
       } else {
-        if (($$14659$0 && (m$2$0[0], ($targ$71 = m$2$0[1]), (t1$7 = $targ$71), (($$14662$0 = (t1$7 instanceof Array)) && (($targ$72 = t1$7.length), (t2$4 = $targ$72), ((t2$4 === 1) && (t1$7[0] === "void"))))))) {
+        if (($$14634$0 && (m$2$0[0], ($targ$71 = m$2$0[1]), (t1$7 = $targ$71), (($$14637$0 = (t1$7 instanceof Array)) && (($targ$72 = t1$7.length), (t2$4 = $targ$72), ((t2$4 === 1) && (t1$7[0] === "void"))))))) {
           return ["send", ["symbol", "Math"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "pow"]]]];
         } else {
-          if (($$14662$0 && ((t2$4 === 3) && (t1$7[0] === "data")))) {
+          if (($$14637$0 && ((t2$4 === 3) && (t1$7[0] === "data")))) {
             a$1 = t1$7[1];
             b$1 = t1$7[2];
             return ["send", ["send", ["symbol", "Math"], ["send", ["symbol", "."], ["data", ["void"], ["symbol", "pow"]]]], ["data", a$1, b$1]];

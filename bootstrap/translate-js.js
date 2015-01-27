@@ -319,9 +319,9 @@ $targ$13 = (function(op$0, a$0, b$1) {
   var t0$4;
   var $targ$69;
   var $targ$68;
-  var $$24059$0;
-  var $$24060$0;
-  var $$24061$0;
+  var $$23898$0;
+  var $$23899$0;
+  var $$23900$0;
   var t1$1;
   var t2$1;
   var m$6$0;
@@ -331,11 +331,11 @@ $targ$13 = (function(op$0, a$0, b$1) {
   $it$7 = this;
   self$6 = this;
   m$6$0 = [a$0, b$1];
-  if ((($$24059$0 = (m$6$0 instanceof Array)) && ((t0$4 = m$6$0.length), (($$24061$0 = (t0$4 === 2)) && (($targ$66 = m$6$0[0]), (t1$1 = $targ$66), ((t1$1 instanceof Array) && (($targ$67 = t1$1.length), (t2$1 = $targ$67), ((t2$1 === 1) && (t1$1[0] === "void"))))))))) {
+  if ((($$23898$0 = (m$6$0 instanceof Array)) && ((t0$4 = m$6$0.length), (($$23900$0 = (t0$4 === 2)) && (($targ$66 = m$6$0[0]), (t1$1 = $targ$66), ((t1$1 instanceof Array) && (($targ$67 = t1$1.length), (t2$1 = $targ$67), ((t2$1 === 1) && (t1$1[0] === "void"))))))))) {
     m$6$0[1];
     e$0 = (op$0 + $it$7.translate(b$1, "expr"));
   } else {
-    if (($$24061$0 && (m$6$0[0], ($targ$68 = m$6$0[1]), (t1$1 = $targ$68), ((t1$1 instanceof Array) && (($targ$69 = t1$1.length), (t2$1 = $targ$69), ((t2$1 === 1) && (t1$1[0] === "void"))))))) {
+    if (($$23900$0 && (m$6$0[0], ($targ$68 = m$6$0[1]), (t1$1 = $targ$68), ((t1$1 instanceof Array) && (($targ$69 = t1$1.length), (t2$1 = $targ$69), ((t2$1 === 1) && (t1$1[0] === "void"))))))) {
       e$0 = ($it$7.translate(a$0, "expr") + op$0);
     } else {
       e$0 = (($it$7.translate(a$0, "expr") + op$0) + $it$7.translate(b$1, "expr"));
@@ -352,11 +352,11 @@ $targ$14 = (function(expr$0, mode$2) {
   var $it$11;
   var $it$10;
   var $it$9;
-  var bridge$$24194$0;
-  var bridge$$24193$0;
+  var bridge$$24033$0;
+  var bridge$$24032$0;
   var other$2;
   var id$2;
-  var bridge$$24192$0;
+  var bridge$$24031$0;
   var m$8$0;
   var r$1;
   var $targ$88;
@@ -367,7 +367,7 @@ $targ$14 = (function(expr$0, mode$2) {
   var t0$7;
   var $targ$93;
   var $targ$92;
-  var bridge$$24125$0;
+  var bridge$$23964$0;
   var trf$0;
   var trmsg$0;
   var $targ$97;
@@ -386,9 +386,9 @@ $targ$14 = (function(expr$0, mode$2) {
   var t0$8;
   var x$5;
   var x$4;
-  var $$24415$0;
-  var $$24416$0;
-  var $$24417$0;
+  var $$24254$0;
+  var $$24255$0;
+  var $$24256$0;
   var m$12$0;
   var m$13;
   var acc$0;
@@ -435,18 +435,18 @@ $targ$14 = (function(expr$0, mode$2) {
   var m$16$0;
   var $targ$160;
   var $targ$159;
-  var bridge$$24784$0;
+  var bridge$$24623$0;
   var x$11;
   var a$8;
   var other$6;
-  var bridge$$24783$0;
+  var bridge$$24622$0;
   var m$17$0;
-  var bridge$$24823$0;
+  var bridge$$24662$0;
   var x$12;
   var a$9;
   var b$9;
   var other$7;
-  var bridge$$24822$0;
+  var bridge$$24661$0;
   var m$18$0;
   var $targ$173;
   var $targ$172;
@@ -522,7 +522,7 @@ $targ$14 = (function(expr$0, mode$2) {
   var m$31$0;
   var t0$19;
   var t0$20;
-  var bridge$$24157$0;
+  var bridge$$23996$0;
   var $targ$251;
   var $targ$250;
   var $targ$249;
@@ -599,11 +599,11 @@ $targ$14 = (function(expr$0, mode$2) {
   var f$0;
   var v$1;
   var s$0;
-  var $$24160$0;
-  var $$24161$0;
-  var $$24162$0;
-  var $$24163$0;
-  var $$24164$0;
+  var $$23999$0;
+  var $$24000$0;
+  var $$24001$0;
+  var $$24002$0;
+  var $$24003$0;
   var t1$2;
   var t2$2;
   var t3$0;
@@ -614,14 +614,14 @@ $targ$14 = (function(expr$0, mode$2) {
   $it$8 = this;
   self$7 = this;
   m$7$0 = expr$0;
-  if ((($$24160$0 = (m$7$0 instanceof Array)) && ((t0$5 = m$7$0.length), ((t0$5 === 2) && (m$7$0[0] === "symbol"))))) {
+  if ((($$23999$0 = (m$7$0 instanceof Array)) && ((t0$5 = m$7$0.length), ((t0$5 === 2) && (m$7$0[0] === "symbol"))))) {
     s$0 = m$7$0[1];
     return $it$8.expr($it$8.mangle(s$0), mode$2);
   } else {
-    if (($$24160$0 && ((t0$5 === 1) && (m$7$0[0] === "void")))) {
+    if (($$23999$0 && ((t0$5 === 1) && (m$7$0[0] === "void")))) {
       return $it$8.expr("null", mode$2);
     } else {
-      if (($$24160$0 && ((t0$5 === 2) && (m$7$0[0] === "value")))) {
+      if (($$23999$0 && ((t0$5 === 2) && (m$7$0[0] === "value")))) {
         v$1 = m$7$0[1];
         m$8$0 = v$1;
         if ((typeof(m$8$0) === "string")) {
@@ -646,8 +646,8 @@ $targ$14 = (function(expr$0, mode$2) {
               $it$12 = $it$11.replace(RegExp("\\n", "g"), "\\n");
               r$1 = "/".concat($it$12).concat("/");
             } else {
-              bridge$$24192$0 = m$8$0;
-              if ((((bridge$$24193$0 = bridge$$24192$0), (((bridge$$24194$0 = bridge$$24193$0), ((typeof(bridge$$24194$0) === "number") || (bridge$$24194$0 === true))) || (bridge$$24193$0 === false))) || (bridge$$24192$0 === null))) {
+              bridge$$24031$0 = m$8$0;
+              if ((((bridge$$24032$0 = bridge$$24031$0), (((bridge$$24033$0 = bridge$$24032$0), ((typeof(bridge$$24033$0) === "number") || (bridge$$24033$0 === true))) || (bridge$$24032$0 === false))) || (bridge$$24031$0 === null))) {
                 r$1 = String(v$1);
               } else {
                 if ((___hasprop(m$8$0, "::id") && ((id$2 = m$8$0["::id"]), id$2))) {
@@ -662,18 +662,18 @@ $targ$14 = (function(expr$0, mode$2) {
         }
         return $it$8.expr(r$1, mode$2);
       } else {
-        if (($$24160$0 && (($$24162$0 = (t0$5 === 3)) && (($$24163$0 = (m$7$0[0] === "send")) && (($targ$85 = m$7$0[1]), (t1$2 = $targ$85), ((t1$2 instanceof Array) && (($targ$86 = t1$2.length), (t2$2 = $targ$86), ((t2$2 === 2) && ((t1$2[0] === "variable") && ((t1$2[1] === "___node") && (($targ$87 = m$7$0[2]), (t3$0 = $targ$87), ((t3$0 instanceof Array) && (($targ$88 = t3$0.length), (t4$0 = $targ$88), ((t4$0 === 2) && (t3$0[0] === "value"))))))))))))))) {
+        if (($$23999$0 && (($$24001$0 = (t0$5 === 3)) && (($$24002$0 = (m$7$0[0] === "send")) && (($targ$85 = m$7$0[1]), (t1$2 = $targ$85), ((t1$2 instanceof Array) && (($targ$86 = t1$2.length), (t2$2 = $targ$86), ((t2$2 === 2) && ((t1$2[0] === "variable") && ((t1$2[1] === "___node") && (($targ$87 = m$7$0[2]), (t3$0 = $targ$87), ((t3$0 instanceof Array) && (($targ$88 = t3$0.length), (t4$0 = $targ$88), ((t4$0 === 2) && (t3$0[0] === "value"))))))))))))))) {
           f$0 = t3$0[1];
           return f$0;
         } else {
-          if (($$24163$0 && ((bridge$$24125$0 = m$7$0[1]), ((((bridge$$24125$0 instanceof Array) && ((t0$6 = bridge$$24125$0.length), ((t0$6 === 2) && ((bridge$$24125$0[0] === "symbol") && (bridge$$24125$0[1] === "___js_fetch"))))) || ((bridge$$24125$0 instanceof Array) && ((t0$7 = bridge$$24125$0.length), ((t0$7 === 2) && ((bridge$$24125$0[0] === "variable") && (bridge$$24125$0[1] === "___js_fetch")))))) && (($targ$92 = m$7$0[2]), (t1$2 = $targ$92), ((t1$2 instanceof Array) && (($targ$93 = t1$2.length), (t2$2 = $targ$93), ((t2$2 === 3) && (t1$2[0] === "array"))))))))) {
+          if (($$24002$0 && ((bridge$$23964$0 = m$7$0[1]), ((((bridge$$23964$0 instanceof Array) && ((t0$6 = bridge$$23964$0.length), ((t0$6 === 2) && ((bridge$$23964$0[0] === "symbol") && (bridge$$23964$0[1] === "___js_fetch"))))) || ((bridge$$23964$0 instanceof Array) && ((t0$7 = bridge$$23964$0.length), ((t0$7 === 2) && ((bridge$$23964$0[0] === "variable") && (bridge$$23964$0[1] === "___js_fetch")))))) && (($targ$92 = m$7$0[2]), (t1$2 = $targ$92), ((t1$2 instanceof Array) && (($targ$93 = t1$2.length), (t2$2 = $targ$93), ((t2$2 === 3) && (t1$2[0] === "array"))))))))) {
             f$1 = t1$2[1];
             msg$0 = t1$2[2];
             trf$0 = $it$8.translate(f$1, "expr");
             trmsg$0 = $it$8.translate(msg$0, "expr");
             return $it$8.expr((((trf$0 + "[") + trmsg$0) + "]"), mode$2);
           } else {
-            if (($$24163$0 && ((f$2 = m$7$0[1]), ($targ$96 = m$7$0[2]), (t1$2 = $targ$96), (msg$1 = t1$2), ((t1$2 instanceof Array) && (($targ$97 = t1$2.length), (t2$2 = $targ$97), ((t2$2 === 2) && (t1$2[0] === "value"))))))) {
+            if (($$24002$0 && ((f$2 = m$7$0[1]), ($targ$96 = m$7$0[2]), (t1$2 = $targ$96), (msg$1 = t1$2), ((t1$2 instanceof Array) && (($targ$97 = t1$2.length), (t2$2 = $targ$97), ((t2$2 === 2) && (t1$2[0] === "value"))))))) {
               s$1 = t1$2[1];
               m$10$0 = null;
               if (((typeof(s$1) === "string") && s$1.match(RegExp("(?:^(?:[a-zA-Z_$]+)$)", "")))) {
@@ -694,14 +694,14 @@ $targ$14 = (function(expr$0, mode$2) {
                 return $it$8.expr((((trf$2 + "[") + trmsg$2) + "]"), mode$2);
               }
             } else {
-              if (($$24163$0 && ((f$3 = m$7$0[1]), ($targ$104 = m$7$0[2]), (t1$2 = $targ$104), ((t1$2 instanceof Array) && (($targ$105 = t1$2.length), (t2$2 = $targ$105), ((t2$2 >= 1) && (t1$2[0] === "array"))))))) {
+              if (($$24002$0 && ((f$3 = m$7$0[1]), ($targ$104 = m$7$0[2]), (t1$2 = $targ$104), ((t1$2 instanceof Array) && (($targ$105 = t1$2.length), (t2$2 = $targ$105), ((t2$2 >= 1) && (t1$2[0] === "array"))))))) {
                 args$0 = Array.prototype.slice.call(t1$2, 1);
                 m$12$0 = f$3;
-                if ((($$24415$0 = (m$12$0 instanceof Array)) && ((t0$8 = m$12$0.length), (($$24417$0 = (t0$8 === 2)) && (m$12$0[0] === "symbol"))))) {
+                if ((($$24254$0 = (m$12$0 instanceof Array)) && ((t0$8 = m$12$0.length), (($$24256$0 = (t0$8 === 2)) && (m$12$0[0] === "symbol"))))) {
                   x$4 = m$12$0[1];
                   op$1 = send(js_op_table$0, x$4);
                 } else {
-                  if (($$24417$0 && (m$12$0[0] === "variable"))) {
+                  if (($$24256$0 && (m$12$0[0] === "variable"))) {
                     x$5 = m$12$0[1];
                     op$1 = send(js_op_table2$0, x$5);
                   } else {
@@ -732,7 +732,7 @@ $targ$14 = (function(expr$0, mode$2) {
                   return $it$8.expr((((trf$3 + "(") + trargs$0.join(",")) + ")"), mode$2);
                 }
               } else {
-                if ($$24163$0) {
+                if ($$24002$0) {
                   f$4 = m$7$0[1];
                   msg$2 = m$7$0[2];
                   codevar$0 = "send";
@@ -740,7 +740,7 @@ $targ$14 = (function(expr$0, mode$2) {
                   trmsg$3 = $it$8.translate(msg$2, "expr");
                   return $it$8.expr((((((codevar$0 + "(") + trf$4) + ",") + trmsg$3) + ")"), mode$2);
                 } else {
-                  if (($$24160$0 && (($$24162$0 = (t0$5 >= 1)) && (m$7$0[0] === "array")))) {
+                  if (($$23999$0 && (($$24001$0 = (t0$5 >= 1)) && (m$7$0[0] === "array")))) {
                     args$1 = Array.prototype.slice.call(m$7$0, 1);
                     f$5 = (function(x$7) {
                       return $it$8.translate(x$7, "expr");
@@ -748,7 +748,7 @@ $targ$14 = (function(expr$0, mode$2) {
                     r$2 = (("[" + args$1.map(f$5).join(",")) + "]");
                     return $it$8.expr(r$2, mode$2);
                   } else {
-                    if (($$24162$0 && (m$7$0[0] === "object"))) {
+                    if (($$24001$0 && (m$7$0[0] === "object"))) {
                       args$2 = Array.prototype.slice.call(m$7$0, 1);
                       all_strings$0 = args$2.every((function(temp$3$0) {
                         var t1$3;
@@ -820,7 +820,7 @@ $targ$14 = (function(expr$0, mode$2) {
                       }
                       return $it$8.expr(r$3, mode$2);
                     } else {
-                      if (($$24160$0 && (((t0$5 >= 3) && (t0$5 <= 4)) && ((m$7$0[0] === "lambda") && ((bindings$0 = m$7$0[1]), (body$0 = m$7$0[2]), ($targ$136 = ((3 >= t0$5) ? ["value", false] : m$7$0[3])), (t1$2 = $targ$136), ((t1$2 instanceof Array) && (($targ$137 = t1$2.length), (t2$2 = $targ$137), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
+                      if (($$23999$0 && (((t0$5 >= 3) && (t0$5 <= 4)) && ((m$7$0[0] === "lambda") && ((bindings$0 = m$7$0[1]), (body$0 = m$7$0[2]), ($targ$136 = ((3 >= t0$5) ? ["value", false] : m$7$0[3])), (t1$2 = $targ$136), ((t1$2 instanceof Array) && (($targ$137 = t1$2.length), (t2$2 = $targ$137), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
                         generator$0 = t1$2[1];
                         if (getChecker(RegExp("^[$_a-zA-Z]*$", ""))(expr$0.name)) {
                           name$3 = (expr$0.name + " ");
@@ -849,7 +849,7 @@ $targ$14 = (function(expr$0, mode$2) {
                         b$4 = $it$8.body(body$0, "return");
                         return $it$8.expr(((((((("(function" + name$3) + star$0) + "(") + a$3) + "){") + b$4) + "})"), mode$2);
                       } else {
-                        if (($$24160$0 && (($$24162$0 = (t0$5 === 4)) && (($$24163$0 = (m$7$0[0] === "if")) && ((test$0 = m$7$0[1]), (pos$0 = m$7$0[2]), ($targ$145 = m$7$0[3]), (t1$2 = $targ$145), ((t1$2 instanceof Array) && (($targ$146 = t1$2.length), (t2$2 = $targ$146), ((t2$2 === 2) && ((t1$2[0] === "value") && (t1$2[1] === (void 0))))))))))) {
+                        if (($$23999$0 && (($$24001$0 = (t0$5 === 4)) && (($$24002$0 = (m$7$0[0] === "if")) && ((test$0 = m$7$0[1]), (pos$0 = m$7$0[2]), ($targ$145 = m$7$0[3]), (t1$2 = $targ$145), ((t1$2 instanceof Array) && (($targ$146 = t1$2.length), (t2$2 = $targ$146), ((t2$2 === 2) && ((t1$2[0] === "value") && (t1$2[1] === (void 0))))))))))) {
                           m$15$0 = mode$2;
                           if ((m$15$0 === "expr")) {
                             a$4 = $it$8.translate(test$0, "expr");
@@ -862,7 +862,7 @@ $targ$14 = (function(expr$0, mode$2) {
                             return (((("if(" + a$5) + "){") + b$6) + "}");
                           }
                         } else {
-                          if ($$24163$0) {
+                          if ($$24002$0) {
                             test$1 = m$7$0[1];
                             pos$1 = m$7$0[2];
                             neg$0 = m$7$0[3];
@@ -880,10 +880,10 @@ $targ$14 = (function(expr$0, mode$2) {
                               return (((((("if(" + a$7) + "){") + b$8) + "}else{") + c$2) + "}");
                             }
                           } else {
-                            if (($$24160$0 && (($$24162$0 = (t0$5 === 3)) && (($$24163$0 = (m$7$0[0] === "declare")) && ((binding$0 = m$7$0[1]), ($targ$159 = m$7$0[2]), (t1$2 = $targ$159), ((t1$2 instanceof Array) && (($targ$160 = t1$2.length), (t2$2 = $targ$160), ((t2$2 === 2) && ((t1$2[0] === "value") && (t1$2[1] === (void 0))))))))))) {
+                            if (($$23999$0 && (($$24001$0 = (t0$5 === 3)) && (($$24002$0 = (m$7$0[0] === "declare")) && ((binding$0 = m$7$0[1]), ($targ$159 = m$7$0[2]), (t1$2 = $targ$159), ((t1$2 instanceof Array) && (($targ$160 = t1$2.length), (t2$2 = $targ$160), ((t2$2 === 2) && ((t1$2[0] === "value") && (t1$2[1] === (void 0))))))))))) {
                               m$17$0 = mode$2;
-                              bridge$$24783$0 = m$17$0;
-                              if ((((bridge$$24784$0 = bridge$$24783$0), ((bridge$$24784$0 === "expr") || (bridge$$24784$0 === "return"))) || ((x$11 = bridge$$24783$0), ((x$11 instanceof Array) && (x$11[0] === "return"))))) {
+                              bridge$$24622$0 = m$17$0;
+                              if ((((bridge$$24623$0 = bridge$$24622$0), ((bridge$$24623$0 === "expr") || (bridge$$24623$0 === "return"))) || ((x$11 = bridge$$24622$0), ((x$11 instanceof Array) && (x$11[0] === "return"))))) {
                                 throw "Invalid in expr ctx";
                               } else {
                                 other$6 = m$17$0;
@@ -891,12 +891,12 @@ $targ$14 = (function(expr$0, mode$2) {
                                 return (("let " + a$8) + ";");
                               }
                             } else {
-                              if ($$24163$0) {
+                              if ($$24002$0) {
                                 binding$1 = m$7$0[1];
                                 value$0 = m$7$0[2];
                                 m$18$0 = mode$2;
-                                bridge$$24822$0 = m$18$0;
-                                if ((((bridge$$24823$0 = bridge$$24822$0), ((bridge$$24823$0 === "expr") || (bridge$$24823$0 === "return"))) || ((x$12 = bridge$$24822$0), ((x$12 instanceof Array) && (x$12[0] === "return"))))) {
+                                bridge$$24661$0 = m$18$0;
+                                if ((((bridge$$24662$0 = bridge$$24661$0), ((bridge$$24662$0 === "expr") || (bridge$$24662$0 === "return"))) || ((x$12 = bridge$$24661$0), ((x$12 instanceof Array) && (x$12[0] === "return"))))) {
                                   throw "Invalid in expr ctx";
                                 } else {
                                   other$7 = m$18$0;
@@ -905,7 +905,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                   return (((("let " + a$9) + "=") + b$9) + ";");
                                 }
                               } else {
-                                if (($$24162$0 && (($$24163$0 = (m$7$0[0] === "assign")) && (($targ$172 = m$7$0[1]), (t1$2 = $targ$172), ((t1$2 instanceof Array) && (($targ$173 = t1$2.length), (t2$2 = $targ$173), ((t2$2 === 3) && (t1$2[0] === "send")))))))) {
+                                if (($$24001$0 && (($$24002$0 = (m$7$0[0] === "assign")) && (($targ$172 = m$7$0[1]), (t1$2 = $targ$172), ((t1$2 instanceof Array) && (($targ$173 = t1$2.length), (t2$2 = $targ$173), ((t2$2 === 3) && (t1$2[0] === "send")))))))) {
                                   obj$0 = t1$2[1];
                                   msg$3 = t1$2[2];
                                   rhs$0 = m$7$0[2];
@@ -914,7 +914,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                   c$3 = $it$8.translate(rhs$0, "expr");
                                   return $it$8.expr((((((("(" + a$10) + "[") + b$10) + "]=") + c$3) + ")"), mode$2);
                                 } else {
-                                  if (($$24163$0 && ((lhs$0 = t1$2), ((t1$2 instanceof Array) && (($targ$177 = t1$2.length), (t2$2 = $targ$177), ((t2$2 === 2) && (t1$2[0] === "variable"))))))) {
+                                  if (($$24002$0 && ((lhs$0 = t1$2), ((t1$2 instanceof Array) && (($targ$177 = t1$2.length), (t2$2 = $targ$177), ((t2$2 === 2) && (t1$2[0] === "variable"))))))) {
                                     t1$2[1];
                                     rhs$1 = m$7$0[2];
                                     a$11 = $it$8.translate(lhs$0, "expr");
@@ -927,14 +927,14 @@ $targ$14 = (function(expr$0, mode$2) {
                                       return $it$8.expr((("(" + core$0) + ")"), mode$2);
                                     }
                                   } else {
-                                    if (($$24160$0 && ((t0$5 === 1) && (m$7$0[0] === "multi")))) {
+                                    if (($$23999$0 && ((t0$5 === 1) && (m$7$0[0] === "multi")))) {
                                       if ((mode$2 === "stmt")) {
                                         return "";
                                       } else {
                                         return "null";
                                       }
                                     } else {
-                                      if (($$24160$0 && (($$24162$0 = (t0$5 >= 1)) && (m$7$0[0] === "multi")))) {
+                                      if (($$23999$0 && (($$24001$0 = (t0$5 >= 1)) && (m$7$0[0] === "multi")))) {
                                         _args$0 = Array.prototype.slice.call(m$7$0, 1);
                                         flatten$0 = (function(args$4) {
                                           var m$21;
@@ -950,10 +950,10 @@ $targ$14 = (function(expr$0, mode$2) {
                                               var t0$13;
                                               var t0$14;
                                               var other$8;
-                                              var bridge$$24946$0;
+                                              var bridge$$24785$0;
                                               var more$0;
-                                              bridge$$24946$0 = m$21;
-                                              if ((((bridge$$24946$0 instanceof Array) && ((t0$13 = bridge$$24946$0.length), ((t0$13 >= 1) && ((bridge$$24946$0[0] === "multi") && ((more$0 = Array.prototype.slice.call(bridge$$24946$0, 1)), true))))) || ((bridge$$24946$0 instanceof Array) && ((t0$14 = bridge$$24946$0.length), ((t0$14 >= 1) && ((bridge$$24946$0[0] === "splice") && ((more$0 = Array.prototype.slice.call(bridge$$24946$0, 1)), true))))))) {
+                                              bridge$$24785$0 = m$21;
+                                              if ((((bridge$$24785$0 instanceof Array) && ((t0$13 = bridge$$24785$0.length), ((t0$13 >= 1) && ((bridge$$24785$0[0] === "multi") && ((more$0 = Array.prototype.slice.call(bridge$$24785$0, 1)), true))))) || ((bridge$$24785$0 instanceof Array) && ((t0$14 = bridge$$24785$0.length), ((t0$14 >= 1) && ((bridge$$24785$0[0] === "splice") && ((more$0 = Array.prototype.slice.call(bridge$$24785$0, 1)), true))))))) {
                                                 res$0 = res$0.concat(flatten$0(more$0));
                                               } else {
                                                 other$8 = m$21;
@@ -974,10 +974,10 @@ $targ$14 = (function(expr$0, mode$2) {
                                           {
                                             var x$13;
                                             var x$14;
-                                            var bridge$$24990$0;
+                                            var bridge$$24829$0;
                                             var x$15;
                                             var x$16;
-                                            var bridge$$24989$0;
+                                            var bridge$$24828$0;
                                             var $targ$193;
                                             var t0$15;
                                             var elem$0;
@@ -985,8 +985,8 @@ $targ$14 = (function(expr$0, mode$2) {
                                             t0$15 = m$22;
                                             elem$0 = t0$15;
                                             ph$1$0 = t0$15;
-                                            bridge$$24989$0 = ph$1$0;
-                                            if ((((bridge$$24990$0 = bridge$$24989$0), (((x$13 = bridge$$24990$0), ((x$13 instanceof Array) && (x$13[0] === "value"))) || ((x$14 = bridge$$24990$0), ((x$14 instanceof Array) && (x$14[0] === "symbol"))))) || ((x$15 = bridge$$24989$0), ((x$15 instanceof Array) && (x$15[0] === "variable"))))) {
+                                            bridge$$24828$0 = ph$1$0;
+                                            if ((((bridge$$24829$0 = bridge$$24828$0), (((x$13 = bridge$$24829$0), ((x$13 instanceof Array) && (x$13[0] === "value"))) || ((x$14 = bridge$$24829$0), ((x$14 instanceof Array) && (x$14[0] === "symbol"))))) || ((x$15 = bridge$$24828$0), ((x$15 instanceof Array) && (x$15[0] === "variable"))))) {
                                               continue $8;
                                             } else {
                                               x$16 = ph$1$0;
@@ -1069,15 +1069,15 @@ $targ$14 = (function(expr$0, mode$2) {
                                           }
                                         }
                                       } else {
-                                        if (($$24162$0 && (m$7$0[0] === "splice"))) {
+                                        if (($$24001$0 && (m$7$0[0] === "splice"))) {
                                           args$5 = Array.prototype.slice.call(m$7$0, 1);
                                           return $it$8.translate(["multi"].concat(args$5), mode$2);
                                         } else {
-                                          if (($$24160$0 && ((t0$5 === 2) && (m$7$0[0] === "variable")))) {
+                                          if (($$23999$0 && ((t0$5 === 2) && (m$7$0[0] === "variable")))) {
                                             s$2 = m$7$0[1];
                                             return $it$8.expr($it$8.mangle(s$2), mode$2);
                                           } else {
-                                            if (($$24160$0 && ((t0$5 === 3) && (m$7$0[0] === "scope")))) {
+                                            if (($$23999$0 && ((t0$5 === 3) && (m$7$0[0] === "scope")))) {
                                               vars$0 = m$7$0[1];
                                               body$1 = m$7$0[2];
                                               acc$5 = [];
@@ -1099,7 +1099,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                               decls$0 = acc$5;
                                               return $it$8.translate(["multi"].concat(decls$0).concat([body$1]), mode$2);
                                             } else {
-                                              if (($$24160$0 && ((t0$5 >= 1) && (m$7$0[0] === "object2")))) {
+                                              if (($$23999$0 && ((t0$5 >= 1) && (m$7$0[0] === "object2")))) {
                                                 args$6 = Array.prototype.slice.call(m$7$0, 1);
                                                 f$8 = (function(temp$11$0) {
                                                   var t1$8;
@@ -1122,23 +1122,23 @@ $targ$14 = (function(expr$0, mode$2) {
                                                 r$4 = (("({" + args$6.map(f$8).join(",")) + "})");
                                                 return $it$8.expr(r$4, mode$2);
                                               } else {
-                                                if (($$24160$0 && ((t0$5 === 2) && (m$7$0[0] === "js_new")))) {
+                                                if (($$23999$0 && ((t0$5 === 2) && (m$7$0[0] === "js_new")))) {
                                                   value$2 = m$7$0[1];
                                                   return $it$8.expr((("(new " + $it$8.translate(value$2, "expr")) + ")"), mode$2);
                                                 } else {
-                                                  if (($$24160$0 && (($$24162$0 = ((t0$5 >= 1) && (t0$5 <= 2))) && ((m$7$0[0] === "js_break") && (($targ$220 = ((1 >= t0$5) ? ["value", null] : m$7$0[1])), (t1$2 = $targ$220), ((t1$2 instanceof Array) && (($targ$221 = t1$2.length), (t2$2 = $targ$221), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
+                                                  if (($$23999$0 && (($$24001$0 = ((t0$5 >= 1) && (t0$5 <= 2))) && ((m$7$0[0] === "js_break") && (($targ$220 = ((1 >= t0$5) ? ["value", null] : m$7$0[1])), (t1$2 = $targ$220), ((t1$2 instanceof Array) && (($targ$221 = t1$2.length), (t2$2 = $targ$221), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
                                                     label$0 = t1$2[1];
                                                     return (("break" + (label$0 ? (" " + label$0) : "")) + ";");
                                                   } else {
-                                                    if (($$24162$0 && ((m$7$0[0] === "js_continue") && (($targ$222 = ((1 >= t0$5) ? ["value", null] : m$7$0[1])), (t1$2 = $targ$222), ((t1$2 instanceof Array) && (($targ$223 = t1$2.length), (t2$2 = $targ$223), ((t2$2 === 2) && (t1$2[0] === "value")))))))) {
+                                                    if (($$24001$0 && ((m$7$0[0] === "js_continue") && (($targ$222 = ((1 >= t0$5) ? ["value", null] : m$7$0[1])), (t1$2 = $targ$222), ((t1$2 instanceof Array) && (($targ$223 = t1$2.length), (t2$2 = $targ$223), ((t2$2 === 2) && (t1$2[0] === "value")))))))) {
                                                       label$1 = t1$2[1];
                                                       return (("continue" + (label$1 ? (" " + label$1) : "")) + ";");
                                                     } else {
-                                                      if (($$24160$0 && ((t0$5 === 2) && (m$7$0[0] === "js_return")))) {
+                                                      if (($$23999$0 && ((t0$5 === 2) && (m$7$0[0] === "js_return")))) {
                                                         value$3 = m$7$0[1];
                                                         return (("return " + $it$8.translate(value$3, "expr")) + ";");
                                                       } else {
-                                                        if (($$24160$0 && ((t0$5 === 3) && ((m$7$0[0] === "js_yield") && ((value$4 = m$7$0[1]), ($targ$224 = m$7$0[2]), (t1$2 = $targ$224), ((t1$2 instanceof Array) && (($targ$225 = t1$2.length), (t2$2 = $targ$225), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
+                                                        if (($$23999$0 && ((t0$5 === 3) && ((m$7$0[0] === "js_yield") && ((value$4 = m$7$0[1]), ($targ$224 = m$7$0[2]), (t1$2 = $targ$224), ((t1$2 instanceof Array) && (($targ$225 = t1$2.length), (t2$2 = $targ$225), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
                                                           all$0 = t1$2[1];
                                                           if (all$0) {
                                                             star$1 = "*";
@@ -1147,7 +1147,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                           }
                                                           return $it$8.expr((((("(yield" + star$1) + " ") + $it$8.translate(value$4, "expr")) + ")"), mode$2);
                                                         } else {
-                                                          if (($$24160$0 && (($$24162$0 = (t0$5 === 2)) && (m$7$0[0] === "js_delete")))) {
+                                                          if (($$23999$0 && (($$24001$0 = (t0$5 === 2)) && (m$7$0[0] === "js_delete")))) {
                                                             value$5 = m$7$0[1];
                                                             if ((mode$2 === "expr")) {
                                                               throw "Invalid delete in ctx";
@@ -1162,7 +1162,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                               }
                                                             }
                                                           } else {
-                                                            if (($$24162$0 && (m$7$0[0] === "js_throw"))) {
+                                                            if (($$24001$0 && (m$7$0[0] === "js_throw"))) {
                                                               value$6 = m$7$0[1];
                                                               if ((mode$2 === "expr")) {
                                                                 return (("(function(){throw " + $it$8.translate(value$6, "expr")) + ";})()");
@@ -1170,7 +1170,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                 return (("throw " + $it$8.translate(value$6, "expr")) + ";");
                                                               }
                                                             } else {
-                                                              if (($$24160$0 && (($$24162$0 = (t0$5 === 3)) && ((m$7$0[0] === "js_label") && (($targ$229 = m$7$0[1]), (t1$2 = $targ$229), ((t1$2 instanceof Array) && (($targ$230 = t1$2.length), (t2$2 = $targ$230), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
+                                                              if (($$23999$0 && (($$24001$0 = (t0$5 === 3)) && ((m$7$0[0] === "js_label") && (($targ$229 = m$7$0[1]), (t1$2 = $targ$229), ((t1$2 instanceof Array) && (($targ$230 = t1$2.length), (t2$2 = $targ$230), ((t2$2 === 2) && (t1$2[0] === "value"))))))))) {
                                                                 label$2 = t1$2[1];
                                                                 body$2 = m$7$0[2];
                                                                 m$27$0 = mode$2;
@@ -1181,7 +1181,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                   return ((label$2 + ":") + $it$8.translate(body$2, other$10));
                                                                 }
                                                               } else {
-                                                                if (($$24162$0 && (m$7$0[0] === "js_while"))) {
+                                                                if (($$24001$0 && (m$7$0[0] === "js_while"))) {
                                                                   test$2 = m$7$0[1];
                                                                   body$3 = m$7$0[2];
                                                                   m$28$0 = mode$2;
@@ -1194,7 +1194,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                     return (((("while(" + a$13) + "){") + b$13) + "}");
                                                                   }
                                                                 } else {
-                                                                  if (($$24160$0 && ((t0$5 === 5) && (m$7$0[0] === "js_for")))) {
+                                                                  if (($$23999$0 && ((t0$5 === 5) && (m$7$0[0] === "js_for")))) {
                                                                     x$21 = m$7$0[1];
                                                                     y$5 = m$7$0[2];
                                                                     z$0 = m$7$0[3];
@@ -1211,7 +1211,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                       return (((((((("for(" + a$14) + ";") + b$14) + ";") + c$4) + "){") + d$0) + "}");
                                                                     }
                                                                   } else {
-                                                                    if (($$24160$0 && (($$24162$0 = (t0$5 === 4)) && (m$7$0[0] === "js_for_in")))) {
+                                                                    if (($$23999$0 && (($$24001$0 = (t0$5 === 4)) && (m$7$0[0] === "js_for_in")))) {
                                                                       x$22 = m$7$0[1];
                                                                       y$6 = m$7$0[2];
                                                                       body$5 = m$7$0[3];
@@ -1226,7 +1226,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                         return (((((("for(" + a$15) + " in ") + b$15) + "){") + c$5) + "}");
                                                                       }
                                                                     } else {
-                                                                      if (($$24162$0 && (m$7$0[0] === "js_for_of"))) {
+                                                                      if (($$24001$0 && (m$7$0[0] === "js_for_of"))) {
                                                                         x$23 = m$7$0[1];
                                                                         y$7 = m$7$0[2];
                                                                         body$6 = m$7$0[3];
@@ -1241,7 +1241,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                           return (((((("for(" + a$16) + " of ") + b$16) + "){") + c$6) + "}");
                                                                         }
                                                                       } else {
-                                                                        if (($$24162$0 && ((m$7$0[0] === "js_try") && ((attempt$0 = m$7$0[1]), ($targ$248 = m$7$0[2]), (t1$2 = $targ$248), ((t1$2 instanceof Array) && (($targ$249 = t1$2.length), (t2$2 = $targ$249), ((t2$2 === 4) && ((t1$2[0] === "lambda") && (($targ$250 = t1$2[1]), (t3$0 = $targ$250), ((t3$0 instanceof Array) && (($targ$251 = t3$0.length), (t4$0 = $targ$251), ((t4$0 === 1) && ((bridge$$24157$0 = t3$0[0]), (((bridge$$24157$0 instanceof Array) && ((t0$19 = bridge$$24157$0.length), ((t0$19 === 2) && ((bridge$$24157$0[0] === "symbol") && ((v$5 = bridge$$24157$0[1]), true))))) || ((bridge$$24157$0 instanceof Array) && ((t0$20 = bridge$$24157$0.length), ((t0$20 === 2) && ((bridge$$24157$0[0] === "variable") && ((v$5 = bridge$$24157$0[1]), true))))))))))))))))))) {
+                                                                        if (($$24001$0 && ((m$7$0[0] === "js_try") && ((attempt$0 = m$7$0[1]), ($targ$248 = m$7$0[2]), (t1$2 = $targ$248), ((t1$2 instanceof Array) && (($targ$249 = t1$2.length), (t2$2 = $targ$249), ((t2$2 === 4) && ((t1$2[0] === "lambda") && (($targ$250 = t1$2[1]), (t3$0 = $targ$250), ((t3$0 instanceof Array) && (($targ$251 = t3$0.length), (t4$0 = $targ$251), ((t4$0 === 1) && ((bridge$$23996$0 = t3$0[0]), (((bridge$$23996$0 instanceof Array) && ((t0$19 = bridge$$23996$0.length), ((t0$19 === 2) && ((bridge$$23996$0[0] === "symbol") && ((v$5 = bridge$$23996$0[1]), true))))) || ((bridge$$23996$0 instanceof Array) && ((t0$20 = bridge$$23996$0.length), ((t0$20 === 2) && ((bridge$$23996$0[0] === "variable") && ((v$5 = bridge$$23996$0[1]), true))))))))))))))))))) {
                                                                           body$7 = t1$2[2];
                                                                           t1$2[3];
                                                                           finally$1 = m$7$0[3];
@@ -1262,7 +1262,7 @@ $targ$14 = (function(expr$0, mode$2) {
                                                                             return (((r$5 + "finally{") + $it$8.translate(other$16, "stmt")) + "}");
                                                                           }
                                                                         } else {
-                                                                          if (($$24160$0 && ((t0$5 === 2) && (m$7$0[0] === "raw")))) {
+                                                                          if (($$23999$0 && ((t0$5 === 2) && (m$7$0[0] === "raw")))) {
                                                                             x$24 = m$7$0[1];
                                                                             return x$24;
                                                                           } else {
