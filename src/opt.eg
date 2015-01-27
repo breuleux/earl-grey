@@ -1,4 +1,8 @@
 
+require:
+   "./location" ->
+      <<:
+
 provide:
    hoist
    eliminate_spurious_variables
@@ -40,9 +44,9 @@ varstats{match expr, stats} =
 
 replaceVars{match expr, repl} =
    #variable{v} when Object.hasOwnProperty.call{repl, v} and repl[v] ->
-      #variable{repl[v]}
+      #variable{repl[v]} <<: expr
    #assign{#variable{v1}, #variable{v2}} when repl[v1] == v2 or repl[v2] == v1 ->
-      #multi{}
+      #multi{} <<: expr
    #variable or #value ->
       expr
    #scope{vars, body} ->
@@ -50,21 +54,22 @@ replaceVars{match expr, repl} =
       vars each _var and #variable{v} ->
          if Object.hasOwnProperty.call{repl, v}:
             if repl[v] !== false:
-               newvars.push with #variable{repl[v]}
+               newvars.push with
+                  #variable{repl[v]} <<: _var
          else:
             newvars.push{_var}
       #scope{
          newvars
          replaceVars{body, repl}
-      }
+      } <<: expr
    #lambda{vars, body, generator = null} ->
       #lambda{
          vars
          replaceVars{body, repl}
          generator
-      }
+      } <<: expr
    {x, *rest} ->
-      {x, *newrest} where newrest =
+      [{x, *newrest} <<: expr] where newrest =
          rest each elem ->
             replaceVars{elem, repl}
    other ->
@@ -157,7 +162,7 @@ hoist_helper{match expr} =
       ;; Can't hoist past this! We create a #scope to hold the
       ;; variables hoisted from body.
       {newbody, inner} = hoist_helper{body}
-      {#lambda{vars, #scope{inner, newbody}, generator}, {}}
+      {#lambda{vars, #scope{inner, newbody} <<: body, generator} <<: expr, {}}
 
    {type, *args} when hoistable.indexOf{type} !== -1 ->
       ;; Hoistable nodes. We assume that all the members of the node
@@ -168,7 +173,7 @@ hoist_helper{match expr} =
          {b, inner} = hoist_helper{arg}
          accum ++= inner
          b
-      {{type, *newargs}, accum}
+      {{type, *newargs} <<: expr, accum}
 
    {type, *args} when not_hoistable.indexOf{type} !== -1 ->
       ;; Not hoistable. We assume that all the members of the node are
@@ -179,7 +184,7 @@ hoist_helper{match expr} =
             {} -> b
             other ->
                #scope{inner, b}
-      {{type, *newargs}, {}}
+      {{type, *newargs} <<: expr, {}}
 
    other ->
       ;; hoistable and not_hoistable should contain all possible node types
