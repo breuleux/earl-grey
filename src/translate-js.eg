@@ -9,6 +9,19 @@ provide:
    Translator, translate
 
 
+let Node{_, _, children} =
+   var rval = ""
+   acc{children} where acc{match} =
+      String? s -> rval += s
+      Array? [each x] -> acc{x}
+   rval
+
+join{things, sep} =
+   enumerate{things} each {match, x} ->
+      0 -> x
+      _ -> {",", x}
+
+
 js_op_table2 = {
    "+" => "+"
    "-" => "-"
@@ -159,34 +172,41 @@ class Translator:
          .return ->
             stmts = b.slice{0, -1}
             ret = b[b.length - 1]
-            stmts.map{trst}.join{""} + @translate{ret, .return}
+            splice %
+               stmts.map{trst}
+               @translate{ret, .return}
          .stmt ->
-            b.map{trst}.join{""}
+            splice %
+               b each x -> trst{x}
          #return{variable} ->
             stmts = b.slice{0, -1}
             ret = b[b.length - 1]
-            stmts.map{trst}.join{""} + @translate{ret, mode}
+            splice %
+               stmts.map{trst}
+               @translate{ret, mode}
          other ->
             throw E.syntax.mode{"Unknown translate mode", {mode = mode}}
 
-   expr{x, mode} =
-      match mode:
-         .expr -> x
-         .stmt -> x + ";"
-         .return -> "return " + x + ";"
-         #return{variable} ->
-            variable + "=" + x + ";"
-         other -> throw E.syntax.mode{"Unknown translate mode", {mode = mode}}
+   expr{x, match mode} =
+      .expr -> x
+      .stmt -> splice % [x, ";"]
+      .return -> splice % ["return ", x, ";"]
+      #return{variable} ->
+         splice %
+            variable, "=", x, ";"
+      other -> throw E.syntax.mode{"Unknown translate mode", {mode = mode}}
 
    op{op, a, b} =
       e = match {a, b}:
-             {#void{}, _} -> op + @translate{b, .expr}
-             {_, #void{}} -> @translate{a, .expr} + op
-             _ -> @translate{a, .expr} + op + @translate{b, .expr}
-      "(" + e + ")"
+             {#void{}, _} ->
+                splice % [op, @translate{b, .expr}]
+             {_, #void{}} ->
+                splice % [@translate{a, .expr}, op]
+             else ->
+                splice % [@translate{a, .expr}, op, @translate{b, .expr}]
+      splice % ["(", e, ")"]
 
-   translate{expr, mode} =
-      match expr:
+   translate{match expr, mode} =
 
          #symbol{s} ->
             @expr{@mangle{s}, mode}
@@ -229,143 +249,155 @@ class Translator:
             f
 
          #send{#symbol{"___js_fetch"} or #variable{"___js_fetch"}, #array{f, msg}} ->
-            @expr{trf + "[" + trmsg + "]", mode} where
-               trf = @translate{f, .expr}
-               trmsg = @translate{msg, .expr}
+            @expr{x, mode} where x =
+               splice %
+                  @translate{f, .expr}
+                  "[", @translate{msg, .expr}, "]"
 
          #send{f, msg and #value{s}} ->
             match:
                when [[typeof{s} === "string"]
                      \ and s.match{R`[start, + in "a-zA-Z_$", end]`}] ->
-                  @expr{trf + "." + trmsg, mode} where
-                     trf = match @translate{f, .expr}:
-                        R"^\d+$"? x -> "(" + x + ")"
-                        x -> x
-                     trmsg = @translate{#symbol{s}, .expr}
+                  @expr{x, mode} where x =
+                     splice %
+                        match @translate{f, .expr}:
+                           R"^\d+$"? x -> "(" + x + ")"
+                           x -> x
+                        "."
+                        @translate{#symbol{s}, .expr}
                otherwise ->
-                  @expr{trf + "[" + trmsg + "]", mode} where
-                     trf = @translate{f, .expr}
-                     trmsg = @translate{msg, .expr}
+                  @expr{x, mode} where x =
+                     splice %
+                        @translate{f, .expr}
+                        "[", @translate{msg, .expr}, "]"
 
          #send{f, #array{*args}} ->
-            op = match f: | #symbol{x} -> js_op_table[x]
-                          | #variable{x} -> js_op_table2[x]
-                          | _ -> null
+            op =
+               match f:
+                  #symbol{x} -> js_op_table[x]
+                  #variable{x} -> js_op_table2[x]
+                  _ -> null
             if op:
-               then: @expr{@op{op, args[0], args[1]}, mode}
-               else:
-                  @expr{trf+"("+trargs.join{","}+")", mode} where
-                     trf = @translate{f, .expr}
-                     trargs = args each x ->
-                        @translate{x, .expr}
-
-         ;; #send{f, msg} ->
-         ;;    @expr{trf + "[" + trmsg + "]", mode} where
-         ;;       trf = @translate{f, .expr}
-         ;;       trmsg = @translate{msg, .expr}
+               @expr{@op{op, args[0], args[1]}, mode}
+            else:
+               @expr{x, mode} where x =
+                  splice %
+                     @translate{f, .expr}
+                     "("
+                     join{args each x -> @translate{x, .expr}, ","}
+                     ")"
 
          #send{f, msg} ->
-            ;; #symbol{codevar} = @register_raw{code, "~send"} where code =
-            ;;    "(function(o,m){if(typeof(m)==='string'||typeof(m)==='number'){return o[m];}else{return o['::send'](m);}})"
             codevar = "send"
-            @expr{codevar + "(" + trf + "," + trmsg + ")", mode} where
-               trf = @translate{f, .expr}
-               trmsg = @translate{msg, .expr}
+            @expr{x, mode} where x =
+               splice %
+                  codevar, "("
+                  @translate{f, .expr}
+                  ","
+                  @translate{msg, .expr}
+                  ")"
 
          #array{*args} ->
-            r = ["[" + args.map{f}.join{","} + "]"] where
-               f{x} = @translate{x, .expr}
-            @expr{r, mode}
+            @expr{r, mode} where r =
+               splice %
+                  "[",
+                  join{args each x -> @translate{x, .expr}, ","}
+                  "]"
 
          #object{*args} ->
             all_strings = args.every with {#array{match, y}} ->
                #value{v} -> true
                other -> false
-            r = if all_strings:
-               then:
-                  ["({" + args.map{f}.join{","} + "})"] where
-                     f{#array{x, y}} =
-                        a = @translate{x, .expr}
-                        b = @translate{y, .expr}
-                        a + ":" + b
+            r =
+               if all_strings:
+                  splice %
+                     "({"
+                     join{args.map{f}, ","} where
+                        f{#array{x, y}} =
+                           a = @translate{x, .expr}
+                           b = @translate{y, .expr}
+                           splice % [a, ":", b]
+                     "})"
                else:
                   v = gensym{}
-                  ["(function(){" + "let " + v + "={};" + args.map{f}.join{""} + ";return " + v + ";}())"] where
-                     f{#array{x, y}} =
-                        a = @translate{x, .expr}
-                        b = @translate{y, .expr}
-                        v + "[" + a + "]=" + b + ";"
+                  splice %
+                     "(function(){let ", v, "={};"
+                     args each #array{x, y} ->
+                        splice %
+                           "[", @translate{x, .expr}, "]="
+                           @translate{y, .expr}, ";"
             @expr{r, mode}
 
          #lambda{bindings, body, #value{generator} = #value{false}} ->
-            name = if{R"^[$_a-zA-Z]*$"? expr.name, expr.name + " ", ""}
-            star = if{generator, "*", ""}
-            @expr{"(function"+name+star+"("+a+"){"+b+"})", mode} where
-               a = [bindings each x -> @translate{x, .expr}].join{","}
-               b = @body{body, .return}
+            @expr{r, mode} where r =
+               splice %
+                  "(function"
+                  if{R"^[$_a-zA-Z]*$"? expr.name, " " + expr.name, ""}
+                  if{generator, "*", ""}
+                  "("
+                  join{bindings each x -> @translate{x, .expr}, ","}
+                  "){"
+                  @body{body, .return}
+                  "})"
 
-         #if{test, pos, #value{undefined?}} ->
-            match mode:
-               ;; .expr -> @body{expr, .expr}
+         #if{test, pos, #value{undefined?}} and match is mode ->
                .expr ->
-                  @expr{"(" + a + "?" + b + ":undefined)", .expr} where
-                     a = @translate{test, .expr}
-                     b = @translate{pos, .expr}
+                  @expr{x, .expr} where x =
+                     splice %
+                        "(", @translate{test, .expr}
+                        "?", @translate{pos, .expr}
+                        ":undefined)"
                other ->
-                  ["if(" + a + "){" + b + "}"] where
-                     a = @translate{test, .expr}
-                     b = @translate{pos, mode}
+                  splice %
+                     "if(", @translate{test, .expr}, "){"
+                     @translate{pos, mode}, "}"
 
-         #if{test, pos, neg} ->
-            match mode:
-               ;; .expr -> @body{expr, .expr}
-               .expr ->
-                  @expr{"(" + a + "?" + b + ":" + c + ")", .expr} where
-                     a = @translate{test, .expr}
-                     b = @translate{pos, .expr}
-                     c = @translate{neg, .expr}
-               other ->
-                  ["if(" + a + "){" + b + "}else{" + c + "}"] where
-                     a = @translate{test, .expr}
-                     b = @translate{pos, mode}
-                     c = @translate{neg, mode}
+         #if{test, pos, neg} and match is mode ->
+            .expr ->
+               @expr{x, .expr} where x =
+                  splice %
+                     "(", @translate{test, .expr}
+                     "?", @translate{pos, .expr}
+                     ":", @translate{neg, .expr}, ")"
+            other ->
+               splice %
+                  "if(", @translate{test, .expr}, "){"
+                  @translate{pos, mode}
+                  "}else{", @translate{neg, mode}, "}"
 
 
-         #declare{binding, #value{undefined?}} ->
-            match mode:
-               [.expr or .return or #return] -> throw "Invalid in expr ctx"
-               other ->
-                  ["let " + a + ";"] where
-                     a = @translate{binding, .expr}
+         #declare{binding, #value{undefined?}} and match is mode ->
+            [.expr or .return or #return] -> throw "Invalid in expr ctx"
+            other ->
+               splice %
+                  "let ", @translate{binding, .expr}, ";"
 
-         #declare{binding, value} ->
-            match mode:
-               [.expr or .return or #return] -> throw "Invalid in expr ctx"
-               other ->
-                  ["let " + a + "=" + b + ";"] where
-                     a = @translate{binding, .expr}
-                     b = @translate{value, .expr}
+         #declare{binding, value} and match is mode ->
+            [.expr or .return or #return] -> throw "Invalid in expr ctx"
+            other ->
+               splice %
+                  "let ", @translate{binding, .expr}
+                  "=", @translate{value, .expr}, ";"
 
          #assign{#send{obj, msg}, rhs} ->
-            @expr{"(" + a + "[" + b + "]=" + c + ")", mode} where
-               a = @translate{obj, .expr}
-               b = @translate{msg, .expr}
-               c = @translate{rhs, .expr}
+            @expr{x, mode} where x =
+               splice %
+                  "(", @translate{obj, .expr}
+                  "[", @translate{msg, .expr}, "]="
+                  @translate{rhs, .expr}, ")"
 
          #assign{lhs and #variable{_}, rhs} ->
-            core = a + "=" + b where
-               a = @translate{lhs, .expr}
-               b = @translate{rhs, .expr}
-            ;; match mode:
-            ;;    .stmt ->
-            ;;       core + ";"
-            ;;    else ->
-            ;;       @expr{"(" + core + ")", mode}
+            core =
+               splice %
+                  @translate{lhs, .expr}, "="
+                  @translate{rhs, .expr}
             match mode:
                .stmt ->
                   @translate{rhs, #return{@translate{lhs, .expr}}}
                else ->
-                  @expr{"(" + core + ")", mode}
+                  @expr{x, mode} where x =
+                     splice %
+                        "(", core, ")"
 
          #multi{} ->
             if{mode === .stmt, "", "null"}
@@ -397,7 +429,8 @@ class Translator:
                      @translate{x, .expr}
                   xs.push with @translate{args[args.length - 1], mode}
                   set xs = xs each x when x !== "" -> x
-                  ["(" + xs.join{","} + ")"]
+                  ;; ["(" + xs.join{","} + ")"]
+                  splice % ["(", join{xs, ","}, ")"]
                _ -> @body{#multi{*args}, mode}
 
          #splice{*args} ->
@@ -410,16 +443,10 @@ class Translator:
             @translate{#multi{*decls, body}, mode} where
                decls = vars each v -> #declare{v, #value{undefined}}
 
-         #object2{*args} ->
-            r = ["({" + args.map{f}.join{","} + "})"] where
-               f{{x, y}} =
-                  a = @translate{x, .expr}
-                  b = @translate{y, .expr}
-                  a + ":" + b
-            @expr{r, mode}
-
          #js_new{value} ->
-            @expr{"(new " + @translate{value, .expr} + ")", mode}
+            @expr{x, mode} where x =
+               splice %
+                  "(new ", @translate{value, .expr}, ")"
 
          ;; TODO: some kind of .ignoreexpr mode is needed to
          ;;       spot usage errors for break, continue, return
@@ -428,99 +455,99 @@ class Translator:
             ;; if [mode === "expr"]:
             ;;    then: throw "Invalid break in ctx"
             ;;    else: "break" + if{label, " " + label, ""} + ";"
-            "break" + if{label, " " + label, ""} + ";"
+            splice %
+               "break", if{label, " " + label, ""}, ";"
 
          #js_continue{#value{label} = #value{null}} ->
             ;; if [mode === "expr"]:
             ;;    then: throw "Invalid continue in ctx"
             ;;    else: "continue" + if{label, " " + label, ""} + ";"
-            "continue" + if{label, " " + label, ""} + ";"
+            splice %
+               "continue", if{label, " " + label, ""}, ";"
 
          #js_return{value} ->
             ;; if [mode === "expr"]:
             ;;    then: throw "Invalid return in ctx"
             ;;    else: "return " + @translate{value, .expr} + ";"
-            "return " + @translate{value, .expr} + ";"
+            splice %
+               "return ", @translate{value, .expr}, ";"
 
          #js_yield{value, #value{all}} ->
-            @expr{"(yield" + star + " " + @translate{value, .expr} + ")", mode} where
-               star = if{all, "*", ""}
+            @expr{x, mode} where x =
+               splice %
+                  "(yield", if{all, "*", ""}, " "
+                  @translate{value, .expr}, ")"
 
-         #js_delete{value} ->
-            if [mode === "expr"]:
-               then: throw "Invalid delete in ctx"
-               else:
-                  match value:
-                     #send{x, y} ->
-                        "delete " + @translate{x, .expr} + "[" + @translate{y, .expr} + "];"
-                     else ->
-                        throw E.translate.delete{"Invalid argument for delete"}
+         #js_delete{match} ->
+            #send{x, y} ->
+               splice %
+                  "delete ", @translate{x, .expr}, "["
+                  @translate{y, .expr}, "];"
+            else ->
+               throw E.translate.delete{"Invalid argument for delete"}
 
          #js_throw{value} ->
-            if [mode === "expr"]:
-               then: "(function(){throw " + @translate{value, .expr} + ";})()"
-               else: "throw " + @translate{value, .expr} + ";"
-
-         #js_label{#value{label}, body} ->
             match mode:
-               .expr -> @body{expr, .expr}
-               ;; .return ->
-               ;;    v = #symbol{gensym{}}
-               ;;    @translate{x, #return{{x} -> @translate{#assign{v, x}, .return}
-               ;;       #declare{v, #value{undefined}}
-               ;;    "var " + v + ";" + @translate{expr, #return{...}} + ";return " with
-               ;;       {x} -> "(" + v + "=" + x ")";
-               other ->
-                  label + ":" + @translate{body, other}
+               .expr ->
+                  splice %
+                     "(function(){throw ", @translate{value, .expr}, ";})()"
+               else ->
+                  splice %
+                     "throw ", @translate{value, .expr}, ";"
 
-         #js_while{test, body} ->
-            match mode:
-               .expr -> @body{expr, .expr}
-               other ->
-                  ["while(" + a + "){" + b + "}"] where
-                     a = @translate{test, .expr}
-                     b = @translate{body, .stmt}
+         #js_label{#value{label}, body} and match is mode ->
+            .expr -> @body{expr, .expr}
+            other ->
+               splice % [label, ":", @translate{body, other}]
 
-         #js_for{x, y, z, body} ->
-            match mode:
-               .expr -> @body{expr, .expr}
-               other ->
-                  ["for("+a+";"+b+";"+c+"){"+d+"}"] where
-                     a = @translate{x, .expr}
-                     b = @translate{y, .expr}
-                     c = @translate{z, .expr}
-                     d = @translate{body, .stmt}
+         #js_while{test, body} and match is mode ->
+            .expr -> @body{expr, .expr}
+            other ->
+               splice %
+                  "while("
+                  @translate{test, .expr}
+                  "){"
+                  @translate{body, .stmt}
+                  "}"
 
-         #js_for_in{x, y, body} ->
-            match mode:
-               .expr -> @body{expr, .expr}
-               other ->
-                  ["for("+a+" in "+b+"){"+c+"}"] where
-                     a = @translate{x, .expr}
-                     b = @translate{y, .expr}
-                     c = @translate{body, .stmt}
+         #js_for{x, y, z, body} and match is mode ->
+            .expr -> @body{expr, .expr}
+            other ->
+               splice %
+                  "for(", @translate{x, .expr}, ";"
+                  @translate{y, .expr}, ";"
+                  @translate{z, .expr}, "){"
+                  @translate{body, .stmt}, "}"
 
-         #js_for_of{x, y, body} ->
-            match mode:
-               .expr -> @body{expr, .expr}
-               other ->
-                  ["for("+a+" of "+b+"){"+c+"}"] where
-                     a = @translate{x, .expr}
-                     b = @translate{y, .expr}
-                     c = @translate{body, .stmt}
+         #js_for_in{x, y, body} and match is mode ->
+            .expr -> @body{expr, .expr}
+            other ->
+               splice %
+                  "for(", @translate{x, .expr}, " in "
+                  @translate{y, .expr}, "){"
+                  @translate{body, .stmt}, "}"
+
+         #js_for_of{x, y, body} and match is mode ->
+            .expr -> @body{expr, .expr}
+            other ->
+               splice %
+                  "for(", @translate{x, .expr}, " of "
+                  @translate{y, .expr}, "){"
+                  @translate{body, .stmt}, "}"
 
          #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body, _}, finally} ->
             r = match mode:
                .expr -> @body{expr, .expr}
                other ->
-                  "try{" + a + "}catch(" + v + "){" + b + "}" where
-                     a = @translate{attempt, .stmt}
-                     b = @translate{body, .stmt}
+                  splice %
+                     "try{", @translate{attempt, .stmt},
+                     "}catch(", v, "){", @translate{body, .stmt}, "}"
             match finally:
                #void{} ->
                   r
                other ->
-                  r + "finally{" + @translate{other, .stmt} + "}"
+                  splice %
+                     r, "finally{", @translate{other, .stmt}, "}"
 
          #raw{x} -> x
 
