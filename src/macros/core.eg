@@ -55,9 +55,11 @@ mac{"."}! dot_mac{context, _, form, #data{#void{}, expr}} =
                             {argument = other}}
 
 mac{"="}! equal_mac{match, info, form, expr} =
+
    #pattern ->
       #data{lhs, rhs} = expr
       #default{lhs, rhs}
+
    #expr{.data} ->
       match expr:
          #void{} ->
@@ -70,17 +72,27 @@ mac{"="}! equal_mac{match, info, form, expr} =
                PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs2} where
                   opt = pattern_handlers.build_object
                   rhs2 = #use{info.scope, rhs} <<: rhs
+
    other ->
-      #data{lhs, rhs} = expr
-      pc = PatternCompiler{lhs, info, opt} where
-         opt = pattern_handlers.declare_variables
-      assignment = pc.extract_from_rhs{rhs2} where
-         rhs2 = #use{info.scope, rhs} <<: rhs
-      rval = match pc.vars:
-         {v} -> v
-         vs -> #data{*vs}
-      pc.wrapAssignment{expr} where
-         expr = #splice{assignment, rval}
+      match expr:
+         ;; #data{lhs and sym and #symbol{s}, rhs} ->
+         ;;    gid = info.gensym{"G"}
+         ;;    decl = #declare{info.mark{sym}, #use{info.scope, rhs} &: {group_id = gid}} &
+         ;;       {mutable = false, use_previous = true, group_id = gid, env = info.env}
+         ;;    #splice{decl, sym}
+
+         #data{lhs, rhs} ->
+            pc = PatternCompiler{lhs, info, opt} where
+               opt = pattern_handlers.declare_variables
+            assignment = pc.extract_from_rhs{rhs2} where
+               rhs2 = #use{info.scope, rhs} <<: rhs
+            rval = match pc.vars:
+               {v} ->
+                  ;; match rhs2: #use{_, x} or x -> x &: {name = v[1]}
+                  v
+               vs -> #data{*vs}
+            pc.wrapAssignment{expr} where
+               expr = #splice{assignment, rval}
 
 mac{"=>"}! fat_arrow_mac{match, {=> env}, _, #data{lhs, rhs}} =
    #pattern ->
@@ -136,9 +148,9 @@ mac{"*->"}! genarrow_mac{ctx, _, form, match} =
       throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
 mac{"->"}! arrow_mac{match, _, form, expr} =
-   do:
-      if form.name:
-         console.log with form.name
+   ;; do:
+   ;;    if form.name:
+   ;;       console.log with form.name
    #clause ->
       #data{lhs, rhs} = expr
       #clause{lhs, rhs}

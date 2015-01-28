@@ -1,7 +1,7 @@
 
 require:
    "./location" ->
-      <<:, Source
+      [<<:] as transferLocation, Source
    "./util" as util ->
       classify
       GenSym, gensym
@@ -13,6 +13,10 @@ require:
       parse
 
 
+a <<: b =
+   transferLocation{a, b}
+   a &: {name = b.name}
+
 
 provide:
    Env
@@ -23,6 +27,22 @@ provide:
    GenSym, gensym
    mac1, checker_db
    topscope
+   jsKeywords
+
+jsKeywords = "abstract arguments boolean break byte
+              case catch char class const
+              continue debugger default delete do
+              double else enum eval export
+              extends false final finally float
+              for function goto if implements
+              import in instanceof int interface
+              let long native new null
+              package private protected public return
+              short static super switch synchronized
+              this throw throws transient true
+              try typeof var void volatile
+              while with yield".split{R"[ \n]+"}
+
 
 
 
@@ -172,20 +192,7 @@ class Expander:
 
       ;; @gensym = GenSym{"$"}
 
-      @nameusage = [object with jskw.split{R"[ \n]+"} each kw -> {kw, 0}] where
-         jskw = "abstract arguments boolean break byte
-                 case catch char class const
-                 continue debugger default delete do
-                 double else enum eval export
-                 extends false final finally float
-                 for function goto if implements
-                 import in instanceof int interface
-                 let long native new null
-                 package private protected public return
-                 short static super switch synchronized
-                 this throw throws transient true
-                 try typeof var void volatile
-                 while with yield"
+      @nameusage = [object with jsKeywords each kw -> {kw, 0}]
 
    gensym{match name} =
       undefined? or null? ->
@@ -559,11 +566,13 @@ class Expander:
                   var s = scope
                   while s:
                      if [s.name.slice{0, name.length + 1} === [name + "/"]]:
-                        then: break
-                        else: set s = s.parent
+                        break
+                     else:
+                        set s = s.parent
                   if s:
-                     then: helper{context, s, x}
-                     else: throw E.syntax.noscope{"Could not find a scope tagged: " + name}
+                     helper{context, s, x}
+                  else:
+                     throw E.syntax.noscope{"Could not find a scope tagged: " + name}
                newscope ->
                   helper{context, newscope, x}
 

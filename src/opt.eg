@@ -162,7 +162,9 @@ hoist_helper{match expr} =
       ;; Can't hoist past this! We create a #scope to hold the
       ;; variables hoisted from body.
       {newbody, inner} = hoist_helper{body}
-      {#lambda{vars, #scope{inner, newbody} <<: body, generator} <<: expr, {}}
+      newlambda = #lambda{vars, #scope{inner, newbody} <<: body, generator} &:
+         {name = expr.name}
+      {newlambda <<: expr, {}}
 
    {type, *args} when hoistable.indexOf{type} !== -1 ->
       ;; Hoistable nodes. We assume that all the members of the node

@@ -234,8 +234,14 @@ class PatternCompiler:
       match target:
          #symbol or #variable ->
             pass
-         else ->
-            {target, expr} = {#variable{@info.gensym{"$targ"}}, target}
+         match is cpattern ->
+            #assign{#symbol{name} or #variable{name}} ->
+               ;; print {name, target}
+               target.name = name
+            else ->
+               {target, expr} = {#variable{@info.gensym{"$targ"}}, target}
+         ;; else ->
+         ;;    {target, expr} = {#variable{@info.gensym{"$targ"}}, target}
 
       proc = PatternProcessor{}
       proc.process{cpattern, target, @opt}
@@ -308,6 +314,8 @@ class PatternProcessor:
          #ignore ->
             @do{rhs}
          #assign{sym} ->
+            ;; print {sym, rhs}
+            ;; @parts.push with fns.assign{sym, rhs &: {name = sym}}
             @parts.push with fns.assign{sym, rhs}
 
          #replace{subp, value} ->

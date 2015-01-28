@@ -4,6 +4,8 @@ require:
       gensym, Body
    "./pp" ->
       <>
+   "./expand" ->
+      jsKeywords
 
 provide:
    Translator, translate
@@ -329,10 +331,17 @@ class Translator:
             @expr{r, mode}
 
          #lambda{bindings, body, #value{generator} = #value{false}} ->
+            name = match expr.name:
+               in jsKeywords ->
+                  ""
+               R"^[$_a-zA-Z0-9]*$"? ->
+                  " " + expr.name
+               else ->
+                  ""
             @expr{r, mode} where r =
                splice %
                   "(function"
-                  if{R"^[$_a-zA-Z]*$"? expr.name, " " + expr.name, ""}
+                  name
                   if{generator, "*", ""}
                   "("
                   join{bindings each x -> @translate{x, .expr}, ","}

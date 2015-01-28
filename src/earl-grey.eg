@@ -153,7 +153,7 @@ class Generator:
                #interactive{*args}
             else: #multi{p}
       set ex = opt.hoist{ex}
-      set ex = opt.eliminate_spurious_variables{ex}
+      ;; set ex = opt.eliminate_spurious_variables{ex}
       rval = @tr.translate{ex, .stmt}
       ;; r where r =
       ;; to5.transform{r}.code where r =
