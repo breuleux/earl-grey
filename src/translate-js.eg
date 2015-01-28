@@ -8,15 +8,16 @@ require:
       jsKeywords
 
 provide:
-   Translator, translate
+   Translator
+   ;; translate
 
 
-let Node{_, _, children} =
-   var rval = ""
-   acc{children} where acc{match} =
-      String? s -> rval += s
-      Array? [each x] -> acc{x}
-   rval
+;; let Node{_, _, children} =
+;;    var rval = ""
+;;    acc{children} where acc{match} =
+;;       String? s -> rval += s
+;;       Array? [each x] -> acc{x}
+;;    rval
 
 join{things, sep} =
    enumerate{things} each {match, x} ->
@@ -208,7 +209,9 @@ class Translator:
                 splice % [@translate{a, .expr}, op, @translate{b, .expr}]
       splice % ["(", e, ")"]
 
-   translate{match expr, mode} =
+   translate{expr, mode} =
+
+      rval = match expr:
 
          #symbol{s} ->
             @expr{@mangle{s}, mode}
@@ -563,9 +566,18 @@ class Translator:
          other ->
             throw other
 
+      match rval:
+         Node? n ->
+            n.props.origin = expr
+            n
+         String? ->
+            splice %
+               origin = expr
+               rval
 
-translate{expr, mode} =
-   tr = Translator{}
-   t = tr.translate{expr, mode}
-   tr.dump_store{} + t
+
+;; translate{expr, mode} =
+;;    tr = Translator{}
+;;    t = tr.translate{expr, mode}
+;;    tr.dump_store{} + t
 

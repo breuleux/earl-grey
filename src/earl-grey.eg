@@ -17,6 +17,8 @@ require:
    vm, module, path
    ;; "6to5" as to5
    traceur as to5
+   "source-map" ->
+      SourceNode
 
 provide:
    evaluator
@@ -89,7 +91,7 @@ class Pipeline:
    translate{ast} =
       res = opt.hoist{ast}
       tr = Translator{}
-      rval = tr.translate{res, .expr}
+      rval = collapse{tr.translate{res, .expr}}
       prep = tr.dump_store{}
       {
          code = to5.compile{r, {}}
@@ -123,6 +125,22 @@ class Pipeline:
 
 generate{source} =
    Generator{}.generate{source}
+
+
+collapse{match node} =
+   Node? {=> tags, => props, => children} ->
+      var rval = ""
+      acc{children} where acc{match} =
+         String? s -> rval += s
+         Array? [each x] -> acc{x}
+         Node? n -> rval += collapse{n}
+      rval
+   String? s ->
+      s
+   else ->
+      print node
+      throw E.invalid_translation_node{node}
+
 
 class Generator:
 
@@ -159,8 +177,9 @@ class Generator:
       ;; to5.transform{r}.code where r =
       if{_to5, to5.compile{r, {}}, r} where r =
          if dump:
-            then: @tr.dump_store{} + rval
-            else: rval
+            collapse{splice % [@tr.dump_store{}, rval]}
+         else:
+            collapse{rval}
 
    evaluate{source} =
       if [not @_eval]:
