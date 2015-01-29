@@ -191,8 +191,9 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
       "withp" = {"with Y"}
       "with" = {"X with Y"}
-      lowpriop = {"each Y", "each* Y"}
-      lowprio = {"X each Y", "X each* Y", "X where Y"
+      "eachp" = {"each Y", "each* Y"}
+      "each" = {"X each Y", "X each* Y"}
+      lowprio = {"X where Y"
                  "X_!!_Y"
                  "X_->_Y", "X_=>_Y", "X_=_Y"
                  "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y"
@@ -233,6 +234,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "with"  = {#all{1999}, #all{10}}
       ;; "with"  = {#all{11}, #all{10}}
       lowprio = {#all{11}, #all{10}}
+      "each"  = {#all{600}, #all{10}}
       "when"  = {#all{100}, #all{101}}
       "or"    = {#all{110}, #all{111}}
       "and"   = {#all{120}, #all{121}}
@@ -259,7 +261,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       pp      = {#all{MAX}, #all{5}}
       when2   = {#all{MAX}, #all{101}}
       withp   = {#all{MAX}, #all{10}}
-      lowpriop = {#all{MAX}, #all{10}}
+      eachp   = {#all{MAX}, #all{10}}
 
       pipe    = {#pipe{550}, #pipe{551}}
 
