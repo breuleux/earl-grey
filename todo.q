@@ -124,10 +124,12 @@ X info.mark{*nodes}
 X fix emacro's interaction with ! when not in a pattern
 X Embed promisify
 X quasiquote with `a + b` instead of '[a + b]
+X left-priority of `each` should be higher
 
 
+* source maps
+* await in interactive mode
 * insert async/gen automatically if await/yield is seen in the body
-* left-priority of `each` should be higher
 * maybe replace ... with ??? and make ... an exclusive range
 * outer
 * tag scope and restore scope
@@ -142,6 +144,7 @@ X quasiquote with `a + b` instead of '[a + b]
 * Extend functions, e.g. `extend.top! f{x} = ...` and
   `extend.bottom! f{x} = ...`, or bind previous function to super...
 * New macros should extend existing macros
+* object each [k => v] -> [k => v + 1]
 
 
 * Come up with a reliable way to mix multiple wrapping handlers in

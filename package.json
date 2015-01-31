@@ -5,7 +5,8 @@
   "main": "./lib/earl-grey.js",
   "dependencies": {
       "earlgrey-runtime": "0.0.0",
-      "js-beautify": "1.5.x"
+      "js-beautify": "1.5.x",
+      "quaint": "0.0.1"
   },
   "bin": {
     "earl": "bin/earl"

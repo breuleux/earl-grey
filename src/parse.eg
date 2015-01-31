@@ -234,7 +234,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "with"  = {#all{1999}, #all{10}}
       ;; "with"  = {#all{11}, #all{10}}
       lowprio = {#all{11}, #all{10}}
-      "each"  = {#all{600}, #all{10}}
+      "each"  = {#all{135}, #all{10}}
       "when"  = {#all{100}, #all{101}}
       "or"    = {#all{110}, #all{111}}
       "and"   = {#all{120}, #all{121}}
@@ -479,6 +479,7 @@ finalize{match token} =
    #NUM{value} -> #value{value} <<: token
    #STR{value} -> #value{value} <<: token
    #QUASI{value} -> #send{#symbol{"`"}, #value{value} <<: token} <<: token
+   #QUAINT{value} -> #send{#symbol{"'"}, #value{value} <<: token} <<: token
    #VOID{} -> #void{} <<: token
 
    {var ops, *[var args]} ->

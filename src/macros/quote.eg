@@ -2,6 +2,7 @@
 require:
    "../location" -> Source
    "./helpers" -> qq
+   quaint
 
 inject: mac
 
@@ -9,12 +10,35 @@ inject: mac
 ;; QUOTE ;;
 ;;;;;;;;;;;
 
-;; mac{"'"}! quote_mac{context, _, form, #data{#void{}, expr}} =
-;;    qq{expr}
-
-mac{"`"}! quote2_mac{context, info, form, expr and #value{s}} =
-   ;; print expr
-   ;; print expr.location.makeSource{}
+mac{"`"}! quote_mac{context, info, form, expr and #value{s}} =
    info.mark{qq{expr}} where
       expr = info.go{Source{s, "<quasiquote>"}, .source, .parse}
+
+
+;;;;;;;;;;;;
+;; QUAINT ;;
+;;;;;;;;;;;;
+
+mac{"'"}! quaint_mac{context, info, form, expr and #value{s}} =
+
+   q = quaint.create{evaluator} where
+      evaluator = {
+         eval{src} =
+            this.mark{this.go{src.makeSource{}, .source, .parse}}
+         setenv{name, value} =
+            pass
+      }
+
+   transform{match node} =
+      String? or Number? ->
+         #value{node}
+      Node? {=> tags, => props, => children} ->
+         `Node{{^*wtags}, {=}, {^*wchildren}}` where
+            wtags = tags each tag -> #value{tag}
+            wchildren = children each child -> transform{child}
+      else ->
+         node
+
+   transform{q.run{s}}
+
 

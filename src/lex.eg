@@ -38,6 +38,8 @@ regexps = {
    {str,    str_f}
    {quasi2, quasi_f}
    {quasi,  quasi_f}
+   {quaint2, quaint_f}
+   {quaint,  quaint_f}
    {op,     op_f}
    {op2,    op_f}
    ;; {op4,    op_f}
@@ -120,6 +122,20 @@ regexps = {
      #QUASI{m[1]}
 
 
+  ;; Quaint
+  quaint = R```
+     start
+     "'"
+     {*[["\\", any] or [not in "'"]]}
+     "'"
+  ```
+
+  quaint2 = R"^[']{3,}((?:[\\.]|[^']|''?[^'])*)[']{3,}"
+
+  quaint_f = {m} ->
+     #QUAINT{m[1]}
+
+
 
   ;; Strings (no interpolation)
   str = R```
@@ -171,7 +187,7 @@ regexps = {
        \ or "in" or "mod"
        \ or "each" or "as"
        \ or "of" or "is"
-     [+ in "+\\-*/~^<>=%&|?!@#.:'"] or boundary
+     [+ in "+\\-*/~^<>=%&|?!@#.:"] or boundary
   ```
 
   ;; ;; `operator`
