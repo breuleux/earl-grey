@@ -14,6 +14,12 @@ require:
 provide:
    run
 
+;; defaultEngine{opts} =
+;;    opts.es5
+
+defaultEngine{opts} =
+   not opts.es6
+
 
 usage = "Usage: earl [global options] command [options] [arguments...]
 
@@ -39,6 +45,7 @@ earl compile [options] [file... | dir]
     -e  --eval <code>   Compile the provided code instead of reading from a file.
     -n  --noboil        Don't produce boilerplate code (useful with -p)
     -v  --verbose       Print information about the operations performed
+    -5  --es5           Generate EcmaScript v5
     -6  --es6           Generate EcmaScript v6
 
 earl
@@ -214,7 +221,7 @@ compile_path{p, opts} =
                   if opts.verbose:
                      console.log{"Compiling:", from}
                   fs.writeFileSync{to} with
-                     _gen{data, from, opts.noboil, not opts.es6} + "\n"
+                     _gen{data, from, opts.noboil, defaultEngine{opts}} + "\n"
                when not opts.output ->
                   null
                f ->
@@ -225,7 +232,7 @@ compile_path{p, opts} =
 
       else ->
          data = fs.readFileSync{p, .utf8}
-         code = _gen{data, p, opts.noboil, not opts.es6}
+         code = _gen{data, p, opts.noboil, defaultEngine{opts}}
          match:
             when opts.print ->
                require: "js-beautify" -> js as beaut
@@ -329,13 +336,16 @@ _run{match, opts} =
          "6" => #flag{.es6}
          es6 = #flag{.es6}
 
+         "5" => #flag{.es5}
+         es5 = #flag{.es5}
+
          v = #flag{.verbose}
          verbose = #flag{.verbose}
       }
 
       match rest:
          when o.evaluate ->
-            code = _gen{o.evaluate, "<cli>", o.noboil, not o.es6}
+            code = _gen{o.evaluate, "<cli>", o.noboil, defaultEngine{o}}
             match:
                when o.output ->
                   fs.writeFileSync{o.output} with

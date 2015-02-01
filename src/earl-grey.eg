@@ -145,7 +145,7 @@ collapse{match node} =
 class Generator:
 
    constructor{interactive = false} =
-      @tr = Translator{"require(\"earlgrey-runtime\");"}
+      @tr = Translator{"\"use strict\";require(\"earlgrey-runtime\");"}
       @env = std.stdenv.fork{}
       @interactive = interactive
       @_eval = null
