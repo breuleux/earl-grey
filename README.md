@@ -11,6 +11,7 @@ a quick rundown of its amazing features:
 * Powerful, deeply integrated pattern matching!
   * Used for assignment, function declaration, looping, exceptions...
 * A DOM-building DSL with customizable behavior!
+  * A quote type that builds actual documents instead of strings!
 * A very powerful hygienic macro system that allows you to define:
   * Your own control structures!
   * New kinds of patterns for the pattern matcher!
@@ -136,9 +137,7 @@ The compiler will complain loudly about undeclared variables.
 Literals
 --------
 
-Strings are defined using double quotes. **Do not use single quotes**:
-they do not define strings (they define AST objects) and the results
-will be confusing if you try.
+Strings are defined using double quotes:
 
     "this is a string"
     .this_is_also_a_string
@@ -146,6 +145,14 @@ will be confusing if you try.
     """this is a
        "long"
        multiline string"""
+
+Single quotes define *documents* using the Quaint markup:
+
+    '__Hello! [Click me!]::http://http://breuleux.github.io/earl-grey/repl/'
+
+The above defines a structure which can be transformed into a DOM
+hierarchy, a React Component, and so on. "Hello" will be bold, and
+"Click me!" will be a link.
 
 Number syntax is as usual save for binary/hex/other radii:
 
