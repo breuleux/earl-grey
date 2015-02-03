@@ -145,7 +145,7 @@ collapse{match node} =
 class Generator:
 
    constructor{interactive = false} =
-      @tr = Translator{"\"use strict\";require(\"earlgrey-runtime\");"}
+      @tr = Translator{}
       @env = std.stdenv.fork{}
       @interactive = interactive
       @_eval = null
@@ -177,7 +177,12 @@ class Generator:
       ;; to5.transform{r}.code where r =
       if{_to5, to5.compile{r, {}}, r} where r =
          if dump:
-            collapse{splice % [@tr.dump_store{}, rval]}
+            collapse with splice %
+               "'use strict';"
+               if{_to5, "require('traceur-runtime');", ""}
+               "require('earlgrey-runtime');"
+               @tr.dump_store{}
+               rval
          else:
             collapse{rval}
 

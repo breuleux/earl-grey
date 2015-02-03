@@ -1,8 +1,9 @@
 "use strict";
+"usestrict";
+require("traceur-runtime");
 require("earlgrey-runtime");
 var m$0;
 var acc$0;
-var $targ$10;
 var temp$0;
 var eg$0;
 var $1$0;
@@ -15,7 +16,7 @@ $1$0 = require("./location");
 Source$0 = $1$0.Source;
 fs$0 = require("fs");
 extensions$0 = [".eg"];
-load$0 = (function(module$0, file$0) {
+load$0 = (function load(module$0, file$0) {
   var text$0;
   var g$0;
   var compiled$0;
@@ -25,21 +26,18 @@ load$0 = (function(module$0, file$0) {
   return module$0._compile(compiled$0, file$0);
 });
 acc$0 = [];
-$targ$10 = null;
-temp$0 = $targ$10;
+temp$0 = null;
 m$0 = null;
 $2: for (var $__0 = extensions$0[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__1; !($__1 = $__0.next()).done; ) {
   m$0 = $__1.value;
   {
-    var $targ$12;
-    var $targ$11;
+    var $targ$0;
     var ext$0;
     ext$0 = m$0;
-    $targ$12 = load$0;
-    (require.extensions[ext$0] = $targ$12);
-    $targ$11 = [];
-    temp$0 = $targ$11;
+    $targ$0 = load$0;
+    (require.extensions[ext$0] = $targ$0);
+    temp$0 = [];
     acc$0.push(temp$0);
   }
 }

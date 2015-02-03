@@ -1,8 +1,10 @@
 "use strict";
+"usestrict";
+require("traceur-runtime");
 require("earlgrey-runtime");
 var m$1;
-var $targ$10;
-var $targ$11;
+var $targ$0;
+var $targ$1;
 var mt$0;
 var Env$0;
 var Expander$0;
@@ -16,13 +18,13 @@ Env$0 = mt$0.Env;
 Expander$0 = mt$0.Expander;
 topscope$0 = mt$0.topscope;
 stdenv$0 = Env$0();
-mac$0 = (function(name$0) {
+mac$0 = (function mac(name$0) {
   return (function(m$0) {
     stdenv$0.bind(topscope$0, name$0, ["macro", m$0]);
     return m$0;
   });
 });
-bind$0 = (function(name$1, value$0) {
+bind$0 = (function bind(name$1, value$0) {
   return stdenv$0.bind(topscope$0, name$1, value$0);
 });
 m$1 = null;
@@ -36,15 +38,15 @@ $1: for (var $__0 = "consts core operators loop quote regexp modularity\n testin
     (($5$0 = require(("./macros/" + m$2))), $5$0)(mac$0, bind$0);
   }
 }
-make_expander$0 = (function(pipeline$0) {
+make_expander$0 = (function make_expander(pipeline$0) {
   var generic_nodes$0;
   generic_nodes$0 = ["if", "js_while", "js_for", "js_for_in", "js_for_of", "js_label", "js_break", "js_continue", "js_return", "js_delete", "js_throw", "js_try", "js_new", "js_yield"];
   return Expander$0(stdenv$0.fork(), generic_nodes$0, pipeline$0);
 });
-$targ$10 = stdenv$0;
-(exports["stdenv"] = $targ$10);
+$targ$0 = stdenv$0;
+(exports["stdenv"] = $targ$0);
 [];
-$targ$11 = make_expander$0;
-(exports["make_expander"] = $targ$11);
+$targ$1 = make_expander$0;
+(exports["make_expander"] = $targ$1);
 [];
 //# sourceURL=<compile-source>
