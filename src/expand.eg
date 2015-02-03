@@ -365,7 +365,7 @@ class Expander:
                      throw E.syntax.undeclared{"Undeclared variable: " + s, {node = expr}}
                      ;; #variable{"UNDECLARED__" + s}
                   other ->
-                     #bounce{other}
+                     #bounce{clone{other} &: {location = expr.location}}
    
             #value{_} ->
                expr
