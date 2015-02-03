@@ -1,0 +1,16 @@
+
+require:
+   "source-map" as smap
+   fs
+
+globals:
+   JSON
+
+sm = JSON.parse{fs.readFileSync{"pattern.js.map"}}
+
+smc = new smap.SourceMapConsumer{sm}
+
+chk{l, c} =
+   smc.originalPositionFor{{line = l, column = c}}
+
+
