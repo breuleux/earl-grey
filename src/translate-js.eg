@@ -329,8 +329,9 @@ class Translator:
                      "(function(){let ", v, "={};"
                      args each #array{x, y} ->
                         splice %
-                           "[", @translate{x, .expr}, "]="
+                           v, "[", @translate{x, .expr}, "]="
                            @translate{y, .expr}, ";"
+                     "return", v, "})"
             @expr{r, mode}
 
          #lambda{bindings, body, #value{generator} = #value{false}} ->
