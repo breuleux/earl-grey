@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env iojs
 
 require("../lib/register")
 r = require("../lib/run")

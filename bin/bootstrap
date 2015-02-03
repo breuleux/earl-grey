@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env iojs
 
 fs = require("fs");
 var r = require("../bootstrap/run");
