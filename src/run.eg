@@ -10,15 +10,17 @@ require:
       ;; display_error
    fs, path
    "earlgrey-runtime"
+   "source-map-support" as smsupport
 
 provide:
    run
 
-;; defaultEngine{opts} =
-;;    opts.es5
+globals:
+   JSON
 
-defaultEngine{opts} =
-   not opts.es6
+
+smsupport.install{}
+
 
 
 usage = "Usage: earl [global options] command [options] [arguments...]
@@ -132,11 +134,6 @@ extract_options{clone! argv, opttable, optmessage} =
          R"^-([a-zA-Z_0-9]+)"! {_, opts} ->
             enumerate{opts} each {i, ch} ->
                process_option{arg, ch, i == opts.length - 1}
-            ;; opts each
-            ;;    last ch ->
-            ;;       process_option{arg, ch, true}
-            ;;    ch ->
-            ;;       process_option{arg, ch}
 
          other when associate ->
             results[associate] = other
@@ -169,10 +166,17 @@ copy{src, dest} =
    fs.writeFileSync{dest, data, .binary}
 
 
-_gen{text, file, noboil = false, to5 = true} =
+_gen{text, file, opts} =
    g = eg.Generator{}
-   g.generate{Source{text, path.resolve{file}}, not noboil, to5}
+   ;; g.generate{Source{text, path.resolve{file}}, not noboil, to5}
+   ;; g.generate{Source{text, path.resolve{file}}
+   ;;            not opts.noboil
+   ;;            defaultEngine{opts}}
 
+   g.generate{Source{text, path.resolve{file}},
+              {noboil = opts.noboil
+               to5 = opts.es5 ;; not opts.es6
+               sourceMap = opts.sourceMap}}
 
 
 interactive{g, e} =
@@ -184,9 +188,14 @@ interactive{g, e} =
       eval{input, context, filename, callback} =
          result = [execute{} !! e -> handle{e}] where
             execute{} =
-               var text = g.generate{Source{input.slice{1, -1}, "<interactive>"}}
-               if text == "\"use strict\";\n//# sourceURL=<compile-source>":
-                  text = ""
+               inp =
+                  if input.match{R"^\(.*\n\)$"}:
+                     input.slice{1, -1}
+                  else:
+                     input
+               if inp.trim{} == "":
+                  return undefined
+               var text = g.generate{Source{inp, "<interactive>"}}
                e{text}
             handle{e} =
                display_error{e}
@@ -220,8 +229,9 @@ compile_path{p, opts} =
                   data = fs.readFileSync{from, .utf8}
                   if opts.verbose:
                      console.log{"Compiling:", from}
-                  fs.writeFileSync{to} with
-                     _gen{data, from, opts.noboil, defaultEngine{opts}} + "\n"
+                  {=> code, => map} = _gen{data, from, opts & {sourceMap = true}}
+                  fs.writeFileSync{to, code + "\n"}
+                  fs.writeFileSync{to + ".map", map}
                when not opts.output ->
                   null
                f ->
@@ -232,20 +242,20 @@ compile_path{p, opts} =
 
       else ->
          data = fs.readFileSync{p, .utf8}
-         code = _gen{data, p, opts.noboil, defaultEngine{opts}}
+         {=> code, => map} = _gen{data, p, opts & {sourceMap = true}}
          match:
             when opts.print ->
                require: "js-beautify" -> js as beaut
                console.log with beaut{code}
             when opts.output ->
-               fs.writeFileSync{opts.output} with
-                  code + "\n"
+               fs.writeFileSync{opts.output + ".map", map}
+               fs.writeFileSync{opts.output, code + "\n"}
             else ->
                noext = match p:
                   R"^(.*).eg$"! {_, name} -> name
                   name -> name
-               fs.writeFileSync{noext + ".js"} with
-                  code + "\n"
+               fs.writeFileSync{noext + ".js.map", map}
+               fs.writeFileSync{noext + ".js", code + "\n"}
 
 
 run{argv} =
@@ -345,7 +355,7 @@ _run{match, opts} =
 
       match rest:
          when o.evaluate ->
-            code = _gen{o.evaluate, "<cli>", o.noboil, defaultEngine{o}}
+            code = _gen{o.evaluate, "<cli>", o}
             match:
                when o.output ->
                   fs.writeFileSync{o.output} with
@@ -364,98 +374,6 @@ _run{match, opts} =
                compile_path{p, o}
 
 
-   {.tr or .translate, file, *args} ->
-
-      out = args[0]
-
-      stats = fs.statSync{file}
-
-      match:
-         when stats.isDirectory{} ->
-            walk{file, "/"} with {*match} ->
-               {.dir, d} ->
-                  from = path.join{file, d}
-                  to = path.join{out, d}
-                  fs.mkdirSync{to} !! e -> "ignore error"
-               {.file, match} ->
-                  R`[start, {*any}, ".eg", end]`! results when results ->
-                     {x, name} = results
-                     from = path.join{file, x}
-                     to = path.join{out, name + ".js"}
-                     data = fs.readFileSync{from, .utf8}
-                     fs.writeFileSync{to} with
-                        _gen{data, from} + "\n"
-                  f ->
-                     from = path.join{file, f}
-                     to = path.join{out, f}
-                     copy{from, to}
-
-         when out ->
-            data = fs.readFileSync{file, .utf8}
-            fs.writeFileSync{out} with
-               _gen{data, file} + "\n"
-
-         otherwise ->
-            require: "js-beautify" -> js as beaut
-            data = fs.readFileSync{file, .utf8}
-            console.log with beaut{_gen{data, file}}
-
-
-   {.tok, s} ->
-      eg.tokenize{Source{s, null}} each token ->
-         <> token
-         <> token.location.ref{}
-         <> token.location.highlight{}
-
-   {.pa, s} ->
-      walkloc{match node} =
-         #symbol{x} ->
-            <> node
-            <> node.location and node.location.highlight{}
-         #value{x} ->
-            <> node
-            <> node.location and node.location.highlight{}
-         {type, *args} ->
-            <> node
-            <> node.location and node.location.highlight{}
-            args each arg -> walkloc{arg}
-
-      walkloc with
-         eg.parse{tokens} where
-            tokens = eg.tokenize{Source{s, null}}
-
-   ;; {.test, file} ->
-   ;;    require: "js-beautify" -> js as beaut
-   ;;    data = fs.readFileSync{file, .utf8}
-   ;;    code = eg.generate2{Source{data, "<test>"}}
-   ;;    ;; console.log with beaut{code}
-   ;;    ;; console.log with eval{code}
-   ;;    <> eval{code}
-
-   ;; {.inspect, file} ->
-   ;;    require: "js-beautify" -> js as beaut
-   ;;    data = fs.readFileSync{file, .utf8}
-   ;;    code = eg.generate2{Source{data, "<test>"}}
-   ;;    console.log with beaut{code}
-
-   ;; {.tests, s} ->
-   ;;    require: "js-beautify" -> js as beaut
-   ;;    code = eg.generate2{Source{s, "<test>"}}
-   ;;    console.log with beaut{code}
-   ;;    console.log with eval{code}
-   ;;    <> eval{code}
-
-   ;; {.runs, data} ->
-   ;;    code = _gen{data, "<command>"}
-   ;;    ;; console.log with code
-   ;;    ;; console.log with eval{code}
-   ;;    <> eval{code}
-
-   ;; {.trs, data} ->
-   ;;    code = _gen{data, "<command>"}
-   ;;    ;; console.log with code
-   ;;    ;; console.log with eval{code}
-   ;;    <> code
 
    stuff ->
       usage_error with

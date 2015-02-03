@@ -15,10 +15,11 @@ require:
    "./opt" as opt
    "./util" -> Body
    vm, module, path
-   ;; "6to5" as to5
-   traceur as to5
-   "source-map" ->
+   "6to5" as to5
+   ;; traceur as to5
+   "source-map" as smap ->
       SourceNode
+   "multi-stage-sourcemap" -> transfer
 
 provide:
    evaluator
@@ -94,7 +95,8 @@ class Pipeline:
       rval = collapse{tr.translate{res, .expr}}
       prep = tr.dump_store{}
       {
-         code = to5.compile{r, {}}
+         ;; code = to5.compile{r, {}}
+         {=> code} = to5.transform{r}
          location = ast.location
       } where
          r = prep + ";(" + rval + ")"
@@ -129,17 +131,45 @@ generate{source} =
 
 collapse{match node} =
    Node? {=> tags, => props, => children} ->
-      var rval = ""
+      parts = {}
       acc{children} where acc{match} =
-         String? s -> rval += s
+         String? s -> parts.push with s
          Array? [each x] -> acc{x}
-         Node? n -> rval += collapse{n}
-      rval
+         Node? n -> parts.push with collapse{n}
+      parts.join{""}
    String? s ->
       s
    else ->
       print node
       throw E.invalid_translation_node{node}
+
+makeAnnotatedAST{match node} =
+   Node? {=> tags, => props, => children} ->
+      parts = {}
+      acc{children} where acc{match} =
+         String? s -> parts.push with s
+         Array? [each x] -> acc{x}
+         Node? n -> parts.push with makeAnnotatedAST{n}
+      if props.origin and props.origin.location:
+         loc = props.origin.location
+         {{var l, var c}, _} = loc.linecol{}
+         src = loc.source.url
+         rval = new SourceNode{l, c, src or "<unknown>", parts}
+         rval
+      else:
+         parts
+   String? s ->
+      s
+   else ->
+      print node
+      throw E.invalid_translation_node{node}
+
+toCodeAndSourceMap{node, url} =
+   var ast = makeAnnotatedAST{node, url}
+   if not SourceNode? ast:
+      ast = new SourceNode{1, 0, null, ast}
+   obj = ast.toStringWithSourceMap with {file = url}
+   obj
 
 
 class Generator:
@@ -152,7 +182,9 @@ class Generator:
       @pipeline = Pipeline{}
       @expander = std.make_expander{@pipeline}
 
-   generate{source, dump = not @interactive, _to5 = true} =
+   generate{source, opts} =
+      opts = {noboil = @interactive, to5 = true} & opts
+
       t = tokenize{source}
       p = parse{t}
       ;; #interactive forces declarations into the top scope, which
@@ -172,19 +204,40 @@ class Generator:
             else: #multi{p}
       set ex = opt.hoist{ex}
       ;; set ex = opt.eliminate_spurious_variables{ex}
-      rval = @tr.translate{ex, .stmt}
-      ;; r where r =
-      ;; to5.transform{r}.code where r =
-      if{_to5, to5.compile{r, {}}, r} where r =
-         if dump:
-            collapse with splice %
-               "'use strict';"
-               if{_to5, "require('traceur-runtime');", ""}
-               "require('earlgrey-runtime');"
-               @tr.dump_store{}
-               rval
-         else:
-            collapse{rval}
+
+      var result = @tr.translate{ex, .stmt}
+      if not opts.noboil:
+         result = splice %
+            "//# sourceMappingURL=" + source.url.replace{R".eg$", ".js"} + ".map\n"
+            "'use strict';"
+            if{opts.to5, "require('traceur-runtime');", ""}
+            ;; if{opts.to5, "require('6to5/polyfill');", ""}
+            "require('earlgrey-runtime');"
+            @tr.dump_store{} ;; useless at this point I think
+            result
+
+      result = toCodeAndSourceMap{result, source.url, source.url}
+
+      if opts.to5:
+         ;; nc = new to5.NodeCompiler{{sourceMaps = .file}}
+         ;; code = nc.compile{result.code, source.url}
+         ;; newmap = transfer with {
+         ;;    fromSourceMap = nc.getSourceMap{}.toString{}
+         ;;    toSourceMap = result.map.toString{}
+         ;; }
+
+         {=> code, => map} = to5.transform{result.code, {sourceMap = true}}
+         newmap = transfer with {
+            fromSourceMap = map
+            toSourceMap = result.map.toString{}
+         }
+         result = {code = code, map = newmap}
+
+      if opts.sourceMap:
+         result
+      else:
+         result.code
+
 
    evaluate{source} =
       if [not @_eval]:
