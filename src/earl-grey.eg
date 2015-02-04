@@ -58,7 +58,7 @@ evaluator{match options} =
          require = global.require
       }
 
-      global &: {
+      setup = {
          __filename = options.filename
          __dirname = path.dirname{options.filename}
          module = e_module
@@ -66,6 +66,7 @@ evaluator{match options} =
       }
 
       {code} ->
+         global &: setup
          script = vm.createScript{code, options.showname}
          rval = script.runInThisContext{}
          global &: save
@@ -221,6 +222,7 @@ class Generator:
          result = collapse{result}
          if opts.to5:
             result = to5.transform{result, {=}}.code
+            ;; result = to5.compile{result, {=}}
          {code = result, map = null}
 
       else:
@@ -240,7 +242,12 @@ class Generator:
                fromSourceMap = map
                toSourceMap = result.map.toString{}
             }
+
             result = {code = code, map = newmap}
+
+         ;; if opts.to5:
+         ;;    result.code =
+         ;;       "require('traceur-runtime');" + result.code
 
          match opts.sourceMap:
             .inline ->

@@ -191,7 +191,7 @@ interactive{g, e} =
                      input
                if inp.trim{} == "":
                   return undefined
-               var text = g.generate{Source{inp, "<interactive>"}}
+               var text = g.generate{Source{inp, "<interactive>"}}.code
                e{text}
             handle{e} =
                display_error{e}
