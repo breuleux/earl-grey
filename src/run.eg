@@ -45,10 +45,11 @@ earl compile [options] [file... | dir]
     -p  --print         Print the compiled JavaScript to standard out.
                         No files are created.
     -e  --eval <code>   Compile the provided code instead of reading from a file.
-    -n  --noboil        Don't produce boilerplate code (useful with -p)
-    -v  --verbose       Print information about the operations performed
+    -n  --noboil        Don't output boilerplate code (useful with -p)
+    -s  --sourcemaps    Output source maps for the generated files
     -5  --es5           Generate EcmaScript v5
-    -6  --es6           Generate EcmaScript v6
+    -6  --es6           Generate EcmaScript v6 (default)
+    -v  --verbose       Print information about the operations performed
 
 earl
   Start an interactive session.
@@ -168,15 +169,10 @@ copy{src, dest} =
 
 _gen{text, file, opts} =
    g = eg.Generator{}
-   ;; g.generate{Source{text, path.resolve{file}}, not noboil, to5}
-   ;; g.generate{Source{text, path.resolve{file}}
-   ;;            not opts.noboil
-   ;;            defaultEngine{opts}}
-
    g.generate{Source{text, path.resolve{file}},
               {noboil = opts.noboil
                to5 = opts.es5 ;; not opts.es6
-               sourceMap = opts.sourceMap}}
+               sourceMap = opts.sourcemaps}}
 
 
 interactive{g, e} =
@@ -229,9 +225,10 @@ compile_path{p, opts} =
                   data = fs.readFileSync{from, .utf8}
                   if opts.verbose:
                      console.log{"Compiling:", from}
-                  {=> code, => map} = _gen{data, from, opts & {sourceMap = true}}
+                  {=> code, => map} = _gen{data, from, opts}
                   fs.writeFileSync{to, code + "\n"}
-                  fs.writeFileSync{to + ".map", map}
+                  if map:
+                     fs.writeFileSync{to + ".map", map}
                when not opts.output ->
                   null
                f ->
@@ -242,20 +239,22 @@ compile_path{p, opts} =
 
       else ->
          data = fs.readFileSync{p, .utf8}
-         {=> code, => map} = _gen{data, p, opts & {sourceMap = true}}
+         {=> code, => map} = _gen{data, p, opts}
          match:
             when opts.print ->
                require: "js-beautify" -> js as beaut
                console.log with beaut{code}
             when opts.output ->
-               fs.writeFileSync{opts.output + ".map", map}
                fs.writeFileSync{opts.output, code + "\n"}
+               if map:
+                  fs.writeFileSync{opts.output + ".map", map}
             else ->
                noext = match p:
                   R"^(.*).eg$"! {_, name} -> name
                   name -> name
-               fs.writeFileSync{noext + ".js.map", map}
                fs.writeFileSync{noext + ".js", code + "\n"}
+               if map:
+                  fs.writeFileSync{noext + ".js.map", map}
 
 
 run{argv} =
@@ -342,6 +341,9 @@ _run{match, opts} =
 
          n = #flag{.noboil}
          noboil = #flag{.noboil}
+
+         s = #flag{.sourcemaps}
+         sourcemaps = #flag{.sourcemaps}
 
          "6" => #flag{.es6}
          es6 = #flag{.es6}

@@ -167,7 +167,7 @@ makeAnnotatedAST{match node} =
       throw E.invalid_translation_node{node}
 
 toCodeAndSourceMap{node, url} =
-   var ast = makeAnnotatedAST{node, url}
+   var ast = makeAnnotatedAST{node}
    if not SourceNode? ast:
       ast = new SourceNode{1, 0, null, ast}
    obj = ast.toStringWithSourceMap with {file = url}
@@ -211,44 +211,49 @@ class Generator:
       if not opts.noboil:
          result = splice %
             "\n'use strict';"
-            if{opts.to5, "require('traceur-runtime');", ""}
-            ;; if{opts.to5, "require('6to5/polyfill');", ""}
+            ;; if{opts.to5, "require('traceur-runtime');", ""}
+            if{opts.to5, "require('6to5/polyfill');", ""}
             "require('earlgrey-runtime');"
             @tr.dump_store{} ;; useless at this point I think
             result
 
-      result = toCodeAndSourceMap{result, source.url, source.url}
+      if not opts.sourceMap:
+         result = collapse{result}
+         if opts.to5:
+            result = to5.transform{result, {=}}.code
+         {code = result, map = null}
 
-      if opts.to5:
-         ;; nc = new to5.NodeCompiler{{sourceMaps = .file}}
-         ;; code = nc.compile{result.code, source.url}
-         ;; newmap = transfer with {
-         ;;    fromSourceMap = nc.getSourceMap{}.toString{}
-         ;;    toSourceMap = result.map.toString{}
-         ;; }
+      else:
 
-         {=> code, => map} = to5.transform{result.code, {sourceMap = true}}
-         newmap = transfer with {
-            fromSourceMap = map
-            toSourceMap = result.map.toString{}
-         }
-         result = {code = code, map = newmap}
+         result = toCodeAndSourceMap{result, source.url}
 
-      match opts.sourceMap:
-         .inline ->
-            result.code
-               \ + "\n/"+"/# sourceMappingURL=data:application/json;base64,"
-               \ + [new Buffer{result.map.toString{}}.toString{.base64}]
-               \ + ".map\n"
-         do:
-            parts = source.url.split{"/"}
-            smname = parts[parts.length - 1].replace{R".eg$", ".js"}
-            result.code +=
-               "\n/" + "/# sourceMappingURL=" + smname + ".map\n"
-         true? ->
-            result
-         else ->
-            result.code
+         if opts.to5:
+            ;; nc = new to5.NodeCompiler{{sourceMaps = .file}}
+            ;; code = nc.compile{result.code, source.url}
+            ;; newmap = transfer with {
+            ;;    fromSourceMap = nc.getSourceMap{}.toString{}
+            ;;    toSourceMap = result.map.toString{}
+            ;; }
+
+            {=> code, => map} = to5.transform{result.code, {sourceMap = true}}
+            newmap = transfer with {
+               fromSourceMap = map
+               toSourceMap = result.map.toString{}
+            }
+            result = {code = code, map = newmap}
+
+         match opts.sourceMap:
+            .inline ->
+               result.code
+                  \ + "\n/"+"/# sourceMappingURL=data:application/json;base64,"
+                  \ + [new Buffer{result.map.toString{}}.toString{.base64}]
+                  \ + ".map\n"
+            else ->
+               parts = source.url.split{"/"}
+               smname = parts[parts.length - 1].replace{R".eg$", ".js"}
+               result.code +=
+                  "\n/" + "/# sourceMappingURL=" + smname + ".map\n"
+               result
 
 
    evaluate{source} =
