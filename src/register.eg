@@ -11,7 +11,7 @@ extensions = {...} with
 load{module, file} =
    text = fs.readFileSync{file, .utf8}
    g = eg.Generator{}
-   compiled = g.generate{Source{text, file}}
+   compiled = g.generate{Source{text, file}}.code
    module._compile{compiled, file}
 
 extensions each ext ->
