@@ -47,6 +47,7 @@ earl compile [options] [file... | dir]
     -e  --eval <code>   Compile the provided code instead of reading from a file.
     -n  --noboil        Don't output boilerplate code (useful with -p)
     -s  --sourcemaps    Output source maps for the generated files
+    -l  --lazy          Only recompile sources that have changed
     -5  --es5           Generate EcmaScript v5
     -6  --es6           Generate EcmaScript v6 (default)
     -v  --verbose       Print information about the operations performed
@@ -151,7 +152,10 @@ extract_options{clone! argv, opttable, optmessage} =
 
 
 walk{dir, partial, f} =
-   stats = fs.statSync{dir}
+   stats = fs.statSync{dir} !! e ->
+      print "Could not stat: " + dir
+      return false
+
    if stats.isDirectory{}:
       then:
          f{.dir, partial}
@@ -163,8 +167,11 @@ walk{dir, partial, f} =
          f{.file, partial}
 
 copy{src, dest} =
-   data = fs.readFileSync{src, .binary}
-   fs.writeFileSync{dest, data, .binary}
+   try:
+      data = fs.readFileSync{src, .binary}
+      fs.writeFileSync{dest, data, .binary}
+   catch e:
+      print "Could not copy: " + src
 
 
 _gen{text, file, opts} =
@@ -222,13 +229,30 @@ compile_path{p, opts} =
                   {x, name} = results
                   from = path.join{p, x}
                   to = path.join{out, name + ".js"}
-                  data = fs.readFileSync{from, .utf8}
+
+                  if opts.lazy:
+                     fstat = fs.statSync{from} !! e -> null
+                     tstat = fs.statSync{to} !! e -> null
+                     if fstat and tstat and fstat.mtime.getTime{} < tstat.mtime.getTime{}:
+                        if opts.verbose:
+                           print "No change: " + from
+                        return true
+
+                  data =
+                     try:
+                        fs.readFileSync{from, .utf8}
+                     catch e:
+                        print "Could not read: " + from
+                        return false
                   if opts.verbose:
                      console.log{"Compiling:", from}
                   {=> code, => map} = _gen{data, from, opts}
-                  fs.writeFileSync{to, code + "\n"}
-                  if map:
-                     fs.writeFileSync{to + ".map", map}
+                  try:
+                     fs.writeFileSync{to, code + "\n"}
+                     if map:
+                        fs.writeFileSync{to + ".map", map}
+                  catch e:
+                     "Could not write: " + to
                when not opts.output ->
                   null
                f ->
@@ -330,29 +354,15 @@ _run{match, opts} =
    {.compile, *rawargs} ->
 
       {o, rest} = extract_options{rawargs, ..., "option for compile"} with {
-         o = #value{.output}
-         output = #value{.output}
-
-         p = #flag{.print}
-         print = #flag{.print}
-
-         e = #value{.evaluate}
-         eval = #value{.evaluate}
-
-         n = #flag{.noboil}
-         noboil = #flag{.noboil}
-
-         s = #flag{.sourcemaps}
-         sourcemaps = #flag{.sourcemaps}
-
-         "6" => #flag{.es6}
-         es6 = #flag{.es6}
-
-         "5" => #flag{.es5}
-         es5 = #flag{.es5}
-
-         v = #flag{.verbose}
-         verbose = #flag{.verbose}
+         o and output     = #value{.output}
+         p and "print"    = #flag{.print}
+         e and eval       = #value{.evaluate}
+         n and noboil     = #flag{.noboil}
+         s and sourcemaps = #flag{.sourcemaps}
+         l and lazy       = #flag{.lazy}
+         "6" and es6      = #flag{.es6}
+         "5" and es5      = #flag{.es5}
+         v and verbose    = #flag{.verbose}
       }
 
       match rest:
