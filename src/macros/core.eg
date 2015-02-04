@@ -130,7 +130,10 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
                #assign{expr and #symbol{v}} ->
                   expr
                other ->
-                  newv = #symbol{info.gensym{.temp}} & {env = info.mkenv{}}
+                  newv = #symbol{info.gensym{.temp}} & {
+                     env = info.mkenv{}
+                     location = arg.location
+                  }
                   pc2 = pc.fork{other}
                   decls.push with pc2.extract_from_rhs{newv}
                   newv

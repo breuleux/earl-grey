@@ -150,11 +150,13 @@ makeAnnotatedAST{match node} =
          String? s -> parts.push with s
          Array? [each x] -> acc{x}
          Node? n -> parts.push with makeAnnotatedAST{n}
+
       if props.origin and props.origin.location:
          loc = props.origin.location
          {{var l, var c}, _} = loc.linecol{}
          src = loc.source.url
          rval = new SourceNode{l, c, src or "<unknown>", parts}
+         ;; print {l, c, loc.text{}, rval.toStringWithSourceMap{{=}}.code}
          rval
       else:
          parts

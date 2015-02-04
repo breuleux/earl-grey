@@ -229,6 +229,7 @@ class PatternCompiler:
             else:
                rhs
       {cpattern, var target} = @shift_rhs{@compiled, real_rhs}
+      target <<: rhs
 
       var expr = null
       match target:
@@ -239,7 +240,7 @@ class PatternCompiler:
                ;; print {name, target}
                target.name = name
             else ->
-               {target, expr} = {#variable{@info.gensym{"$targ"}}, target}
+               {target, expr} = {#variable{@info.gensym{"$targ"}} <<: target, target}
          ;; else ->
          ;;    {target, expr} = {#variable{@info.gensym{"$targ"}}, target}
 

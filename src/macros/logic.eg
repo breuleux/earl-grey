@@ -23,7 +23,7 @@ class MatchHandler:
 
    expand{info} =
       @placeholder = info.env.mark{#symbol{info.gensym{.ph}}}
-      @placeholder
+      @placeholder <<: @location
 
    wrap{expr, info, opt} =
       parse_clauses with
@@ -34,22 +34,21 @@ class MatchHandler:
 accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
    #pattern ->
       match expr:
-         #void{} -> #special{MatchHandler{}}
-         other -> #all{other <<: expr, #special{MatchHandler{}} <<: form}
+         #void{} -> #special{MatchHandler{} <<: form} <<: form
+         other -> #all{other <<: expr, #special{MatchHandler{} <<: form} <<: form}
    other ->
       opt = util.mkset{flags}
       to_match = #symbol{info.gensym{.m}} & {single_assignment = true}
       {value, body} = match expr:
          #data{Body! {*b}} -> {#value{null}, b}
          #data{v, Body! {*b}} -> {v, b}
+      to_match <<: value
       `let [^to_match = ^value]: ^mbody` where mbody =
          parse_clauses with
             info, to_match, body
             opt & {
                fallback{target} =
                   match_error{target}
-                  ;; error_embed_location{..., target} with
-                  ;;    'E.match{"Could not find a match for value", {value = ^target}}
                wrap = null
             }
 

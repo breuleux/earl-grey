@@ -46,11 +46,12 @@ embed_location{match} =
 error_embed_location{error, target} =
    `throw [^error &: {location = ^embed_location{target}}]`
 
-match_error{match target} =
-   {location => {source => {=> url}, => start, => end}} ->
-      `___match_error{^target, ^=url, ^=start, ^=end}`
-   other ->
-      `___match_error{^other}`
+match_error{target} =
+   `___match_error{^target}` <<: target
+   ;; {location => {source => {=> url}, => start, => end}} ->
+   ;;    `___match_error{^target, ^=url, ^=start, ^=end}` <<: target
+   ;; other ->
+   ;;    `___match_error{^other}` <<: target
 
 drop_ctx{f}{context, info, form, arg} =
    f{context, info, form, arg} !!

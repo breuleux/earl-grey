@@ -249,7 +249,6 @@ class Translator:
                   }
             @expr{r, mode}
 
-
          #send{#variable{"___node"}, #value{f}} ->
             f
 
@@ -569,7 +568,8 @@ class Translator:
 
       match rval:
          Node? n ->
-            n.props.origin = expr
+            if not n.props.origin:
+               n.props.origin = expr
             n
          String? ->
             splice %
