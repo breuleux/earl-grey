@@ -125,11 +125,12 @@ X fix emacro's interaction with ! when not in a pattern
 X Embed promisify
 X quasiquote with `a + b` instead of '[a + b]
 X left-priority of `each` should be higher
+X source maps
 
 
-* source maps
 * await in interactive mode
 * insert async/gen automatically if await/yield is seen in the body
+  [is that a good idea?]
 * maybe replace ... with ??? and make ... an exclusive range
 * outer
 * tag scope and restore scope
