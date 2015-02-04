@@ -10,7 +10,7 @@ require:
       ;; display_error
    fs, path
    "earlgrey-runtime"
-   "source-map-support" as smsupport
+   ;; "source-map-support" as smsupport
 
 provide:
    run
@@ -19,7 +19,7 @@ globals:
    JSON
 
 
-smsupport.install{}
+;; smsupport.install{}
 
 
 
@@ -322,7 +322,7 @@ _run{match, opts} =
       }
 
       g = eg.Generator{o.interactive}
-      result = e with g.generate{Source{data, file}}
+      result = e with g.generate{Source{data, file}, {sourceMap = .inline}}
       if o.print:
          console.log with result
       if o.interactive:

@@ -210,8 +210,7 @@ class Generator:
       var result = @tr.translate{ex, .stmt}
       if not opts.noboil:
          result = splice %
-            "//# sourceMappingURL=" + source.url.replace{R".eg$", ".js"} + ".map\n"
-            "'use strict';"
+            "\n'use strict';"
             if{opts.to5, "require('traceur-runtime');", ""}
             ;; if{opts.to5, "require('6to5/polyfill');", ""}
             "require('earlgrey-runtime');"
@@ -235,10 +234,21 @@ class Generator:
          }
          result = {code = code, map = newmap}
 
-      if opts.sourceMap:
-         result
-      else:
-         result.code
+      match opts.sourceMap:
+         .inline ->
+            result.code
+               \ + "\n/"+"/# sourceMappingURL=data:application/json;base64,"
+               \ + [new Buffer{result.map.toString{}}.toString{.base64}]
+               \ + ".map\n"
+         do:
+            parts = source.url.split{"/"}
+            smname = parts[parts.length - 1].replace{R".eg$", ".js"}
+            result.code +=
+               "\n/" + "/# sourceMappingURL=" + smname + ".map\n"
+         true? ->
+            result
+         else ->
+            result.code
 
 
    evaluate{source} =
