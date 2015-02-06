@@ -4,16 +4,40 @@ require:
    "./location" ->
       Source
    fs
+   path
 
-extensions = {...} with
-   ".eg"
+globals:
+   module
 
-load{module, file} =
-   text = fs.readFileSync{file, .utf8}
-   g = eg.Generator{}
-   compiled = g.generate{Source{text, file}}.code
-   module._compile{compiled, file}
+load{lazy}{module, file} =
 
-extensions each ext ->
-   require.extensions[ext] = load
+   cachedir = path.join{path.dirname{file}, "egcache"}
+   cache = path.join{cachedir, path.basename{file}.replace{R".eg$", ".js"}}
+
+   sstat = fs.statSync{file}
+   cstat = fs.statSync{cache} !! e -> null
+
+   {compiled, srcfile} =
+      if lazy and cstat and sstat.mtime.getTime{} < cstat.mtime.getTime{}:
+         print "using cache"
+         {fs.readFileSync{cache, .utf8}, cache}
+      else:
+         text = fs.readFileSync{file, .utf8}
+         g = eg.Generator{}
+         {=> code, => map} = g.generate{Source{text, file}, {sourceMap = true}}
+         try:
+            fs.mkdirSync{cachedir} !! e -> "ignore error"
+            fs.writeFileSync{cache, code}
+            fs.writeFileSync{cache + ".map", map}
+         catch e:
+            console.err{"Failed to cache compiled version of: " + file}
+         {code, cache}
+
+   module._compile{compiled, srcfile}
+
+extensions = {".eg"}
+
+module.exports{lazy = true} =
+   extensions each ext ->
+      require.extensions[ext] = load{lazy}
 

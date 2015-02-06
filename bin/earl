@@ -1,6 +1,7 @@
 #!/usr/bin/env iojs
 
-require("../lib/register")
+require("source-map-support").install()
+require("../lib/register")()
 r = require("../lib/run")
 r.run(process.argv.slice(2))
 

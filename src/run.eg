@@ -191,11 +191,10 @@ interactive{g, e} =
       eval{input, context, filename, callback} =
          result = [execute{} !! e -> handle{e}] where
             execute{} =
-               inp =
-                  if input.match{R"^\(.*\n\)$"}:
-                     input.slice{1, -1}
-                  else:
-                     input
+               inp = match input:
+                  R"^\((.*\n)\)$"! {_, x} -> x
+                  R"^\((.*)\)\n$"! {_, x} -> x
+                  else -> input
                if inp.trim{} == "":
                   return undefined
                var text = g.generate{Source{inp, "<interactive>"}}.code
@@ -312,14 +311,9 @@ _run{match, opts} =
    {.run, *rawargs} ->
 
       {o, rest} = extract_options{rawargs, ..., "option for run"} with {
-         e = #value{.evaluate}
-         eval = #value{.evaluate}
-
-         p = #flag{.print}
-         print = #flag{.print}
-
-         i = #flag{.interactive}
-         interactive = #flag{.interactive}
+         e and eval = #value{.evaluate}
+         p and .print = #flag{.print}
+         i and interactive = #flag{.interactive}
       }
 
       {file, wd, data, args} =
