@@ -33,6 +33,7 @@ earl run [options] [file] [arguments...]
     -p  --print        Print the result of the evaluation to standard out.
     -i  --interactive  Start an interactive interpreter after execution
                        in the global environment of the script.
+    -l  --lazy         Cache previously run scripts
 
 earl compile [options] [file... | dir]
   Compile the specified source files into .js files. The files will be
@@ -61,7 +62,7 @@ Global options:
 "
 
 
-display_error{match e} =
+display_error{match e, rethrow = false} =
    E.syntax? {args => {args}} ->
       console.error{String{e}}
       hls = {.hl1, .hl2, .hl3, .hl4}
@@ -95,6 +96,9 @@ display_error{match e} =
          other ->
             accum += String{other}
       console.error{accum}
+
+   when rethrow ->
+      throw e
 
    else ->
       console.error{e.stack or String{e}}
@@ -289,10 +293,10 @@ run{argv} =
          v = #flag{"version"}
          version = #flag{"version"}
       }
-   _run{cmd, opts} !!
-      e ->
-         display_error{e}
-         process.exit{1}
+   _run{cmd, opts}
+   ;; _run{cmd, opts} !!
+   ;;    e ->
+   ;;       display_error{e, true}
 
 
 _run{match, opts} =
@@ -314,7 +318,11 @@ _run{match, opts} =
          e and eval = #value{.evaluate}
          p and .print = #flag{.print}
          i and interactive = #flag{.interactive}
+         l and lazy = #flag{.lazy}
       }
+
+      require: "./register" as register
+      register.install{o.lazy}
 
       {file, wd, data, args} =
          if o.evaluate:
@@ -332,18 +340,39 @@ _run{match, opts} =
 
       process.argv = {"earl-run", file} ++ rest
 
-      e = eg.evaluator with {
-         filename = file
-         showname = file
-         cwd = file
+      {g, compiled, srcfile} = register.getCache{file} with {
+         interactive = o.interactive
+         lazy = false
       }
 
-      g = eg.Generator{o.interactive}
-      result = e with g.generate{Source{data, file}, {sourceMap = .inline}}
+      e = eg.evaluator with {
+         filename = file
+         showname = srcfile
+         cwd = path.dirname{file}
+      }
+
+      result = e{compiled}
+
       if o.print:
-         console.log with result
+         print result
       if o.interactive:
          interactive{g, e}
+
+      ;; g = eg.Generator{o.interactive}
+
+      ;; e = eg.evaluator with {
+      ;;    filename = file
+      ;;    showname = file
+      ;;    cwd = path.dirname{file}
+      ;; }
+
+      ;; result = e with g.generate{Source{data, file}, {sourceMap = .inline}}
+
+      ;; if o.print:
+      ;;    print result
+      ;; if o.interactive:
+      ;;    interactive{g, e}
+
 
    {.compile, *rawargs} ->
 
@@ -358,6 +387,9 @@ _run{match, opts} =
          "5" and es5      = #flag{.es5}
          v and verbose    = #flag{.verbose}
       }
+
+      require: "./register" as register
+      register.install{o.lazy}
 
       match rest:
          when o.evaluate ->
