@@ -324,54 +324,51 @@ _run{match, opts} =
       require: "./register" as register
       register.install{o.lazy}
 
-      {file, wd, data, args} =
+      {file, wd, args} =
          if o.evaluate:
             then:
-               {"<repl>", process.cwd{}, o.evaluate, rest}
+               {null, process.cwd{}, rest}
             else:
                match rest.shift{}:
                   undefined? when o.interactive ->
-                     {"<repl>", process.cwd{}, "", rest}
+                     {null, process.cwd{}, rest}
                   undefined? ->
                      usage_error{"No filename specified."}
                   path.resolve! file ->
-                     {file, file, data, rest} where
-                        data = fs.readFileSync{file, .utf8}
+                     {file, file, rest}
 
-      process.argv = {"earl-run", file} ++ rest
+      var g = null
+      var e = null
+      var result = null
 
-      {g, compiled, srcfile} = register.getCache{file} with {
-         interactive = o.interactive
-         lazy = false
-      }
+      if file == null:
+         e = eg.evaluator with {
+            filename = "<repl>"
+            showname = "<repl>"
+            cwd = "<repl>"
+         }
+         g = eg.Generator{o.interactive}
+         if o.evaluate:
+            result = e{g.generate{Source{o.evaluate, "<repl>"}}.code}
 
-      e = eg.evaluator with {
-         filename = file
-         showname = srcfile
-         cwd = path.dirname{file}
-      }
+      else:
+         process.argv = {"earl-run", file} ++ rest
 
-      result = e{compiled}
+         {g, compiled, srcfile} = register.getCache{file} with {
+            interactive = o.interactive
+            lazy = false
+         }
+         e = eg.evaluator with {
+            filename = file
+            showname = srcfile
+            cwd = file
+         }
+         result = e{compiled}
 
       if o.print:
          print result
       if o.interactive:
          interactive{g, e}
-
-      ;; g = eg.Generator{o.interactive}
-
-      ;; e = eg.evaluator with {
-      ;;    filename = file
-      ;;    showname = file
-      ;;    cwd = path.dirname{file}
-      ;; }
-
-      ;; result = e with g.generate{Source{data, file}, {sourceMap = .inline}}
-
-      ;; if o.print:
-      ;;    print result
-      ;; if o.interactive:
-      ;;    interactive{g, e}
 
 
    {.compile, *rawargs} ->
