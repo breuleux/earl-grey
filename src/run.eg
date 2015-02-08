@@ -192,21 +192,21 @@ interactive{g, e} =
    settings = {
       prompt = "<> "
       ignoreUndefined = true
-      eval{input, context, filename, callback} =
-         result = [execute{} !! e -> handle{e}] where
-            execute{} =
-               inp = match input:
-                  R"^\((.*\n)\)$"! {_, x} -> x
-                  R"^\((.*)\)\n$"! {_, x} -> x
-                  else -> input
-               if inp.trim{} == "":
-                  return undefined
-               var text = g.generate{Source{inp, "<interactive>"}}.code
-               e{text}
-            handle{e} =
-               display_error{e}
-               undefined
-         callback{null, result}
+      async! eval{input, context, filename, callback} =
+         try:
+            inp = match input:
+               R"^\((.*\n)\)$"! {_, x} -> x
+               R"^\((.*)\)\n$"! {_, x} -> x
+               else -> input
+            if inp.trim{} == "":
+               callback{null, undefined}
+            else:
+               var text = g.generateInteractive{Source{inp, "<interactive>"}}
+               result = await e{text}
+               callback{null, result}
+         catch e:
+            display_error{e}
+            callback{null, undefined}
    }
    runner = repl.start with settings
    runner.on{.exit} with {} -> runner.outputStream.write{"\n"}
@@ -293,10 +293,9 @@ run{argv} =
          v = #flag{"version"}
          version = #flag{"version"}
       }
-   _run{cmd, opts}
-   ;; _run{cmd, opts} !!
-   ;;    e ->
-   ;;       display_error{e, true}
+   _run{cmd, opts} !!
+      e ->
+         display_error{e, true}
 
 
 _run{match, opts} =

@@ -185,6 +185,53 @@ class Generator:
       @pipeline = Pipeline{}
       @expander = std.make_expander{@pipeline}
 
+   generateInteractive{source, opts} =
+      opts = {noboil = @interactive, to5 = false} & opts
+
+      t = tokenize{source}
+      p = parse{t}
+      ;; #interactive forces declarations into the top scope, which
+      ;; means successive calls to generate{} will see global
+      ;; variables set by the previous. It also makes all variables
+      ;; declared in the top scope mutable (because that's more
+      ;; practical in interactive mode)
+      var ex = @expander.expand{
+         #top
+         exp.topscope
+         @env.mark{stmt}
+      } where stmt =
+         if @interactive:
+            then:
+               Body! {*args} = p
+               #interactive{*args}
+            else: #multi{p}
+
+      wrap{body} =
+         #send{#variable{.spawn}, #array{#lambda{{}, body, #value{true}}}}
+
+      ex = match ex:
+         #scope{vars, body} ->
+            #scope{vars, wrap{body}}
+         body ->
+            wrap{body}
+
+      set ex = opt.hoist{ex}
+      var result = @tr.translate{ex, .stmt}
+      result = splice %
+         "\n'use strict';"
+         ;; if{opts.to5, "require('traceur-runtime');", ""}
+         if{opts.to5, "require('6to5/polyfill');", ""}
+         "require('earlgrey-runtime');"
+         result
+      result = collapse{result}
+
+      if opts.to5:
+         result = to5.transform{result, {=}}.code
+         ;; result = to5.compile{result, {=}}
+
+      result
+
+
    generate{source, opts} =
       opts = {noboil = @interactive, to5 = true} & opts
 
