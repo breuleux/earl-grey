@@ -4,9 +4,13 @@
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
   "main": "./lib/earl-grey.js",
   "dependencies": {
-      "earlgrey-runtime": "0.0.0",
-      "js-beautify": "1.5.x",
-      "quaint": "0.0.1"
+    "earlgrey-runtime": "0.0.0",
+    "js-beautify": "1.5.x",
+    "multi-stage-sourcemap": "^0.2.1",
+    "opg": "^0.0.2",
+    "quaint": "0.0.1",
+    "source-map": "^0.2.0",
+    "source-map-support": "^0.2.9"
   },
   "bin": {
     "earl": "bin/earl"

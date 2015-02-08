@@ -127,7 +127,7 @@ X quasiquote with `a + b` instead of '[a + b]
 X left-priority of `each` should be higher
 X source maps
 
-
+* raise left-priority of juxtaposition
 * await in interactive mode
 * insert async/gen automatically if await/yield is seen in the body
   [is that a good idea?]
