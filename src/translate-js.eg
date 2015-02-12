@@ -90,7 +90,7 @@ js_op_table = {
 
 class Translator:
 
-   constructor{prelude = null} =
+   constructor{prelude = null, @globvar = null} =
       @cache = {=}
       @prepend = {}
       match prelude:
@@ -344,8 +344,8 @@ class Translator:
             @expr{r, mode} where r =
                splice %
                   "(function"
-                  name
                   if{generator, "*", ""}
+                  name
                   "("
                   join{bindings each x -> @translate{x, .expr}, ","}
                   "){"
