@@ -96,5 +96,10 @@ items{keywords} each {gvar, v} ->
    "Boolean" = value_mac{.Boolean, chk, proj} where
       chk{x} = `typeof{^x} === .boolean`
       proj{x} = `{true, Boolean{^x}}`
+   "Array" = value_mac{.Array, chk, proj} where
+      chk{x} = `Array.isArray{^x}`
+      proj{x} = `{true, [t = ^x, if{Array.isArray{t}, t, {t}}]}`
+   "Function" = value_mac{.Function, chk} where
+      chk{x} = `typeof{^x} === .function`
 }
 

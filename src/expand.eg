@@ -639,7 +639,8 @@ checker_db{match} =
 checker_db &: {
    String = mac1 with {x} -> `[typeof{^x} === "string"]`
    Number = mac1 with {x} -> `[typeof{^x} === "number"]`
-   Array = mac1 with {x} -> `[[instanceof]{^x, Array}]`
+   ;; Array = mac1 with {x} -> `[[instanceof]{^x, Array}]`
+   Array = mac1 with {x} -> `Array.isArray{^x}`
    true = mac1 with {x} -> x
    false = mac1 with {x} -> `[not ^x]`
    null = mac1{{x} -> `[^x === ^=null]`}
