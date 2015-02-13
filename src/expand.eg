@@ -364,8 +364,12 @@ class Expander:
                   undefined? ->
                      throw E.syntax.undeclared{"Undeclared variable: " + s, {node = expr}}
                      ;; #variable{"UNDECLARED__" + s}
-                  other ->
-                     #bounce{clone{other} &: {location = expr.location}}
+                  resolved ->
+                     #bounce{v} where
+                        v = clone{resolved} &: {
+                           location = expr.location
+                           origin = resolved
+                        }
    
             #value{_} ->
                expr
@@ -523,10 +527,11 @@ class Expander:
    
             #assign{target, value} ->
                t = helper{#expr{.expr}, scope, target}
+               orig = t.origin or {=}
                match t:
                   #variable when [not t.mutable
-                                  \ and t.assigned
-                                  \ and t.assigned.group_id !== target.group_id] ->
+                                  \ and orig.assigned
+                                  \ and orig.assigned.group_id !== target.group_id] ->
                      throw E.syntax{msg, {variable = target, loc = t.assigned}} where
                         msg = {"Variable was declared as read-only. Declare it as"
                                "mutable at the origin with `var` (if you have access"
@@ -541,7 +546,7 @@ class Expander:
                      ;;    msg = {"This variable is a macro and cannot be assigned to."
                      ;;           "Use `let` to redeclare it or `delete` to undeclare it"}.join{" "}
                   otherwise ->
-                     t.assigned = target
+                     orig.assigned = target
 
                #assign{t} with
                   helper{#expr{.expr}, scope, value}

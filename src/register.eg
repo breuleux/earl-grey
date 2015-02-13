@@ -27,7 +27,7 @@ getCache{file, opts = {=}} =
          {null, fs.readFileSync{cache, .utf8}, cache}
       else:
          text = fs.readFileSync{file, .utf8}
-         g = eg.Generator{opts.interactive}
+         let g = eg.Generator{opts.interactive}
          {=> code, => map} = g.generate{Source{text, file}, {sourceMap = true}}
          try:
             fs.mkdirSync{cachedir} !! e -> "ignore error"
