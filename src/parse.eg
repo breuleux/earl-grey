@@ -200,6 +200,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
                  "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y"
                  "X_or=_Y", "X_and=_Y", "X_each=_Y"
                  "X_%_Y"}
+      lowpriop = {"->_Y", "=>_Y", "=_Y"}
       "when" = {"X_when_Y"}
       "or" = {"X_or_Y"}
       "and" = {"X_and_Y"}
@@ -227,50 +228,51 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
 
    eg_prio = {...} with
-      comma   = {#all{1}, #all{1}}
-      obrack  = {#all{MAX}, #all{1}}
-      cbrack  = {#all{1}, #all{MAX}}
+      comma    = {#all{1}, #all{1}}
+      obrack   = {#all{MAX}, #all{1}}
+      cbrack   = {#all{1}, #all{MAX}}
 
-      "with"  = {#all{1999}, #all{10}}
+      "with"   = {#all{1999}, #all{10}}
       ;; "with"  = {#all{11}, #all{10}}
-      lowprio = {#all{11}, #all{10}}
-      "each"  = {#all{135}, #all{10}}
-      "when"  = {#all{100}, #all{101}}
-      "or"    = {#all{110}, #all{111}}
-      "and"   = {#all{120}, #all{121}}
-      "not"   = {#all{MAX}, #all{131}}
-      type    = {#all{141}, #all{140}}
-      cmp     = {#all{200}, #all{201}}
-      binxor  = {#all{400}, #all{401}}
-      binor   = {#all{410}, #all{411}}
-      binand  = {#all{420}, #all{421}}
-      shift   = {#arith{500}, #arith{501}}
-      add     = {#arith{550}, #arith{551}}
-      mul     = {#arith{560}, #arith{561}}
-      exp     = {#arith{571}, #arith{570}}
+      lowprio  = {#all{11}, #all{10}}
+      "each"   = {#all{135}, #all{10}}
+      "when"   = {#all{100}, #all{101}}
+      "or"     = {#all{110}, #all{111}}
+      "and"    = {#all{120}, #all{121}}
+      "not"    = {#all{MAX}, #all{131}}
+      type     = {#all{141}, #all{140}}
+      cmp      = {#all{200}, #all{201}}
+      binxor   = {#all{400}, #all{401}}
+      binor    = {#all{410}, #all{411}}
+      binand   = {#all{420}, #all{421}}
+      shift    = {#arith{500}, #arith{501}}
+      add      = {#arith{550}, #arith{551}}
+      mul      = {#arith{560}, #arith{561}}
+      exp      = {#arith{571}, #arith{570}}
 
       ;; wjuxt   = {#all{1002}, #all{1001}}
       ;; colon   = {#all{1001}, #all{2}}
 
-      wjuxt   = {#wjuxt{13}, #all{12}}
-      colon   = {#all{12}, #all{10}}
+      wjuxt    = {#wjuxt{13}, #all{12}}
+      colon    = {#all{12}, #all{10}}
 
-      sjuxt   = {#all{2000}, #all{2001}}
+      sjuxt    = {#all{2000}, #all{2001}}
 
-      pfx     = {#all{MAX}, #all{3000}}
-      pp      = {#all{MAX}, #all{5}}
-      when2   = {#all{MAX}, #all{101}}
-      withp   = {#all{MAX}, #all{10}}
-      eachp   = {#all{MAX}, #all{10}}
+      pfx      = {#all{MAX}, #all{3000}}
+      pp       = {#all{MAX}, #all{5}}
+      when2    = {#all{MAX}, #all{101}}
+      withp    = {#all{MAX}, #all{10}}
+      eachp    = {#all{MAX}, #all{10}}
+      lowpriop = {#all{MAX}, #all{10}}
 
-      pipe    = {#pipe{550}, #pipe{551}}
+      pipe     = {#pipe{550}, #pipe{551}}
 
-      sh_ifx  = {#all{1800}, #all{1801}}
-      sh_pfx  = {#all{MAX}, #all{1901}}
-      sh_sfx  = {#all{1900}, #all{MAX}}
-      wi_ifx  = {#customl{900}, #customr{901}}
-      wi_pfx  = {#all{MAX}, #all{901}}
-      wi_sfx  = {#all{900}, #all{MAX}}
+      sh_ifx   = {#all{1800}, #all{1801}}
+      sh_pfx   = {#all{MAX}, #all{1901}}
+      sh_sfx   = {#all{1900}, #all{MAX}}
+      wi_ifx   = {#customl{900}, #customr{901}}
+      wi_pfx   = {#all{MAX}, #all{901}}
+      wi_sfx   = {#all{900}, #all{MAX}}
 
 
 
