@@ -126,7 +126,12 @@ X Embed promisify
 X quasiquote with `a + b` instead of '[a + b]
 X left-priority of `each` should be higher
 X source maps
+X `is` should be `===`
 
+
+* some errors are misreported; check try: x, catch: y (with no
+  variable in the catch).
+* Allow catch with no variable for the error.
 * raise left-priority of juxtaposition
 * await in interactive mode
 * insert async/gen automatically if await/yield is seen in the body

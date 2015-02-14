@@ -36,7 +36,7 @@ mac{"is"}! is_mac{match, _, form, #data{x, y}} =
    #pattern ->
       #replace{x, y}
    else ->
-      `^x == ^y`
+      `^x === ^y`
 
 mac{"-"}! minus_mac{context, _, form, match expr} =
    #data{#void{}, #value{Number? n}} ->
