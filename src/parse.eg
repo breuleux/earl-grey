@@ -200,7 +200,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
                  "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y"
                  "X_or=_Y", "X_and=_Y", "X_each=_Y"
                  "X_%_Y"}
-      lowpriop = {"->_Y", "=>_Y", "=_Y"}
+      lowpriop = {"->_Y", "=>_Y", "=_Y", ":_Y"}
       "when" = {"X_when_Y"}
       "or" = {"X_or_Y"}
       "and" = {"X_and_Y"}
