@@ -49,7 +49,7 @@ expr_mac2! mac{"gen"}! gen_mac{match} =
 
 expr_mac2! mac{"async"}! async_mac{match} =
    `{^arg -> ^body}` ->
-      `^arg -> spawn{{} *-> ^body}`
+      `^arg -> spawn.call{this, {} *-> ^body}`
    `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
       ;; TODO: this is wrong; post should be inside the spawn
       `_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}`
