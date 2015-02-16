@@ -56,6 +56,7 @@ evaluator{match options} =
          __dirname = global.__dirname
          module = global.module
          require = global.require
+         exports = global.exports
       }
 
       setup = {
@@ -63,6 +64,7 @@ evaluator{match options} =
          __dirname = path.dirname{options.filename}
          module = e_module
          require = e_require
+         exports = {=}
       }
 
       {code} ->
