@@ -1,5 +1,7 @@
 
 require:
+   "../location" ->
+      <<:
    "../expand" ->
       Env, topscope
    "./helpers" ->
@@ -26,14 +28,16 @@ wrap_macro_func{info, args, body} =
 
 
 mac{"macro"}! macro_mac{context, info, form, match} =
-   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+   #data{#send{name and [#symbol{sym} or #value{sym}], arguments}, ast} ->
       let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
-      #declare_raw{name, wrap_macro{info, expr_mac2{mac}}}
+      s = info.mark{#symbol{sym}} <<: name
+      #declare_raw{s, wrap_macro{info, expr_mac2{mac}}}
 
 mac{"cmacro"}! cmacro_mac{context, info, form, match} =
-   #data{#send{name and #symbol{sym}, arguments}, ast} ->
+   #data{#send{name and [#symbol{sym} or #value{sym}], arguments}, ast} ->
       let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
-      #declare_raw{name, wrap_macro{info, ctx_mac{mac}}}
+      s = info.mark{#symbol{sym}} <<: name
+      #declare_raw{s, wrap_macro{info, ctx_mac{mac}}}
 
 mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
    the_macros = info.go{body, .parse, .eval}
