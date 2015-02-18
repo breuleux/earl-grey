@@ -3,10 +3,14 @@ require:
    "./util" ->
       binsearch ;;, items, enumerate
    "./pp" ->
-      <>, repr
+      <>, _repr
    fs
    opg ->
       Source, Location
+   "opg/lib/highlight" ->
+      highlight as highlight
+      highlightLocations as highlight_locations
+      mergeLocations as merge_locations
 
 provide:
    Source, Location
@@ -15,133 +19,7 @@ provide:
    <<:, ++:
    format_error, display_error
 
-
-
-Source.prototype.highlight_lines{l1, l2, spans} =
-   highlight_lines{this.text, this.counts, {l1 - 1, l2 - 1}, spans}
-
-Location.prototype.highlight{cls = .hl1, context = 0} =
-   highlight_locations{{{this, cls}}, context}
-
-
-
-highlight{text, spans, offset = 0} =
-   ;; <> spans
-   ;; <> morsel{spans}
-   % | morsel{spans} each {start, end, attributes} ->
-        xstart = Math.max{start - offset, 0}
-        xend = Math.min{end - offset, text.length}
-        ;; Node{"." + attributes.slice{0, 1}, {=}, {text.slice{xstart, xend}}}
-        ^["." + attributes.slice{0, 1}] % text.slice{xstart, xend}
-
-highlight_lines{text, linelocs, {l1, l2}, spans} =
-   span %
-      l1..l2 each lineno ->
-         start = linelocs[lineno]
-         end = linelocs[lineno + 1]
-         span %
-            .lineno % [lineno + 1]
-            .source %
-               highlight{text, {{start, end, {}}, *clamp{spans, start, end}}}
-
-clamp{spans, bot, top} =
-   spans each {start, end, attr} when [end >= bot and start <= top] ->
-      {Math.max{start, bot}, Math.min{end, top}, attr}
-
-
-morsel{spans} =
-
-   ;; Note: this is adapted from a different implementation I wrote a
-   ;; year ago. I am not entirely sure how it works anymore, but I don't
-   ;; really care, as long as it does. (At least I documented what it is
-   ;; supposed to do)
-
-   ;; spans == Array of span
-   ;; span == {Integer start, Integer end, Array of attribute}
-   ;; attribute == any
-
-   ;; Morsels the sequence of spans so that none of the spans in the
-   ;; sequence overlap. Ranges covered by more than one span are
-   ;; given the union of the attributes of all the spans covering it.
-
-   ;; Example:
-   ;; morsel with {{0, 10, {1}}, {2, 5, {2}}, {4, 7, {3}}, {40, 50, {4}}}
-   ;; => {{0, 2, {1}}, {2, 4, {1, 2}}, {4, 5, {1, 2, 3}}, {5, 7, {1, 3}},
-   ;;     {7, 10, {1}}, {10, 40, {}}, {40, 50, {4}}}
-
-   jump{active, bot, top} =
-      e = Math.min{top, *[...]} with
-         active each {_, x, _} -> x
-      var attributes = {}
-      active each {_, _, X} -> attributes ++= X
-      ;; attributes = patch_array [active each {_, _, X} -> X]
-      {e, {bot, e, attributes}}
-
-   jumptill{active, bot, top} =
-      if [bot === top]:
-         then:
-            {{}, active}
-         else:
-           {newbot, span} = jump{active, bot, top}
-           newactive = active each
-              x and {_, e, attr} when e > newbot -> x
-           {let spans, remainder} = jumptill{newactive, newbot, top}
-           {{span} ++ spans, remainder}
-
-   process_elements{start, active, rem} = match {start, active, rem}:
-      {_, {}, {}} ->
-         {}
-      {start, active, {}} ->
-         top = Math.max[active each {_, e, _} -> e]
-         bot = Math.min{start, top}
-         {let spans, _} = jumptill{active, start, top}
-         spans
-      {start, active, {next and {target, end, attr}, *rest}} ->
-         {let spans, newactive} = jumptill{active, start, target}
-         spans ++ process_elements{target, {next} ++ newactive, rest}
-
-   thespans = spans.sort with
-      {{s1, e1, _}, {s2, e2, _}} -> if{s1 === s2, e1 - e2, s1 - s2}
-      ;; {{s1, e1, _}, {s2, e2, _}} -> if{s1 === s2, e1 < e2, s1 > s2}
-
-   process_elements{thespans[0][0], {}, thespans}
-
-highlight_locations{locations, context = 0} =
-   srcs = {=}
-   locations each {loc, cls} ->
-      key = String{loc.source and loc.source.url}
-      if [not srcs[key]]:
-         srcs[key] = {}
-      srcs[key].push with {loc, cls}
-   div %
-      items{srcs} each {_, locs} ->
-         highlight_locations_same_source{locs, context}
-
-highlight_locations_same_source{locations, context = 0} =
-   loc = merge_locations{locations each {x, cls} -> x}
-   src = loc.source
-   {l1, l2} = loc.linerange{}
-   first = Math.max{1, l1 - context}
-   last = Math.min{src.nlines, l2 + context}
-   div.location %
-      div.source %
-         .sourcefile % src.url or "???"
-         locations each {loc, cls} ->
-            ^["." + cls] .sourcepos % loc.ref{}
-            ;; Node{{"." + cls, ".sourcepos"}, {=}, loc.ref{}}
-      src.highlight_lines with
-         first, last
-         locations each {loc, cls} -> {loc.start, loc.end, {cls}}
-
-merge_locations{match} =
-   {} ->
-      Location{null, 0, 0}
-   {loc} ->
-      loc
-   {*locs} ->
-      Location{locs[0].source, start, end} where
-         start = Math.min | locs each loc -> loc.start
-         end = Math.max | locs each loc -> loc.end
+let repr = _repr
 
 
 
