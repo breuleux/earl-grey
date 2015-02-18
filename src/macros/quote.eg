@@ -2,6 +2,7 @@
 require:
    "../location" -> Source
    "./helpers" -> qq
+   opg
    ;; quaint
 
 inject: mac
@@ -15,31 +16,120 @@ mac{"`"}! quote_mac{context, info, form, expr and #value{s}} =
       expr = info.go{Source{s, "<quasiquote>"}, .source, .parse}
 
 
-;;;;;;;;;;;;
-;; QUAINT ;;
-;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;; INTERPOLATE ;;
+;;;;;;;;;;;;;;;;;
 
-mac{"'"}! quaint_mac{context, info, form, expr and #value{s}} =
-   quaint = null
+tok = opg.tokenize.Tokenizer with {
+   regexps = {
+      open = "\\$[.A-Za-z0-9_]*\\{|\\{"
+      close = "\\}"
+      other = "\\$|[^\\{\\}$]+"
+   }
+   post = {
+      {match tok} ->
+         {type => .open} ->
+            ;; Insert a dummy token before {
+            ;; The dummy token serves as a kind of wedge between } and { in '{x}{y}'
+            ;; Without that token, {y} will be the right hand side of {x} and that's
+            ;; a pain to deal with.
+            {{token = "", type = .other, location = tok.location.at_start{}}, tok}
+         else ->
+            tok
+   }
+}
 
-   q = quaint.create{evaluator} where
-      evaluator = {
-         eval{src} =
-            this.mark{this.go{src.makeSource{}, .source, .parse}}
-         setenv{name, value} =
+gr = new opg.parse.TokenGroups with {
+    open = {"open"}
+    close = {"close"}
+    other = {"str", "other"}
+}
+
+prio = new opg.parse.PriorityOrder{gr} with {
+    open = {left = 1002, right = 0}
+    close = {left = 0, right = 1003}
+    other = {left = 1000, right = 1000}
+}
+
+finalize{match zazz} =
+   {null?
+    {type => "open", token => [match open]}
+    _arg
+    {type => "close", token => close}
+    null?} ->
+      do:
+         let arg = _arg or #join{""} & {text = ""}
+         let text = open + arg.text + close
+      R"\$([^\{]*){"! {_, tag} or tag is "" ->
+         #bracket{tag, arg.text} &: {text = text}
+   {null?, {=> token}, null?} ->
+      #join{token} &: {text = token}
+   args ->
+      var rval = #join{}
+      var text = ""
+      enumerate{args} each {i, match arg} ->
+         {=> token} when i mod 2 == 1 ->
+            rval.push{token}
+            text += token
+         #join{*sub} ->
+            text += arg.text
+            rval ++= sub
+         #bracket ->
+            text += arg.text
+            rval.push{arg}
+         null? ->
             pass
-      }
+      rval &: {text = text}
 
-   transform{match node} =
-      String? or Number? ->
-         #value{node}
-      Node? {=> tags, => props, => children} ->
-         `Node{{^*wtags}, {=}, {^*wchildren}}` where
-            wtags = tags each tag -> #value{tag}
-            wchildren = children each child -> transform{child}
-      else ->
-         node
+parser = new opg.parse.Parser{tok, prio.getOrder{}, finalize}
 
-   transform{q.run{s}}
+parse{text} =
+   parser.parse{text}
+
+mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
+   #join{*contents} = parse{s}
+   parts = {}
+   var current = ""
+   push{} =
+      if current != "":
+         parts.push{#value{current}}
+         current = ""
+   contents each
+      String? s ->
+         current += s
+      #bracket{match, expr} ->
+         do:
+            push{}
+            p = form.env.mark{#parse{expr}}
+         ""  ->
+            parts.push with `Node{{}, {=}, {^p}}`
+         tag ->
+            parts.push with `Node{{^=tag}, {=}, {^p}}`
+   push{}
+   `Node{{.join}, {=}, {^*parts}}`
+
+
+;; mac{"'"}! quaint_mac{context, info, form, expr and #value{s}} =
+;;    quaint = null
+
+;;    q = quaint.create{evaluator} where
+;;       evaluator = {
+;;          eval{src} =
+;;             this.mark{this.go{src.makeSource{}, .source, .parse}}
+;;          setenv{name, value} =
+;;             pass
+;;       }
+
+;;    transform{match node} =
+;;       String? or Number? ->
+;;          #value{node}
+;;       Node? {=> tags, => props, => children} ->
+;;          `Node{{^*wtags}, {=}, {^*wchildren}}` where
+;;             wtags = tags each tag -> #value{tag}
+;;             wchildren = children each child -> transform{child}
+;;       else ->
+;;          node
+
+;;    transform{q.run{s}}
 
 
