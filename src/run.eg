@@ -10,6 +10,7 @@ require:
       ;; display_error
    fs, path
    "earlgrey-runtime"
+   "6to5/polyfill"
    "source-map-support" as smsupport
 
 provide:
@@ -319,6 +320,7 @@ _run{match, opts} =
          i and interactive = #flag{.interactive}
          l and lazy = #flag{.lazy}
       }
+      o.noboil = true
 
       require: "./register" as register
       register.install{o.lazy}
@@ -348,13 +350,14 @@ _run{match, opts} =
          }
          g = eg.Generator{o.interactive}
          if o.evaluate:
-            result = e{g.generate{Source{o.evaluate, "<repl>"}}.code}
+            result = e{g.generate{Source{o.evaluate, "<repl>"}, o}.code}
 
       else:
          process.argv = {"earl-run", file} ++ rest
 
          {g, compiled, srcfile} = register.getCache{file} with {
             interactive = o.interactive
+            noboil = o.noboil
             lazy = false
          }
          e = eg.evaluator with {

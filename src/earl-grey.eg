@@ -222,8 +222,8 @@ class Generator:
       result = splice %
          "\n'use strict';"
          ;; if{opts.to5, "require('traceur-runtime');", ""}
-         if{opts.to5, "require('6to5/polyfill');", ""}
-         "require('earlgrey-runtime');"
+         if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
+         if{not opts.noboil, "require('earlgrey-runtime');", ""}
          result
       result = collapse{result}
 
@@ -262,8 +262,8 @@ class Generator:
          result = splice %
             "\n'use strict';"
             ;; if{opts.to5, "require('traceur-runtime');", ""}
-            if{opts.to5, "require('6to5/polyfill');", ""}
-            "require('earlgrey-runtime');"
+            if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
+            if{not opts.noboil, "require('earlgrey-runtime');", ""}
             @tr.dump_store{} ;; useless at this point I think
             result
 
