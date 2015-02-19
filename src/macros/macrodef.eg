@@ -43,7 +43,9 @@ mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
    the_macros = info.go{body, .parse, .eval}
    #splice{*[...]} with
       items{the_macros} each {k, v} ->
-         #declare_raw{#symbol{k} &: {env = env}, #macro{v}}
+         #declare_raw{#symbol{k} &: {env = env}, #macro{f}} where
+            f{ctx, info, form, expr} =
+               v.call{info, expr}
 
 
 
