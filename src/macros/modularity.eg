@@ -8,9 +8,15 @@ inject: mac
 ;; REQUIRE/PROVIDE AND GLOBALS ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+mac{"__require"}! __require_mac{context, info, form, expr} =
+   req = #variable{.require} &: {top = true}
+   `[^req][^expr]`
+
+
 mac{"require"}! require_mac{context, info, form, match} =
    #data{expr} ->
-      req = #variable{.require} &: {top = true}
+      ;; req = #variable{.require} &: {top = true}
+      req = info.mark{`__require`}
       stmts = {}
 
       topfetch{pkg, v} =
