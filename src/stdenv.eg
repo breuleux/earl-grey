@@ -18,9 +18,22 @@ mac{name}{m} =
 bind{name, value} =
    stdenv.bind{topscope, name, value}
 
-"consts core operators loop quote regexp modularity
- testing misc macrodef async logic".split{R"[\n ]+"} each
-   m -> require{^["./macros/" + m]}{mac, bind}
+;; "consts core operators loop quote regexp modularity
+;;  testing misc macrodef async logic".split{R"[\n ]+"} each
+;;    m -> require{^["./macros/" + m]}{mac, bind}
+
+require{"./macros/consts"}{mac, bind}
+require{"./macros/core"}{mac, bind}
+require{"./macros/operators"}{mac, bind}
+require{"./macros/loop"}{mac, bind}
+require{"./macros/quote"}{mac, bind}
+require{"./macros/regexp"}{mac, bind}
+require{"./macros/modularity"}{mac, bind}
+require{"./macros/testing"}{mac, bind}
+require{"./macros/misc"}{mac, bind}
+require{"./macros/macrodef"}{mac, bind}
+require{"./macros/async"}{mac, bind}
+require{"./macros/logic"}{mac, bind}
 
 
 make_expander{pipeline} =
