@@ -330,7 +330,7 @@ class Translator:
                         splice %
                            v, "[", @translate{x, .expr}, "]="
                            @translate{y, .expr}, ";"
-                     "return", v, "})"
+                     "return ", v, "})()"
             @expr{r, mode}
 
          #lambda{bindings, body, #value{generator} = #value{false}} ->
@@ -453,7 +453,7 @@ class Translator:
 
          #variable{s} ->
             @expr{x, mode} where x =
-               if @globvar and expr.top and s !== "this":
+               if @globvar and expr.top and not s in {"this", "typeof"}:
                   @globvar + "." + @mangle{s}
                else:
                   @mangle{s}
