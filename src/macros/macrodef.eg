@@ -30,13 +30,13 @@ wrap_macro_func{info, args, body} =
 mac{"macro"}! macro_mac{context, info, form, match} =
    #data{#send{name and [#symbol{sym} or #value{sym}], arguments}, ast} ->
       let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
-      s = info.mark{#symbol{sym}} <<: name
+      s = info.mark{#symbol{sym} &: {env = name.env}} <<: name
       #declare_raw{s, wrap_macro{info, expr_mac2{mac}}}
 
 mac{"cmacro"}! cmacro_mac{context, info, form, match} =
    #data{#send{name and [#symbol{sym} or #value{sym}], arguments}, ast} ->
       let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
-      s = info.mark{#symbol{sym}} <<: name
+      s = info.mark{#symbol{sym} &: {env = name.env}} <<: name
       #declare_raw{s, wrap_macro{info, ctx_mac{mac}}}
 
 mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
