@@ -3,7 +3,7 @@ require:
    "./util" ->
       binsearch ;;, items, enumerate
    "./pp" ->
-      <>, _repr
+      <>, repr as _repr
    fs
    opg ->
       Source, Location

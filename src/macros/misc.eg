@@ -72,6 +72,8 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
          tags.push with #value{x}
       `[. ^[#symbol{x} or #value{String! x}]]` ->
          tags.push with #value{"." + x}
+      `[# ^[#symbol{x} or #value{String! x}]]` ->
+         tags.push with #value{"#" + x}
       #send{#symbol{"^"}, #data{#void{}, expr}} ->
          tags.push with expr
       `[^_ = ^_]` ->
