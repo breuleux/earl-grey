@@ -132,7 +132,6 @@ class Pipeline:
 
    evaluate{src} =
       loc = src.location or {source = {url = "<eval>"}}
-      print src.code
       ev{src.code} where
          ev = evaluator with {
             globvar = src.globvar
@@ -208,8 +207,8 @@ toCodeAndSourceMap{node, url} =
 
 class Generator:
 
-   constructor{interactive = false} =
-      @tr = Translator{}
+   constructor{interactive = false, globvar = null} =
+      @tr = Translator{null, globvar}
       @env = std.stdenv.fork{}
       @interactive = interactive
       @_eval = null
@@ -344,6 +343,8 @@ class Generator:
       if [not @_eval]:
          file = source.url
          @_eval = evaluator with {
+            globvar = @tr.globvar
+            global = null
             filename = file
             showname = file
             cwd = file
@@ -354,6 +355,8 @@ class Generator:
       if [not @_eval]:
          file = source.url
          @_eval = evaluator with {
+            globvar = @tr.globvar
+            global = null
             filename = file
             showname = file
             cwd = file
