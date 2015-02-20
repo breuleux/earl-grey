@@ -10,7 +10,7 @@ inject: mac
 
 mac{"require"}! require_mac{context, info, form, match} =
    #data{expr} ->
-      req = #variable{.require}
+      req = #variable{.require} &: {top = true}
       stmts = {}
 
       topfetch{pkg, v} =
@@ -77,4 +77,5 @@ mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
 
 mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
    #splice{*[...], `undefined`} with
-      vars each variable and #symbol{s} -> #declare_raw{variable, #variable{s}}
+      vars each variable and #symbol{s} ->
+         #declare_raw{variable, #variable{s} &: {top = true}}

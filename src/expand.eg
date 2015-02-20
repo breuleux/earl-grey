@@ -49,7 +49,8 @@ jsKeywords = "abstract arguments boolean break byte
 class Scope:
 
    constructor{@parent = null
-               @name = gensym{"scope"}} =
+               @name = gensym{"scope"}
+               @top = false} =
       @options = {=}
 
    getopt{opt} =
@@ -104,6 +105,8 @@ class Env:
    bind{scope, name, value} =
       if [not @scopes[scope.name]]:
          @scopes[scope.name] = {=}
+      if scope.top:
+         value.top = true
       @scopes[scope.name][name] = value
 
    mark{expr} =
@@ -189,7 +192,6 @@ class Expander:
    constructor{@stdenv, @generic_nodes, @pipeline} =
       ;; @pipeline.expand = [@]
       ;; @gensym = gensym
-
       ;; @gensym = GenSym{"$"}
 
       @nameusage = [object with jsKeywords each kw -> {kw, 0}]
@@ -368,6 +370,7 @@ class Expander:
                      #bounce{v} where
                         v = clone{resolved} &: {
                            location = expr.location
+                           top = resolved.top
                            origin = resolved
                         }
    
@@ -434,6 +437,7 @@ class Expander:
                               v = #variable{@gensym{s}} <<: variable
                               ;; v = #variable{s} <<: variable
                               v &: {mutable = expr.all_mutable or variable.mutable}
+                              v &: {top = variable.top}
                               env.bind{newscope, s} with v
                               set changes = true
                               if value:
@@ -652,5 +656,5 @@ checker_db &: {
    undefined = mac1{{x} -> `[^x === ^=undefined]`}
 }
 
-topscope = Scope{null, .top}
+topscope = Scope{null, .top, true}
 

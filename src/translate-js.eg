@@ -381,8 +381,11 @@ class Translator:
          #declare{binding, #value{undefined?}} and match is mode ->
             [.expr or .return or #return] -> throw "Invalid in expr ctx"
             other ->
-               splice %
-                  "let ", @translate{binding, .expr}, ";"
+               if @globvar and binding.top:
+                  ""
+               else:
+                  splice %
+                     "let ", @translate{binding, .expr}, ";"
 
          #declare{binding, value} and match is mode ->
             [.expr or .return or #return] -> throw "Invalid in expr ctx"
@@ -399,14 +402,14 @@ class Translator:
                   @translate{rhs, .expr}, ")"
 
          #assign{lhs and #variable{_}, rhs} ->
-            core =
-               splice %
-                  @translate{lhs, .expr}, "="
-                  @translate{rhs, .expr}
             match mode:
                .stmt ->
                   @translate{rhs, #return{@translate{lhs, .expr}}}
                else ->
+                  core =
+                     splice %
+                        @translate{lhs, .expr}, "="
+                        @translate{rhs, .expr}
                   @expr{x, mode} where x =
                      splice %
                         "(", core, ")"
@@ -449,7 +452,11 @@ class Translator:
             @translate{#multi{*args}, mode}
 
          #variable{s} ->
-            @expr{@mangle{s}, mode}
+            @expr{x, mode} where x =
+               if @globvar and expr.top and s !== "this":
+                  @globvar + "." + @mangle{s}
+               else:
+                  @mangle{s}
 
          #scope{vars, body} ->
             @translate{#multi{*decls, body}, mode} where

@@ -13,7 +13,9 @@ require:
    "./stdenv" as std
    "./expand" as exp
    "./opt" as opt
-   "./util" -> Body
+   "./util" ->
+      Body
+      GenSym
    vm, module, path
    "6to5" as to5
    ;; traceur as to5
@@ -30,9 +32,29 @@ provide:
 
 version = "zero"
 
-evaluator{match options} =
+evaluator{options} =
 
-   when module._nodeModulePaths ->
+   glob =
+      if options.globvar:
+         match global[options.globvar]:
+            undefined? ->
+               get global[options.globvar] =
+                  match options.global:
+                     === true ->
+                        global
+                     Object? g ->
+                        g
+                     else ->
+                        Object.create{global}
+                        ;; _glob = {=}
+                        ;; for v in global:
+                        ;;    _glob[v] = global[v]
+                        ;; _glob
+            g -> g
+      else:
+         global
+
+   if module._nodeModulePaths:
       paths = module._nodeModulePaths{options.cwd}
 
       e_module = new module{options.showname}
@@ -51,13 +73,13 @@ evaluator{match options} =
          cache = require.cache
       }
 
-      save = {
-         __filename = global.__filename
-         __dirname = global.__dirname
-         module = global.module
-         require = global.require
-         exports = global.exports
-      }
+      ;; save = {
+      ;;    __filename = global.__filename
+      ;;    __dirname = global.__dirname
+      ;;    module = global.module
+      ;;    require = global.require
+      ;;    exports = global.exports
+      ;; }
 
       setup = {
          __filename = options.filename
@@ -68,13 +90,13 @@ evaluator{match options} =
       }
 
       {code} ->
-         global &: setup
+         glob &: setup
          script = vm.createScript{code, options.showname}
          rval = script.runInThisContext{}
-         global &: save
+         ;; glob &: save
          rval
 
-   else ->
+   else:
       __eval = eval
       {code} -> __eval{code}
 
@@ -82,6 +104,7 @@ evaluator{match options} =
 class Pipeline:
 
    constructor{} =
+      @gensym = GenSym{"_$$_"}
       @_expander = std.make_expander{@}
       @env = @_expander.mkenv{}
 
@@ -94,20 +117,26 @@ class Pipeline:
 
    translate{ast} =
       res = opt.hoist{ast}
-      tr = Translator{}
+      globvar = @gensym{"global"}
+      tr = Translator{null, globvar}
       rval = collapse{tr.translate{res, .expr}}
       prep = tr.dump_store{}
       {
          ;; code = to5.compile{r, {}}
          {=> code} = to5.transform{r}
+         globvar = globvar
+         global = null
          location = ast.location
       } where
          r = prep + ";(" + rval + ")"
 
    evaluate{src} =
       loc = src.location or {source = {url = "<eval>"}}
+      print src.code
       ev{src.code} where
          ev = evaluator with {
+            globvar = src.globvar
+            global = src.global
             filename = loc.source.url
             showname = loc.source.url
             cwd = loc.source.url
@@ -311,7 +340,6 @@ class Generator:
                   "\n/" + "/# sourceMappingURL=" + smname + ".map\n"
                result
 
-
    evaluate{source} =
       if [not @_eval]:
          file = source.url
@@ -320,4 +348,14 @@ class Generator:
             showname = file
             cwd = file
          }
-      @_eval{@generate{source}}
+      @_eval{@generate{source, {noboil = true}}.code}
+
+   evaluateInteractive{source, opts = {=}} =
+      if [not @_eval]:
+         file = source.url
+         @_eval = evaluator with {
+            filename = file
+            showname = file
+            cwd = file
+         }
+      @_eval{@generateInteractive{source, opts & {noboil = true}}}
