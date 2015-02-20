@@ -48,6 +48,7 @@ global_variables = {
    .clone, .dir
    .getProjector, .getChecker
    .ErrorFactory, .Node
+   .repr
 
    .___build_array
    .___hasprop
