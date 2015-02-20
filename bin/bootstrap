@@ -21,13 +21,13 @@ function rmrf(path) {
 var i = 0;
 var name = i == n ? "lib" : "temp_bootstrap_" + i;
 console.log("Making", name)
-r.run(["compile", "-vso", name, "src"]);
+r.run(["compile", "-5vso", name, "src"]);
 while (i < n) {
     r = require("../" + name + "/run");
     i++;
     name = i == n ? "lib" : "temp_bootstrap_" + i;
     console.log("Making", name)
-    r.run(["compile", "-vso", name, "src"]);
+    r.run(["compile", "-5vso", name, "src"]);
 }
 
 for (var i = 0; i < n; i++) {
