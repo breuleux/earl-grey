@@ -11,7 +11,7 @@ require:
    fs, path
    "earlgrey-runtime"
    "6to5/polyfill"
-   "source-map-support" as smsupport
+   ;; "source-map-support" as smsupport
 
 provide:
    run
@@ -20,7 +20,7 @@ globals:
    JSON
 
 
-smsupport.install{}
+;; smsupport.install{}
 
 
 
@@ -392,13 +392,14 @@ _run{match, opts} =
 
       match rest:
          when o.evaluate ->
-            code = _gen{o.evaluate, "<cli>", o}
+            {=> code, => map} = _gen{o.evaluate, "<cli>", o}
             match:
                when o.output ->
                   fs.writeFileSync{o.output} with
                      code + "\n"
                else ->
-                  console.log with code
+                  require: "js-beautify" -> js as beaut
+                  console.log with beaut{code}
          {} ->
             usage_error{"Must provide at least one file or directory to compile."}
          {p} ->
