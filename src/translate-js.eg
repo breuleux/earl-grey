@@ -453,7 +453,7 @@ class Translator:
 
          #variable{s} ->
             @expr{x, mode} where x =
-               if @globvar and expr.top and not s in {"this", "typeof"}:
+               if @globvar and expr.top and not s in {"this", "arguments", "typeof"}:
                   @globvar + "." + @mangle{s}
                else:
                   @mangle{s}
