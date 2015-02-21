@@ -15,7 +15,10 @@ require:
 
 a <<: b =
    transferLocation{a, b}
-   a &: {name = b.name}
+   match a:
+      Error? -> a
+      when b.name -> a &: {name = b.name}
+      else -> a
 
 
 provide:

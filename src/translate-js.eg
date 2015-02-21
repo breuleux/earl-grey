@@ -574,7 +574,7 @@ class Translator:
             throw other
 
       match rval:
-         Node? n ->
+         ENode? n ->
             if not n.props.origin:
                n.props.origin = expr
             n

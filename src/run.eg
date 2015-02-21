@@ -9,8 +9,8 @@ require:
       highlight_locations
       ;; display_error
    fs, path
-   "earlgrey-runtime"
-   "6to5/polyfill"
+   "earlgrey-runtime/5"
+   ;; "6to5/polyfill"
    ;; "source-map-support" as smsupport
 
 provide:
@@ -74,7 +74,7 @@ display_error{match e, rethrow = false} =
       pr{highlight_locations{locs, 0}} where pr{match} =
          String? s ->
             accum += s
-         Node? n ->
+         ENode? n ->
             {var pre, var post} = match n:
                [.hl1 %]? -> {"\x1B[1;32m", "\x1B[0m"}
                [.hl2 %]? -> {"\x1B[1;33m", "\x1B[0m"}

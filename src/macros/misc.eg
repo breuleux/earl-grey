@@ -102,7 +102,7 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
          #array{}
       x -> x
 
-   node = form.env.mark{`Node`}
+   node = form.env.mark{`ENode`}
    `[^node]{^tags, ^kv, ^contents}`
 
 mac{"S"}! S_mac{context, info, form, arg} =

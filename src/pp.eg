@@ -17,7 +17,7 @@ pr_terminus{node} =
    console.log with [pre + r + post]
 
 pr{match, r} =
-   Node? n ->
+   ENode? n ->
       pr_terminus{n}
    x ->
       pr_terminus{[r or repr]{x}}
@@ -73,7 +73,7 @@ HTML{match, default_tag} =
       [...].join{""} with
          children each child -> HTML{child, default_tag}
 
-   Node? {=> tags, => props, => children} ->
+   ENode? {=> tags, => props, => children} ->
       var tag = default_tag or "span"
       classes = {}
       var id = null
@@ -116,7 +116,7 @@ HTML{match, default_tag} =
                {">", *children2, "</", tag, ">"}
 
 
-   ;; Node? {=> classes, => children} ->
+   ;; ENode? {=> classes, => children} ->
    ;;    var tag = default_tag or "span"
    ;;    _classes = {}
    ;;    var id = null

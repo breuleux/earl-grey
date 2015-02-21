@@ -161,12 +161,12 @@ generate{source} =
 
 
 collapse{match node} =
-   Node? {=> tags, => props, => children} ->
+   ENode? {=> tags, => props, => children} ->
       parts = {}
       acc{children} where acc{match} =
          String? s -> parts.push with s
          Array? [each x] -> acc{x}
-         Node? n -> parts.push with collapse{n}
+         ENode? n -> parts.push with collapse{n}
       parts.join{""}
    String? s ->
       s
@@ -175,12 +175,12 @@ collapse{match node} =
       throw E.invalid_translation_node{node}
 
 makeAnnotatedAST{match node} =
-   Node? {=> tags, => props, => children} ->
+   ENode? {=> tags, => props, => children} ->
       parts = {}
       acc{children} where acc{match} =
          String? s -> parts.push with s
          Array? [each x] -> acc{x}
-         Node? n -> parts.push with makeAnnotatedAST{n}
+         ENode? n -> parts.push with makeAnnotatedAST{n}
 
       if props.origin and props.origin.location:
          loc = props.origin.location
@@ -250,8 +250,14 @@ class Generator:
       result = splice %
          "\n'use strict';"
          ;; if{opts.to5, "require('traceur-runtime');", ""}
-         if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
-         if{not opts.noboil, "require('earlgrey-runtime');", ""}
+         match opts.noboil:
+            true? -> ""
+            when opts.to5 ->
+               "require('earlgrey-runtime/5');"
+            else ->
+               "require('earlgrey-runtime/6');"
+         ;; if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
+         ;; if{not opts.noboil, "require('earlgrey-runtime');", ""}
          result
       result = collapse{result}
 
@@ -290,8 +296,14 @@ class Generator:
          result = splice %
             "\n'use strict';"
             ;; if{opts.to5, "require('traceur-runtime');", ""}
-            if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
-            if{not opts.noboil, "require('earlgrey-runtime');", ""}
+            match opts.noboil:
+               true? -> ""
+               when opts.to5 ->
+                  "require('earlgrey-runtime/5');"
+               else ->
+                  "require('earlgrey-runtime/6');"
+            ;; if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
+            ;; if{not opts.noboil, "require('earlgrey-runtime');", ""}
             @tr.dump_store{} ;; useless at this point I think
             result
 

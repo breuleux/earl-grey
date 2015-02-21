@@ -158,6 +158,10 @@ X `is` should be `===`
 * f{each x, match} will complain that it cannot resolve each; figure
   out why that happens *exactly* and fix it.
 
+* The "top" and "mutable" fields of #variable are too easy to lose
+  track of despite its significance. Change to #variable{name, opts}
+  or something like that.
+
 * Produce an error when the same variable is found multiple times in a
   pattern
 * '[...] should annotate the result with location information,

@@ -102,11 +102,11 @@ mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
             push{}
             p = form.env.mark{#parse{expr}}
          ""  ->
-            parts.push with `Node{{}, {=}, {^p}}`
+            parts.push with `ENode{{}, {=}, {^p}}`
          tag ->
-            parts.push with `Node{{^=tag}, {=}, {^p}}`
+            parts.push with `ENode{{^=tag}, {=}, {^p}}`
    push{}
-   `Node{{.join}, {=}, {^*parts}}`
+   `ENode{{.join}, {=}, {^*parts}}`
 
 
 ;; mac{"'"}! quaint_mac{context, info, form, expr and #value{s}} =
