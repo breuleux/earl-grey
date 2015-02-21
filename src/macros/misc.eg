@@ -105,11 +105,14 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
    node = form.env.mark{`ENode`}
    `[^node]{^tags, ^kv, ^contents}`
 
-mac{"S"}! S_mac{context, info, form, arg} =
-   #value with
-      match info.gettext{arg}:
-         R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
-         text -> text
+mac{"S"}! S_mac{context, info, form, match arg} =
+   #send{#symbol{"'"}, _} ->
+      `String{^arg}`
+   else ->
+      #value with
+         match info.gettext{arg}:
+            R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
+            text -> text
 
 mac{"print"}! print_mac{context, info, form, match} =
    #void{} ->
