@@ -106,7 +106,7 @@ mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
          tag ->
             parts.push with `ENode{{^=tag}, {=}, {^p}}`
    push{}
-   `ENode{{.join}, {=}, {^*parts}}`
+   `ENode{{}, {=}, {^*parts}}`
 
 
 ;; mac{"'"}! quaint_mac{context, info, form, expr and #value{s}} =
