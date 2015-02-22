@@ -17,7 +17,10 @@ function rmrf(path) {
     }
 }
 
-var name = "lib";
-console.log("Making", name)
-r.run(["compile", "-5vslo", name, "src"]);
-console.log("done")
+var version = process.argv[2] || "-6"
+var name = "lib" + version[1];
+var opts = version + "vslo";
+
+console.log("Making", name);
+r.run(["compile", opts, name, "src"]);
+console.log("done");

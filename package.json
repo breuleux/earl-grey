@@ -2,7 +2,7 @@
   "name": "earlgrey",
   "version": "0.0.0",
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
-  "main": "./lib/earl-grey.js",
+  "main": "./6.js",
   "dependencies": {
     "earlgrey-runtime": "0.0.0",
     "js-beautify": "1.5.x",
@@ -13,7 +13,8 @@
     "source-map-support": "^0.2.9"
   },
   "bin": {
-    "earl": "bin/earl"
+    "earl": "bin/earl",
+    "node-earl": "bin/node-earl"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

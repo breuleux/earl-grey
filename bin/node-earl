@@ -1,5 +1,5 @@
-#!/usr/bin/env iojs
+#!/usr/bin/env node
 
 require("source-map-support").install();
-r = require("../lib6/run");
+r = require("../lib5/run");
 r.run(process.argv.slice(2));
