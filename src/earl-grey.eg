@@ -216,7 +216,8 @@ class Generator:
       @expander = std.make_expander{@pipeline}
 
    generateInteractive{source, opts} =
-      opts = {noboil = @interactive, to5 = false} & opts
+
+      opts = {noboil = @interactive, to5 = true} & opts
 
       t = tokenize{source}
       p = parse{t}
@@ -269,6 +270,7 @@ class Generator:
 
 
    generate{source, opts} =
+
       opts = {noboil = @interactive, to5 = true} & opts
 
       t = tokenize{source}
