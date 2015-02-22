@@ -351,9 +351,8 @@ class Generator:
                   "\n/" + "/# sourceMappingURL=" + smname + ".map\n"
                result
 
-   evaluate{source} =
+   getEval{file} =
       if [not @_eval]:
-         file = source.url
          @_eval = evaluator with {
             globvar = @tr.globvar
             global = null
@@ -361,16 +360,11 @@ class Generator:
             showname = file
             cwd = file
          }
-      @_eval{@generate{source, {noboil = true}}.code}
+      @_eval
+
+   evaluate{source} =
+      @getEval{source.url}{@generate{source, {noboil = true}}.code}
 
    evaluateInteractive{source, opts = {=}} =
-      if [not @_eval]:
-         file = source.url
-         @_eval = evaluator with {
-            globvar = @tr.globvar
-            global = null
-            filename = file
-            showname = file
-            cwd = file
-         }
-      @_eval{@generateInteractive{source, opts & {noboil = true}}}
+      @getEval{source.url}{@generateInteractive{source, opts & {noboil = true}}}
+
