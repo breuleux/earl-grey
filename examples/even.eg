@@ -7,9 +7,9 @@ floor_even{match} =
    odd? x -> x - 1
    x -> floor_even{Math.floor{x}}
 
-console.log with
+print {
    even? 4
    even? 5
    floor_even{7}
    floor_even{13.5}
-
+}

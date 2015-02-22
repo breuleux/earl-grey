@@ -3,5 +3,4 @@ fact{match} =
    0 -> 1
    n -> n * fact{n - 1}
 
-console.log with
-   fact{15}
+print fact{15}

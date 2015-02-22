@@ -4,5 +4,4 @@ fib{match} =
    1 -> 1
    n -> fib{n - 1} + fib{n - 2}
 
-console.log with
-   fib{30}
+print fib{30}

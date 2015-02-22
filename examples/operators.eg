@@ -9,35 +9,34 @@ h{x} = 3 ** x
 ;; I have yet to provide hooks to define precedence rules
 fgh = f @@ [g @@ h]
 
-console.log with
-   1..10 each i -> fgh{i}
+print 1..10 each i -> fgh{i}
 
 
 ;; Let's swap some variables!
 macro [<=>]{*, #data{a, b}}:
-   ' | let temp = ^a
-     | ^a = ^b
-     | ^b = temp
+   ```
+   let temp = ^a
+   ^a = ^b
+   ^b = temp
+   ```
 
 var x = 10
 var y = 20
-console.log with
-   x, y
+print {x, y}
 
 x <=> y
-console.log with
-   x, y
+print {x, y}
 
 var temp = 60
 temp <=> x
-console.log with
-   x, temp
+print {x, temp}
 
 
 ;; Besides their predefined priority, there's really nothing special
 ;; about the standard operators
-console.log with
+print {
    10 + 4 / 8
    10 + 4 / 8 where
       a + b = a - b
       a / b = a * b
+}

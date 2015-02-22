@@ -2,7 +2,7 @@
 bottle{match} =
    0 -> "no more bottles"
    1 -> "one bottle"
-   n -> [String! n] + " bottles"
+   n -> String! '{n} bottles'
 
 action{match} =
    0 -> "Go to the store and buy some more,"
@@ -13,8 +13,6 @@ capitalize{s} =
 
 0..99 each i ->
    n = 99 - i
-   console.log with
-      capitalize{bottle{n}}, "of beer on the wall,", bottle{n}, "of beer."
-   console.log with
-      action{n}, bottle{[n + 99] mod 100}, "of beer on the wall."
-   console.log{}
+   print String! '{capitalize{bottle{n}}} of beer on the wall, {bottle{n}} of beer.'
+   print String! '{action{n}} {bottle{[n + 99] mod 100}} of beer on the wall.'
+   print ""
