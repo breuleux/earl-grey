@@ -1,6 +1,6 @@
 
 require:
-   "../lib/pp" ->
+   "../lib6/pp" ->
       <>
 
 

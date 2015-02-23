@@ -129,6 +129,8 @@ X source maps
 X `is` should be `===`
 
 
+* allow for async generators
+* async! f{match} will not work because of the wrapping. fix it
 * some errors are misreported; check try: x, catch: y (with no
   variable in the catch).
 * Allow catch with no variable for the error.

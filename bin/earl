@@ -1,5 +1,6 @@
 #!/usr/bin/env iojs
 
+require("earlgrey-runtime/5");
 require("source-map-support").install();
 r = require("../lib6/run");
 r.run(process.argv.slice(2));
