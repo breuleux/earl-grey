@@ -53,9 +53,8 @@ regexps = {
   ;; ex. abc, Abc123, _x, $, a$b$c
   id = R```
      start
-     "..." or
-        in "a-zA-Z$_" or ["\\_", any]
-        * [in "a-zA-Z$_0-9" or ["\\_", any]]
+     in "a-zA-Z$_" or ["\\_", any]
+     * [in "a-zA-Z$_0-9" or ["\\_", any]]
   ```
 
   id_f = {m} ->

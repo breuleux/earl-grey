@@ -60,6 +60,11 @@ mac{".."}! range_mac{context, _, form, match} =
    #data{x, y} -> `range{^x, ^y}`
    #void{} -> `range`
 
+mac{"..."}! xrange_mac{context, _, form, match} =
+   #data{#void{}, x} -> `range{0, ^x - 1}`
+   #data{x, #void{}} -> `range{^x}`
+   #data{x, y} -> `range{^x, ^y - 1}`
+
 mac{"//"}! floor_mac{context, _, form, #data{a, b}} =
    `Math.floor{^a / ^b}`
 

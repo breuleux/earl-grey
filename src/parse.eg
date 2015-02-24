@@ -513,14 +513,14 @@ finalize{match token} =
 
             var inserted = false
             result = transform{target} with {match expr} ->
-               #symbol{"..."} -> [set inserted = true, #multi{*body} <<: _b]
+               #symbol{"___"} -> [set inserted = true, #multi{*body} <<: _b]
                [x when x.fromop] and #send{f, #data{a, b}} ->
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
                #data{*args} ->
                    tr = this
                    var res = #data
                    args each
-                      #symbol{"..."} -> [set inserted = true, res ++= body]
+                      #symbol{"___"} -> [set inserted = true, res ++= body]
                       other -> res.push with [tr{other} <<: other]
                    res <<: expr
 

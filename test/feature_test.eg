@@ -128,10 +128,9 @@ results = blocktest:
 
       do:
          var re = R"ab*a"
-      [{...} each s -> re? s] with
-         "aa", "aba", "abba", "aadvark", "cabbage"
-      [{...} each s -> not re? s] with
-         "a", "bachi", "bouzouk"
+      {"aa", "aba", "abba", "aadvark", "cabbage"} each s -> re? s
+      {"a", "bachi", "bouzouk"} each s -> not re? s
+         
       "cabbage".replace{re, "arria"} === "carriage"
 
       do:
@@ -139,8 +138,8 @@ results = blocktest:
       ;; TODO: REACTIVATE
       ;; [{...} each re! {_, s} -> R"b+"? s] with
       ;;    "abba", "abbbbbba", "aaaaaba"
-      [{...} each s -> not re? s] with
-         "cabbage", "labia"
+      {"cabbage", "labia"} each s -> not re? s
+
 
    "Chaining" =>
 
