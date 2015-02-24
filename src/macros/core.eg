@@ -108,7 +108,10 @@ mac{"=>"}! fat_arrow_mac{match, {=> env}, _, #data{lhs, rhs}} =
       #assoc{lhs, rhs}
 
 mac{"_lambda"}! _lambda_mac{context, info, form, match} =
-   #data{#data{*args} and arg, pre, body, post, generator = #value{false}} ->
+   #data{[arg and #data{*args}
+          \ or #multi{*args} and arg is #data{*args}
+          \ or arg is #data{arg} and args is {arg}]
+         pre, body, post, generator = #value{false}} ->
       wrap{body2} =
          if{pre == #value{null}, body3, #multi{pre, body3}} where
             body3 = if{post == #value{null}, body2, #multi{body2, post}}

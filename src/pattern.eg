@@ -92,7 +92,8 @@ class PatternCompiler:
       expr = @info.step{#pattern, pattern}
       rval = match expr:
          #void ->
-            #check{checker_db.null, #ignore}
+            #ignore
+            ;; #check{checker_db.null, #ignore}
          #ignore ->
             expr
          #special{handler} ->
@@ -517,7 +518,7 @@ parse_clauses{info, target, stmts, opt} =
             #symbol{xxx} ->
                vars2[xxx] = true
             other ->
-               throw E.syntax.unexpected{}
+               throw E.syntax.unexpected{"Huh", {expr = other}}
          if opt.wrap:
             pc.handlers.push with opt
          #clause{vars, vars2, blocks, pc.wrapBody{body}}
