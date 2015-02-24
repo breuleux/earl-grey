@@ -11,9 +11,17 @@ inject: mac
 ;; QUOTE ;;
 ;;;;;;;;;;;
 
-mac{"`"}! quote_mac{context, info, form, expr and #value{s}} =
-   info.mark{`^qq{expr} &: {ast = true}`} where
-      expr = info.go{Source{s, "<quasiquote>"}, .source, .parse}
+mac{"`"}! quote_mac{match context, info, form, expr and #value{s}} =
+   do:
+      parsed = info.go{Source{s, "<quasiquote>"}, .source, .parse}
+   ;; #expr ->
+   ;;    info.mark{`^qq{parsed, true} &: {ast = true}`}
+   else ->
+      info.mark{qq{parsed}}
+
+;; mac{"`"}! quote_mac{context, info, form, expr and #value{s}} =
+;;    parsed = info.go{Source{s, "<quasiquote>"}, .source, .parse}
+;;    info.mark{qq{parsed}}
 
 
 ;;;;;;;;;;;;;;;;;

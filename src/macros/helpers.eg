@@ -359,7 +359,7 @@ class AssignmentHandler:
 qqstruct{name, args} =
    #data{#value{name}, *args}
 
-qq{match expr} =
+qq{match expr, annotate = false} =
    #symbol{s} -> qqstruct{.symbol, {#value{s}}}
    #char{s} -> qqstruct{.char, {#value{s}}}
    #void{} -> qqstruct{.void, {}}
@@ -373,11 +373,11 @@ qq{match expr} =
       `[* ^insert]`
    #mismix{ops, *args} ->
       qqstruct{.mismix
-               {#data{*[ops each op -> qq{op}]}
-                *[args each arg -> qq{arg}]}}
+               {#data{*[ops each op -> qq{op, annotate}]}
+                *[args each arg -> qq{arg, annotate}]}}
    {name, *args} ->
-      res = qqstruct{name, args each arg -> qq{arg}}
-      if expr.fromop:
+      res = qqstruct{name, args each arg -> qq{arg, annotate}}
+      if annotate and expr.fromop:
          `^res & {fromop = true}`
       else:
          res

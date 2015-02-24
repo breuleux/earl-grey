@@ -220,7 +220,8 @@ class PatternCompiler:
       if [not @opt.allow_arguments and @arguments.length]:
          throw E.syntax.pattern.arguments with
             "Arguments cannot be declared in this pattern"
-            {args = @arguments[0]}
+            {args = @arguments[0]
+             rhs = rhs}
       [@opt.wrap_target or identity]! real_rhs =
          if @arguments.length:
             then:
