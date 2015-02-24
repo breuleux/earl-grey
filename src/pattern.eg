@@ -458,7 +458,7 @@ assemble_pattern{parts, t, f = null} =
    if parts.length:
       then:
          test = construct{parts}
-         #multi{*lead, ...} with
+         #multi{*lead, x} where x =
             if f:
                then: `if{^test, [^*trail, ^t], ^f}`
                else: `if{^test, [^*trail, ^t]}`

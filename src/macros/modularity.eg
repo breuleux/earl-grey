@@ -82,6 +82,6 @@ mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
        ```}
 
 mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
-   #splice{*[...], `undefined`} with
+   #splice{*globs, `undefined`} where globs =
       vars each variable and #symbol{s} ->
          #declare_raw{variable, #variable{s} &: {top = true}}

@@ -270,7 +270,7 @@ class Expander:
    ;; expr: the expression to expand (one step)
 
    step{context, scope, expr} =
-      helper = track_location{...} with {context, scope, match expr} ->
+      track_location! helper{context, scope, match expr} =
          #symbol{s} ->
             env = match expr:
                {=> env} -> expr.env
@@ -358,7 +358,7 @@ class Expander:
    ;; is, more or less, the handler for the #expr context.
 
    expand{context, scope, expr} =
-      helper = track_location{...} with {context, scope, var expr} ->
+      track_location! helper{context, scope, var expr} =
          set expr = @step{context, scope, expr}
    
          match expr:
@@ -471,7 +471,7 @@ class Expander:
                   ;;    helper{#expr{...}, s, arg} with
                   ;;       if{i === newargs.length - 1, .expr, .ignore}
                   stepped = enumerate{newargs} each {i, arg} ->
-                     @step{#expr{...}, s, arg} with
+                     @step{#expr{e}, s, arg} where e =
                         if{i === [newargs.length - 1], .expr, .ignore}
                   stepped each arg -> helper{#expr{.expr}, s, arg}
                if changes:
@@ -521,15 +521,15 @@ class Expander:
    
                r = match arr_parts:
                   {} when is_obj ->
-                     util.construct{obj_parts, ..., #object{}} with
-                        {x, rest} -> `[^x &: ^rest]`
+                     util.construct{obj_parts, f, #object{}} where
+                        f{x, rest} = `[^x &: ^rest]`
 
                   when is_obj ->
                      throw E.syntax.array.object{"Cannot mix array and object notations."}
    
                   other ->
-                     util.construct{arr_parts.reverse{}, ..., #array{}} with
-                        {x, rest} -> `[^rest].concat{^x}`
+                     util.construct{arr_parts.reverse{}, f, #array{}} where
+                        f{x, rest} = `[^rest].concat{^x}`
                helper{context, scope, @mkenv{}.mark{r}}
    
             #assign{target, value} ->

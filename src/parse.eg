@@ -176,7 +176,7 @@ MAX = 1/0
 
 eg_order = SimplePriority{eg_groups, eg_prio} where
 
-   eg_groups = OperatorGroups{{...}} with
+   eg_groups = OperatorGroups with {
 
       sh_ifx = {{match} -> [#IFX{.short, _} -> true, _ -> false]}
       sh_pfx = {{match} -> [#PFX{.short, _} -> true, _ -> false]}
@@ -226,8 +226,9 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
       pipe = {"X_|>_Y"}
 
+   }
 
-   eg_prio = {...} with
+   eg_prio = {
       comma    = {#all{1}, #all{1}}
       obrack   = {#all{MAX}, #all{1}}
       cbrack   = {#all{1}, #all{MAX}}
@@ -274,6 +275,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       wi_pfx   = {#all{MAX}, #all{901}}
       wi_sfx   = {#all{900}, #all{MAX}}
 
+   }
 
 
 

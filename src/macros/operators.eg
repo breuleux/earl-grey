@@ -6,7 +6,7 @@ require:
 
 inject: mac
 
-[items{{...}} each {k, v} -> mac{k}{v}] with
+[items{defns} each {k, v} -> mac{k}{v}] where defns = {
 
    "===" => partial_pattern{"==="}
    "!==" => partial_pattern{"!=="}
@@ -31,6 +31,7 @@ inject: mac
    "and=" => make_assigner{"and"}
    "each=" => make_assigner{"each"}
 
+}
 
 mac{"is"}! is_mac{match, _, form, #data{x, y}} =
    #pattern ->

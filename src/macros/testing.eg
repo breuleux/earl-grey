@@ -14,10 +14,13 @@ inject: mac
 
 blocktest_wrap{expr} =
    ```
-   value = [[...] !! e -> #error{e}] with
-      match [^expr]:
-         true? x -> #success{x}
-         false? x -> #failure{x}
+   value =
+      try:
+         match [^expr]:
+            true? x -> #success{x}
+            false? x -> #failure{x}
+      catch e:
+         #error{e}
    acc.push with
       #test_result{label, value}
    ```
@@ -52,8 +55,10 @@ _blocktest_mac{info, tests} =
 
    ```
    let [var acc = {}]:
-      [[...] !! e -> acc.concat{{#error{label, e}}}] with
+      try:
          [^*stmts, acc]
+      catch e:
+         acc.concat{{#error{label, e}}}
    ```
 
 mac{"blocktest"}! blocktest_mac{context, info, form, #data{*match}} =

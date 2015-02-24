@@ -108,7 +108,7 @@ class Translator:
          undefined? ->
             temp = #symbol{gensym{}}
             @cache[id] = temp ;; {temp, ___serialize_ast{v}}
-            @prepend.push{@translate{..., .stmt}} with
+            @prepend.push{@translate{x, .stmt}} where x =
                #declare{temp, ___serialize_ast{v}}
             temp
          name ->
@@ -119,7 +119,7 @@ class Translator:
          undefined? ->
             temp = #symbol{gensym{}}
             @cache[id] = temp
-            @prepend.push{@translate{..., .stmt}} with
+            @prepend.push{@translate{x, .stmt}} where x =
                #declare{temp, #raw{raw}}
             temp
          name ->
@@ -240,8 +240,7 @@ class Translator:
                [Number? or [=== true] or [=== false] or null?] ->
                   String{v}
                {"::id" => id} when id ->
-                  @translate{..., mode} with
-                     @register_value{v, id}
+                  @translate{@register_value{v, id}, mode}                     
                other ->
                   throw E.cannot_serialize{
                      "Cannot serialize value"

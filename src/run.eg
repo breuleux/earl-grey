@@ -287,7 +287,7 @@ compile_path{p, opts} =
 
 run{argv} =
    {opts, cmd} =
-      extract_options{argv, ..., "global option"} with {
+      extract_options{argv, defns, "global option"} where defns = {
          h = #flag{"help"}
          help = #flag{"help"}
 
@@ -314,7 +314,7 @@ _run{match, opts} =
 
    {.run, *rawargs} ->
 
-      {o, rest} = extract_options{rawargs, ..., "option for run"} with {
+      {o, rest} = extract_options{rawargs, defns, "option for run"} where defns = {
          e and eval = #value{.evaluate}
          p and .print = #flag{.print}
          i and interactive = #flag{.interactive}
@@ -375,7 +375,7 @@ _run{match, opts} =
 
    {.compile, *rawargs} ->
 
-      {o, rest} = extract_options{rawargs, ..., "option for compile"} with {
+      {o, rest} = extract_options{rawargs, defns, "option for compile"} where defns = {
          o and output     = #value{.output}
          p and "print"    = #flag{.print}
          e and eval       = #value{.evaluate}

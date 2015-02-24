@@ -14,8 +14,9 @@ require:
 
 inject: mac
 
-[items{{...}} each {k, v} -> mac{k}{v}] with
+[items{defns} each {k, v} -> mac{k}{v}] where defns = {
    "@" => var_operator{"$it"}
+}
 
 class ChainHandler:
    constructor{@env} =

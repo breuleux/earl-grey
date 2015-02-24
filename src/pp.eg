@@ -70,7 +70,7 @@ HTML{match, default_tag} =
       escape_html{s}
 
    Array? children ->
-      [...].join{""} with
+      chs.join{""} where chs =
          children each child -> HTML{child, default_tag}
 
    ENode? {=> tags, => props, => children} ->

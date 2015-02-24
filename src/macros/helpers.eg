@@ -179,7 +179,7 @@ build_loop{info, env, form, li, clauses, wrap, pre, post, opt} =
       for[^lbl] [^m of ^li]:
          ^parse_clauses{
               info.with_scope{newscope}, m, clauses
-              opt & {wrap = wrap} ;; & {wrap{x} = wrap{x, '0}}
+              opt & {wrap = wrap} ;; & {wrap{x} = wrap{x, `0`}}
           }
       ^post
    ```
