@@ -172,10 +172,10 @@ regexps = {
      + in "+\\-*/~^<>=%&|?!@#.:"
   ```
 
-  ;; brackets: [], {}
+  ;; brackets: [], {}, ()
   op2 = R```
      start
-     in "[{}],"
+     in "([{}]),"
   ```
 
   ;; Word operators: with, each, each?, where%+%, etc.

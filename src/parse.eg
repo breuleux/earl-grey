@@ -498,8 +498,36 @@ finalize{match token} =
             set sumloc = sumloc ++: arg
 
       orig_ops = ops
+      width = ops[0][1]
       set ops = ops each o -> o[2]
       op = ops[0]
+
+      multiargs{args} =
+
+         set args = args.filter{f} where
+            f{match} = | #void{} -> false
+                       | other -> true
+
+         result = match args:
+            {} ->
+               ;; #void{}
+               ;; #value{undefined}
+               #multi{}
+            ;; throw ["At least one expression must be enclosed in []"]
+            {x} ->
+               ;; Force x's location to include its surrounding []s
+               ;; Highlighted snippets will look strange otherwise when
+               ;; then span multiple nodes: for instance, [a] + [b]
+               ;;                                          ^^^^^^^
+               ;; Note that <<: only sets location if it's not already set
+               globals: isNaN
+               if [not isNaN{sumloc.start} and not isNaN{sumloc.end}]:
+                  x.location = sumloc
+               x
+            other -> #multi{*args}
+
+         result <<: sumloc
+
 
       match {ops, args}:
 
@@ -540,42 +568,36 @@ finalize{match token} =
                else:
                   result <<: sumloc
 
-         ;; {{"[" or ",", *_}, _} ->
          {{"[", *commas, "]"} or commas, _} when commas.every{{x} -> x == ","} ->
             if [op === "["]:
                set args = args.slice{1, -1}
+            multiargs{args} &: {brackets = "[]"}
 
-            set args = args.filter{f} where
-               f{match} = | #void{} -> false
-                          | other -> true
-
-            result = match args:
-               {} ->
-                  ;; #void{}
-                  ;; #value{undefined}
-                  #multi{}
-               ;; throw ["At least one expression must be enclosed in []"]
-               {x} ->
-                  ;; Force x's location to include its surrounding []s
-                  ;; Highlighted snippets will look strange otherwise when
-                  ;; then span multiple nodes: for instance, [a] + [b]
-                  ;;                                          ^^^^^^^
-                  ;; Note that <<: only sets location if it's not already set
-                  globals: isNaN
-                  if [not isNaN{sumloc.start} and not isNaN{sumloc.end}]:
-                     x.location = sumloc
-                  x
-               other -> #multi{*args}
-            result <<: sumloc
-
-         ;; {{"{", *_}, _} ->
          {{"{", *commas, "}"}, _} when commas.every{{x} -> x == ","} ->
             #data{*args.slice{1, -1}.filter{f}} <<: sumloc where
-               f{match} = | #void{} -> false
-                          | other -> true
+               f{match} =
+                  #void{} -> false
+                  other -> true
 
-         {{.WHITE}, _} ->
-            #send{*args} <<: sumloc
+         {{"(", *commas, ")"}, _} when commas.every{{x} -> x == ","} ->
+            multiargs{args} &: {brackets = "()"}
+            ;; #parens{*args.slice{1, -1}.filter{f}} <<: sumloc where
+            ;;    f{match} =
+            ;;       #void{} -> false
+            ;;       other -> true
+
+         ;; {{.WHITE}, _} ->
+         ;;    [#send{*args} &: {width = width}] <<: sumloc
+
+         {{.WHITE}, {f, x}} ->
+            res = match x:
+               #multi{*args} when x.brackets == "()" ->
+                  #send{f, [#data{*args} &: {brackets = "()"}] <<: x} <<: sumloc
+               when x.brackets == "()" ->
+                  #send{f, [#data{x} &: {brackets = "()"}] <<: x} <<: sumloc
+               else ->
+                  #send{f, x}
+            [res &: {width = width}] <<: sumloc
 
          {{_}, match} ->
             {#void{}, #void{}} -> #symbol{op} <<: orig_ops[0]
@@ -586,6 +608,7 @@ finalize{match token} =
                rval = #send{#symbol{op} <<: oloc
                             #data{a, b} <<: abloc} <<: [oloc ++: abloc]
                rval.fromop = true
+               rval.width = width
                rval
 
          {op_strings, args} ->
@@ -601,6 +624,7 @@ finalize{match token} =
          "unknown node (B)"
          {node = token}
       }
+
 
 
 parse{tokens} =

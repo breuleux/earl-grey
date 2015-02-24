@@ -12,8 +12,19 @@ provide:
 stdenv = Env{}
 
 mac{name}{m} =
-   stdenv.bind{topscope, name, #macro{m}}
-   m
+   m2{ctx, info, form, match expr} =
+      {brackets => "()"} ->
+         throw E.syntax.no_parens with
+            "Parentheses cannot be used here.
+             Use [] or {} depending on your intent.
+             []s are usually equivalent to an absence
+             of brackets.
+             ".replace{R.g"\n *", " "}
+            {expr = expr}
+      else ->
+         m.call{this, ctx, info, form, expr}
+   stdenv.bind{topscope, name, #macro{m2}}
+   m2
 
 bind{name, value} =
    stdenv.bind{topscope, name, value}
