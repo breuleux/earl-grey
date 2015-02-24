@@ -122,7 +122,16 @@ class Env:
             args each arg -> @mark{arg}
             expr &: {env = [@]}
          other ->
-            expr &: {env = [@]}
+            other
+
+         ;; Scope? s ->
+         ;;    s
+         ;; other ->
+         ;;    print expr
+         ;;    throw E.syntax.illegal_node{"Illegal node", {node = expr}}
+         ;; other ->
+         ;;    print expr
+         ;;    expr &: {env = [@]}
 
    fork{} =
       e = Env{}
@@ -245,7 +254,11 @@ class Expander:
          e ->
             throw e
 
-      @mkenv{}.mark{rval}
+      try:
+         @mkenv{}.mark{rval}
+      catch e:
+         print rval
+         throw E.syntax.macro{"Macro returned a bad node", {form = form}}
 
 
    ;; Perform one step of expansion.
