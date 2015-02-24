@@ -34,6 +34,8 @@ version = "zero"
 
 evaluator{options} =
 
+   req = require
+
    glob =
       if options.globvar:
          match global[options.globvar]:
@@ -70,7 +72,7 @@ evaluator{options} =
          resolve{path} =
             module._resolveFileName{path, e_module}
          paths = paths
-         cache = require.cache
+         cache = req.cache
       }
 
       ;; save = {

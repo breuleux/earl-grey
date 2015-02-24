@@ -48,6 +48,7 @@ load{lazy}{module, file} =
 extensions = {".eg"}
 
 install{lazy = true} =
+   req = require
    extensions each ext ->
-      require.extensions[ext] = load{lazy}
+      req.extensions[ext] = load{lazy}
 

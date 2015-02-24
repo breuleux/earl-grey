@@ -13,8 +13,12 @@ mac{"__require"}! __require_mac{context, info, form, expr} =
    `[^req][^expr]`
 
 
-mac{"require"}! require_mac{context, info, form, match} =
-   #data{expr} ->
+mac{"require"}! require_mac{context, info, form, match arg} =
+
+   #void{} ->
+      #variable{.require}
+
+   #data{expr} or expr is arg ->
       ;; req = #variable{.require} &: {top = true}
       req = info.mark{`__require`}
       stmts = {}
@@ -51,11 +55,8 @@ mac{"require"}! require_mac{context, info, form, match} =
       produce{expr, topfetch}
       #splice{*stmts}
 
-   #void{} ->
-      #variable{.require}
-
-   arg ->
-      #send{#variable{.require}, arg}
+   ;; arg ->
+   ;;    #send{#variable{.require}, arg}
 
 mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
    exp = form.env.mark{`exports`}
