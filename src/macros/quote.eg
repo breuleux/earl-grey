@@ -12,7 +12,7 @@ inject: mac
 ;;;;;;;;;;;
 
 mac{"`"}! quote_mac{context, info, form, expr and #value{s}} =
-   info.mark{qq{expr}} where
+   info.mark{`^qq{expr} &: {ast = true}`} where
       expr = info.go{Source{s, "<quasiquote>"}, .source, .parse}
 
 

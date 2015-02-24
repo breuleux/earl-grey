@@ -376,4 +376,8 @@ qq{match expr} =
                {#data{*[ops each op -> qq{op}]}
                 *[args each arg -> qq{arg}]}}
    {name, *args} ->
-      qqstruct{name, args each arg -> qq{arg}}
+      res = qqstruct{name, args each arg -> qq{arg}}
+      if expr.fromop:
+         `^res & {fromop = true}`
+      else:
+         res
