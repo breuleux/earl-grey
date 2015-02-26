@@ -103,10 +103,12 @@ evaluator{options} =
       {code} -> __eval{code}
 
 
+globalizer = GenSym{"_$$_"}
+
 class Pipeline:
 
    constructor{} =
-      @gensym = GenSym{"_$$_"}
+      @gensym = globalizer
       @_expander = std.make_expander{@}
       @env = @_expander.mkenv{}
 
@@ -127,7 +129,7 @@ class Pipeline:
          ;; code = to5.compile{r, {}}
          {=> code} = to5.transform{r}
          globvar = globvar
-         global = null
+         global = Object.create{global}
          location = ast.location
       } where
          r = prep + ";(" + rval + ")"
