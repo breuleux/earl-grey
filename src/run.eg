@@ -7,20 +7,14 @@ require:
       Source
       format_error
       highlight_locations
-      ;; display_error
    fs, path
    "earlgrey-runtime/5"
-   ;; "6to5/polyfill"
-   ;; "source-map-support" as smsupport
 
 provide:
    run
 
 globals:
    JSON
-
-
-;; smsupport.install{}
 
 
 usage = "Usage: earl [global options] command [options] [arguments...]

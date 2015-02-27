@@ -17,8 +17,7 @@ require:
       Body
       GenSym
    vm, module, path
-   "6to5" as to5
-   ;; traceur as to5
+   babel as to5
    "source-map" as smap ->
       SourceNode
    "multi-stage-sourcemap" -> transfer
@@ -75,14 +74,6 @@ evaluator{options} =
          cache = req.cache
       }
 
-      ;; save = {
-      ;;    __filename = global.__filename
-      ;;    __dirname = global.__dirname
-      ;;    module = global.module
-      ;;    require = global.require
-      ;;    exports = global.exports
-      ;; }
-
       setup = {
          __filename = options.filename
          __dirname = path.dirname{options.filename}
@@ -95,7 +86,6 @@ evaluator{options} =
          glob &: setup
          script = vm.createScript{code, options.showname}
          rval = script.runInThisContext{}
-         ;; glob &: save
          rval
 
    else:
@@ -126,7 +116,6 @@ class Pipeline:
       rval = collapse{tr.translate{res, .expr}}
       prep = tr.dump_store{}
       {
-         ;; code = to5.compile{r, {}}
          {=> code} = to5.transform{r}
          globvar = globvar
          global = Object.create{global}
@@ -254,21 +243,17 @@ class Generator:
       var result = @tr.translate{ex, .stmt}
       result = splice %
          "\n'use strict';"
-         ;; if{opts.to5, "require('traceur-runtime');", ""}
          match opts.noboil:
             true? -> ""
             when opts.es5 ->
                "require('earlgrey-runtime/5');"
             else ->
                "require('earlgrey-runtime/6');"
-         ;; if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
-         ;; if{not opts.noboil, "require('earlgrey-runtime');", ""}
          result
       result = collapse{result}
 
       if opts.es5:
          result = to5.transform{result, {=}}.code
-         ;; result = to5.compile{result, {=}}
 
       result
 
@@ -301,15 +286,12 @@ class Generator:
       ;; if not opts.noboil:
       result = splice %
          "\n'use strict';"
-         ;; if{opts.to5, "require('traceur-runtime');", ""}
          match opts.noboil:
             true? -> ""
             when opts.es5 ->
                "require('earlgrey-runtime/5');"
             else ->
                "require('earlgrey-runtime/6');"
-         ;; if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
-         ;; if{not opts.noboil, "require('earlgrey-runtime');", ""}
          @tr.dump_store{} ;; useless at this point I think
          result
 
@@ -317,7 +299,6 @@ class Generator:
          result = collapse{result}
          if opts.es5:
             result = to5.transform{result, {=}}.code
-            ;; result = to5.compile{result, {=}}
          {code = result, map = null}
 
       else:
@@ -325,13 +306,6 @@ class Generator:
          result = toCodeAndSourceMap{result, source.url}
 
          if opts.es5:
-            ;; nc = new to5.NodeCompiler{{sourceMaps = .file}}
-            ;; code = nc.compile{result.code, source.url}
-            ;; newmap = transfer with {
-            ;;    fromSourceMap = nc.getSourceMap{}.toString{}
-            ;;    toSourceMap = result.map.toString{}
-            ;; }
-
             {=> code, => map} = to5.transform{result.code, {sourceMap = true}}
             newmap = transfer with {
                fromSourceMap = map
@@ -339,10 +313,6 @@ class Generator:
             }
 
             result = {code = code, map = newmap}
-
-         ;; if opts.to5:
-         ;;    result.code =
-         ;;       "require('traceur-runtime');" + result.code
 
          match opts.sourceMap:
             .inline ->
