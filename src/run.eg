@@ -30,11 +30,12 @@ earl run [options] [file] [arguments...]
   Run the specified file as a script. The arguments are available in
   process.argv.slice{2} of the script.
   Options:
-    -e  --eval <code>  Run the provided code instead of reading from a file.
-    -p  --print        Print the result of the evaluation to standard out.
-    -i  --interactive  Start an interactive interpreter after execution
-                       in the global environment of the script.
-    -l  --lazy         Cache previously run scripts
+    -e  --eval <code>   Run the provided code instead of reading from a file.
+    -p  --print         Print the result of the evaluation to standard out.
+    -i  --interactive   Start an interactive interpreter after execution
+                        in the global environment of the script.
+    -l  --lazy          Cache previously run scripts
+    -v  --verbose       Print information about the operations performed
 
 earl compile [options] [file... | dir]
   Compile the specified source files into .js files. The files will be
@@ -316,14 +317,15 @@ _run{match, opts} =
 
       {o, rest} = extract_options{rawargs, defns, "option for run"} where defns = {
          e and eval = #value{.evaluate}
-         p and .print = #flag{.print}
+         v and verbose = #flag{.verbose}
          i and interactive = #flag{.interactive}
          l and lazy = #flag{.lazy}
+         p and .print = #flag{.print}
       }
       o.noboil = true
 
       require: "./register" as register
-      register.install{o.lazy}
+      register.install{o}
 
       {file, wd, args} =
          if o.evaluate:
@@ -388,7 +390,7 @@ _run{match, opts} =
       }
 
       require: "./register" as register
-      register.install{o.lazy}
+      register.install{o}
 
       match rest:
          when o.evaluate ->

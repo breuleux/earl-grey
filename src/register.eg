@@ -24,8 +24,12 @@ getCache{file, opts = {=}} =
 
    {g, compiled, srcfile} =
       if opts.lazy and cstat and sstat.mtime.getTime{} < cstat.mtime.getTime{}:
+         if opts.verbose:
+            console.error{"Using cached file: " + cache}
          {null, fs.readFileSync{cache, .utf8}, cache}
       else:
+         if opts.verbose:
+            console.error{"Compiling: " + file}
          text = fs.readFileSync{file, .utf8}
          let g = eg.Generator{opts.interactive}
          {=> code, => map} = g.generate{Source{text, file}, {sourceMap = true} & opts}
@@ -34,21 +38,21 @@ getCache{file, opts = {=}} =
             fs.writeFileSync{cache, code}
             fs.writeFileSync{cache + ".map", map}
          catch e:
-            console.err{"Failed to cache compiled version of: " + file}
+            console.error{"Failed to cache compiled version of: " + file}
          {g, code, cache}
 
    {g, compiled, srcfile}
 
 
-load{lazy}{module, file} =
-   {_, compiled, srcfile} = getCache{file, {lazy = lazy}}
+load{opts}{module, file} =
+   {_, compiled, srcfile} = getCache{file, opts}
    module._compile{compiled, srcfile}
 
 
 extensions = {".eg"}
 
-install{lazy = true} =
+install{opts = {lazy = true}} =
    req = require
    extensions each ext ->
-      req.extensions[ext] = load{lazy}
+      req.extensions[ext] = load{opts}
 
