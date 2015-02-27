@@ -23,7 +23,6 @@ globals:
 ;; smsupport.install{}
 
 
-
 usage = "Usage: earl [global options] command [options] [arguments...]
 
 earl run [options] [file] [arguments...]
@@ -36,6 +35,8 @@ earl run [options] [file] [arguments...]
                         in the global environment of the script.
     -l  --lazy          Cache previously run scripts
     -v  --verbose       Print information about the operations performed
+    -5  --es5           Generate and run EcmaScript v5
+    -6  --es6           Generate and run EcmaScript v6 (default)
 
 earl compile [options] [file... | dir]
   Compile the specified source files into .js files. The files will be
@@ -51,9 +52,9 @@ earl compile [options] [file... | dir]
     -n  --noboil        Don't output boilerplate code (useful with -p)
     -s  --sourcemaps    Output source maps for the generated files
     -l  --lazy          Only recompile sources that have changed
+    -v  --verbose       Print information about the operations performed
     -5  --es5           Generate EcmaScript v5
     -6  --es6           Generate EcmaScript v6 (default)
-    -v  --verbose       Print information about the operations performed
 
 earl
   Start an interactive session.
@@ -184,11 +185,11 @@ _gen{text, file, opts} =
    g = eg.Generator{}
    g.generate{Source{text, path.resolve{file}},
               {noboil = opts.noboil
-               to5 = opts.es5 ;; not opts.es6
+               es5 = opts.es5 ;; not opts.es6
                sourceMap = opts.sourcemaps}}
 
 
-interactive{g, e} =
+interactive{g, e, o} =
    require: repl
    g.interactive = true
    settings = {
@@ -203,7 +204,7 @@ interactive{g, e} =
             if inp.trim{} == "":
                callback{null, undefined}
             else:
-               var text = g.generateInteractive{Source{inp, "<interactive>"}}
+               var text = g.generateInteractive{Source{inp, "<interactive>"}, o}
                result = await e{text}
                callback{null, result}
          catch e:
@@ -316,15 +317,21 @@ _run{match, opts} =
    {.run, *rawargs} ->
 
       {o, rest} = extract_options{rawargs, defns, "option for run"} where defns = {
-         e and eval = #value{.evaluate}
-         v and verbose = #flag{.verbose}
+         e and eval        = #value{.evaluate}
+         v and verbose     = #flag{.verbose}
          i and interactive = #flag{.interactive}
-         l and lazy = #flag{.lazy}
-         p and .print = #flag{.print}
+         l and lazy        = #flag{.lazy}
+         p and .print      = #flag{.print}
+         "6" and es6       = #flag{.es6}
+         "5" and es5       = #flag{.es5}
       }
       o.noboil = true
 
+      if not o.es6 and process.title == .node:
+         o.es5 = true
+
       require: "./register" as register
+
       register.install{o}
 
       {file, wd, args} =
@@ -357,11 +364,7 @@ _run{match, opts} =
       else:
          process.argv = {"earl-run", file} ++ rest
 
-         {g, compiled, srcfile} = register.getCache{file} with {
-            interactive = o.interactive
-            noboil = o.noboil
-            lazy = false
-         }
+         {g, compiled, srcfile} = register.getCache{file, o}
          e = eg.evaluator with {
             filename = file
             showname = srcfile
@@ -372,7 +375,7 @@ _run{match, opts} =
       if o.print:
          print result
       if o.interactive:
-         interactive{g, e}
+         interactive{g, e, o}
 
 
    {.compile, *rawargs} ->

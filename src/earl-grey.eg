@@ -221,7 +221,7 @@ class Generator:
 
    generateInteractive{source, opts} =
 
-      opts = {noboil = @interactive, to5 = true} & opts
+      opts = {noboil = @interactive} & opts
 
       t = tokenize{source}
       p = parse{t}
@@ -257,7 +257,7 @@ class Generator:
          ;; if{opts.to5, "require('traceur-runtime');", ""}
          match opts.noboil:
             true? -> ""
-            when opts.to5 ->
+            when opts.es5 ->
                "require('earlgrey-runtime/5');"
             else ->
                "require('earlgrey-runtime/6');"
@@ -266,7 +266,7 @@ class Generator:
          result
       result = collapse{result}
 
-      if opts.to5:
+      if opts.es5:
          result = to5.transform{result, {=}}.code
          ;; result = to5.compile{result, {=}}
 
@@ -275,7 +275,7 @@ class Generator:
 
    generate{source, opts} =
 
-      opts = {noboil = @interactive, to5 = true} & opts
+      opts = {noboil = @interactive} & opts
 
       t = tokenize{source}
       p = parse{t}
@@ -298,24 +298,24 @@ class Generator:
       ;; set ex = opt.eliminate_spurious_variables{ex}
 
       var result = @tr.translate{ex, .stmt}
-      if not opts.noboil:
-         result = splice %
-            "\n'use strict';"
-            ;; if{opts.to5, "require('traceur-runtime');", ""}
-            match opts.noboil:
-               true? -> ""
-               when opts.to5 ->
-                  "require('earlgrey-runtime/5');"
-               else ->
-                  "require('earlgrey-runtime/6');"
-            ;; if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
-            ;; if{not opts.noboil, "require('earlgrey-runtime');", ""}
-            @tr.dump_store{} ;; useless at this point I think
-            result
+      ;; if not opts.noboil:
+      result = splice %
+         "\n'use strict';"
+         ;; if{opts.to5, "require('traceur-runtime');", ""}
+         match opts.noboil:
+            true? -> ""
+            when opts.es5 ->
+               "require('earlgrey-runtime/5');"
+            else ->
+               "require('earlgrey-runtime/6');"
+         ;; if{opts.to5 and not opts.noboil, "require('6to5/polyfill');", ""}
+         ;; if{not opts.noboil, "require('earlgrey-runtime');", ""}
+         @tr.dump_store{} ;; useless at this point I think
+         result
 
       if not opts.sourceMap:
          result = collapse{result}
-         if opts.to5:
+         if opts.es5:
             result = to5.transform{result, {=}}.code
             ;; result = to5.compile{result, {=}}
          {code = result, map = null}
@@ -324,7 +324,7 @@ class Generator:
 
          result = toCodeAndSourceMap{result, source.url}
 
-         if opts.to5:
+         if opts.es5:
             ;; nc = new to5.NodeCompiler{{sourceMaps = .file}}
             ;; code = nc.compile{result.code, source.url}
             ;; newmap = transfer with {
