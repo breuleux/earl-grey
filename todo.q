@@ -132,6 +132,15 @@ X maybe replace ... with ??? and make ... an exclusive range
 X raise left-priority of juxtaposition
 
 
+* object each [k => v] -> [k => v + 1]
+* `[x >> x + 1] = 5` ==> x is 6
+* {a, b, c = 1} ==> {a, b} & {c = 1, "::insert" = 2}
+  send{x, y} would transform y into {a, b, {c = 1}}
+* print b % x probably shouldn't parse as [print b] % x
+* true/false/null/undefined should be like ==true/... implicitly in patterns
+* object, neighbours, etc. should handle iterators in general
+
+
 * fix obj[m]{...} so that it binds the function to this...
   IDEA: obj[m] translates to send(obj, m, true), which returns obj[m].bind(obj)
 
@@ -153,13 +162,11 @@ X raise left-priority of juxtaposition
 * `require` should fail when importing symbols that were not exported
   by a module
 * {[^Symbol.project]{x} = ...}
-* `[x >> x + 1] = 5` ==> x is 6
 * A wrapper to print stack traces when calling an async functions
 * `global x = 123`?
 * Extend functions, e.g. `extend.top! f{x} = ...` and
   `extend.bottom! f{x} = ...`, or bind previous function to super...
 * New macros should extend existing macros
-* object each [k => v] -> [k => v + 1]
 
 
 * Come up with a reliable way to mix multiple wrapping handlers in
