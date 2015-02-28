@@ -97,13 +97,17 @@ class Env:
          scope = scope.parent
       values
 
-   resolve{scope, name} =
+   resolve{scope, name, level = 0} =
       if [scope === null]:
          return undefined
       scope_data = @scopes[scope.name]
       if [scope_data and Object.prototype.hasOwnProperty.call{scope_data, name}]:
-         then: scope_data[name]
-         else: @resolve{scope.parent, name}
+         if level == 0:
+            scope_data[name]
+         else:
+            @resolve{scope.parent, name, level - 1}
+      else:
+         @resolve{scope.parent, name, level}
 
    bind{scope, name, value} =
       if [not @scopes[scope.name]]:
@@ -290,7 +294,7 @@ class Expander:
                other -> throw E.syntax.no_env with
                   "No environment was found to resolve '" + s + "'"
                   {symbol = expr}
-            match env.resolve{scope, s}:
+            match env.resolve{scope, s, expr.level or 0}:
                #macro{m} ->
                   match context:
                      #expr{.head} ->
@@ -378,7 +382,7 @@ class Expander:
    
             #symbol{s} ->
                {=> env} = expr
-               match env.resolve{scope, s}:
+               match env.resolve{scope, s, expr.level or 0}:
                   undefined? ->
                      throw E.syntax.undeclared{"Undeclared variable: " + s, {node = expr}}
                      ;; #variable{"UNDECLARED__" + s}
@@ -446,7 +450,8 @@ class Expander:
                         #ignore
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
-                        if variable.use_previous and env.resolve{newscope, s}:
+                        if variable.use_previous and
+                           \ env.resolve{newscope, s, variable.level or 0}:
                            then:
                               #splice{}
                            else:

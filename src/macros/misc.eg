@@ -229,3 +229,17 @@ mac{"E"}! E_mac = errf_macro{{}} where
                #macro with errf_macro{tags ++ {other}}
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; OUTER AND SCOPE MANIPULATION ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+mac{"outer"}! outer_mac{context, info, form, match} =
+   [#data{x, #value{level} = #value{1}} or x and level is 1] and #symbol{s} is x ->
+      x &: {level = level}
+
+mac{"tagscope"}! tagscope_mac{context, info, form, `{^[#symbol{name}], ^expr}`} =
+   #tagscope{name, expr}
+
+mac{"usescope"}! usescope_mac{context, info, form, `{^[#symbol{name}], ^expr}`} =
+   #use{name, expr}
+
