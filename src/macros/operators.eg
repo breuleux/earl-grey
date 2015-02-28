@@ -3,6 +3,7 @@ require:
    "./helpers" ->
       partial_pattern
       make_assigner
+      overridable
 
 inject: mac
 
@@ -39,7 +40,7 @@ mac{"is"}! is_mac{match, _, form, #data{x, y}} =
    else ->
       `^x === ^y`
 
-mac{"-"}! minus_mac{context, _, form, match expr} =
+overridable! mac{"-"}! minus_mac{context, _, form, match expr} =
    #data{#void{}, #value{Number? n}} ->
       #value{-n}
    #void{} ->
@@ -47,28 +48,31 @@ mac{"-"}! minus_mac{context, _, form, match expr} =
    other ->
       #send{#variable{"-"}, expr}
 
-mac{"++"}! append_mac{context, _, form, match} =
+overridable! mac{"++"}! append_mac{context, _, form, match} =
    #data{#void{}, x} -> #send{#variable{"++"}, #data{#void{}, x}}
    #data{x, #void{}} -> #send{#variable{"++"}, #data{x, #void{}}}
    #data{x, y} -> `[^x].concat{^y}`
    #void{} -> `{x, y} -> x.concat{y}`
    other -> `___build_array{^other}`
 
-mac{".."}! range_mac{context, _, form, match} =
+overridable! mac{".."}! range_mac{context, _, form, match} =
    #data{#void{}, x} -> `range{1, ^x}`
    #data{x, #void{}} -> `range{^x}`
    #data{x, y} -> `range{^x, ^y}`
    #void{} -> `range`
 
-mac{"..."}! xrange_mac{context, _, form, match} =
+overridable! mac{"..."}! xrange_mac{context, _, form, match} =
    #data{#void{}, x} -> `range{0, ^x - 1}`
    #data{x, #void{}} -> `range{^x}`
    #data{x, y} -> `range{^x, ^y - 1}`
 
-mac{"//"}! floor_mac{context, _, form, #data{a, b}} =
-   `Math.floor{^a / ^b}`
+overridable! mac{"//"}! floor_mac{context, _, form, match} =
+   #void{} ->
+      `{a, b} -> Math.floor{a / b}`
+   #data{a, b} ->
+      `Math.floor{^a / ^b}`
 
-mac{"*"}! times_mac{context, _, form, expr} =
+overridable! mac{"*"}! times_mac{context, _, form, expr} =
    match {context, expr}:
       {#pattern, #void{}} ->
          #dynsplice{#ignore{}}
@@ -79,7 +83,7 @@ mac{"*"}! times_mac{context, _, form, expr} =
       other ->
          #send{#variable{"*"}, expr}
 
-mac{"**"}! exp_mac{context, _, form, expr} =
+overridable! mac{"**"}! exp_mac{context, _, form, expr} =
    match {context, expr}:
       {#pattern, #void{}} ->
          #objsplice{#ignore{}}
