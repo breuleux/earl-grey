@@ -82,8 +82,9 @@ evaluator{options} =
          exports = {=}
       }
 
+      glob &: setup
+
       {code} ->
-         glob &: setup
          script = vm.createScript{code, options.showname}
          rval = script.runInThisContext{}
          rval
