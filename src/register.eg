@@ -31,8 +31,8 @@ getCache{file, opts = {=}} =
          if opts.verbose:
             console.error{"Compiling: " + file}
          text = fs.readFileSync{file, .utf8}
-         let g = eg.Generator{{interactive = opts.interactive}}
-         {=> code, => map} = g.generate{Source{text, file}, {sourceMap = true} & opts}
+         let g = eg.Generator{{sourceMap = true} & opts}
+         {=> code, => map} = g.generate{Source{text, file}}
          try:
             fs.mkdirSync{cachedir} !! e -> "ignore error"
             fs.writeFileSync{cache, code}

@@ -178,10 +178,7 @@ copy{src, dest} =
 
 _gen{text, file, opts} =
    g = eg.Generator{opts}
-   g.generate{Source{text, path.resolve{file}},
-              {noboil = opts.noboil
-               es5 = opts.es5 ;; not opts.es6
-               sourceMap = opts.sourcemaps}}
+   g.generate{Source{text, path.resolve{file}}}
 
 
 interactive{g, e, o} =
@@ -352,9 +349,9 @@ _run{match, opts} =
             showname = "<repl>"
             cwd = "<repl>"
          }
-         g = eg.Generator{{interactive = o.interactive}}
+         g = eg.Generator{o}
          if o.evaluate:
-            result = e{g.generate{Source{o.evaluate, "<repl>"}, o}.code}
+            result = e{g.generate{Source{o.evaluate, "<repl>"}}.code}
 
       else:
          process.argv = {"earl-run", file} ++ rest
@@ -380,7 +377,7 @@ _run{match, opts} =
          p and "print"    = #flag{.print}
          e and eval       = #value{.evaluate}
          n and noboil     = #flag{.noboil}
-         s and sourcemaps = #flag{.sourcemaps}
+         s and sourcemaps = #flag{.sourceMap}
          l and lazy       = #flag{.lazy}
          "6" and es6      = #flag{.es6}
          "5" and es5      = #flag{.es5}

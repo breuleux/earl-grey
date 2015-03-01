@@ -216,12 +216,12 @@ class Generator:
       @env = std.stdenv.fork{}
       @interactive = @opts.interactive
       @_eval = null
-      @pipeline = Pipeline{@opts & {es5 = process.title == .node}}
+      @pipeline = Pipeline{{es5 = process.title == .node} & @opts}
       @expander = std.make_expander{@pipeline}
 
-   generateInteractive{source, opts} =
+   generateInteractive{source, var opts = {=}} =
 
-      opts = {noboil = @interactive} & opts
+      opts = [{noboil = @interactive} & @opts] & opts
 
       t = tokenize{source}
       p = parse{t}
@@ -269,9 +269,9 @@ class Generator:
       result
 
 
-   generate{source, opts} =
+   generate{source, var opts = {=}} =
 
-      opts = {noboil = @interactive} & opts
+      opts = [{noboil = @interactive} & @opts] & opts
 
       t = tokenize{source}
       p = parse{t}
