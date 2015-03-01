@@ -72,7 +72,7 @@ overridable! mac{"//"}! floor_mac{context, _, form, match} =
    #data{a, b} ->
       `Math.floor{^a / ^b}`
 
-overridable! mac{"*"}! times_mac{context, _, form, expr} =
+mac{"*"}! times_mac{context, _, form, expr} =
    match {context, expr}:
       {#pattern, #void{}} ->
          #dynsplice{#ignore{}}

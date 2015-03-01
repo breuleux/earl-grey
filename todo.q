@@ -130,6 +130,8 @@ X `is` should be `===`
 X maybe replace ... with ??? and make ... an exclusive range
   replaced ... with ___
 X raise left-priority of juxtaposition
+X outer
+X tag scope and restore scope
 
 
 * object each [k => v] -> [k => v + 1]
@@ -139,6 +141,8 @@ X raise left-priority of juxtaposition
 * print b % x probably shouldn't parse as [print b] % x
 * true/false/null/undefined should be like ==true/... implicitly in patterns
 * object, neighbours, etc. should handle iterators in general
+* Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
+* perhaps `x! [a -> b, c -> d]` ==> `a -> x! b, c -> x! d` (same for ?)
 
 
 * fix obj[m]{...} so that it binds the function to this...
@@ -155,8 +159,6 @@ X raise left-priority of juxtaposition
 * await in interactive mode
 * insert async/gen automatically if await/yield is seen in the body
   [is that a good idea?]
-* outer
-* tag scope and restore scope
 * `macro` should generate #restmacro to allow for its use below its
   definition in the same scope
 * `require` should fail when importing symbols that were not exported

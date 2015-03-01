@@ -1,14 +1,15 @@
 
 require:
    "./earl-grey" as eg
-   "./pp" ->
-      <>
+   ;; "./pp" ->
+   ;;    <>
    "./location" ->
       Source
       format_error
       highlight_locations
    fs, path
    "earlgrey-runtime/5"
+
 
 provide:
    run
@@ -176,7 +177,7 @@ copy{src, dest} =
 
 
 _gen{text, file, opts} =
-   g = eg.Generator{}
+   g = eg.Generator{opts}
    g.generate{Source{text, path.resolve{file}},
               {noboil = opts.noboil
                es5 = opts.es5 ;; not opts.es6
@@ -351,7 +352,7 @@ _run{match, opts} =
             showname = "<repl>"
             cwd = "<repl>"
          }
-         g = eg.Generator{o.interactive}
+         g = eg.Generator{{interactive = o.interactive}}
          if o.evaluate:
             result = e{g.generate{Source{o.evaluate, "<repl>"}, o}.code}
 

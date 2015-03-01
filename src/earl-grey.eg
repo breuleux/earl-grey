@@ -17,7 +17,7 @@ require:
       Body
       GenSym
    vm, module, path
-   babel as to5
+   ;; babel as to5
    "source-map" as smap ->
       SourceNode
    "multi-stage-sourcemap" -> transfer
@@ -26,10 +26,16 @@ provide:
    evaluator
    Source, Location, highlight_locations
    tokenize, parse
-   Generator, generate
+   Generator ;;, generate
    version
 
-version = "zero"
+version = "0.0.1"
+
+
+es5Transform{x, opts = null} =
+   require: babel
+   babel.transform{x, opts}
+
 
 evaluator{options} =
 
@@ -98,7 +104,7 @@ globalizer = GenSym{"_$$_"}
 
 class Pipeline:
 
-   constructor{} =
+   constructor{@opts} =
       @gensym = globalizer
       @_expander = std.make_expander{@}
       @env = @_expander.mkenv{}
@@ -117,12 +123,16 @@ class Pipeline:
       rval = collapse{tr.translate{res, .expr}}
       prep = tr.dump_store{}
       {
-         {=> code} = to5.transform{r}
+         code =
+            if @opts.es5:
+               es5Transform{r}.code
+            else:
+               r
          globvar = globvar
          global = Object.create{global}
          location = ast.location
       } where
-         r = prep + ";(" + rval + ")"
+         r = "\"use strict\";" + prep + ";(" + rval + ")"
 
    evaluate{src} =
       loc = src.location or {source = {url = "<eval>"}}
@@ -150,8 +160,8 @@ class Pipeline:
          throw E.pipeline{"Unknown pipeline stage: " + start}
 
 
-generate{source} =
-   Generator{}.generate{source}
+;; generate{source} =
+;;    Generator{}.generate{source}
 
 
 collapse{match node} =
@@ -201,12 +211,12 @@ toCodeAndSourceMap{node, url} =
 
 class Generator:
 
-   constructor{interactive = false, globvar = null} =
-      @tr = Translator{null, globvar}
+   constructor{@opts = {=}} =
+      @tr = Translator{null, @opts.globvar}
       @env = std.stdenv.fork{}
-      @interactive = interactive
+      @interactive = @opts.interactive
       @_eval = null
-      @pipeline = Pipeline{}
+      @pipeline = Pipeline{@opts & {es5 = process.title == .node}}
       @expander = std.make_expander{@pipeline}
 
    generateInteractive{source, opts} =
@@ -254,7 +264,7 @@ class Generator:
       result = collapse{result}
 
       if opts.es5:
-         result = to5.transform{result, {=}}.code
+         result = es5Transform{result, {=}}.code
 
       result
 
@@ -299,7 +309,7 @@ class Generator:
       if not opts.sourceMap:
          result = collapse{result}
          if opts.es5:
-            result = to5.transform{result, {=}}.code
+            result = es5Transform{result, {=}}.code
          {code = result, map = null}
 
       else:
@@ -307,7 +317,7 @@ class Generator:
          result = toCodeAndSourceMap{result, source.url}
 
          if opts.es5:
-            {=> code, => map} = to5.transform{result.code, {sourceMap = true}}
+            {=> code, => map} = es5Transform{result.code, {sourceMap = true}}
             newmap = transfer with {
                fromSourceMap = map
                toSourceMap = result.map.toString{}
