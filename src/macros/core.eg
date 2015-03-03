@@ -64,6 +64,8 @@ mac{"="}! equal_mac{match, info, form, expr} =
       match expr:
          #void{} ->
             #assoc{}
+         #data{x and #symbol{s}, #void{}} or #data{#void{}, x and #symbol{s}} ->
+            #assoc{#value{s}, x}
          #data{#symbol{s}, rhs} ->
             ;; special case for the most common situation
             #assoc{#value{s}, rhs}
