@@ -69,6 +69,8 @@ X match in the arguments list of class members
 X Change exception syntax
 X Support single inheritance
 
+X Preserve names for functions
+X Remove :=
 
 X Make ::check etc. non-enumerable
 X [require:] inside [macros:]
@@ -108,6 +110,7 @@ X allow break/continue in list-building `each` by unhoisting the
   NOTE: the solution was simpler: [x = ..., accum.push{x}], and push
         the assignment in when translating
 
+
 X Declare values in if, e.g. if [x = f{y}]: x
   OH: Turns out that already works? I guess it would.
 X change the in operator to actually be useful
@@ -132,8 +135,12 @@ X maybe replace ... with ??? and make ... an exclusive range
 X raise left-priority of juxtaposition
 X outer
 X tag scope and restore scope
+X empty lhs for ->
+X Detect circular references in repr
 
 
+* match x: ..., then result: ...
+* improve match errors
 * object each [k => v] -> [k => v + 1]
 * `[x >> x + 1] = 5` ==> x is 6
 * {a, b, c = 1} ==> {a, b} & {c = 1, "::insert" = 2}
@@ -143,12 +150,22 @@ X tag scope and restore scope
 * object, neighbours, etc. should handle iterators in general
 * Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
 * perhaps `x! [a -> b, c -> d]` ==> `a -> x! b, c -> x! d` (same for ?)
+* define special behavior for a % b in pattern context
+* `async: non-function` should auto-wrap the code
+* `macro f{x}: ...` should become `macro f{x} = ...`
+* MAYBE: `class C{super}: ...` into `class C < super = ...`
+* gen should be rebindable
+* MAYBE: gen! f{x} and async! f{x} ==> gen f{x} and async f{x}
+* ? to return null/error instead of true/false
+* ! to return {null/error, value} instead of {true/false, value}
+* using should work like with in Python
+* catch and finally clauses for do, match, if, and so on
 
+* fallthrough in clauses
 
 * fix obj[m]{...} so that it binds the function to this...
   IDEA: obj[m] translates to send(obj, m, true), which returns obj[m].bind(obj)
 
-* improve match errors
 * x! y shouldn't return null when x throws an error
 
 * allow for async generators
@@ -170,7 +187,6 @@ X tag scope and restore scope
   `extend.bottom! f{x} = ...`, or bind previous function to super...
 * New macros should extend existing macros
 
-
 * Come up with a reliable way to mix multiple wrapping handlers in
   patterns and prevent nonsensical combinations.
 * f{each x, match} will complain that it cannot resolve each; figure
@@ -188,7 +204,6 @@ X tag scope and restore scope
 * maybe use \ for unquote?
 * Use ES6 classes
 * Use ES6 splats
-* Handle mix of array and object
 * revamp the blocktest macro (rename to tests?)
 * match_error could use being more precise
 * make sure macros fail in non-supported contexts and don't have blanket
@@ -225,7 +240,6 @@ X tag scope and restore scope
 
 * Support this projector: [-> String?] f{String?, String?} = ...
 
-* Detect circular references in repr
 * pure ASCII repr{...}
 * ditch pp submodule?
 * print errors properly to a normal console
@@ -234,12 +248,8 @@ X tag scope and restore scope
 
 * Track types at declaration
 
-* Preserve names for functions
-* Remove :=
-
 * @prelude
 * Importing macros
-* Register and auto-compilation
 
 * Eliminate ++ and -- for increment/decrement?
 
@@ -253,7 +263,6 @@ X tag scope and restore scope
 * set up a priority matrix
 
 * support [x each String?] [maybe not...]
-* empty lhs for ->
 * throw actual Error objects...
 
 * add way to inject additional behavior to macros
