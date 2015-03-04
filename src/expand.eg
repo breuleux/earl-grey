@@ -496,14 +496,15 @@ class Expander:
                   then: #scope{vars, #multi{*exp{newscope}}}
                   else: #multi{*exp{scope}}
    
+
             #data{*args} ->
-   
-               var is_obj = false
                var obj = #object{}
                var arr = #array{}
                arr_parts = {}
                obj_parts = {}
-   
+               var index = 0
+               var objindex = null
+
                new_arr_part{} =
                   match arr:
                      #array{} -> false
@@ -511,44 +512,122 @@ class Expander:
                         arr_parts.push{arr}
                         set arr = #array{}
    
+               decl_obj{} =
+                  match objindex:
+                     when index == null ->
+                        throw E.syntax.illegal_object{msg, {node = expr}} where
+                           msg = "Object fields cannot be declared after *rest arguments."
+                     == null ->
+                        objindex = index
+                     == index ->
+                        pass
+                     else ->
+                        throw E.syntax.illegal_object{msg, {node = expr}} where
+                           msg = "Cannot declare object fields at multiple indexes."
+
                new_obj_part{} =
                   match obj:
                      #object{} -> false
                      other ->
                         obj_parts.push{obj}
                         set obj = #object{}
-   
+
                @step_all{#expr{.data}, scope, args} each
                   #assoc{} ->
-                     set is_obj = true
+                     decl_obj{}
                   #assoc{k, v} ->
-                     set is_obj = true
+                     decl_obj{}
                      obj.push with #array{k, v}
                   #dynsplice{expr} ->
+                     index = null
                      new_arr_part{}
                      arr_parts.push{expr}
                   #objsplice{expr} ->
-                     set is_obj = true
+                     decl_obj{}
                      new_obj_part{}
                      obj_parts.push{expr}
                   other ->
+                     if index != null: index += 1
                      arr.push{other}
    
                new_arr_part{}
+               is_obj = objindex != null
+               if is_obj and arr_parts != {}:
+                  obj.push with #array{#value{"::objinsert"}, #value{objindex}}
                new_obj_part{}
-   
+
+               obj =
+                  util.construct{obj_parts, f, #object{}} where
+                     f{x, rest} = `[^x &: ^rest]`
+               arr =
+                  util.construct{arr_parts.reverse{}, f, #array{}} where
+                     f{x, rest} = `[^rest].concat{^x}`
+
                r = match arr_parts:
                   {} when is_obj ->
-                     util.construct{obj_parts, f, #object{}} where
-                        f{x, rest} = `[^x &: ^rest]`
-
+                     obj
                   when is_obj ->
-                     throw E.syntax.array.object{"Cannot mix array and object notations."}
-   
+                     `[^arr &: ^obj]`
                   other ->
-                     util.construct{arr_parts.reverse{}, f, #array{}} where
-                        f{x, rest} = `[^rest].concat{^x}`
+                     arr
+
                helper{context, scope, @mkenv{}.mark{r}}
+
+
+
+            ;; #data{*args} ->
+   
+            ;;    var is_obj = false
+            ;;    var obj = #object{}
+            ;;    var arr = #array{}
+            ;;    arr_parts = {}
+            ;;    obj_parts = {}
+   
+            ;;    new_arr_part{} =
+            ;;       match arr:
+            ;;          #array{} -> false
+            ;;          other ->
+            ;;             arr_parts.push{arr}
+            ;;             set arr = #array{}
+
+            ;;    new_obj_part{} =
+            ;;       match obj:
+            ;;          #object{} -> false
+            ;;          other ->
+            ;;             obj_parts.push{obj}
+            ;;             set obj = #object{}
+   
+            ;;    @step_all{#expr{.data}, scope, args} each
+            ;;       #assoc{} ->
+            ;;          set is_obj = true
+            ;;       #assoc{k, v} ->
+            ;;          set is_obj = true
+            ;;          obj.push with #array{k, v}
+            ;;       #dynsplice{expr} ->
+            ;;          new_arr_part{}
+            ;;          arr_parts.push{expr}
+            ;;       #objsplice{expr} ->
+            ;;          set is_obj = true
+            ;;          new_obj_part{}
+            ;;          obj_parts.push{expr}
+            ;;       other ->
+            ;;          arr.push{other}
+   
+            ;;    new_arr_part{}
+            ;;    new_obj_part{}
+   
+            ;;    r = match arr_parts:
+            ;;       {} when is_obj ->
+            ;;          util.construct{obj_parts, f, #object{}} where
+            ;;             f{x, rest} = `[^x &: ^rest]`
+
+            ;;       when is_obj ->
+            ;;          throw E.syntax.array.object{"Cannot mix array and object notations."}
+   
+            ;;       other ->
+            ;;          util.construct{arr_parts.reverse{}, f, #array{}} where
+            ;;             f{x, rest} = `[^rest].concat{^x}`
+            ;;    helper{context, scope, @mkenv{}.mark{r}}
    
             #assign{target, value} ->
                t = helper{#expr{.expr}, scope, target}
