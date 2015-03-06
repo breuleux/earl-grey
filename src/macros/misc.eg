@@ -139,7 +139,6 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
             #splice{}
          `^lhs = ^rhs` ->
             ;; parse_pattern{info, lhs, rhs} with
-
             PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs} where opt =
                pattern_handlers.build_object & {
                   allow_nested = false
@@ -162,7 +161,8 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
                         other
                   success{_} = #splice{}
                }
-         when false -> pass
+         stmt ->
+            throw E.syntax.class{"Illegal statement in class", {stmt = stmt}}
 
       {ctor_args, ctor_body} = ctor
       ctor_expr =
