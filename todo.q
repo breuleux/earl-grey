@@ -109,6 +109,8 @@ X allow break/continue in list-building `each` by unhoisting the
   accum.push(...) as much as possible
   NOTE: the solution was simpler: [x = ..., accum.push{x}], and push
         the assignment in when translating
+X fix obj[m]{...} so that it binds the function to this...
+  IDEA: obj[m] translates to send(obj, m, true), which returns obj[m].bind(obj)
 
 
 X Declare values in if, e.g. if [x = f{y}]: x
@@ -166,9 +168,6 @@ X Allow f{=> x, => y} as shortcut for f{{=> x, => y}} (etc.)
 * f{a = 1, ...} and the like should be made more efficient.
 
 * fallthrough in clauses
-
-* fix obj[m]{...} so that it binds the function to this...
-  IDEA: obj[m] translates to send(obj, m, true), which returns obj[m].bind(obj)
 
 * x! y shouldn't return null when x throws an error
 

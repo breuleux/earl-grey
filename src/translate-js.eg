@@ -209,7 +209,7 @@ class Translator:
                 splice % [@translate{a, .expr}, op, @translate{b, .expr}]
       splice % ["(", e, ")"]
 
-   translate{expr, mode} =
+   translate{expr, mode, called = false} =
 
       rval = match expr:
 
@@ -257,7 +257,7 @@ class Translator:
                   @translate{f, .expr}
                   "[", @translate{msg, .expr}, "]"
 
-         #send{f, msg and #value{s}} ->
+         #send{f, msg and #value{s}} when called != .send ->
             match:
                when [[typeof{s} === "string"]
                      \ and s.match{R`[start, + in "a-zA-Z_$", end]`}] ->
@@ -285,7 +285,7 @@ class Translator:
             else:
                @expr{x, mode} where x =
                   splice %
-                     @translate{f, .expr}
+                     @translate{f, .expr, true}
                      "("
                      join{args each x -> @translate{x, .expr}, ","}
                      ")"
@@ -295,9 +295,10 @@ class Translator:
             @expr{x, mode} where x =
                splice %
                   codevar, "("
-                  @translate{f, .expr}
+                  @translate{f, .expr, .send}
                   ","
                   @translate{msg, .expr}
+                  if{called, ", true", ""}
                   ")"
 
          #array{*args} ->
