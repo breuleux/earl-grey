@@ -61,31 +61,51 @@ class PatternCompiler:
    fork{pattern} =
       pc = PatternCompiler{null, @info, @opt}
       pc.compiled = pattern
+      pc.vars = @vars
+      pc.arguments = @arguments
+      pc.handlers = @handlers
       pc &: pattern.pinfo
       pc
 
    parse_specs{specs, tags} =
       var rest = undefined
       var has_defaults = false
+      var curidx = 0
+      var insidx = null
+      setInsidx{spec} =
+         if insidx == null:
+            match curidx:
+               null? ->
+                  throw E.syntax.pattern{msg, {expr = spec}} where
+                     msg = "Object patterns cannot be after rest/default arguments."
+               x ->
+                  insidx = x
       rval = classify{.fw, .bw, .keys, .defaults} with
-         @info.step_all{#pattern, specs} each
+         @info.step_all{#pattern, specs} each match spec ->
             #dynsplice{variable} ->
+               curidx = null
                set rest = @expand{variable, tags}
                #ignore
             #assoc{key} ->
+               setInsidx{spec}
                #keys with {key, @expand{key, tags}}
             #assoc{key, subp} ->
+               setInsidx{spec}
                #keys with {key, @expand{subp, tags}}
             #default{variable, value} ->
+               curidx = null
                set has_defaults = true
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
                   else: #defaults with {@expand{variable, tags}, value}
             v when rest === undefined and not has_defaults ->
+               curidx += 1
                #fw with @expand{v, tags}
             v ->
+               curidx = null
                #bw with @expand{v, tags}
       rval.rest = rest
+      rval.insertion_index = insidx
       rval
 
    expand{pattern, tags, toplevel = false, checked = false} =
@@ -194,8 +214,12 @@ class PatternCompiler:
                {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
                   #object_pattern{*keys} &: {pinfo = pinfo}
                {=> keys, => fw, => bw, => defaults, => rest} ->
+                  ;; if @opt.insert_object_argument
                   #all{#array_pattern{fw, bw, defaults, rest}
-                       #object_pattern{*keys}} &: {pinfo = pinfo}
+                       #object_pattern{*keys}} &: {
+                     pinfo = pinfo
+                     insertion_index = specs.insertion_index
+                  }
                ;; other ->
                ;;    throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
                ;;       msg = "Pattern must be an array or an object."

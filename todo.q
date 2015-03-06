@@ -137,29 +137,33 @@ X outer
 X tag scope and restore scope
 X empty lhs for ->
 X Detect circular references in repr
+X {a, b, c = 1} ==> {a, b} & {c = 1, "::insert" = 2}
+  send{x, y} would transform y into {a, b, {c = 1}}
+X `async: non-function` should auto-wrap the code
+X MAYBE: gen! f{x} and async! f{x} ==> gen f{x} and async f{x}
+X Allow f{=> x, => y} as shortcut for f{{=> x, => y}} (etc.)
 
 
 * match x: ..., then result: ...
 * improve match errors
 * object each [k => v] -> [k => v + 1]
 * `[x >> x + 1] = 5` ==> x is 6
-* {a, b, c = 1} ==> {a, b} & {c = 1, "::insert" = 2}
-  send{x, y} would transform y into {a, b, {c = 1}}
 * print b % x probably shouldn't parse as [print b] % x
 * true/false/null/undefined should be like ==true/... implicitly in patterns
 * object, neighbours, etc. should handle iterators in general
 * Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
 * perhaps `x! [a -> b, c -> d]` ==> `a -> x! b, c -> x! d` (same for ?)
 * define special behavior for a % b in pattern context
-* `async: non-function` should auto-wrap the code
 * `macro f{x}: ...` should become `macro f{x} = ...`
 * MAYBE: `class C{super}: ...` into `class C < super = ...`
 * gen should be rebindable
-* MAYBE: gen! f{x} and async! f{x} ==> gen f{x} and async f{x}
 * ? to return null/error instead of true/false
 * ! to return {null/error, value} instead of {true/false, value}
 * using should work like with in Python
 * catch and finally clauses for do, match, if, and so on
+* repr for generator
+
+* f{a = 1, ...} and the like should be made more efficient.
 
 * fallthrough in clauses
 

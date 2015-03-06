@@ -125,6 +125,7 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
             fallback{target} =
                match_error{target}
             tags = {declare_mode = .let}
+            insert_object_argument = true
          }
       cpattern = pc.compile{}
 
@@ -144,6 +145,20 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
                   newv
             _body = pc.wrapBody{body}
             #lambda{newargs, wrap{#multi{*decls, _body}}, generator}
+
+         objp and #object_pattern ->
+            #lambda{{}, wrap{body2}, generator} where
+               body2 = `match arguments[0]: ^arg -> ^body`
+
+         #all{#array_pattern{fw, bw, defaults, rest}, objp} and {insertion_index => i} ->
+            a = `arguments` <<: arg
+            fw.splice{i, 0, objp}
+            pc2 = pc.fork{newp} where
+               newp = #array_pattern{fw, bw, defaults, rest}
+            #lambda{{}, wrap{body2}, generator} where
+               body2 = #multi{pc2.extract_from_rhs{a}
+                              pc.wrapBody{body}}
+
          other ->
             a = `arguments` <<: arg
             #lambda{{}, wrap{body2}, generator} where
