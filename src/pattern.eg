@@ -193,9 +193,12 @@ class PatternCompiler:
                      else: #check{checker_db.Array, patt} &: {pinfo = pinfo}
                {=> keys, fw => {}, bw => {}, defaults => {}, rest => undefined?} ->
                   #object_pattern{*keys} &: {pinfo = pinfo}
-               other ->
-                  throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
-                     msg = "Pattern must be an array or an object."
+               {=> keys, => fw, => bw, => defaults, => rest} ->
+                  #all{#array_pattern{fw, bw, defaults, rest}
+                       #object_pattern{*keys}} &: {pinfo = pinfo}
+               ;; other ->
+               ;;    throw E.syntax.pattern{msg, {node = expr, specs = specs}} where
+               ;;       msg = "Pattern must be an array or an object."
 
          #mode{mode, subp} ->
             @expand{subp, tags & {declare_mode = mode}, toplevel, checked}
