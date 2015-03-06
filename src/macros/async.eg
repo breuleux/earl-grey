@@ -56,7 +56,7 @@ expr_mac2! mac{"async"}! async_mac{match} =
 
 
 mac{"genx"}! genx_mac{match, info, form, expr} =
-   #pattern when expr == #void{} ->
+   when expr == #void{} ->
       #nostep{form}
    #pattern ->
       #project{#macro{mac}, expr, true} where mac{*blah, #data{match e}} =
@@ -79,7 +79,7 @@ mac{"genx"}! genx_mac{match, info, form, expr} =
          throw E.syntax.gen{"gen must be applied on a function", {expr = expr}}
 
 mac{"asyncx"}! async2_mac{match, info, form, expr} =
-   #pattern when expr == #void{} ->
+   when expr == #void{} ->
       #nostep{form}
    #pattern ->
       #project{#macro{mac}, expr, true} where mac{*blah, #data{match e}} =
@@ -99,5 +99,5 @@ mac{"asyncx"}! async2_mac{match, info, form, expr} =
          ;; TODO: this is wrong; post should be inside the spawn
          `_lambda{^arg, ^pre, spawn.call{this, {} *-> ^body}, ^post, ^=false}`
       `{^x}` or x ->
-         `spawn.call{this, {} *-> [try{^x}, catch{e, console.error{e.stack}}]}`
+         `spawn.call{this, {} *-> [try{await ^x}, catch{e, console.error{e.stack}}]}`
 
