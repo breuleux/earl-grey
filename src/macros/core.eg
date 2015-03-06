@@ -112,6 +112,7 @@ mac{"=>"}! fat_arrow_mac{match, {=> env}, _, #data{lhs, rhs}} =
 mac{"_lambda"}! _lambda_mac{context, info, form, match} =
    #data{[arg and #data{*args}
           \ or #multi{*args} and arg is #data{*args}
+          \ or #void{} and args is {} and arg is #data{}
           \ or arg is #data{arg} and args is {arg}]
          pre, body, post, generator = #value{false}} ->
       wrap{body2} =
