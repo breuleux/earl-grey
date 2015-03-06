@@ -688,6 +688,8 @@ class Expander:
             #tagscope{String? tag, body} ->
                helper{context, Scope{scope, @gensym{tag + "/"}}, body}
 
+            #final{x} -> x
+
             {type, *args} when [@generic_nodes.indexOf{type} !== -1] ->
                {type} ++
                   args each arg ->
