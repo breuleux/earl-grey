@@ -53,3 +53,51 @@ expr_mac2! mac{"async"}! async_mac{match} =
    `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
       ;; TODO: this is wrong; post should be inside the spawn
       `_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}`
+
+
+mac{"genx"}! genx_mac{match, info, form, expr} =
+   #pattern when expr == #void{} ->
+      #nostep{form}
+   #pattern ->
+      #project{#macro{mac}, expr, true} where mac{*blah, #data{match e}} =
+         #use{env, x} ->
+            #use{env, mac.call{this, #data{x}}}
+         `^arg -> ^body` ->
+            `^arg *-> ^body`
+         `_lambda{^arg, ^pre, ^body, ^post, ^_}` ->
+            ;; TODO: this is wrong; post should be inside the spawn
+            `_lambda{^arg, ^pre, ^body, ^post, ^=true}`
+         else ->
+            throw E.syntax.gen{"gen must decorate a function", {node = e}}
+   match is expr ->
+      `{^arg -> ^body}` or `^arg -> ^body` ->
+         `^arg *-> ^body`
+      `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
+         ;; TODO: this is wrong; post should be inside the spawn
+         `_lambda{^arg, ^pre, ^body, ^post, ^=true}`
+      else ->
+         throw E.syntax.gen{"gen must be applied on a function", {expr = expr}}
+
+mac{"asyncx"}! async2_mac{match, info, form, expr} =
+   #pattern when expr == #void{} ->
+      #nostep{form}
+   #pattern ->
+      #project{#macro{mac}, expr, true} where mac{*blah, #data{match e}} =
+         #use{env, x} ->
+            #use{env, mac.call{this, #data{x}}}
+         `^arg -> ^body` ->
+            `^arg -> spawn.call{this, {} *-> ^body}`
+         `_lambda{^arg, ^pre, ^body, ^post, ^_}` ->
+            ;; TODO: this is wrong; post should be inside the spawn
+            `_lambda{^arg, ^pre, spawn.call{this, {} *-> ^body}, ^post, ^=false}`
+         else ->
+            throw E.syntax.async{"async must decorate a function", {node = e}}
+   match is expr ->
+      `{^arg -> ^body}` or `^arg -> ^body` ->
+         `^arg -> spawn.call{this, {} *-> ^body}`
+      `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
+         ;; TODO: this is wrong; post should be inside the spawn
+         `_lambda{^arg, ^pre, spawn.call{this, {} *-> ^body}, ^post, ^=false}`
+      `{^x}` or x ->
+         `spawn.call{this, {} *-> [try{^x}, catch{e, console.error{e.stack}}]}`
+
