@@ -1,8 +1,6 @@
 
 require:
    ;; "./earl-grey" as eg
-   "./location" ->
-      Source
    fs
    path
    "source-map-support" as sm
@@ -43,7 +41,10 @@ getCache{file, opts = {=}} =
             console.error{"Using cached file: " + cache}
          {null, fs.readFileSync{cache, .utf8}, cache}
       else:
-         require: "./earl-grey" as eg
+         require:
+            "./earl-grey" as eg
+            "./location" ->
+               Source
          if opts.verbose:
             console.error{"Compiling: " + file}
          text = fs.readFileSync{file, .utf8}
