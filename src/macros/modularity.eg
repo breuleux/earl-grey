@@ -23,8 +23,11 @@ mac{"require"}! require_mac{context, info, form, match arg} =
       req = info.mark{`__require`}
       stmts = {}
 
-      topfetch{pkg, v} =
-         stmts.push with `^v = [^req]{^pkg}`
+      topfetch{pkg, v, args = null} =
+         stmts.push with
+            if args:
+               then: `^v = [^req]{^pkg}[^args]`
+               else: `^v = [^req]{^pkg}`
          v
 
       produce{match expr, fetch} =
@@ -43,14 +46,20 @@ mac{"require"}! require_mac{context, info, form, match arg} =
             fetch{name, #symbol{info.gensym{}}}
 
          #send{#symbol{"as"}, #data{pkg, s}} ->
-            produce{pkg} with {the_pkg, _} ->
-               fetch{the_pkg, s}
+            produce{pkg} with {the_pkg, _, args = null} ->
+               fetch{the_pkg, s, args}
 
          #send{#symbol{"->"}, #data{pkg, subp}} ->
             pkgv = produce{pkg, fetch}
-            produce{subp} with {pkg, v} ->
-                stmts.push with `^v = ^pkgv ^pkg`
-                v
+            produce{subp} with {pkg, v, args = null} ->
+               stmts.push with
+                  if args:
+                     then: `^v = [^pkgv][^pkg][^args]`
+                     else: `^v = [^pkgv][^pkg]`
+               v
+
+         #send{name and #symbol{s}, args and #data{*_}} ->
+            fetch{#value{s}, name, args}
 
       produce{expr, topfetch}
       #splice{*stmts}
