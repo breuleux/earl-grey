@@ -13,59 +13,85 @@ mac{"__require"}! __require_mac{context, info, form, expr} =
    `[^req][^expr]`
 
 
+getreqs{info, req, expr} =
+
+   stmts = {}
+   names = {}
+
+   topfetch{pkg, v, args = null} =
+      stmts.push with
+         if args:
+            then: `let ^v = [^req]{^pkg}[^args]`
+            else: `let ^v = [^req]{^pkg}`
+      v
+
+   produce{match expr, fetch} =
+
+      #symbol{s} ->
+         names.push with expr
+         fetch{#value{s}, expr}
+
+      #value{String? s} ->
+         fetch{expr, #symbol{info.gensym{}} &: {reqname = s}}
+
+      #multi{*subp} or #data{*subp} ->
+         subp each p -> produce{p, fetch}
+         null
+
+      #send{#symbol{"^"}, #data{#void{}, name}} ->
+         fetch{name, #symbol{info.gensym{}} &: {reqname = name}}
+
+      #send{#symbol{"as"}, #data{pkg, s}} ->
+         names.push with s
+         produce{pkg} with {the_pkg, _, args = null} ->
+            fetch{the_pkg, s, args}
+
+      #send{#symbol{"->"}, #data{pkg, subp}} ->
+         pkgv = produce{pkg, fetch}
+         rqn = pkgv.reqname or pkgv[1]
+         produce{subp} with {pkg, v, args = null} ->
+            stmts.push{`let ^v = ^x`} where x =
+               if args:
+                  then: `getProperty{^pkgv, ^pkg, ^=rqn}[^args]`
+                  else: `getProperty{^pkgv, ^pkg, ^=rqn}`
+            v
+
+      #send{name and #symbol{s}, args and #data{*_}} ->
+         names.push with name
+         fetch{#value{s}, name, args}
+
+   produce{expr, topfetch}
+   {stmts, names}
+   
+
+
 mac{"require"}! require_mac{context, info, form, match arg} =
+   do: req = info.mark{`__require`}
 
    #void{} ->
       #variable{.require}
 
+   #value{field} ->
+      #send{req, arg}
+
    #data{expr} or expr is arg ->
-      ;; req = #variable{.require} &: {top = true}
-      req = info.mark{`__require`}
-      stmts = {}
-
-      topfetch{pkg, v, args = null} =
-         stmts.push with
-            if args:
-               then: `^v = [^req]{^pkg}[^args]`
-               else: `^v = [^req]{^pkg}`
-         v
-
-      produce{match expr, fetch} =
-
-         #symbol{s} ->
-            fetch{#value{s}, expr}
-
-         #value{String? s} ->
-            fetch{expr, #symbol{info.gensym{}}}
-
-         #multi{*subp} or #data{*subp} ->
-            subp each p -> produce{p, fetch}
-            null
-
-         #send{#symbol{"^"}, #data{#void{}, name}} ->
-            fetch{name, #symbol{info.gensym{}}}
-
-         #send{#symbol{"as"}, #data{pkg, s}} ->
-            produce{pkg} with {the_pkg, _, args = null} ->
-               fetch{the_pkg, s, args}
-
-         #send{#symbol{"->"}, #data{pkg, subp}} ->
-            pkgv = produce{pkg, fetch}
-            produce{subp} with {pkg, v, args = null} ->
-               stmts.push with
-                  if args:
-                     then: `^v = [^pkgv][^pkg][^args]`
-                     else: `^v = [^pkgv][^pkg]`
-               v
-
-         #send{name and #symbol{s}, args and #data{*_}} ->
-            fetch{#value{s}, name, args}
-
-      produce{expr, topfetch}
+      {stmts, _} = getreqs{info, req, expr}
       #splice{*stmts}
 
-   ;; arg ->
-   ;;    #send{#variable{.require}, arg}
+
+mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
+   #data{expr} or expr is arg ->
+      req = `__require`
+      {stmts, vars} = getreqs{info, req, expr}
+      the_macros = info.go{body, .parse, .eval} where body =
+         #multi{*stmts, #data{*vs}} where
+            vs = vars each v -> `= ^v`
+      #splice{*macs} where macs =
+         items{the_macros} each {k, v} when Function? v ->
+            #declare_raw{#symbol{k} &: {env = info.env}, #macro{f}} where
+               f{ctx, info, form, expr} =
+                  v.call{info, expr}
+
 
 mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
    exp = form.env.mark{`exports`}

@@ -144,6 +144,8 @@ X {a, b, c = 1} ==> {a, b} & {c = 1, "::insert" = 2}
 X `async: non-function` should auto-wrap the code
 X MAYBE: gen! f{x} and async! f{x} ==> gen f{x} and async f{x}
 X Allow f{=> x, => y} as shortcut for f{{=> x, => y}} (etc.)
+X `require` should fail when importing symbols that were not exported
+  by a module
 
 
 * match x: ..., then result: ...
@@ -181,8 +183,6 @@ X Allow f{=> x, => y} as shortcut for f{{=> x, => y}} (etc.)
   [is that a good idea?]
 * `macro` should generate #restmacro to allow for its use below its
   definition in the same scope
-* `require` should fail when importing symbols that were not exported
-  by a module
 * {[^Symbol.project]{x} = ...}
 * A wrapper to print stack traces when calling an async functions
 * `global x = 123`?

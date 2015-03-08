@@ -48,7 +48,7 @@ global_variables = {
    .clone, .dir
    .getProjector, .getChecker
    .ErrorFactory, .ENode
-   .repr
+   .repr, .getProperty
 
    .___build_array
    .___hasprop
