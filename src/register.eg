@@ -6,9 +6,11 @@ require:
    fs
    path
    "source-map-support" as sm
+   "./version" -> version
 
 globals:
    module
+   JSON
 
 provide:
    getCache
@@ -21,12 +23,22 @@ getCache{file, opts = {=}} =
 
    cachedir = path.join{path.dirname{file}, "egcache"}
    cache = path.join{cachedir, path.basename{file}.replace{R".eg$", ".js"}}
+   cacheoptsFile = cache.replace{R".js$", ".json"}
 
    sstat = fs.statSync{file}
    cstat = fs.statSync{cache} !! e -> null
+   cacheopts = JSON.parse{fs.readFileSync{cacheoptsFile, .utf8}} !! e -> null
+   newcacheopts = {
+      versions = {
+         ecmascript = if{opts.es5, 5, 6}
+         earlgrey = version
+      }
+   }
 
    {g, compiled, srcfile} =
-      if opts.lazy and cstat and sstat.mtime.getTime{} < cstat.mtime.getTime{}:
+      if opts.lazy
+         \ and cacheopts == newcacheopts
+         \ and cstat and sstat.mtime.getTime{} < cstat.mtime.getTime{}:
          if opts.verbose:
             console.error{"Using cached file: " + cache}
          {null, fs.readFileSync{cache, .utf8}, cache}
@@ -41,6 +53,7 @@ getCache{file, opts = {=}} =
             fs.mkdirSync{cachedir} !! e -> "ignore error"
             fs.writeFileSync{cache, code}
             fs.writeFileSync{cache + ".map", map}
+            fs.writeFileSync{cacheoptsFile, JSON.stringify{newcacheopts}}
          catch e:
             console.error{"Failed to cache compiled version of: " + file}
          {g, code, cache}
