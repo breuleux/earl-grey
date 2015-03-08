@@ -21,6 +21,7 @@ require:
    "source-map" as smap ->
       SourceNode
    "multi-stage-sourcemap" -> transfer
+   "./version" -> version
 
 provide:
    evaluator
@@ -28,8 +29,6 @@ provide:
    tokenize, parse
    Generator ;;, generate
    version
-
-version = "0.0.1"
 
 
 es5Transform{x, opts = null} =
