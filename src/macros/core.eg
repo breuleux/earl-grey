@@ -134,8 +134,12 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
          #array_pattern{fw, {}, {}, undefined?} ->
             decls = {}
             newargs = zip{fw, args} each {match, arg} ->
-               #assign{expr and #symbol{v}} ->
-                  expr
+               #assign{expr and #symbol{v}} when expr.declare_mode != .set ->
+                  match expr.declare_mode:
+                     .let -> expr &: {mutable = false}
+                     .var -> expr &: {mutable = true}
+                     .unqualified or undefined? ->
+                        expr &: {mutable = false}
                other ->
                   newv = #symbol{info.gensym{.temp}} & {
                      env = info.mkenv{}

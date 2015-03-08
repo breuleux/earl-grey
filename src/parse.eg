@@ -502,7 +502,7 @@ finalize{match token} =
       set ops = ops each o -> o[2]
       op = ops[0]
 
-      multiargs{args} =
+      multiargs{var args} =
 
          set args = args.filter{f} where
             f{match} = | #void{} -> false

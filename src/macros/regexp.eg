@@ -80,7 +80,7 @@ class RegexBuilder:
 build_regexp{x} = RegexBuilder{}.build{x}
 
 accum_flagsf{f} = accum_flags{f, false}
-accum_flagsf! mac{"R"}! regexp_mac{match, info, form, arg, flags} =
+accum_flagsf! mac{"R"}! regexp_mac{match, info, form, var arg, flags} =
    #check or #project ->
       #nostep{form}
    else ->

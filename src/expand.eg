@@ -658,11 +658,16 @@ class Expander:
             #lambda{bindings, body, generator} ->
                newscope = Scope{scope}
                #lambda with
-                  bindings each
+                  bindings each match binding ->
                      #symbol{b} and {=> env} ->
-                        [env.bind{newscope, b, v}, v] where
-                           v = #variable{@gensym{b}}
-                           ;; v = #variable{b}
+                        v = #variable{@gensym{b}} <<: binding
+                        v &: {
+                           mutable = binding.mutable
+                           group_id = binding.group_id
+                           assigned = v
+                        }
+                        env.bind{newscope, b, v}
+                        v
                      #variable and v ->
                         v
                      other ->
