@@ -32,30 +32,8 @@ mac{"await"}! await_mac{match, _, form, arg} =
    otherwise ->
       #nostep{form}
 
-;; expr_mac! mac{"yield"}! yield_mac{_, form, match} =
-;;    'all[^arg] -> #js_yield{arg, #value{true}}
-;;    arg -> #js_yield{arg, #value{false}}
 
-;; expr_mac! mac{"await"}! await_mac{_, form, match} =
-;;    'all[^arg] -> #js_yield{'Promise.all{^arg}, #value{false}}
-;;    'any[^arg] -> #js_yield{'Promise.race{^arg}, #value{false}}
-;;    arg -> #js_yield{arg, #value{false}}
-
-expr_mac2! mac{"gen"}! gen_mac{match} =
-   `{^arg -> ^body}` ->
-      `^arg *-> ^body`
-   `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
-      `_lambda{^arg, ^pre, ^body, ^post, ^=true}`
-
-expr_mac2! mac{"async"}! async_mac{match} =
-   `{^arg -> ^body}` ->
-      `^arg -> spawn.call{this, {} *-> ^body}`
-   `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
-      ;; TODO: this is wrong; post should be inside the spawn
-      `_lambda{^arg, ^pre, spawn{{} *-> ^body}, ^post, ^=false}`
-
-
-mac{"genx"}! genx_mac{match, info, form, expr} =
+mac{"gen"}! gen_mac{match, info, form, expr} =
    when expr == #void{} ->
       #nostep{form}
    #pattern ->
@@ -78,7 +56,7 @@ mac{"genx"}! genx_mac{match, info, form, expr} =
       else ->
          throw E.syntax.gen{"gen must be applied on a function", {expr = expr}}
 
-mac{"asyncx"}! async2_mac{match, info, form, expr} =
+mac{"async"}! async_mac{match, info, form, expr} =
    when expr == #void{} ->
       #nostep{form}
    #pattern ->

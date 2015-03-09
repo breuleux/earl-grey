@@ -187,7 +187,7 @@ interactive{g, e, o} =
    settings = {
       prompt = "<> "
       ignoreUndefined = true
-      async! eval{input, context, filename, callback} =
+      async eval{input, context, filename, callback} =
          try:
             inp = match input:
                R"^\((.*\n)\)$"! {_, x} -> x
