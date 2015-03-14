@@ -3,6 +3,154 @@ This is an ad hoc todo list I keep since the beginning. There's no
 order to it and some of the remaining entries may be obsolete or
 irrelevant.
 
+
+TODO
+====
+
+* add an easier to use context-based macro form (with typical contexts)
+
+* match x: ..., then result: ...
+* improve match errors
+* object each [k => v] -> [k => v + 1]
+* `[x >> x + 1] = 5` ==> x is 6
+* print b % x probably shouldn't parse as [print b] % x
+* true/false/null/undefined should be like ==true/... implicitly in patterns
+* object, neighbours, etc. should handle iterators in general
+* Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
+* perhaps `x! [a -> b, c -> d]` ==> `a -> x! b, c -> x! d` (same for ?)
+* define special behavior for a % b in pattern context
+* `macro f{x}: ...` should become `macro f{x} = ...`
+* MAYBE: `class C{super}: ...` into `class C < super = ...`
+* gen should be rebindable
+* ? to return null/error instead of true/false
+* ! to return {null/error, value} instead of {true/false, value}
+* using should work like with in Python
+* catch and finally clauses for do, match, if, and so on
+* repr for generator
+
+* f{a = 1, ...} and the like should be made more efficient.
+
+* fallthrough in clauses
+
+* x! y shouldn't return null when x throws an error
+
+* allow for async generators
+* async! f{match} will not work because of the wrapping. fix it
+* some errors are misreported; check try: x, catch: y (with no
+  variable in the catch).
+* Allow catch with no variable for the error.
+* await in interactive mode
+* insert async/gen automatically if await/yield is seen in the body
+  [is that a good idea?]
+* `macro` should generate #restmacro to allow for its use below its
+  definition in the same scope
+* {[^Symbol.project]{x} = ...}
+* A wrapper to print stack traces when calling an async functions
+* `global x = 123`?
+* Extend functions, e.g. `extend.top! f{x} = ...` and
+  `extend.bottom! f{x} = ...`, or bind previous function to super...
+* New macros should extend existing macros
+
+* Come up with a reliable way to mix multiple wrapping handlers in
+  patterns and prevent nonsensical combinations.
+* f{each x, match} will complain that it cannot resolve each; figure
+  out why that happens *exactly* and fix it.
+
+* The "top" and "mutable" fields of #variable are too easy to lose
+  track of despite its significance. Change to #variable{name, opts}
+  or something like that.
+
+* Produce an error when the same variable is found multiple times in a
+  pattern
+* '[...] should annotate the result with location information,
+  otherwise embedded R"..." or S[...] do not work.
+* Make unconditional transformers for String!, Number! and Boolean!
+* maybe use \ for unquote?
+* Use ES6 classes
+* Use ES6 splats
+* revamp the blocktest macro (rename to tests?)
+* match_error could use being more precise
+* make sure macros fail in non-supported contexts and don't have blanket
+  [match context: ..., else -> blah] clauses
+* let macros insert setup code at their definition site
+* find a way to make macros more importable
+  idea: macro_require inserts also require(package), which is used to
+        resolve symbols in the macro's namespace (requires what the macro
+        is using to be provided, though)
+* experiment with changing the priority of wide juxtaposition
+* make it possible to do "earl compile src -o lib" instead of having
+  to do "earl compile -o lib src"
+* string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
+* fix nested each so that inner each is evaluated with #expr{.ignore}
+  if outer each is
+
+
+* f{match.0, match.1} = a -> b -> c ==> f{x, y} = match x: a -> match y: b -> c
+
+
+* try! f{...} = ... ==> f{...} = try: ...
+
+* Review how `with works: could it be a prefix operator?
+* Add a where... or with... operator instead of with, when ... is used?
+
+* index.eg
+
+* language definition via: ||||| lang
+* Create closures for variables inside loops
+* define super for subclasses
+* @@ for static methods
+
+* set a function or arbitrary object as the main export for provide
+
+* Support this projector: [-> String?] f{String?, String?} = ...
+
+* pure ASCII repr{...}
+* ditch pp submodule?
+* print errors properly to a normal console
+
+* stuff macro helpers in macro.[helper_name] or somesuch
+
+* Track types at declaration
+
+* @prelude
+* Importing macros
+
+* Eliminate ++ and -- for increment/decrement?
+
+* IDEA: ~f{a, b, _} <=> {X} -> {a, b, X}
+
+* Support: [String? or Number?] x
+* Defaults for keyword arguments
+
+* fix nested chain
+
+* set up a priority matrix
+
+* support [x each String?] [maybe not...]
+* throw actual Error objects...
+
+* add way to inject additional behavior to macros
+
+* treat operator at beginning of line as a continuation
+
+* Document with comments: src/earl-grey.eg
+* Document with comments: src/expand.eg
+* Document with comments: src/lex.eg
+* Document with comments: src/location.eg
+* Document with comments: src/parse.eg
+* Document with comments: src/pattern.eg
+* Document with comments: src/pp.eg
+* Document with comments: src/register.eg
+* Document with comments: src/run.eg
+* Document with comments: src/stdenv.eg
+* Document with comments: src/translate-js.eg
+
+* Bug: first line in the file starts with spaces => should produce INDENT token
+
+
+DONE
+====
+
 X Change behavior of a[b]
 X "when" clauses for pattern matching
 X Define Struct?
@@ -147,142 +295,6 @@ X Allow f{=> x, => y} as shortcut for f{{=> x, => y}} (etc.)
 X `require` should fail when importing symbols that were not exported
   by a module
 
+X make -l (lazy) a default flag, add -r or -R to override
 
-* match x: ..., then result: ...
-* improve match errors
-* object each [k => v] -> [k => v + 1]
-* `[x >> x + 1] = 5` ==> x is 6
-* print b % x probably shouldn't parse as [print b] % x
-* true/false/null/undefined should be like ==true/... implicitly in patterns
-* object, neighbours, etc. should handle iterators in general
-* Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
-* perhaps `x! [a -> b, c -> d]` ==> `a -> x! b, c -> x! d` (same for ?)
-* define special behavior for a % b in pattern context
-* `macro f{x}: ...` should become `macro f{x} = ...`
-* MAYBE: `class C{super}: ...` into `class C < super = ...`
-* gen should be rebindable
-* ? to return null/error instead of true/false
-* ! to return {null/error, value} instead of {true/false, value}
-* using should work like with in Python
-* catch and finally clauses for do, match, if, and so on
-* repr for generator
-
-* f{a = 1, ...} and the like should be made more efficient.
-
-* fallthrough in clauses
-
-* x! y shouldn't return null when x throws an error
-
-* allow for async generators
-* async! f{match} will not work because of the wrapping. fix it
-* some errors are misreported; check try: x, catch: y (with no
-  variable in the catch).
-* Allow catch with no variable for the error.
-* await in interactive mode
-* insert async/gen automatically if await/yield is seen in the body
-  [is that a good idea?]
-* `macro` should generate #restmacro to allow for its use below its
-  definition in the same scope
-* {[^Symbol.project]{x} = ...}
-* A wrapper to print stack traces when calling an async functions
-* `global x = 123`?
-* Extend functions, e.g. `extend.top! f{x} = ...` and
-  `extend.bottom! f{x} = ...`, or bind previous function to super...
-* New macros should extend existing macros
-
-* Come up with a reliable way to mix multiple wrapping handlers in
-  patterns and prevent nonsensical combinations.
-* f{each x, match} will complain that it cannot resolve each; figure
-  out why that happens *exactly* and fix it.
-
-* The "top" and "mutable" fields of #variable are too easy to lose
-  track of despite its significance. Change to #variable{name, opts}
-  or something like that.
-
-* Produce an error when the same variable is found multiple times in a
-  pattern
-* '[...] should annotate the result with location information,
-  otherwise embedded R"..." or S[...] do not work.
-* Make unconditional transformers for String!, Number! and Boolean!
-* maybe use \ for unquote?
-* Use ES6 classes
-* Use ES6 splats
-* revamp the blocktest macro (rename to tests?)
-* match_error could use being more precise
-* make sure macros fail in non-supported contexts and don't have blanket
-  [match context: ..., else -> blah] clauses
-* let macros insert setup code at their definition site
-* find a way to make macros more importable
-  idea: macro_require inserts also require(package), which is used to
-        resolve symbols in the macro's namespace (requires what the macro
-        is using to be provided, though)
-* experiment with changing the priority of wide juxtaposition
-* make it possible to do "earl compile src -o lib" instead of having
-  to do "earl compile -o lib src"
-* string interpolation, perhaps I"a \[x] b" ==> "a " + x + " b"
-* fix nested each so that inner each is evaluated with #expr{.ignore}
-  if outer each is
-
-
-* f{match.0, match.1} = a -> b -> c ==> f{x, y} = match x: a -> match y: b -> c
-
-
-* try! f{...} = ... ==> f{...} = try: ...
-
-* Review how `with works: could it be a prefix operator?
-* Add a where... or with... operator instead of with, when ... is used?
-
-* index.eg
-
-* language definition via: ||||| lang
-* Create closures for variables inside loops
-* define super for subclasses
-* @@ for static methods
-
-* set a function or arbitrary object as the main export for provide
-
-* Support this projector: [-> String?] f{String?, String?} = ...
-
-* pure ASCII repr{...}
-* ditch pp submodule?
-* print errors properly to a normal console
-
-* stuff macro helpers in macro.[helper_name] or somesuch
-
-* Track types at declaration
-
-* @prelude
-* Importing macros
-
-* Eliminate ++ and -- for increment/decrement?
-
-* IDEA: ~f{a, b, _} <=> {X} -> {a, b, X}
-
-* Support: [String? or Number?] x
-* Defaults for keyword arguments
-
-* fix nested chain
-
-* set up a priority matrix
-
-* support [x each String?] [maybe not...]
-* throw actual Error objects...
-
-* add way to inject additional behavior to macros
-
-* treat operator at beginning of line as a continuation
-
-* Document with comments: src/earl-grey.eg
-* Document with comments: src/expand.eg
-* Document with comments: src/lex.eg
-* Document with comments: src/location.eg
-* Document with comments: src/parse.eg
-* Document with comments: src/pattern.eg
-* Document with comments: src/pp.eg
-* Document with comments: src/register.eg
-* Document with comments: src/run.eg
-* Document with comments: src/stdenv.eg
-* Document with comments: src/translate-js.eg
-
-* Bug: first line in the file starts with spaces => should produce INDENT token
 
