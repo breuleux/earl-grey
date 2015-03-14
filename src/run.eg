@@ -28,7 +28,7 @@ earl run [options] [file] [arguments...]
     -p  --print         Print the result of the evaluation to standard out.
     -i  --interactive   Start an interactive interpreter after execution
                         in the global environment of the script.
-    -l  --lazy          Cache previously run scripts
+    -r  --recompile     Recompile scripts instead of using the cache
     -v  --verbose       Print information about the operations performed
     -5  --es5           Generate and run EcmaScript v5
     -6  --es6           Generate and run EcmaScript v6 (default)
@@ -46,7 +46,7 @@ earl compile [options] [file... | dir]
     -e  --eval <code>   Compile the provided code instead of reading from a file.
     -n  --noboil        Don't output boilerplate code (useful with -p)
     -s  --sourcemaps    Output source maps for the generated files
-    -l  --lazy          Only recompile sources that have changed
+    -r  --recompile     Recompile scripts instead of using the cache
     -v  --verbose       Print information about the operations performed
     -5  --es5           Generate EcmaScript v5
     -6  --es6           Generate EcmaScript v6 (default)
@@ -228,7 +228,7 @@ compile_path{p, opts} =
                   from = path.join{p, x}
                   to = path.join{out, name + ".js"}
 
-                  if opts.lazy:
+                  if not opts.recompile:
                      fstat = fs.statSync{from} !! e -> null
                      tstat = fs.statSync{to} !! e -> null
                      if fstat and tstat and fstat.mtime.getTime{} < tstat.mtime.getTime{}:
@@ -312,7 +312,7 @@ _run{match, opts} =
          e and eval        = #value{.evaluate}
          v and verbose     = #flag{.verbose}
          i and interactive = #flag{.interactive}
-         l and lazy        = #flag{.lazy}
+         r and recompile   = #flag{.recompile}
          p and .print      = #flag{.print}
          "6" and es6       = #flag{.es6}
          "5" and es5       = #flag{.es5}
@@ -378,7 +378,7 @@ _run{match, opts} =
          e and eval       = #value{.evaluate}
          n and noboil     = #flag{.noboil}
          s and sourcemaps = #flag{.sourceMap}
-         l and lazy       = #flag{.lazy}
+         r and recompile  = #flag{.recompile}
          "6" and es6      = #flag{.es6}
          "5" and es5      = #flag{.es5}
          v and verbose    = #flag{.verbose}

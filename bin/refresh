@@ -19,7 +19,7 @@ function rmrf(path) {
 
 var version = process.argv[2] || "-6"
 var name = "lib" + version[1];
-var opts = version + "vslo";
+var opts = version + "vso";
 
 console.log("Making", name);
 r.run(["compile", opts, name, "src"]);
