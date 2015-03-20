@@ -1,201 +1,215 @@
 
+requireMacros:
+   "grey-mocha" ->
+      describe, it, before, after, assert, asserts, expectError
+
 require:
-   "../lib6/pp" ->
-      <>
+   "grey-mocha" as gm
 
 
-results = blocktest:
+describe "examples":
+   it "fibonacci":
+      fib{match} =
+         0 -> 0
+         1 -> 1
+         n -> fib{n - 1} + fib{n - 2}
+      assert fib{3} === 2
+      assert fib{10} === 55
 
-   "Operator priority" =>
+
+describe "Invariances":
+   asserts:
+      `a b` == `a[b]`
+      `a b` == `[a][b]`
+      `a b c` == `a [b c]`
+      `a[{x}]` == `a{x}`
+      `[[1]]` == `1`
+      `a: b` == `a{b}`
+      `a b: c` == `a{b, c}`
+
+describe "Arithmetic":
+   asserts:
       [1 + 2 * 3] === 7
       [1 * 2 + 3] === 5
       [70 / 10 / 7] === 1
       [2 ** 3 ** 2] === 512
 
-   "Fibonacci" =>
-      do:
-         fib{match} =
-            0 -> 0
-            1 -> 1
-            n -> fib{n - 1} + fib{n - 2}
+describe "Operator priority":
+   asserts:
+      `a + b + c` == `[a + b] + c`
+      `a * b + c` == `[a * b] + c`
+      `a + b * c` == `a + [b * c]`
 
-      fib{3} === 2
-      fib{10} === 55
+describe "Conditionals":
+   it "if/then/else":
+      positivity{x} =
+         if [x > 0]:
+            then: .positive
+            else:
+               if [x < 0]:
+                  then: .negative
+                  else: .zero
 
-   "Conditionals" =>
-      do:
-         positivity{x} =
-            if [x > 0]:
-               then: .positive
-               else:
-                  if [x < 0]:
-                     then: .negative
-                     else: .zero
+      assert positivity{0} === .zero
+      assert positivity{11} === .positive
+      assert positivity{-41} === .negative
 
-      positivity{0} === .zero
-      positivity{11} === .positive
-      positivity{-41} === .negative
+   it "if/elif/else":
+      positivity{x} =
+         if [x > 0]:
+            .positive
+         elif [x < 0]:
+            .negative
+         else:
+            .zero
 
-   "Pattern matching" =>
+      assert positivity{0} === .zero
+      assert positivity{11} === .positive
+      assert positivity{-41} === .negative
 
-      "Comparison operators" =>
-         do:
-            compare{match, threshold} =
-               [> threshold] -> "above"
-               [< threshold] -> "below"
-               [=== threshold] -> "equal"
 
-         compare{-41, 0} === "below"
-         compare{11, 0} === "above"
-         compare{9, 9} === "equal"
+describe "Pattern matching":
 
-      "Match on #struct" =>
-         do:
-            calc{match} =
-               Number? n -> n
-               #add{m, n} -> calc{m} + calc{n}
-               #sub{m, n} -> calc{m} - calc{n}
-               #mul{m, n} -> calc{m} * calc{n}
-               #div{m, n} -> calc{m} / calc{n}
-               #sub{n} -> -calc{n}
+   describe "basic types":
 
-         [calc{x} === 10] where x = #mul{5, 2}
-         [calc{x} === -7] where x = #div{#add{1, 13}, #sub{2}}
+      asserts "String":
+         String? "hello"
+         not String? 1
+         [String! 123] === "123"
 
-      "Argument deconstruction" =>
-         do: {{a, b}, c} = {{1, 2}, 3}
-         [a + b + c] === 6
-         "Bounds checks" =>
-            [let {a} = {11, 22}, false] !! e -> true
-            [let {a, b, c} = {11, 22}, false] !! e -> true
-
-      "Sub-clauses with match" =>
-         do:
-            tr{match} =
-               String? s -> s
-               Number? n -> String{n}
-               #send{f, match} ->
-                  String? s -> tr{f} + "." + s
-                  #data{*args} -> tr{f} + "{" + args.join{", "} + "}"
-               other -> throw "illegal expression"
-
-         tr{x} === "a.b" where x = #send{"a", "b"}
-         tr{x} === "a{b, 12}" where x = #send{"a", #data{"b", 12}}
-
-   "Testing for type" =>
-      "String" =>
-         String? "abc"
-         not [String? 123]
-      "Number" =>
-         Number? 123
+      asserts "Number":
+         Number? 1
          Number? 7.23e-65
-         not [Number? "123"]
-      "Array" =>
+         not Number? "123"
+         [Number! "123"] === 123
+
+      asserts "Boolean":
+         Boolean? true
+         not Boolean? 0
+         [Boolean! 0] === false
+         [Boolean! 1] === true
+         [Boolean! ""] === false
+         [Boolean! {}] === true
+         [Boolean! "quack"] === true
+
+      asserts "Array":
          Array? {1, 2, 3}
-      "#struct" =>
-         ;; Struct? #data{.a, .b, .c}
-         ;; not Struct? {.a, .b, .c}
+         not Array? 1
+         [Array! 1] == {1}
+         [Array! {1, 2, 3}] == {1, 2, 3}
+
+      asserts "#struct":
          #data? #data{.a, .b, .c}
          not [#data? #dat{.a, .b, .c}]
+         [#data! {1, 2}] == #data{{1, 2}}
+         [#data! #data{1, 2}] == #data{1, 2}
+         [#data! 1] == #data{1}
 
-   "Coercion" =>
-      "String" =>
-         [String! 123] === "123"
-      "Number" =>
-         [Number! "123"] === 123
-         [Number! "123.5e3"] === 123.5e3
-      "Array" =>
-         match [Array! .hello]: {.hello} -> true
-         match [Array! {.hello}]: {.hello} -> true
-      "#struct" =>
-         match [#data! {1, 2}]: #data{{1, 2}} -> true
-         match [#data! #data{1, 2}]: #data{1, 2} -> true
-         match [#data! 1]: #data{1} -> true
+   it "match on #struct":
+      calc{match} =
+         Number? n -> n
+         #add{m, n} -> calc{m} + calc{n}
+         #sub{m, n} -> calc{m} - calc{n}
+         #mul{m, n} -> calc{m} * calc{n}
+         #div{m, n} -> calc{m} / calc{n}
+         #sub{n} -> -calc{n}
+      assert [calc{x} === 10] where
+         x = #mul{5, 2}
+      assert [calc{x} === -7] where
+         x = #div{#add{1, 13}, #sub{2}}
 
-   "Exception handling" =>
-      true !! e -> false
-      ;; var_doesnt_exist !! e -> true
-      ;; var_doesnt_exist !! ReferenceError? -> true
-      null.x !! e -> true
-      [throw .hello] !!
-         .hello -> true
-         other -> false
-      [throw .not_hello] !!
-         .hello -> false
-         other -> true
+   it "comparisons":
+      compare{match, threshold} =
+         [> threshold] -> "above"
+         [< threshold] -> "below"
+         [=== threshold] -> "equal"
 
-   "Regular expressions" =>
+      assert compare{-41, 0} === "below"
+      assert compare{11, 0} === "above"
+      assert compare{9, 9} === "equal"
 
-      do:
-         var re = R"ab*a"
-      {"aa", "aba", "abba", "aadvark", "cabbage"} each s -> re? s
-      {"a", "bachi", "bouzouk"} each s -> not re? s
-         
-      "cabbage".replace{re, "arria"} === "carriage"
+   describe "destructuring assignment":
+      it "simple":
+         {{a, b}, c} = {{1, 2}, 3}
+         assert [a + b + c] === 6
+      it "bounds checks":
+         expectError Error:
+            let {a} = {11, 22}
+         expectError Error:
+            let {a, b, c} = {11, 22}
 
-      do:
-         re = R`[start, +"a", {+"b"}, "a", end]`
-      ;; TODO: REACTIVATE
-      ;; [{...} each re! {_, s} -> R"b+"? s] with
-      ;;    "abba", "abbbbbba", "aaaaaba"
-      {"cabbage", "labia"} each s -> not re? s
+   it "match sub-clauses":
+      tr{match} =
+         String? s -> s
+         Number? n -> String{n}
+         #send{f, match} ->
+            String? s -> tr{f} + "." + s
+            #data{*args} -> tr{f} + "{" + args.join{", "} + "}"
+         other -> throw "illegal expression"
+
+      assert tr{x} === "a.b" where x = #send{"a", "b"}
+      assert tr{x} === "a{b, 12}" where x = #send{"a", #data{"b", 12}}
 
 
-   "Chaining" =>
+describe "Exception handing":
+   it "catch":
+      assert [null.x and false !! TypeError? -> true]
+   it "throw":
+      assert
+         [throw .hello] !!
+            .hello -> true
+            other -> false
+      assert
+         [throw .not_hello] !!
+            .hello -> false
+            other -> true
 
-      "7654321" ===
-         chain {1, 2, 3}:
-             @concat with {4, 5}
-             @reverse{}
-             {7, 6}.concat{@}
-             @join{""}
+describe "Regular expressons":
+   before:
+      @re = R"ab*a"
+   it "test match":
+      {"aa", "aba", "abba", "aadvark", "cabbage"} each
+         @re? x -> pass
+         x -> throw E.failure{x}
+   it "test not match":
+      {"a", "bachi", "bouzouk"} each
+         @re? x -> throw E.failure{x}
+         x -> pass
 
-      ;; "7654321" ===
-      ;;    chain [{1, 2, 3} as /]:
-      ;;        /concat with {4, 5}
-      ;;        /reverse{}
-      ;;        {7, 6}.concat{/}
-      ;;        /join{""}
+it "chain":
+   assert "7654321" ===
+      chain {1, 2, 3}:
+          @concat with {4, 5}
+          @reverse{}
+          {7, 6}.concat{@}
+          @join{""}
 
-   "Classes" =>
-      do:
-         class Person:
-            constructor{String? name, Number! age} =
-               @name = name
-               @age = age
-            describe{} =
-               @name + ":" + [String! @age]
-            describe2{} =
-               @describe{}.replace{":", "~"}
 
-      do: one = new Person{.peter, 12}
-      Person? one
-      one.name === .peter
-      one.age === 12
-      one.describe{} === "peter:12"
+class Person:
+   constructor{String? name, Number! age} =
+      @name = name
+      @age = age
+   descr{} =
+      @name + ":" + [String! @age]
+   descr2{} =
+      @descr{}.replace{":", "~"}
 
-      do: two = Person{.igor, "34"}
-      Person? two
-      two.name === .igor
-      two.age === 34
-      two.age !== "34"
-      two.describe2{} === "igor~34"
-
-      Person{12, 12} and false !! e -> true
+describe "class":
+   it "one":
+      let one = new Person{.peter, 12}
+      assert Person? one
+      assert one.name === .peter
+      assert one.age === 12
+      assert one.descr{} === "peter:12"
+   it "two":
+      let two = Person{.igor, "34"}
+      assert Person? two
+      assert two.name === .igor
+      assert two.age === 34
+      assert two.age !== "34"
+      assert two.descr2{} === "igor~34"
+   it "match constructor":
+      expectError Error: Person{12, 12}
+   asserts "misc":
       not Person? {.peter, 12}
-
-yay = 0
-nay = 0
-
-<> results each
-   #test_result{label, #success{value}} -> [yay++, true]
-   #test_result{label, other} ->
-      nay++
-      {label.join{" / "}, other}
-   other -> [nay++, other]
-
-<> {"Yay", yay}
-<> {"Nay", nay}
-
-
-
+      not Person? {name = .peter, age = 12}
