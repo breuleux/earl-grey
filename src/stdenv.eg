@@ -40,7 +40,6 @@ require{"./macros/loop"}{mac, bind}
 require{"./macros/quote"}{mac, bind}
 require{"./macros/regexp"}{mac, bind}
 require{"./macros/modularity"}{mac, bind}
-require{"./macros/testing"}{mac, bind}
 require{"./macros/misc"}{mac, bind}
 require{"./macros/macrodef"}{mac, bind}
 require{"./macros/async"}{mac, bind}
