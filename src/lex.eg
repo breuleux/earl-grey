@@ -9,6 +9,25 @@ provide:
    disambiguate_fixity
    alternate_operators
    fill_locations
+   unescape
+
+
+
+unescape{s} =
+   repl = {
+      b = String.fromCharCode{8}
+      f = String.fromCharCode{12}
+      n = "\n"
+      r = String.fromCharCode{13}
+      t = String.fromCharCode{9}
+   }
+   s.replace{rx, f} where
+      rx = R.g"\\u[0-9A-Fa-f]{4}|\\x[0-9A-Fa-f]{2}|\\."
+      f{match} =
+         R"^(?:\\u|\\x)(.*)"! {_, digits} ->
+            String.fromCharCode{parseInt{digits, 16}}
+         R"^.(.)"! {_, chr} ->
+            repl[chr] or chr
 
 
 special_ops = {
@@ -148,21 +167,7 @@ regexps = {
   str2 = R"^[\"]{3,}((?:[\\.]|[^\"]|\"\"?[^\"])*)[\"]{3,}"
 
   str_f = {m} ->
-     repl = {
-        b = String.fromCharCode{8}
-        f = String.fromCharCode{12}
-        n = "\n"
-        r = String.fromCharCode{13}
-        t = String.fromCharCode{9}
-     }
-     r = m[1].replace{rx, f} where
-        rx = R.g"\\u[0-9A-Fa-f]{4}|\\x[0-9A-Fa-f]{2}|\\."
-        f{match} =
-           R"^(?:\\u|\\x)(.*)"! {_, digits} ->
-              String.fromCharCode{parseInt{digits, 16}}
-           R"^.(.)"! {_, chr} ->
-              repl[chr] or chr
-     #STR{r}
+     #STR{unescape{m[1]}}
 
 
   ;; Operators

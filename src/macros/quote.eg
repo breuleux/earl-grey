@@ -1,5 +1,6 @@
 
 require:
+   "../lex" -> unescape
    "../location" -> Source
    "./helpers" -> qq
    opg
@@ -18,10 +19,6 @@ mac{"`"}! quote_mac{match context, info, form, expr and #value{s}} =
    ;;    info.mark{`^qq{parsed, true} &: {ast = true}`}
    else ->
       info.mark{qq{parsed}}
-
-;; mac{"`"}! quote_mac{context, info, form, expr and #value{s}} =
-;;    parsed = info.go{Source{s, "<quasiquote>"}, .source, .parse}
-;;    info.mark{qq{parsed}}
 
 
 ;;;;;;;;;;;;;;;;;
@@ -104,7 +101,7 @@ mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
          current = ""
    contents each
       String? s ->
-         current += s
+         current += unescape{s}
       #bracket{match, expr} ->
          do:
             push{}
@@ -114,30 +111,5 @@ mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
          tag ->
             parts.push with `ENode{{^=tag}, {=}, {^p}}`
    push{}
-   `ENode{{}, {=}, {^*parts}}`
-
-
-;; mac{"'"}! quaint_mac{context, info, form, expr and #value{s}} =
-;;    quaint = null
-
-;;    q = quaint.create{evaluator} where
-;;       evaluator = {
-;;          eval{src} =
-;;             this.mark{this.go{src.makeSource{}, .source, .parse}}
-;;          setenv{name, value} =
-;;             pass
-;;       }
-
-;;    transform{match node} =
-;;       String? or Number? ->
-;;          #value{node}
-;;       Node? {=> tags, => props, => children} ->
-;;          `Node{{^*wtags}, {=}, {^*wchildren}}` where
-;;             wtags = tags each tag -> #value{tag}
-;;             wchildren = children each child -> transform{child}
-;;       else ->
-;;          node
-
-;;    transform{q.run{s}}
-
+   `ENode{{}, {=}, {^*parts}}.toString{}`
 
