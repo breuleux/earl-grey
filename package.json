@@ -1,23 +1,27 @@
 {
   "name": "earlgrey",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
   "main": "./6.js",
   "dependencies": {
-    "earlgrey-runtime": "0.0.0",
+    "babel": "^4.5.5",
+    "earlgrey-runtime": ">=0.0.5",
     "js-beautify": "1.5.x",
     "multi-stage-sourcemap": "^0.2.1",
-    "opg": "^0.0.2",
-    "quaint": "0.0.1",
+    "opg": ">=0.0.3",
     "source-map": "^0.2.0",
     "source-map-support": "^0.2.9"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.1",
+    "grey-mocha": ">=0.0.1"
   },
   "bin": {
     "earl": "bin/earl",
     "node-earl": "bin/node-earl"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "homepage": "http://breuleux.github.io/earl-grey/repl",
   "repository": {
