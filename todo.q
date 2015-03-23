@@ -8,6 +8,8 @@ TODO
 ====
 
 * add an easier to use context-based macro form (with typical contexts)
+* rename get/set macros to something less common?
+* add getter/setter for properties in classes?
 
 * match x: ..., then result: ...
 * improve match errors
@@ -24,7 +26,7 @@ TODO
 * gen should be rebindable
 * ? to return null/error instead of true/false
 * ! to return {null/error, value} instead of {true/false, value}
-* using should work like with in Python
+* `using` should work like `with` in Python
 * catch and finally clauses for do, match, if, and so on
 * repr for generator
 

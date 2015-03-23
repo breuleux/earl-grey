@@ -5,13 +5,12 @@ Earl Grey
 Earl Grey is a new language that compiles to JavaScript (ES6). Here's
 a quick rundown of its amazing features:
 
-* Python-like syntax!
-* Fully compatible with the node.js ecosystem!
+* Python-like syntax
+* Fully compatible with the node.js ecosystem
 * Generators and async/await (no callback hell!)
-* Powerful, deeply integrated pattern matching!
+* Powerful, deeply integrated pattern matching
   * Used for assignment, function declaration, looping, exceptions...
-* A DOM-building DSL with customizable behavior!
-  * A quote type that builds actual documents instead of strings!
+* A DOM-building DSL with customizable behavior
 * A very powerful hygienic macro system that allows you to define:
   * Your own control structures!
   * New kinds of patterns for the pattern matcher!
@@ -26,8 +25,8 @@ old version that I haven't updated yet)
 Install
 -------
 
-This won't work at the moment because I'm in the middle of a massive
-rehaul:
+This won't work well at the moment because I'm in the middle of a
+massive rehaul:
 
     npm install -g earlgrey
 
@@ -36,47 +35,178 @@ start an interactive interpreter, or run an EG program as:
 
     earl run file.eg
 
+`earl` caches the result of compilation in `egcache/file.js` (and does
+so with all dependencies). You may force recompilation with the `-r`
+flag:
+
+    earl run -r file.eg
+
+Note that `-r` will also trigger recompilation of all dependencies. If
+you are making changes that seem to be ignored, you should try that
+(and file a bug report).
+
+
 Compile a program with:
 
     earl compile file.eg
     earl compile -o dest.js file.eg
-    earl -o dest/ src/
+    earl compile -o dest/ src/
+
+The `s` flag writes source maps, so I suggest always using it. By
+default `earl` generates EcmaScript 6 code. You can generate ES5 code
+instead with the `5` flag. For instance, this verbosely compiles
+`src/**/*.eg` into ES5-compatible `dest/**/*.js` (using babel):
+
+    earl compile -5vso dest/ src/
 
 Note that the generated JavaScript depends on the `earlgrey-runtime`
 package. You will need to `npm install earlgrey-runtime` someplace the
 generated code can access it. I suggest using `browserify` to generate
 a browser-compatible file.
 
-
-Basics
-------
-
-First note that at the moment EG only supports two bracket types,
-square brackets and braces. Instead of writing:
-
-    console.log(myfunc())
-
-you should write:
-
-    console.log{myfunc{}}
-
-Instead of writing:
-
-    x * (y + 1)
-
-write:
-
-    x * [y + 1]
-
-If it confuses you, there is a logic behind it: `{}` defines data
-structures: arrays, maps, and yes, argument *lists*. `[]` are just
-grouping brackets (`f[x]` and `f x` are equivalent in EG). Note that
-indented blocks are equivalent to *square* brackets.
+As with `earl run`, `earl compile` avoids needless recompiling. Use
+the `-r` flag to force recompilation.
 
 
-### Comments
+What does it look like?
+-----------------------
+
+I am not sure what are the best examples to give here. Let's start
+with a straightforward example, counting all unique words in a
+paragraph of text:
+
+    countWords(text) =
+       counts = new Map()
+       words = text.split(R"\W+")
+       words each word ->
+          currentCount = counts.get(word) or 0
+          counts.set(word, currentCount + 1)
+       consume(counts.entries()).sort(compare) where
+          compare({w1, c1}, {w2, c2}) = c2 - c1
+
+
+**Generators:** the following defines a generator for the Fibonacci
+sequence and then prints all the even Fibonacci numbers less than
+100. It shows off a little bit of everything:
+
+    gen fib() =
+       var {a, b} = {0, 1}
+       while true:
+          yield a
+          {a, b} = {b, a + b}
+
+    fib() each
+       > 100 ->
+          break
+       n when n mod 2 == 0 ->
+          print n
+
+The `each` operator accepts multiple clauses, which makes it
+especially easy to work on heterogenous arrays.
+
+
+**Asynchronous:** EG has async and await keywords to facilitate
+asynchronous programming, all based on Promises. Existing
+callback-based functionality can be converted to Promises using
+`promisify`:
+
+    require: request
+    g = promisify(request.get)
+    async getXKCD(n = 0) =
+       response = await g('http://xkcd.com/info.{n}.json')
+       JSON.parse(response.body)
+    async:
+       print (await getXKCD()).alt
+
+
+Also: **classes**. They are nice.
+
+    class Person:
+
+       ;; Instance @fields can be set directly in argument lists
+       constructor(@name, @age, @job = "unemployed") =
+          pass
+
+       ;; Default arguments
+       marchTowardsDeath(years = 1) =
+          @age += years
+
+       ;; Individual arguments can be matched on
+       sayHello(match) =
+          ;; This matches a Person instance and extracts its name field
+          ;; or else it matches a String directly
+          Person? {=> name} or String? name ->
+             print 'Hello {name}, I am {@name}!'
+          ElderGod? ->
+             print "AAAAAAAHHHHHHHHHHHHHHHH!"
+          else ->
+             print "I don't know what to say."
+
+    ;; .xyz is the same thing as "xyz", just a bit shorter to type
+    p1 = new Person(.Sylvie, 37, .accountant)
+    ;; You don't have to use "new"
+    p2 = Person(.Michel, 43, .farmer)
+    p1.sayHello(p2)
+
+
+**Pattern matching** is very useful. It makes it easier to work with
+regular expressions, for example:
+
+    mangle(match email) =
+
+       ;; regexp! transforms the input into an array of match groups
+       ;; (the first is always the whole match)
+       R"^([a-z.]+)@([a-z.]+)$"! {_, name, host} ->
+          '{name} AT {host}'
+
+       ;; regexp? will just test if the regexp matches, but it won't
+       ;; transform the input
+       R"@"? ->
+          "It looks like an email but I'm too daft to parse it."
+
+       else ->
+          "This is not an email at all!"
+
+
+The language
+============
+
+
+Comments
+--------
 
     ;; This is a comment.
+
+
+Blocks
+------
+
+Indent groups statements in Earl Grey. Alternatively, you can use
+square `[]` brackets:
+
+    hello
+       superb
+       world
+    <=>
+    hello[superb, world]
+
+Normally you're not going to use `[]` much, because indent is
+better. Just be aware that the expression `[a]` is equivalent to plain
+`a`, and `[a, b, c]` is going to return `c`.
+
+Save for indented blocks, *all* line breaks are commas in Earl Grey
+(there are no semi-colons: commas *are* semi-colons). There is *no*
+implicit line continuation. This being said, you can break a statement
+over multiple lines by *prefixing* continuating lines with `\ `:
+
+    a
+    \ + b
+    \ + c
+    <=>
+    a + b + c
+
+Be aware that indent isn't going to work for this: replacing the
+backslashes with indent will yield `a[+ b, + c]`.
 
 
 Variables
@@ -105,8 +235,7 @@ This means that most of the time you can declare variables without the
 `let` keyword, assuming they don't already exist. You only need `let`
 if you are shadowing an existing variable. I recommend only using
 `var` if absolutely necessary -- if you follow that advice it is
-basically impossible to make scoping errors (the compiler will whine
-loudly).
+basically impossible to make scoping errors.
 
 Note that the `var` and `let` keywords can be used inside
 patterns. For instance:
@@ -131,44 +260,105 @@ Global variables need to be declared to be accessible:
     globals:
        document, google, React
 
-The compiler will complain loudly about undeclared variables.
 
+Literals and data structures
+----------------------------
 
-Literals
---------
-
-Strings are defined using double quotes:
+=== Strings
 
     "this is a string"
-    .this_is_also_a_string
     "Escape \" with a backslash"
+    'single-quoted strings support interpolation'
+    'there are {n} little piggies'
     """this is a
        "long"
        multiline string"""
+    .this_is_also_a_string
 
-Single quotes define *documents* using the Quaint markup:
-
-    '__Hello! [Click me!]::http://http://breuleux.github.io/earl-grey/repl/'
-
-The above defines a structure which can be transformed into a DOM
-hierarchy, a React Component, and so on. "Hello" will be bold, and
-"Click me!" will be a link.
-
-Number syntax is as usual save for binary/hex/other radii:
+=== Numbers
 
     123                ;; decimal
     16rDEADBEEF        ;; hex
     2r100101011.101    ;; binary
 
-I'm sure you can figure out base 3 numbers.
-
-### Arrays and objects
+=== Arrays and objects
 
 Both arrays and object literals are defined with curly braces:
 
     {1, 2, 3}            ;; an array
     {a = 1, b = 2}       ;; an object
     {"a" => 1, "b" => 2} ;; the same object
+
+You can also "mix" the notations:
+
+    {1, 2, a = 3, b = 4} ;; an array with fields named a and b
+
+
+Functions
+---------
+
+There are several different, but equivalent notations to call functions:
+
+    func(arg1, arg2)           ;; the usual notation
+    func{arg1, arg2}           ;; curly bracket notation
+    func(arg1) with arg2       ;; with-notation
+    func(___, arg2) with arg1  ;; with-notation (using placeholder)
+    func with arg              ;; with-notation (single argument)
+
+The with-notation can be used to increase readability. For instance:
+
+    {1, 2, 3}.map(x -> x * x)
+    <=>
+    {1, 2, 3}.map with x ->
+       x * x
+
+The gains are most visible when the body of the function is large.
+
+
+### Splicing
+
+You can apply a function to a list of arguments using the `*`
+splicing operator, `[]`, or simple juxtaposition:
+
+    args = {1, 2, 3}
+    func(*args) <=> func[args] <=> func args
+
+EG considers function application to be a special case of indexing
+where the index is a list of arguments, hence why the above works.
+
+### Declaring functions
+
+    square(x) =
+       x * x
+    <=>
+    square = x -> x * x
+
+The notation also works inside an object:
+
+    {a = 10, mul(b) = this.a * b}.mul(20)
+    ;; => 200
+
+There is no need to `return` from a function (although you can). The
+last evaluated expression is used as the return value.
+
+### (Re-)declaring operators
+
+Operator applications in EG, such as `a + b`, desugar to the function
+call `[+]{a, b}`. You can thus redefine almost any operator locally:
+
+    bizarro(a, b) =
+       let x + y = outer{+}{x, y}
+       let x - y = outer{-}{x, y}
+       a + b - c
+    bizarro(10, 20, 10)  ;; ==> 0
+
+Notes:
+
+* `let` must be used in order to shadow the existing bindings.
+* `outer` returns the previous binding of a variable, which is
+  necessary above to avoid unwanted mutual recursion.
+* The curly braces notation must be used because `outer`, `+` and `-`
+  are macros and `()` cannot be used to provide macro arguments.
 
 
 `if` and `while`
@@ -177,16 +367,17 @@ Both arrays and object literals are defined with curly braces:
 **If statements** are written as they are in Python:
 
     if x < 0:
-       do_something{}
+       do_something()
     elif x > 0:
-       do_something_else{}
+       do_something_else()
     else:
-       flail_incoherently{}
+       flail_incoherently()
 
 `if` can also be written as an expression. It's not a ternary operator
-because I honestly don't think it's worth it:
+because I honestly don't think it's worth tweaking syntax for:
 
-    if{x < 0, 0, x}
+    if(x < 0, 0, x)
+
 
 **While statements**
 
@@ -208,57 +399,6 @@ need to use `while.label`, just like this:
              break outer  ;; this will break out of both while loops!
           j++
        i++
-
-
-Functions
----------
-
-Functions can be defined using `=` or `->` depending on the situation:
-
-    square{x} = x * x
-
-The same provisions as before apply regarding `let` or `var`: if there
-is already a variable named `square`, the above is an error.
-
-Anonymous functions are made with `->`:
-
-    {1, 2, 3}.map{{x} -> x * x}
-
-Note that there are more elegant ways to write the above:
-
-    {1, 2, 3}.map with {x} -> x * x
-    {1, 2, 3}.map{f} where f{x} = x * x
-
-`f{x} with y` is equivalent to `f{x, y}`. `where` simply lets you
-define variables after the expression that uses them, and their scope
-is limited to that expression, which limits name pollution.
-
-Operator applications in EG, such as `a + b`, desugar to the function
-call `[+]{a, b}`. You can redefine almost any operator locally and
-it's no harder than this:
-
-    bizarro{a, b} =
-       let x + y = x * y
-       let x - y = x / y
-       a + b - c
-    bizarro{10, 20, 10}  ;; ==> 20
-
-(Be careful, though: you can't just use the old `+` operator inside
-the definition of the new one or it will call itself recursively)
-
-EG's powerful pattern matching engine is fully operational on function
-arguments:
-
-    concat1{String? a, String? b} = a + b
-    concat1{5, 10} ;; ERROR!
-
-    concat2{String! a, String! b} = a + b
-    concat2{5, 10} ;; => "510"
-
-You can define functions in objects easily:
-
-    obj = {toString{} = "Hello!"}
-    String{obj}  ;; ==> "Hello!"
 
 
 Looping
@@ -302,7 +442,7 @@ pattern matcher:
     {13, "car", "tramway", 517} each
        Number? n -> n + 1
        String? s -> s + "s"
-       else -> throw E.unknown{"I don't know."}
+       else -> throw E.unknown("I don't know.")
     ;; ==> {14, "cars", "tramways", 518}
 
 You can also use `when` to filter data:
@@ -348,27 +488,21 @@ But these expressions will not throw exceptions:
 The first form is recommended if it is easy to express the condition
 as an expression. However, some filters are best expressed by
 patterns, in which case the third form would be preferred (because it
-is clearer -- you can use the second form if you insist on writing a
-one-liner, though).
+is less confusing -- you can use the second form if you insist on
+writing a one-liner, though).
 
 `each` is *eager*: it will iterate over all elements and execute the
 payload on each, returning an array. The *lazy* version of `each` is
-the `each*` operator. See the section on asynchronous code.
+the `each*` operator.
 
 
 Pattern matching
 ----------------
 
-Pattern matching is the most elaborate part of EG (maybe a fifth of
-the language's codebase deals with it). It is pervasive: function
-definitions, destructuring assignment, loops, exceptions, etc. I don't
-know of any language with more featureful pattern matching.
-
-Basically, the `match` operator feeds an input into a series of
-"clauses" and enters the body of the first matching clause. In a
-clause, one can check the type of a value, cast or transform it,
-deconstruct an array into elements and bind them to variables, and
-more:
+The `match` operator feeds an input into a series of "clauses" and
+enters the body of the first matching clause. In a clause, one can
+check the type of a value, cast or transform it, deconstruct an array
+into elements and bind them to variables, and more:
 
     match command:
        {"move", Number! dx, Number! dy} ->
@@ -380,7 +514,7 @@ more:
        {"attack", Grue?} ->
           ;; We can special-case commands but they have to come before
           ;; the generic version.
-          this.die_horribly{}
+          this.die_horribly()
        {"attack", enemy} ->
           enemy.hp -= this.attack
           this.hp -= enemy.attack
@@ -420,7 +554,7 @@ tries to match each value with the corresponding pattern:
     {x, y, z} = {1, 2}         ;; ERROR
     {x, {y, z}} = {1, 2, 3}    ;; ERROR
 
-The `*` operator matches any number of elements:
+The `*` splicing operator matches any number of elements:
 
     {x, *y, z} = {1, 2, 3, 4, 5}   ;; x is 1, y is {2, 3, 4}, z is 5
     {x, *y, z} = {1, 2}            ;; x is 1, y is {}, z is 2
@@ -433,9 +567,13 @@ This also works to define default values for arguments in
 functions. Note that the default value will be recomputed every time
 it is needed (or not at all, if it is unneeded). For example:
 
-    f{x = [print "missing", 0]} = x
-    f{55}     ==> returns 55
-    f{}       ==> prints "missing", and returns 0
+    f(x = [print "missing", 0]) = x
+    f(55)     ==> returns 55
+    f()       ==> prints "missing", and returns 0
+    f()       ==> prints "missing" *again*, and returns 0
+
+(remember that `[stmt1, stmt2]` executes both statements in sequence
+and returns `stmt2`. It's not an array).
 
 This means that unlike in Python, if you define an empty array `{}` as
 a default value, it will always be a fresh array.
@@ -447,11 +585,11 @@ The **when** operator lets you write arbitrary conditions for a
 clause:
 
     match command:
-        {"move", dx, dy} when dx*dx + dy*dy > threshold ->
-            running{}
-        {"move", dx, dy}
-            walking{}
-        ...
+       {"move", dx, dy} when dx*dx + dy*dy > threshold ->
+          running()
+       {"move", dx, dy} ->
+          walking()
+       ...
 
 
 ### `or` pattern
@@ -468,7 +606,7 @@ clause:
        ;; will match {123} or 123, putting 123 in x in both situations
        {x} or x -> ...
 
-Note that **all sub-patterns must contain the same variables**.
+**All sub-patterns must contain the same variables.**
 
 Also, patterns are evaluated in the order they are defined, so the
 most specific should come first.
@@ -485,8 +623,8 @@ aliases:
 
     {x, y} and z = {1, 2}   ;; x is 1, y is 2, z is {1, 2}
 
-Indeed, `z` as a pattern simply matches anything, which is put in the
-variable `z`.
+So instead of writing something like `x = y = 0` to initialize two
+variables to zero, you should write `x and y = 0`.
 
 
 ### Operators
@@ -501,7 +639,7 @@ value is true. In other words:
 
 You can also leave the left hand side empty:
 
-    compare{value, threshold} =
+    compare(value, threshold) =
        match value:
           > threshold -> "above"
           < threshold -> "below"
@@ -513,7 +651,7 @@ You can also leave the left hand side empty:
 The previous idiom of creating a function and matching one argument is
 useful enough to have a **shorthand**:
 
-    compare{match value, threshold} =
+    compare(match value, threshold) =
        > threshold -> "above"
        < threshold -> "below"
        == threshold -> "equal"
@@ -530,51 +668,51 @@ can also be written:
 
 Here's naive fibonacci using the shorthand:
 
-    fib{match} =
+    fib(match) =
        0 -> 0
        1 -> 1
-       n -> fib{n - 1} + fib{n - 2}
+       n -> fib(n - 1) + fib(n - 2)
 
 You can give a name to the match and it will be bound in all clauses:
 
-    fib{match n} =
+    fib(match n) =
        0 -> 0
        1 -> 1
-       else -> fib{n - 1} + fib{n - 2}
+       else -> fib(n - 1) + fib(n - 2)
 
 The feature also works for rest arguments:
 
-    concat{*match} =
+    concat(*match) =
         {String? a, String? b} -> a + b
         {Array? a, Array? b} -> a ++ b
 
 Other features can be embedded in arguments. For instance, `each` can
 be used in a pattern:
 
-    f{each x} = x * x
-    f{1..5}                 ;; => {1, 4, 9, 16, 25}
+    f(each x) = x * x
+    f(1..5)                 ;; => {1, 4, 9, 16, 25}
 
-    enhance{match} =
+    enhance(match) =
        Number? n -> n * n
        String? s -> s + "s"
-       each x -> enhance{x} ;; short for xs -> xs each x -> enhance{x}
-    enhance{{1, 2, "cake"}} ;; => {1, 4, "cakes"}
+       each x -> enhance(x) ;; short for xs -> xs each x -> enhance(x)
+    enhance({1, 2, "cake"}) ;; => {1, 4, "cakes"}
 
 `each` in this case can be anywhere in a pattern, and multiple `each`
 found in the same pattern will nest in the order that they are found:
 
-    f{each x, each y} = x + y
-    f{{"a", "b"}, {"x", "y"}}
+    f(each x, each y) = x + y
+    f({"a", "b"}, {"x", "y"})
     ;; ==> {{"ax", "ay"}, {"bx", "by"}}
 
 `chain` can be embedded and you get a nice pipeline going on:
 
-    capitalizeWords{chain} =
-       @trim{}
-       @split{R" +"} each w when w != "" ->
-          w[0].toUpperCase{} + w.slice{1}
-       @join{" "}
-    capitalizeWords{" pulp  fiction "}
+    capitalizeWords(chain) =
+       @trim()
+       @split(R" +") each w when w != "" ->
+          w[0].toUpperCase() + w.slice(1)
+       @join(" ")
+    capitalizeWords(" pulp  fiction ")
     ;; => "Pulp Fiction"
 
 
@@ -588,14 +726,14 @@ pattern. You can do this with `is`:
 
 One use case is to remove one level of nesting in the following code:
 
-    f{match, x} =
+    f(match, x) =
        {a, b} ->
           match x:
              ...
 
 The above can be rewritten:
 
-    f{match, x} =
+    f(match, x) =
        {a, b} and match is x ->
           ...
 
@@ -627,8 +765,8 @@ bit flaky.
 Asynchronous code
 -----------------
 
-Much like ES6, EG has generators. Much like ES7, it has async and
-await keywords.
+Like ES6, EG has generators. Like ES7, it has async and await
+keywords.
 
 ### Generators
 
@@ -636,7 +774,7 @@ A generator is a function that can produce (`yield`) an arbitrary
 number of values as they are requested by a consumer. For instance,
 this is a generator for the Fibonacci numbers:
 
-    gen! fib{} =
+    gen! fib() =
        var {a, b} = {0, 1}
        while true:
           yield a
@@ -647,13 +785,13 @@ a`, it sends the value of `a` to the consumer and stops until the
 consumer asks for the next value. The `consume` function can be used
 to retrieve a certain number of values from the generator:
 
-    consume{fib{}, 10} ;; ==> {0, 1, 1, 2, 3, 5, 8, 13, 21, 34}
+    consume(fib(), 10) ;; ==> {0, 1, 1, 2, 3, 5, 8, 13, 21, 34}
 
 `each` and `for...of` will consume a generator until a `break`
 statement is encountered. `each*` will create a new generator:
 
-    fibsquared = fib{} each* n -> n * n
-    consume{fibsquared, 10}
+    fibsquared = fib() each* n -> n * n
+    consume(fibsquared, 10)
     ;; ==> {0, 1, 1, 4, 9, 25, 64, 169, 441, 1156}
 
 Here the difference between `each` and `each*` is that `each` will
@@ -666,49 +804,49 @@ Promises and generators are ES6's answer to callback hell and EG
 supports them. `async` and `await` make them even easier to use:
 
     require: fs
-    readFile = promisify{fs.readFile}
+    readFile = promisify(fs.readFile)
 
-    async! cat{*files} =
-       try:
-          var rval = ""
-          files each file ->
-             rval += await readFile{file, .utf8}
-          print rval
-       catch error:
-          console.trace{error}
-          throw error
+    async cat(*files) =
+       var rval = ""
+       files each file ->
+          rval += await readFile(file, .utf8)
+       print rval
 
-    cat{"file1", "file2", "file3"}
+    async:
+       cat("file1", "file2", "file3")
     ;; returns immediately
 
 Here's how it works:
 
 * `require: fs` fetches node.js's filesystem module
 
-* `promisify{fs.readFile}` changes `fs.readFile`'s callback-based
+* `promisify(fs.readFile)` changes `fs.readFile`'s callback-based
   interface to a Promise-baed interface, which is necessary to work
   with async.
 
   `promisify` should work on any function that implements node's callback
   interface, i.e. where the last argument has the form `{error, result} -> ...`
 
-* `await readFile{file, .utf8}` reads the file *asynchronously*, in
+* `await readFile(file, .utf8)` reads the file *asynchronously*, in
   the background. At that moment, the execution of `cat` stops and
   other tasks can be executed while waiting for the file to be read.
 
 * Once the file is read, the result is given back to `cat`. It keeps
   going until all the files have been read, and then it prints them.
 
-* Exceptions raised in `cat` are not printed by default hence the
-  added try/catch block.
+* If `readFile` calls back with an error, an exception will be raised.
+  However, when an async function is called without a corresponding
+  `await`, the error will be ignored. The `async:` block mitigates
+  this issue by wrapping the async call, catching the error, and
+  logging it.
 
 
 
 Module system
 -------------
 
-`require` is used to import functionality from other
-modules. `provide` is used to export functionality.
+`require` may be used to import functionality from other
+modules. `provide` may be used to export functionality.
 
 ### `require`
 
@@ -718,6 +856,7 @@ block.
     require:
        fs, path
        react as React
+       something(1234)
        "./mymodule" ->
           someFunction, otherFunction as blah
 
@@ -726,6 +865,7 @@ This is roughly equivalent to the following JavaScript:
     fs = require("fs");
     path = require("path");
     React = require("react");
+    something = require("something")(1234);
     _temp = require("./mymodule");
     someFunction = _temp.someFunction;
     blah = _temp.otherFunction;
@@ -744,6 +884,88 @@ clear what symbols the module provides.
 ### `inject`
 
 TODO
+
+### `requireMacros`
+
+`requireMacros` works like `require`, but the imported symbols are
+defined as macros.
+
+`earl` currently does not take into account the dependencies listed by
+`requireMacros` when deciding whether to recompile a file or not. If
+those dependencies change, dependents may not be recompiled, so you
+will need to `touch` them or use the `-r` flag to force them to be.
+
+
+Macros
+------
+
+I am only going to present part of the macro system here. The complete
+system is much more powerful, but I haven't yet figured out the best
+external API.
+
+Macros in EG cannot extend the parser; however, EG's syntax is
+flexible enough that there isn't much of a need to extend it.
+
+### Invariants
+
+A lot of EG's syntax is sugar. It is simpler than it looks:
+
+    a: b          <=> a{b}
+    a b: c        <=> a{b, c}
+    a b           <=> a[b]
+
+So for instance, the expression `if x < y: z` actually has the same
+AST as `if{x < y, z}`. For that matter, `if[{x < y, z}]` is also
+equivalent, and `return x + y` yields the same AST as `return[x + y]`.
+
+### quote
+
+EG code can be "quoted" by putting it inside backticks:
+
+    `a + 2`
+    ;; => the AST of "a + 2"
+    ;; => #send{#symbol{"+"}, #data{#symbol{"a"}, #value{2}}}
+
+You can "unquote" with the caret operators. Use `^` to insert a bit of
+AST or `^=` to insert a value.
+
+    axb = `a * b`
+    two = 2
+    `^=two + ^axb` == `2 + (a * b)`
+
+Together these features let you pattern match on code:
+
+    match `a + b * c`:
+       `^x + ^y` -> "addition"
+       `^x * ^y` -> "multiplication"
+       `^f ^arg` -> "application"
+
+Be careful about the order of patterns. The "application" pattern may
+not look like it, but it will match the expression `a + b` with `+` in
+`f` and `{a, b}` in `arg` (because `a + b` <=> `[+] {a, b}`).
+
+
+### Examples
+
+**unless** can be defined as a counterpart to `if`:
+
+    macro unless(`{^cond, ^body}`):
+       `if not ^cond: ^body`
+
+    unless(1 == 2, print "all is well")  ;; prints "all is well"
+
+    unless 1 == 2:
+       print "all is well"               ;; same as above
+
+Here is a simple macro for **assert**:
+
+    macro assert(cond):
+       code = @gettext(cond)
+       `if{cond, true, throw E.assert("Assertion failed: " + ^code)}`
+
+    assert 1 == 2
+    ;; => throws E.assert("Assertion failed: 1 == 2")
+
 
 
 
@@ -815,9 +1037,9 @@ In EG I have what I call "error factories", which you would use a bit
 like this:
 
     throw E.auth.login.wrong_password{
-             "Authentication failed because of a wrong login password."
-             {user = user}
-          }
+       "Authentication failed because of a wrong login password."
+       user = user
+    }
 
 The resulting error will match `Error?`, `E.auth?`, `E.login?`,
 `E.auth.wrong_password?`, and so on. This means you can easily
@@ -840,4 +1062,6 @@ function like `f{*args}` can also be written `f[args]` or `f args`.
 This design choice may appear a bit less useful, but it is more
 syntactically consistent and internal representation is much
 simplified: there is only *one* operation on objects.
+
+
 
