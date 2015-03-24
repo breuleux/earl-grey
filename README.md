@@ -264,7 +264,7 @@ Global variables need to be declared to be accessible:
 Literals and data structures
 ----------------------------
 
-=== Strings
+### Strings
 
     "this is a string"
     "Escape \" with a backslash"
@@ -275,13 +275,13 @@ Literals and data structures
        multiline string"""
     .this_is_also_a_string
 
-=== Numbers
+### Numbers
 
     123                ;; decimal
     16rDEADBEEF        ;; hex
     2r100101011.101    ;; binary
 
-=== Arrays and objects
+### Arrays and objects
 
 Both arrays and object literals are defined with curly braces:
 
@@ -376,7 +376,7 @@ Notes:
 `if` can also be written as an expression. It's not a ternary operator
 because I honestly don't think it's worth tweaking syntax for:
 
-    if(x < 0, 0, x)
+    if{x < 0, 0, x}
 
 
 **While statements**
@@ -457,14 +457,14 @@ You can also use `when` to filter data:
 * `continue` starts the next iteration but without accumulating a
   value. You can use it as an alternative way to filter.
 
-    1..100 each i ->
-       if i > 10:
-          break
-       elif i mod 2 == 0:
-          i
-       else:
-          continue
-    ;; ==> {2, 4, 6, 8, 10}
+      1..100 each i ->
+         if i > 10:
+            break
+         elif i mod 2 == 0:
+            i
+         else:
+            continue
+      ;; ==> {2, 4, 6, 8, 10}
 
 Note: when using pattern matching with `each`, EG will throw an
 exception if a value does not match any of the patterns *unless* the
@@ -774,7 +774,7 @@ A generator is a function that can produce (`yield`) an arbitrary
 number of values as they are requested by a consumer. For instance,
 this is a generator for the Fibonacci numbers:
 
-    gen! fib() =
+    gen fib() =
        var {a, b} = {0, 1}
        while true:
           yield a
@@ -929,9 +929,9 @@ EG code can be "quoted" by putting it inside backticks:
 You can "unquote" with the caret operators. Use `^` to insert a bit of
 AST or `^=` to insert a value.
 
-    axb = `a * b`
+    apb = `a * b`
     two = 2
-    `^=two + ^axb` == `2 + (a * b)`
+    `^=two * ^apb` == `2 * (a + b)`
 
 Together these features let you pattern match on code:
 
@@ -973,7 +973,7 @@ Features I think are novel
 --------------------------
 
 This section is for fellow language designers and enthusiasts and is
-meant to answer the following question: what's _new? Like, what
+meant to answer the following question: what's *new*? Like, what
 features does EG have that no other language does? So here are some
 features in EG that I haven't seen in any other language (that I know
 of):
