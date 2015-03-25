@@ -27,13 +27,13 @@ wrap_macro_func{info, args, body} =
    `_lambda{^args, ^it = this, ^body, ^=null}`
 
 
-mac{"macro"}! macro_mac{context, info, form, match} =
+mac{"inlineMacro"}! imacro_mac{context, info, form, match} =
    #data{#send{name and [#symbol{sym} or #value{sym}], arguments}, ast} ->
       let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
       s = info.mark{#symbol{sym} &: {env = name.env}} <<: name
       #declare_raw{s, wrap_macro{info, expr_mac2{mac}}}
 
-mac{"cmacro"}! cmacro_mac{context, info, form, match} =
+mac{"inlineCmacro"}! icmacro_mac{context, info, form, match} =
    #data{#send{name and [#symbol{sym} or #value{sym}], arguments}, ast} ->
       let mac = info.go{wrap_macro_func{info, arguments, ast}, .parse, .eval}
       s = info.mark{#symbol{sym} &: {env = name.env}} <<: name
@@ -48,7 +48,7 @@ mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
                v.call{info, expr}
 
 
-mac{"makro"}! makro_mac = mak{{}} where
+mac{"macro"}! macro_mac = mak{{}} where
    mak{tosave}{match, info, form, expr} =
       when expr == #void{} ->
          #nostep{form}
@@ -70,9 +70,3 @@ mac{"makro"}! makro_mac = mak{{}} where
       match is expr ->
          #data{*tosave} ->
             #macro with mak{tosave}
-
-
-mac{"oldmacro"}! oldmacro_mac{context, info, form, match} =
-   #data{#send{name and #symbol{sym}, arguments}, ast} ->
-      let mac = info.go{`^arguments -> ^ast`, .parse, .eval}
-      #declare_raw{name, wrap_macro{info, mac}}
