@@ -2,6 +2,7 @@
 require:
    "./helpers" -> Body
    "../location" -> [<<:]
+   "../util" -> camelCase
 
 inject: mac
 
@@ -57,7 +58,10 @@ getreqs{info, req, expr} =
       #send{#symbol{"->"}, #data{pkg, subp}} ->
          pkgv = produce{pkg, fetch}
          rqn = pkgv.reqname or pkgv[1]
-         produce{subp} with {pkg, v, args = null} ->
+         produce{subp} with {_pkg, v, args = null} ->
+            let pkg = match _pkg:
+               #value{camelCase! s} -> #value{s}
+               x -> x
             stmts.push{`let ^v = ^x`} where x =
                if args:
                   then: `getProperty{^pkgv, ^pkg, ^=rqn}[^args]`
@@ -119,9 +123,9 @@ mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
       #multi ++
          expr each
             s and #symbol{name} ->
-               `[^exp][^=name] = ^s`
+               `[^exp][^=camelCase{name}] = ^s`
             `^s as ^[#symbol{name} or #value{name}]` ->
-               `[^exp][^=name] = ^s`
+               `[^exp][^=camelCase{name}] = ^s`
             other ->
                throw E.syntax.provide with
                   "Each clause of provide must be 'sym' or 'sym as name'"
@@ -140,4 +144,4 @@ mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
 mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
    #splice{*globs, `undefined`} where globs =
       vars each variable and #symbol{s} ->
-         #declare_raw{variable, #variable{s} &: {top = true}}
+         #declare_raw{variable, #variable{camelCase{s}} &: {top = true}}

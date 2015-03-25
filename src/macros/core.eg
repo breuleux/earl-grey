@@ -1,5 +1,7 @@
 
 require:
+   "../util" ->
+      camelCase
    "../location" ->
       <<:
    "./helpers" ->
@@ -46,7 +48,7 @@ mac{"where"}! where_mac{context, _, form, #data{body, bindings}} =
 
 mac{"."}! dot_mac{context, _, form, #data{#void{}, expr}} =
    f{expr} where f{match} =
-      #symbol{x} ->
+      #symbol{camelCase! x} ->
          #value{x}
       #data{*args} ->
          #data{*[args each arg -> f{arg}]}

@@ -5,6 +5,8 @@ require:
    "./util" as util ->
       classify
       GenSym, gensym
+      camelCase
+      invCamelCase
    ;; "./pattern" ->
    ;;    PatternParser, PatternProcessor
    "./lex" ->
@@ -114,7 +116,8 @@ class Env:
          @scopes[scope.name] = {=}
       if scope.top:
          value.top = true
-      @scopes[scope.name][name] = value
+      s = @scopes[scope.name]
+      s[name] and s[camelCase{name}] and s[invCamelCase{name}] = value
 
    mark{expr} =
       match expr:

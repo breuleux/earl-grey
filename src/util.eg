@@ -10,6 +10,8 @@ provide:
    mkset
    ;; product
    Body
+   camelCase
+   invCamelCase
 
 
 GenSym{prefix} =
@@ -158,4 +160,15 @@ mkset{xs} =
 Body{match x} =
    #multi{*xs} -> xs
    else -> {x}
+
+
+camelCase{x} =
+   if x.indexOf{"-"} == -1:
+      x
+   else:
+      x.replace{R.g"-([A-Za-z0-9_])", {_, m} -> m.toUpperCase{}}
+
+invCamelCase{x} =
+   x.replace{R.g"([a-z0-9])([A-Z]+)"} with {_, m1, m2} ->
+      m1 + "-" + m2.toLowerCase{}
 

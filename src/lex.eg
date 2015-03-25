@@ -73,7 +73,7 @@ regexps = {
   id = R```
      start
      in "a-zA-Z$_" or ["\\_", any]
-     * [in "a-zA-Z$_0-9" or ["\\_", any]]
+     * [in "a-zA-Z$_0-9" or ["\\_", any] or ["-", in "a-zA-Z$_0-9"]]
   ```
 
   id_f = {m} ->
