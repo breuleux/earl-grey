@@ -1,6 +1,7 @@
 
 require:
    "./helpers" -> Body
+   "../location" -> [<<:]
 
 inject: mac
 
@@ -17,8 +18,10 @@ getreqs{info, req, expr} =
 
    stmts = {}
    names = {}
+   pkgs = {}
 
    topfetch{pkg, v, args = null} =
+      pkgs.push with pkg
       stmts.push with
          if args:
             then: `let ^v = [^req]{^pkg}[^args]`
@@ -61,7 +64,7 @@ getreqs{info, req, expr} =
          fetch{#value{s}, name, args}
 
    produce{expr, topfetch}
-   {stmts, names}
+   {stmts, names, pkgs}
    
 
 
@@ -75,22 +78,34 @@ mac{"require"}! require_mac{context, info, form, match arg} =
       #send{req, arg}
 
    #data{expr} or expr is arg ->
-      {stmts, _} = getreqs{info, req, expr}
+      {stmts, _, _} = getreqs{info, req, expr}
       #splice{*stmts}
 
 
 mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
    #data{expr} or expr is arg ->
-      req = `__require`
-      {stmts, vars} = getreqs{info, req, expr}
-      the_macros = info.go{body, .parse, .eval} where body =
+      req = info.mark{`__require`}
+      {stmts, vars, pkgs} = getreqs{info, req, expr}
+      body =
          #multi{*stmts, #data{*vs}} where
             vs = vars each v -> `= ^v`
+      body <<: arg
+      the_macros = info.go{body, .parse, .eval}
       #splice{*macs} where macs =
          items{the_macros} each {k, v} when Function? v ->
-            #declare_raw{#symbol{k} &: {env = info.env}, #macro{f}} where
-               f{ctx, info, form, expr} =
-                  v.call{info, expr}
+            var r = #splice{}
+            deps = if{v.__deps, clone{v.__deps}, {=}}
+            r ++=
+               items{v.__deps or {=}} each {name, ename} ->
+                  mangled = #variable{info.gensym{name}}
+                  deps[name] = mangled
+                  `require: ^=[v.__path] -> ^[#symbol{ename}] as ^mangled`
+            f{ctx, info, form, expr} =
+               info.deps = deps
+               v.call{info, expr}
+            r.push with
+               #declare_raw{#symbol{k} &: {env = info.env}, #macro{f}}
+            r
 
 
 mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =

@@ -48,6 +48,29 @@ mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
                v.call{info, expr}
 
 
+mac{"makro"}! makro_mac = mak{{}} where
+   mak{tosave}{match, info, form, expr} =
+      when expr == #void{} ->
+         #nostep{form}
+      #pattern ->
+         #project{#macro{mac}, expr, true} where mac{*blah, #data{match}} =
+            #use{env, x} ->
+               #use{env, mac.call{this, #data{x}}}
+            `^args -> ^body` ->
+               e = wrap_macro_func{info, args, body}
+               #multi{`tmp = ^e`
+                      `tmp.__deps and deps = {=}`
+                      *provides
+                      `tmp.__path = __filename`
+                      `tmp`} where
+                  provides = tosave each sym and #symbol{name} ->
+                     `provide{^sym as ^exp}, deps[^=name] = ^=expn` where
+                        expn = "__mdep_" + name
+                        exp = #symbol{expn}
+      match is expr ->
+         #data{*tosave} ->
+            #macro with mak{tosave}
+
 
 mac{"oldmacro"}! oldmacro_mac{context, info, form, match} =
    #data{#send{name and #symbol{sym}, arguments}, ast} ->
