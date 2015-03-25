@@ -7,7 +7,7 @@ require:
    "../pattern" ->
       parse_clauses
    "../util" ->
-      Body
+      Body, camelCase
 
 globals:
    Infinity
@@ -254,7 +254,7 @@ pattern_handlers = {
       allow_nested = true
       allow_arguments = true
       special = disregard_specials
-      assign{#symbol{v} or #value{v}, value, _} =
+      assign{#symbol{camelCase! v} or #value{v}, value, _} =
          #do{#assign{`accum[^=v]`, value} <<: v}
       ;; finalize = true
       declare{_, vars} =

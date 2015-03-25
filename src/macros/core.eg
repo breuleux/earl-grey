@@ -66,11 +66,12 @@ mac{"="}! equal_mac{match, info, form, expr} =
       match expr:
          #void{} ->
             #assoc{}
-         #data{x and #symbol{s}, #void{}} or #data{#void{}, x and #symbol{s}} ->
-            #assoc{#value{s}, x}
+         #data{x and #symbol{s}, #void{}}
+               \ or #data{#void{}, x and #symbol{s}} ->
+            #assoc{#value{camelCase{s}}, x}
          #data{#symbol{s}, rhs} ->
             ;; special case for the most common situation
-            #assoc{#value{s}, rhs}
+            #assoc{#value{camelCase{s}}, rhs}
          #data{lhs, rhs} ->
             #objsplice with #multi with
                PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs2} where

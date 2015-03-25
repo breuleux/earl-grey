@@ -22,7 +22,7 @@ getreqs{info, req, expr} =
    var curpkg = null
    pkgs = {=}
 
-   logName{name and [#symbol{n} or #variable{n}]} =
+   logName{name and [#symbol{camelCase! n} or #variable{n}]} =
       names.push with name
       pkgs[n] = curpkg
 
