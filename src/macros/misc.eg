@@ -2,6 +2,8 @@
 require:
    "../location" ->
       <<:
+   "../util" ->
+      camelCase
    "./helpers" ->
       expr_mac
       var_operator
@@ -142,7 +144,7 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
             PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs} where opt =
                pattern_handlers.build_object & {
                   allow_nested = false
-                  assign{#symbol{v} or #value{v}, value} =
+                  assign{#symbol{camelCase! v} or #value{v}, value} =
                      #do{#assign{`[^name].prototype[^=v]`, value} <<: v}
                   declare{vars} = {}
                   wrap_target{match} =
