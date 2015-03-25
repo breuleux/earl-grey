@@ -56,13 +56,14 @@ global_variables = {
    .___match_error
    .___serialize_ast
 
+   .JSON
    .Set, .Map
    .consume
    .Promise, .promisify, .spawn
 
    .Buffer
 
-   .global
+   .global, .__dirname, .__filename
 }
 
 global_variables each gvar ->
