@@ -21,7 +21,6 @@ TODO
 * Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
 * perhaps `x! [a -> b, c -> d]` ==> `a -> x! b, c -> x! d` (same for ?)
 * define special behavior for a % b in pattern context
-* `macro f{x}: ...` should become `macro f{x} = ...`
 * MAYBE: `class C{super}: ...` into `class C < super = ...`
 * gen should be rebindable
 * ? to return null/error instead of true/false
@@ -70,15 +69,10 @@ TODO
 * maybe use \ for unquote?
 * Use ES6 classes
 * Use ES6 splats
-* revamp the blocktest macro (rename to tests?)
 * match_error could use being more precise
 * make sure macros fail in non-supported contexts and don't have blanket
   [match context: ..., else -> blah] clauses
 * let macros insert setup code at their definition site
-* find a way to make macros more importable
-  idea: macro_require inserts also require(package), which is used to
-        resolve symbols in the macro's namespace (requires what the macro
-        is using to be provided, though)
 * experiment with changing the priority of wide juxtaposition
 * make it possible to do "earl compile src -o lib" instead of having
   to do "earl compile -o lib src"
@@ -110,12 +104,9 @@ TODO
 * ditch pp submodule?
 * print errors properly to a normal console
 
-* stuff macro helpers in macro.[helper_name] or somesuch
-
 * Track types at declaration
 
 * @prelude
-* Importing macros
 
 * Eliminate ++ and -- for increment/decrement?
 
@@ -298,5 +289,13 @@ X `require` should fail when importing symbols that were not exported
   by a module
 
 X make -l (lazy) a default flag, add -r or -R to override
+
+X `macro f{x}: ...` should become `macro f{x} = ...`
+X revamp the blocktest macro (rename to tests?)
+  REMOVED IT
+X find a way to make macros more importable
+  idea: macro_require inserts also require(package), which is used to
+        resolve symbols in the macro's namespace (requires what the macro
+        is using to be provided, though)
 
 
