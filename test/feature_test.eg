@@ -1,10 +1,7 @@
 
 requireMacros:
-   "grey-mocha" ->
+   "earl-mocha" ->
       describe, it, before, after, assert, asserts, expectError
-
-require:
-   "grey-mocha" as gm
 
 
 describe "examples":
