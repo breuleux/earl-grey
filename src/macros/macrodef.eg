@@ -5,7 +5,7 @@ require:
    "../expand" ->
       Env, topscope
    "./helpers" ->
-      ctx_mac, expr_mac2
+      ctx_mac, expr_mac2, multimacro
 
 inject: mac
 

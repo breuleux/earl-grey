@@ -121,7 +121,7 @@ mac{"?"}! check_mac{match context, info, form, #data{chk, target}} =
    #pattern ->
       subp = if{target == #void, #ignore, target}
       match checker:
-         #raw{projector} ->
+         #raw{checker} ->
             checker
          else ->
             #check{checker, subp}

@@ -35,6 +35,7 @@ provide:
    flatmacro
    AssignmentHandler
    qq
+   multimacro
 
 
 embed_location{match} =
@@ -381,3 +382,55 @@ qq{match expr, annotate = false} =
          `^res & {fromop = true}`
       else:
          res
+
+
+multimacro{cases}{match context, info, form, zexpr} =
+
+   do:
+
+      fallbacks = {
+         check = null
+         clause = null
+         decorate = .project
+         expr = null
+         project = .expr
+      }
+
+      ex{case, info, expr, orig = case} =
+         if cases[case]:
+            cases[case].call{info, expr}
+         elif fallbacks[case]:
+            ex{fallbacks[case], info, expr, orig}
+         else:
+            throw E.syntax.nomacro{'No macro for context: \'{orig}\'', expr = zexpr}
+
+      projector{case} =
+         #macro{mac} where mac{ctx, info, form, #data{match e}} =
+            #use{env, x} ->
+               #use{env, ex{case, info, e}}
+            else ->
+               ex{case, info, e}
+
+   #clause ->
+      ex{.clause, info, expr}
+
+   #pattern ->
+      if cases.pattern:
+         return ex{.pattern, info, expr}
+      else:
+         #project{projector{.decorate}, expr, true}
+
+   #check{match} ->
+      #pattern ->
+         `{x} -> [^projector{.check}]{x}`
+      else ->
+         `{x} -> [^projector{.check}]{x}`
+
+   #project{match} ->
+      #pattern ->
+         #unconditional{projector{.project}}
+      else ->
+         `{x} -> {true, [^projector{.project}]{x}}`
+
+   else ->
+      ex{.expr, info, expr}
