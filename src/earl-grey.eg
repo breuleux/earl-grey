@@ -17,17 +17,17 @@ require:
       Body
       GenSym
    vm, module, path
-   ;; babel as to5
    "source-map" as smap ->
       SourceNode
    "multi-stage-sourcemap" -> transfer
    "./version" -> version
+   "./evaluator" -> evaluator
 
 provide:
    evaluator
    Source, Location, highlight_locations
    tokenize, parse
-   Generator ;;, generate
+   Generator
    version
 
 
@@ -35,68 +35,6 @@ es5Transform{x, opts = null} =
    require: babel
    babel.transform{x, opts}
 
-
-evaluator{options} =
-
-   req = require
-
-   glob =
-      if options.globvar:
-         match global[options.globvar]:
-            undefined? ->
-               get global[options.globvar] =
-                  match options.global:
-                     === true ->
-                        global
-                     Object? g ->
-                        g
-                     else ->
-                        Object.create{global}
-                        ;; _glob = {=}
-                        ;; for v in global:
-                        ;;    _glob[v] = global[v]
-                        ;; _glob
-            g -> g
-      else:
-         global
-
-   if module._nodeModulePaths:
-      paths = module._nodeModulePaths{options.cwd}
-
-      e_module = new module{options.showname}
-      e_module &: {
-         filename = options.filename
-         paths = paths
-      }
-
-      e_require{path} =
-         module._load{path, e_module, true}
-      e_require &: {
-         main = e_module
-         resolve{path} =
-            module._resolveFileName{path, e_module}
-         paths = paths
-         cache = req.cache
-      }
-
-      setup = {
-         __filename = options.filename
-         __dirname = path.dirname{options.filename}
-         module = e_module
-         require = e_require
-         exports = {=}
-      }
-
-      glob &: setup
-
-      {code} ->
-         script = vm.createScript{code, options.showname}
-         rval = script.runInThisContext{}
-         rval
-
-   else:
-      __eval = eval
-      {code} -> __eval{code}
 
 
 globalizer = GenSym{"_$$_"}

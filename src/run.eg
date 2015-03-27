@@ -1,8 +1,5 @@
 
 require:
-   "./earl-grey" as eg
-   ;; "./pp" ->
-   ;;    <>
    "./location" ->
       Source
       format_error
@@ -177,6 +174,7 @@ copy{src, dest} =
 
 
 _gen{text, file, opts} =
+   require: "./earl-grey" as eg
    g = eg.Generator{opts}
    g.generate{Source{text, path.resolve{file}}}
 
@@ -299,9 +297,8 @@ _run{match, opts} =
       console.log with usage
 
    when opts.version ->
-      console.log with
-         "Earl Grey version"
-         eg.version
+      require: "./version" -> version
+      print 'Earl Grey version {version}'
 
    {} or {.run} ->
       _run{{.run, "-i"}, opts}
@@ -344,6 +341,7 @@ _run{match, opts} =
       var result = null
 
       if file == null:
+         require: "./earl-grey" as eg
          e = eg.evaluator with {
             filename = "<repl>"
             showname = "<repl>"
@@ -354,10 +352,11 @@ _run{match, opts} =
             result = e{g.generate{Source{o.evaluate, "<repl>"}}.code}
 
       else:
+         require: "./evaluator" -> evaluator as ev
          process.argv = {"earl-run", file} ++ rest
 
          {g, compiled, srcfile} = register.getCache{file, o}
-         e = eg.evaluator with {
+         e = ev with {
             filename = file
             showname = srcfile
             cwd = file
