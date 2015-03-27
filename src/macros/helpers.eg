@@ -47,8 +47,11 @@ embed_location{match} =
 error_embed_location{error, target} =
    `throw [^error &: {location = ^embed_location{target}}]`
 
-match_error{target} =
-   `___match_error{^target}` <<: target
+match_error{target, match = null} =
+   {=> location} -> `___match_error{^target, ^=location.text{}}` <<: target
+   else -> `___match_error{^target}` <<: target
+
+
    ;; {location => {source => {=> url}, => start, => end}} ->
    ;;    `___match_error{^target, ^=url, ^=start, ^=end}` <<: target
    ;; other ->
@@ -243,8 +246,8 @@ pattern_handlers = {
                .unqualified ->
                   #declare{v & {mutable = false, use_previous = true}}
       success{_} = #multi{}
-      failure{target} =
-         match_error{target}
+      failure{target, pattern} =
+         match_error{target, pattern}
          ;; error_embed_location{..., target} with
          ;;    'E.match{"Could not find a match for value", {value = ^target}}
       wrapOrder = 0
@@ -261,8 +264,8 @@ pattern_handlers = {
       declare{_, vars} =
          {#declare{`accum`, `{=}`}}
       success{_} = `accum`
-      failure{target} =
-         match_error{target}
+      failure{target, pattern} =
+         match_error{target, pattern}
          ;; error_embed_location{..., target} with
          ;;    'E.match{"Could not find a match for value", {value = ^target}}
       wrapOrder = 0

@@ -126,8 +126,8 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
          pattern_handlers.declare_variables & {
             indexable = true
             allow_nested = true
-            fallback{target} =
-               match_error{target}
+            fallback{target, pattern} =
+               match_error{target, pattern}
             tags = {declare_mode = .let}
             insert_object_argument = true
          }

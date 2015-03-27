@@ -286,7 +286,7 @@ class PatternCompiler:
       if [not @processed]:
          @process_for_rhs{rhs}
       succ = @opt.success{@target}
-      fail = @opt.failure{@target}
+      fail = @opt.failure{@target, @pattern}
       assembly = assemble_pattern{@parts, succ, fail}
       #splice with
          if [@expr === null]:
@@ -529,10 +529,12 @@ same_block{match, ban1, ban2} =
 parse_clauses{info, target, stmts, opt} =
 
    var all_temps = {}
+   var last_clause = null
 
    the_parts = info.step_all{#clause, stmts} each
 
       #clause{pattern, body} ->
+         last_clause = pattern
          pc = PatternCompiler{pattern, info} with opt & {
             allow_arguments = false
             allow_nested = true
@@ -561,7 +563,7 @@ parse_clauses{info, target, stmts, opt} =
             {clause = other}
 
    if opt.fallback:
-      the_parts.push with #block{opt.fallback{target}}
+      the_parts.push with #block{opt.fallback{target, last_clause}}
    unique_temps = keys{util.mkset{all_temps each #symbol{t} -> t}}
    #multi{*decls, weave_clauses{the_parts}} where
       decls = unique_temps each t -> #declare{#symbol{t} &: {mutable = true}}

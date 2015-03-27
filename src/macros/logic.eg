@@ -47,8 +47,11 @@ accum_flags! mac{"match"}! match_mac{match, info, form, expr, flags} =
          parse_clauses with
             info, to_match, body
             opt & {
-               fallback{target} =
-                  match_error{target}
+               fallback{target, match} =
+                  {=> location} ->
+                     match_error{target, #value{location.text{}}}
+                  else ->
+                     match_error{target}
                wrap = null
             }
 
