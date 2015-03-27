@@ -384,7 +384,7 @@ qq{match expr, annotate = false} =
          res
 
 
-multimacro{cases}{match context, info, form, zexpr} =
+multimacro{cases}{match context, info, form, expr and topexpr} =
 
    do:
 
@@ -402,12 +402,12 @@ multimacro{cases}{match context, info, form, zexpr} =
          elif fallbacks[case]:
             ex{fallbacks[case], info, expr, orig}
          else:
-            throw E.syntax.nomacro{'No macro for context: \'{orig}\'', expr = zexpr}
+            throw E.syntax.nomacro{'No macro for context: \'{orig}\'', expr = topexpr}
 
       projector{case} =
          #macro{mac} where mac{ctx, info, form, #data{match e}} =
             #use{env, x} ->
-               #use{env, ex{case, info, e}}
+               #use{env, ex{case, info, x}}
             else ->
                ex{case, info, e}
 
