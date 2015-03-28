@@ -48,7 +48,8 @@ error_embed_location{error, target} =
    `throw [^error &: {location = ^embed_location{target}}]`
 
 match_error{target, match = null} =
-   {=> location} -> `___match_error{^target, ^=location.text{}}` <<: target
+   {location => true? location} ->
+      `___match_error{^target, ^=location.text{}}` <<: target
    else -> `___match_error{^target}` <<: target
 
 
