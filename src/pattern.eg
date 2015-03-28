@@ -86,25 +86,24 @@ class PatternCompiler:
                curidx = null
                set rest = @expand{variable, tags}
                #ignore
-            #assoc{key} ->
+            #assoc{key, subp} or #assoc{subp} and key is null ->
                setInsidx{spec}
-               match @expand{key, tags}:
-                  res and {pinfo => {vars => {v and #symbol{k}}}} ->
-                     match res:
-                        #default{pattern, default} ->
-                           #keys with {#value{k} <<: v, pattern, default}
+               esubp = @expand{subp, tags}
+               k =
+                  if key == null:
+                     match esubp:
+                        res and {pinfo => {vars => {v and #symbol{k}}}} ->
+                           #value{k} <<: v
                         else ->
-                           #keys with {#value{k} <<: v, res}
-                  else ->
-                     throw E.syntax.no_field{msg, expr = spec} where msg =
-                        'Could not identify the name of the field to extract'
-            #assoc{key, subp} ->
-               setInsidx{spec}
-               match @expand{subp, tags}:
+                           throw E.syntax.no_field{msg, expr = spec} where msg =
+                              'Could not identify the name of the field to extract'
+                  else:
+                     key
+               match esubp:
                   #default{pattern, default} ->
-                     #keys with {key, pattern, default}
-                  res ->
-                     #keys with {key, res}
+                     #keys with {k, pattern, default}
+                  else ->
+                     #keys with {k, esubp}
             #default{variable, value} ->
                curidx = null
                set has_defaults = true
