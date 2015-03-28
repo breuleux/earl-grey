@@ -104,8 +104,8 @@ mac{"=>"}! fat_arrow_mac{match, {=> env}, _, #data{lhs, rhs}} =
       match {lhs, rhs}:
          {#void, rhs} ->
             #assoc{rhs}
-         {#symbol{k} or #value{k}, rhs} ->
-            #assoc{#value{k}, rhs}
+         else ->
+            #assoc{lhs, rhs}
    #test ->
       Body! {*stmts} = rhs
       #blocktest{lhs, stmts}

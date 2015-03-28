@@ -89,21 +89,33 @@ class PatternCompiler:
             #assoc{key, subp} or #assoc{subp} and key is null ->
                setInsidx{spec}
                esubp = @expand{subp, tags}
-               k =
-                  if key == null:
+
+               wrap{match key, value, default = {}} =
+                  #send{x, y} ->
+                     wrap{x, p2, default} where
+                        p2 = #object_pattern{{y, value} ++ default, pinfo = value.pinfo}
+                  #symbol{field} or #value{field} ->
+                     {#value{field} <<: key, value} ++ default
+                  else ->
+                     throw E.syntax.invalid_key{"Invalid key.", expr = key}
+
+               finalize{key, match value} =
+                  #default{pattern, default} ->
+                     #keys with wrap{key, pattern, {default}} ;; ++ {default}
+                  else ->
+                     #keys with wrap{key, value}
+
+               match key:
+                  null? ->
                      match esubp:
-                        res and {pinfo => {vars => {v and #symbol{k}}}} ->
-                           #value{k} <<: v
+                        res and {pinfo => {vars => {v}}} ->
+                           finalize{v, esubp}
                         else ->
                            throw E.syntax.no_field{msg, expr = spec} where msg =
                               'Could not identify the name of the field to extract'
-                  else:
-                     key
-               match esubp:
-                  #default{pattern, default} ->
-                     #keys with {k, pattern, default}
                   else ->
-                     #keys with {k, esubp}
+                     finalize{key, esubp}
+
             #default{variable, value} ->
                curidx = null
                set has_defaults = true
@@ -345,16 +357,17 @@ class PatternProcessor:
    check{part, tags = {=}} =
       @parts.push with #check{part} & tags
 
-   temp{x, var v = null} =
-      match x:
-         [#variable or #symbol] and {single_assignment => true?} when not v ->
-            x
-         init ->
-            set v = v or #symbol{@gen{}}
-            v.single_assignment = true
-            @temps.push with v
-            @do with `[set ^v = ^init]`
-            v
+   temp{match x, var v = null} =
+      [#variable or #symbol] and {single_assignment => true?} when not v ->
+         x
+      #value ->
+         x
+      init ->
+         set v = v or #symbol{@gen{}}
+         v.single_assignment = true
+         @temps.push with v
+         @do with `[set ^v = ^init]`
+         v
 
    process{pattern, rhs, fns} =
       rval = match pattern:
@@ -412,11 +425,13 @@ class PatternProcessor:
          #object_pattern{*subp} ->
             t = @temp{rhs}
             subp each
-               {#value{k}, v} ->
-                  @check with `[___hasprop{^t, ^=k}]`
-                  @process{v, `[^t][^=k]`, fns}
-               {#value{k}, v, default} ->
-                  @process{v, `if{___hasprop{^t, ^=k}, [^t][^=k], ^default}`, fns}
+               {k, v} ->
+                  t2 = @temp{k}
+                  @check with `[___hasprop{^t, ^t2}]`
+                  @process{v, `[^t][^t2]`, fns}
+               {k, v, default} ->
+                  t2 = @temp{k}
+                  @process{v, `if{___hasprop{^t, ^t2}, [^t][^t2], ^default}`, fns}
 
          #array_pattern{fw, bw, dflt, rest} ->
             ;; {a, b, c = 123, *rest, d, e}

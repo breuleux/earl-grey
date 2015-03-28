@@ -63,6 +63,10 @@ describe "object deconstruction":
       {=> {x}, => {{y}}, => Number? z} = {x = {1}, y = {{2}}, z = 3}
       assert {x, y, z} == {1, 2, 3}
 
+   it "deep extraction 2":
+      {x.y.z => a} = {x = {y = {z = 6}}}
+      assert a == 6
+
    it "default values":
       do:
          {=> x = 3, => y} = {x = 10, y = 7}
@@ -71,7 +75,23 @@ describe "object deconstruction":
          {=> x = 3, => y} = {y = 7}
          assert {x, y} == {3, 7}
 
+   it "deep extraction defaults":
+      do:
+         {x.y.z => a = 777} = {x = {y = {z = 6}}}
+         assert a == 6
+      do:
+         {x.y.z => a = 777} = {x = {y = {C = 6}}}
+         assert a == 777
+      do:
+         {x.y.z => a = 777} = {x = {B = {C = 6}}}
+         assert a == 777
+      do:
+         {x.y.z => a = 777} = {A = {B = {C = 6}}}
+         assert a == 777
 
+   it "extraction calls":
+      {f{123} => z} = {f{x} = x * 2}
+      assert z == 246
 
 
 
