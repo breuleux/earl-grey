@@ -130,7 +130,7 @@ var_operator{name} = {match, {=> env}, form, expr} ->
             sym
          #data{#void, match} ->
             #symbol{s} ->
-               #send{sym, #value{s}}
+               #send{sym, #value{camelCase{s}}}
             other ->
                #send{sym, other}
 
