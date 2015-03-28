@@ -102,8 +102,8 @@ mac{"="}! equal_mac{match, info, form, expr} =
 mac{"=>"}! fat_arrow_mac{match, {=> env}, _, #data{lhs, rhs}} =
    #pattern ->
       match {lhs, rhs}:
-         {#void, #symbol{k} or #value{k}} ->
-            #assoc{#value{k}, [#symbol{k} <<: rhs] & {env = env}}
+         {#void, rhs} ->
+            #assoc{rhs}
          {#symbol{k} or #value{k}, rhs} ->
             #assoc{#value{k}, rhs}
    #test ->

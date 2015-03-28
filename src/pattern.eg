@@ -88,7 +88,12 @@ class PatternCompiler:
                #ignore
             #assoc{key} ->
                setInsidx{spec}
-               #keys with {key, @expand{key, tags}}
+               match @expand{key, tags}:
+                  res and {pinfo => {vars => {v and #symbol{k}}}} ->
+                     #keys with {#value{k} <<: v, res}
+                  else ->
+                     throw E.syntax.no_field{msg, expr = spec} where msg =
+                        'Could not identify the name of the field to extract'
             #assoc{key, subp} ->
                setInsidx{spec}
                #keys with {key, @expand{subp, tags}}
