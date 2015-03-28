@@ -1,0 +1,77 @@
+
+requireMacros:
+   "earl-mocha" ->
+      describe, it, before, after, assert, asserts, expectError
+
+
+describe "array deconstruction":
+
+   it "basic":
+      {x, y, z} = {1, 2, 3}
+      assert {x, y, z} == {1, 2, 3}
+
+   it "error on wrong length":
+      expect-error [E.match?]:
+         {x, y, z} = {1, 2}
+         pass
+      expect-error [E.match?]:
+         {x, y} = {1, 2, 3}
+         pass
+
+   it "literals":
+      do:
+         {x, y, 3} = {1, 2, 3}
+         assert {x, y} == {1, 2}
+      do:
+         expect-error [E.match?]:
+            {x, y, 3} = {1, 2, 4}
+
+   it "default values":
+      do:
+         {x, y, z = 3} = {1, 2, 10}
+         assert z == 10
+      do:
+         {x, y, z = 3} = {1, 2}
+         assert z == 3
+      do:
+         {x, y = 3, z} = {1, 2}
+         assert y == 3
+      do:
+         {x = 3, y, z} = {1, 2}
+         assert x == 3
+
+   it "nesting":
+      {a, {b, c}, {{{d}}}, {e, f, g}} = {1, {2, 3}, {{{4}}}, {5, 6, 7}}
+      assert {a, b, c, d, e, f, g} == {1, 2, 3, 4, 5, 6, 7}
+
+
+describe "object deconstruction":
+
+   it "basic":
+      {=> x, => y} = {x = 1, y = 2}
+      assert {x, y} == {1, 2}
+
+   it "order irrelevant":
+      {=> y, => x} = {x = 1, y = 2}
+      assert {x, y} == {1, 2}
+
+   it "change keys":
+      {a => x, b => y} = {a = 1, b = 2}
+      assert {x, y} == {1, 2}
+
+   it "deep extraction":
+      {=> {x}, => {{y}}, => Number? z} = {x = {1}, y = {{2}}, z = 3}
+      assert {x, y, z} == {1, 2, 3}
+
+   it "default values":
+      do:
+         {=> x = 3, => y} = {x = 10, y = 7}
+         assert {x, y} == {10, 7}
+      do:
+         {=> x = 3, => y} = {y = 7}
+         assert {x, y} == {3, 7}
+
+
+
+
+
