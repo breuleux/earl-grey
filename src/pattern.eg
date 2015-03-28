@@ -90,13 +90,21 @@ class PatternCompiler:
                setInsidx{spec}
                match @expand{key, tags}:
                   res and {pinfo => {vars => {v and #symbol{k}}}} ->
-                     #keys with {#value{k} <<: v, res}
+                     match res:
+                        #default{pattern, default} ->
+                           #keys with {#value{k} <<: v, pattern, default}
+                        else ->
+                           #keys with {#value{k} <<: v, res}
                   else ->
                      throw E.syntax.no_field{msg, expr = spec} where msg =
                         'Could not identify the name of the field to extract'
             #assoc{key, subp} ->
                setInsidx{spec}
-               #keys with {key, @expand{subp, tags}}
+               match @expand{subp, tags}:
+                  #default{pattern, default} ->
+                     #keys with {key, pattern, default}
+                  res ->
+                     #keys with {key, res}
             #default{variable, value} ->
                curidx = null
                set has_defaults = true
@@ -202,7 +210,7 @@ class PatternCompiler:
             specs = @parse_specs{args, tags}
 
             var pinfos = {}
-            pinfos ++= specs.keys each {_, {=> pinfo}} -> pinfo
+            pinfos ++= specs.keys each {_, {=> pinfo}, _ = null} -> pinfo
             pinfos ++= specs.fw each {=> pinfo} -> pinfo
             pinfos ++= specs.bw each {=> pinfo} -> pinfo
             pinfos ++= specs.defaults each {{=> pinfo}, _} -> pinfo
@@ -232,6 +240,10 @@ class PatternCompiler:
 
          #mode{mode, subp} ->
             @expand{subp, tags & {declare_mode = mode}, toplevel, checked}
+
+         #default{subp, expr} ->
+            r = @expand{subp, tags, toplevel, checked}
+            #default{r, expr, pinfo = r.pinfo}
 
          other ->
             throw E.syntax.pattern{"Illegal pattern: " + other, {node = other}}
@@ -400,9 +412,12 @@ class PatternProcessor:
 
          #object_pattern{*subp} ->
             t = @temp{rhs}
-            subp each {#value{k}, v} ->
-               @check with `[___hasprop{^t, ^=k}]`
-               @process{v, `[^t][^=k]`, fns}
+            subp each
+               {#value{k}, v} ->
+                  @check with `[___hasprop{^t, ^=k}]`
+                  @process{v, `[^t][^=k]`, fns}
+               {#value{k}, v, default} ->
+                  @process{v, `if{___hasprop{^t, ^=k}, [^t][^=k], ^default}`, fns}
 
          #array_pattern{fw, bw, dflt, rest} ->
             ;; {a, b, c = 123, *rest, d, e}
@@ -447,6 +462,9 @@ class PatternProcessor:
 
             enumerate{bw} each {i, m} ->
                @process{m, `___js_fetch{^t, ^len - ^=[nbw - i]}`, fns}
+
+         #default ->
+            throw E.syntax.pattern{'Cannot declare default value here', expr = pattern}
 
       rval
 
