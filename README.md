@@ -269,7 +269,7 @@ Literals and data structures
     "this is a string"
     "Escape \" with a backslash"
     'single-quoted strings support interpolation'
-    'there are {n} little piggies'
+    'there are {n} little piggies' where n = 3
     """this is a
        "long"
        multiline string"""
@@ -894,6 +894,37 @@ defined as macros.
 `requireMacros` when deciding whether to recompile a file or not. If
 those dependencies change, dependents may not be recompiled, so you
 will need to `touch` them or use the `-r` flag to force them to be.
+
+
+Document-building syntax
+------------------------
+
+The `%` operator can be used to build structured "documents". It
+creates an instance of the `ENode` data structure, which contains a
+set of tags and attributes along with a list of children.
+
+`ENode` instances mostly just hold structure and are meant to be
+converted into something else, for instance HTML:
+
+
+    node =
+       div#main %
+          "Some text"
+          strong % 1234
+          a.large.red %
+             href = "http://example.com"
+             "stuff"
+
+    node.toHTML{}
+
+    ===>
+
+    <div id="main">
+      Some text
+      <strong>1234</strong>
+      <a class="large blue" href="http://example.com">stuff</a>
+    </div>
+
 
 
 Macros
