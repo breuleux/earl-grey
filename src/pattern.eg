@@ -8,7 +8,7 @@ require:
       GenSym, gensym
       classify, classify_contiguous
       identity
-      Body
+      Body, camelCase
    "./expand" ->
       checker_db
 
@@ -94,7 +94,7 @@ class PatternCompiler:
                   #send{x, y} ->
                      wrap{x, p2, default} where
                         p2 = #object_pattern{{y, value} ++ default, pinfo = value.pinfo}
-                  #symbol{field} or #value{field} ->
+                  #symbol{camelCase! field} or #value{field} ->
                      {#value{field} <<: key, value} ++ default
                   else ->
                      throw E.syntax.invalid_key{"Invalid key.", expr = key}
