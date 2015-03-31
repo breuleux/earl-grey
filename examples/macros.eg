@@ -2,7 +2,7 @@
 
 ;; Unless
 
-macro unless{#data{test, body}}:
+inline-macro unless{#data{test, body}}:
    `if{not ^test, ^body}`
 
 unless 0:
@@ -11,7 +11,7 @@ unless 0:
 
 ;; A fancy way of writing while [1]: ... :)
 
-macro forever{#data{body}}:
+inline-macro forever{#data{body}}:
    ;; The label is needed in order for the user to be able
    ;; to break/continue from forever. Without the label, EG
    ;; considers that the while loop is not visible from the
@@ -33,7 +33,7 @@ macro forever{#data{body}}:
 ;; Define the ~ operator to define anonymous functions, with the
 ;; variable $ holding the first argument
 
-macro [~]{#data{#void{}, body}}:
+inline-macro [~]{#data{#void{}, body}}:
    dolla = @mark{`$`}
    `{^dolla} -> ^body`
 

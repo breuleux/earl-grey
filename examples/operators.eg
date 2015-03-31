@@ -13,7 +13,7 @@ print 1..10 each i -> fgh{i}
 
 
 ;; Let's swap some variables!
-macro [<=>]{*, #data{a, b}}:
+inline-macro [<=>]{*, #data{a, b}}:
    ```
    let temp = ^a
    ^a = ^b

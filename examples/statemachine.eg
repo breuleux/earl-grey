@@ -1,6 +1,6 @@
 
 
-macro statemachine{#data{name, #multi! #multi{*fns}}}:
+inline-macro statemachine{#data{name, #multi! #multi{*fns}}}:
    ;; This macro will help us define state machines nicely and easily
 
    ;; Usage:
