@@ -148,8 +148,8 @@ class PatternCompiler:
             variable = expr & tags
             #assign{variable} &: {pinfo = PatternInfo{{}, {variable}}}
          #value{v} when @opt.strings_as_variables ->
-            variable = [#symbol{v} & tags] <<: expr
-            ;; variable = [#value{v} & tags] <<: expr
+            ;; variable = [#symbol{v} & tags] <<: expr
+            variable = [#value{v} & tags] <<: expr
             #assign{variable} &: {pinfo = PatternInfo{{}, {variable}}}
          #value{v} ->
             #check{checker_db{v}, #ignore}
