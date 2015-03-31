@@ -18,7 +18,7 @@
   },
   "bin": {
     "earl": "bin/earl",
-    "node-earl": "bin/node-earl"
+    "earl5": "bin/earl5"
   },
   "scripts": {
     "test": "mocha"
