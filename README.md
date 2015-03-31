@@ -18,20 +18,19 @@ a quick rundown of its amazing features:
   * New kinds of macros!
 * And much more!
 
-[Try it here!](http://breuleux.github.io/earl-grey/repl) (this is an
-old version that I haven't updated yet)
+[Try it here!](http://breuleux.github.io/earl-grey/repl)
 
 
 Install
 -------
 
-This won't work well at the moment because I'm in the middle of a
-massive rehaul:
+First you need to install `iojs` and `npm`. Then:
 
     npm install -g earlgrey
 
-This will install the `earl` command. Run `earl` with no arguments to
-start an interactive interpreter, or run an EG program as:
+This will install the `earl` command. Run `earl` (or `earl5` if you
+don't have `iojs` installed) with no arguments to start an interactive
+interpreter, or run an EG program as:
 
     earl run file.eg
 
@@ -66,6 +65,7 @@ a browser-compatible file.
 
 As with `earl run`, `earl compile` avoids needless recompiling. Use
 the `-r` flag to force recompilation.
+
 
 
 What does it look like?
@@ -885,13 +885,13 @@ clear what symbols the module provides.
 
 TODO
 
-### `requireMacros`
+### `require-macros`
 
-`requireMacros` works like `require`, but the imported symbols are
+`require-macros` works like `require`, but the imported symbols are
 defined as macros.
 
 `earl` currently does not take into account the dependencies listed by
-`requireMacros` when deciding whether to recompile a file or not. If
+`require-macros` when deciding whether to recompile a file or not. If
 those dependencies change, dependents may not be recompiled, so you
 will need to `touch` them or use the `-r` flag to force them to be.
 
