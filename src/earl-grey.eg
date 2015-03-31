@@ -169,7 +169,7 @@ class Generator:
       ;; practical in interactive mode)
       var ex = @expander.expand{
          #top
-         exp.topscope
+         opts.scope or exp.topscope
          @env.mark{stmt}
       } where stmt =
          if @interactive:
@@ -219,7 +219,7 @@ class Generator:
       ;; practical in interactive mode)
       var ex = @expander.expand{
          #top
-         exp.topscope
+         opts.scope or exp.topscope
          @env.mark{stmt}
       } where stmt =
          if @interactive:
