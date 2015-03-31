@@ -92,6 +92,8 @@ mac{"="}! equal_mac{match, info, form, expr} =
             assignment = pc.extract_from_rhs{rhs2} where
                rhs2 = #use{info.scope, rhs} <<: rhs
             rval = match pc.vars:
+               {} ->
+                  #value{undefined}
                {v} ->
                   ;; match rhs2: #use{_, x} or x -> x &: {name = v[1]}
                   v
