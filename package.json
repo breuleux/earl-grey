@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "mocha": "^2.2.1",
-    "grey-mocha": ">=0.0.1"
+    "earl-mocha": ">=0.0.1"
   },
   "bin": {
     "earl": "bin/earl",
