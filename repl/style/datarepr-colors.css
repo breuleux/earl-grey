@@ -1,0 +1,88 @@
+
+.true { color: #080; }
+.false { color: #f00; }
+.null { color: #888; }
+.undefined { color: #888; }
+.num { color: #00f; }
+.str { color: #000; }
+
+.function {
+    color: blue;
+}
+
+.array {
+    border: 2px solid #aaa;
+    background-color: #fff;
+}
+
+.array > :nth-child(odd) {
+    background-color: #fff;
+}
+
+.array > :nth-child(even) {
+    background-color: #eef;
+}
+
+.container-array {
+    background-color: #fff !important;
+}
+.container-instance {
+    background-color: #fff !important;
+}
+.container-class {
+    background-color: #fff !important;
+}
+.container-object {
+    background-color: #fff !important;
+}
+.container-collapsed {
+    background-color: #fff !important;
+}
+
+.object {
+    border: 2px solid #88f;
+    background-color: #fff;
+}
+
+.instance .name, .class .name {
+    background-color: #88f;
+    color: white;
+}
+
+.str:empty::before { color: #888; }
+.array:empty::before { color: #888; }
+.object:empty::before { color: #888; }
+
+.regexp {
+    color: darkblue;
+}
+.regexp::before { color: blue; }
+.regexp::after { color: blue; }
+
+.unknown {
+    color: darkorange;
+}
+
+.reference {
+    color: magenta;
+}
+
+.hl1 { color: #00f; }
+.hl2 { color: #080; }
+.hl3 { color: #a80; }
+.hlE { color: #f00; }
+
+.red { color: red; }
+.green { color: green; }
+.blue { color: blue; }
+.yellow { color: yellow; }
+.cyan { color: cyan; }
+.magenta { color: magenta; }
+.black { color: black; }
+.white { color: white; }
+.grey { color: grey; }
+
+.error_type {
+    color: #f00;
+}
+

@@ -1,6 +1,10 @@
 
 @import url("http://fonts.googleapis.com/css?family=Cousine:400,700|Open+Sans");
 @import url("earlmode.css");
+@import url("datarepr.css");
+@import url("datarepr-colors.css");
+@import url("datarepr-ast.css");
+@import url("cards.css");
 
 html {
     margin: 0px;
@@ -11,7 +15,10 @@ html {
 
 #box, body {
     height: 100%;
+    max-width: 800px;
     font-size: 12pt;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #box, #help {
@@ -19,8 +26,8 @@ html {
     overflow-y: auto;
 }
 
-#box {width: 50%; float: right}
-#help {width: 50%; float: left}
+#box {width: 100%; float: right}
+#help {width: 0%; float: left}
 
 .result {
     /* outline: 0px; */
@@ -54,9 +61,11 @@ html {
 }
 
 .in, .out, .err {
-    /* border: 1px solid #888; */
     display: -webkit-flex;
     display: flex;
+}
+
+.in, .err {
     font-family: 'Cousine', monospace;
     white-space: pre-wrap;
 }
@@ -120,165 +129,6 @@ html {
     margin-right: 0.4em;
 }
 
-.eg {
-    white-space: wrap;
-}
-
-.eg .true, .eg .false, .eg .nil, .eg .num {
-    font-weight: bold;
-}
-
-.eg .true:hover, .eg .false:hover, .eg .nil:hover, .eg .num:hover, .eg .str:hover {
-    background-color: #eee;
-}
-
-.eg .classname {
-    background-color: #88f;
-    font-weight: bold;
-    color: white;
-    padding: 3px;
-}
-
-.eg .true { color: #080; }
-.eg .false { color: #f00; }
-.eg .nil { color: #888; }
-.eg .hole { color: #888; }
-.eg .num { color: #00f; }
-.eg .str {
-    color: #000;
-    /* border-bottom: 2px dotted #888; */
-    white-space: pre;
-    max-height: 200px;
-    overflow: auto;
-}
-.eg .function {
-    color: blue;
-}
-.eg .function:before {
-    content: "function ";
-}
-
-
-.eg .sequence {
-    border: 2px solid #aaa;
-    overflow: auto;
-}
-
-.eg .sequence > * {
-    display: inline-block;
-    margin: 5px;
-    vertical-align: middle;
-}
-
-.eg .empty.str::before { content: "\"\""; }
-.eg .empty.sequence::before { content: "\2205"; }
-.eg .empty.object::before { content: "\2205"; }
-.eg .empty { color: #888; }
-
-.eg .object {
-    border: 2px solid #88f;
-}
-
-.eg .object th > .str {
-    border-bottom: 0px;
-}
-
-.eg th {
-    text-align: left;
-    margin-right: 5px;
-    padding-right: 5px;
-    border-right: 1px solid #ddd;
-}
-
-.eg td > * {
-    display: block;
-}
-
-
-
-.eg .error > * {
-    display: inline-block;
-}
-
-
-.eg .error_type {
-    color: #f00;
-    font-weight: bold;
-    margin-right: 10px;
-}
-.eg .error_type:after {
-    content: ":";
-}
-
-
-
-.eg .traceback {
-    display: inline;
-    white-space: pre;
-}
-
-.eg .source, .eg .source * {
-    display: inline;
-    white-space: pre;
-}
-
-.eg .sourcepos {
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-.eg .lineno {
-    border-right: 2px solid #88f;
-    padding-right: 2px;
-    margin-right: 10px;
-    display: inline-block;
-    text-align: right;
-    min-width: 2em;
-}
-
-
-.eg .location > *:first-child > * {
-    margin-right: 8px;
-}
-
-.eg .location > * {
-    display: block;
-}
-
-
-
-.eg .hl1 {
-    font-weight: bold;
-    color: #00f;
-}
-
-.eg .hl2 {
-    font-weight: bold;
-    color: #080;
-}
-
-.eg .hl3 {
-    font-weight: bold;
-    color: #a80;
-}
-
-.eg .hlE {
-    font-weight: bold;
-    color: #f00;
-}
-
-.eg .red {color: red;}
-.eg .green {color: green;}
-.eg .blue {color: blue;}
-.eg .yellow {color: yellow;}
-.eg .cyan {color: cyan;}
-.eg .magenta {color: magenta;}
-.eg .black {color: black;}
-.eg .white {color: white;}
-
-.eg .collapsed > * {
-    display: none;
-}
 
 
 /* .card { */
@@ -323,19 +173,6 @@ body {
 
 /* .card */ th code {
     background-color: white;
-}
-
-/* .card */ h2 {
-    margin-top: 0px;
-    margin-bottom: 0.5em;
-    border-bottom: 2px solid #88f;
-    color: white;
-    background-color: #66a;
-    padding: 10px;
-}
-
-/* .card */ h2 code {
-    background-color: #66a;
 }
 
 /* .card */ h3 {
@@ -420,6 +257,7 @@ body {
 }
 
 /* .card */ .note, /* .card */ .tip, .warning, .success {
+    display: block;
     margin-top: 10px;
     margin-bottom: 10px;
     padding: 10px;
@@ -464,7 +302,7 @@ body {
 /*     padding-top: 2px; */
 /* } */
 
-.pattern_table td:first-child {width: 150px;}
+/* .pattern_table td:first-child {width: 150px;} */
 
 
 .CodeMirror pre {
@@ -536,6 +374,15 @@ body {
     display: -webkit-flex;
     display: flex;
     justify-content: space-between;
+}
+
+.collapsed > * {
+    display: none !important;
+}
+
+
+.blocks > * {
+    display: block;
 }
 
 

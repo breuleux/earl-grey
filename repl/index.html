@@ -5,7 +5,8 @@
   <head>
     <link rel="stylesheet" type="text/css" href="style/codemirror.css" />
     <link rel="stylesheet" type="text/css" href="style/repl.css" />
-    <script type="text/javascript" src="eg.js"></script>
+    <script src="https://jspm.io/system@0.16.js"></script>
+    <script type="text/javascript" src="repl.js"></script>
   </head>
   <body>
 
@@ -16,7 +17,7 @@
       <div id="interactive">
       </div>
 
-      <div class="in hasinput">
+      <div id="inputline" class="in hasinput">
         <div class="inbanner"></div>
         <div id="inputbox"><textarea id="code"></textarea></div>
       </div>

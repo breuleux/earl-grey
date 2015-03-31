@@ -16,6 +16,8 @@
 .cm-s-repl .cm-comment {color: #a50;}
 .cm-s-repl .cm-string {color: #a11;}
 .cm-s-repl .cm-string-2 {color: #f50;}
+.cm-s-repl .cm-interpolated {color: #f50;}
+.cm-s-repl .cm-quote {color: #1aa;}
 .cm-s-repl .cm-meta {color: #555;}
 .cm-s-repl .cm-qualifier {color: #555;}
 .cm-s-repl .cm-builtin {color: #30a;}
@@ -31,10 +33,10 @@
 .cm-s-repl .cm-ellipsis {background-color: #ddd;}
 .cm-s-repl .cm-sep {background-color: #ddd;}
 
-#box .cm-s-repl {
+.in .cm-s-repl {
     background-color: #eee;
 }
 
-#box .entry .cm-s-repl {
+#box .entry div.cm-s-repl {
     padding: 4px;
 }
