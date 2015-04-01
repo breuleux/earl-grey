@@ -9,15 +9,7 @@ require:
 
 provide:
    Translator
-   ;; translate
 
-
-;; let Node{_, _, children} =
-;;    var rval = ""
-;;    acc{children} where acc{match} =
-;;       String? s -> rval += s
-;;       Array? [each x] -> acc{x}
-;;    rval
 
 join{things, sep} =
    enumerate{things} each {match, x} ->
@@ -102,9 +94,6 @@ class Translator:
 
    register_value{v, id} =
       match @cache[id]:
-         ;; when @locked ->
-         ;;    throw E.translation.locked{msg} where
-         ;;       msg = "While serializing a value, we can't attempt to serialize another."
          undefined? ->
             temp = #symbol{gensym{}}
             @cache[id] = temp ;; {temp, ___serialize_ast{v}}
@@ -238,7 +227,7 @@ class Translator:
                      @replace{R.g"\n", "\\n"}
                      ["/" ++ [@]] ++ "/"
                [Number? or [=== true] or [=== false] or null?] ->
-                  String{v}
+                  "(" + String{v} + ")"
                {"::id" => id} when id ->
                   @translate{@register_value{v, id}, mode}                     
                other ->
@@ -471,23 +460,14 @@ class Translator:
          ;;       spot usage errors for break, continue, return
 
          #js_break{#value{label} = #value{null}} ->
-            ;; if [mode === "expr"]:
-            ;;    then: throw "Invalid break in ctx"
-            ;;    else: "break" + if{label, " " + label, ""} + ";"
             splice %
                "break", if{label, " " + label, ""}, ";"
 
          #js_continue{#value{label} = #value{null}} ->
-            ;; if [mode === "expr"]:
-            ;;    then: throw "Invalid continue in ctx"
-            ;;    else: "continue" + if{label, " " + label, ""} + ";"
             splice %
                "continue", if{label, " " + label, ""}, ";"
 
          #js_return{value} ->
-            ;; if [mode === "expr"]:
-            ;;    then: throw "Invalid return in ctx"
-            ;;    else: "return " + @translate{value, .expr} + ";"
             splice %
                "return ", @translate{value, .expr}, ";"
 
@@ -582,10 +562,4 @@ class Translator:
             splice %
                origin = expr
                rval
-
-
-;; translate{expr, mode} =
-;;    tr = Translator{}
-;;    t = tr.translate{expr, mode}
-;;    tr.dump_store{} + t
 
