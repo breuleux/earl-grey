@@ -58,11 +58,17 @@ overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
    #expr ->
       #multi{body}
 
-mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents}} =
+mac{"%"}! buildnode_mac{context, info and {=> env}, form, #data{descr, var contents}} =
    match context:
       #check or #project ->
          return #nostep{form}
       else -> pass
+
+   inner-scope = info.scope.fork{}
+   env.bind{inner-scope, "wrap-quote", #macro{m}} where
+      m{*, `{^x}`} = x
+   wrap{x} =
+      #use{inner-scope, x}
 
    var tags = #data{}
    kv = `{=}`
@@ -88,7 +94,7 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
 
    parse{descr}
 
-   contents ?=
+   contents = match contents:
       #void{} -> #array{}
       #multi{*args} ->
          xs = {}
@@ -98,12 +104,12 @@ mac{"%"}! buildnode_mac{context, _ and {=> env}, form, #data{descr, var contents
             spl and `[** ^_]` ->
                kv.push with spl
             other ->
-               xs.push with other
+               xs.push with wrap{other}
          #array{*xs}
       pair and `[^k = ^v]` ->
          kv.push with pair
          #array{}
-      x -> x
+      x -> wrap{x}
 
    node = form.env.mark{`ENode`}
    `[^node]{^tags, ^kv, ^contents}`

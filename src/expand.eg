@@ -82,6 +82,9 @@ class Scope:
    ;; expand{context, expr} =
    ;;    @expander.expand{context, @, expr}
 
+   fork{} =
+      Scope{@}
+
    toString{} =
       "Scope{" + @name + "}"
 

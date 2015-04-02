@@ -28,9 +28,12 @@ mac{"`"}! quote_mac{match context, info, form, expr and #value{s}} =
 
 tok = opg.tokenize.Tokenizer with {
    regexps = {
-      open = "\\$[.A-Za-z0-9_]*\\{|\\{"
+      ;; open = "\\$[.A-Za-z0-9_]*\\{|\\{"
+      ;; close = "\\}"
+      ;; other = "\\$|[^\\{\\}$]+"
+      open = "\\{"
       close = "\\}"
-      other = "\\$|[^\\{\\}$]+"
+      other = "(?:\\\\.|[^\\{\\}])+"
    }
    post = {
       {match tok} ->
@@ -110,10 +113,12 @@ mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
          do:
             push{}
             p = form.env.mark{#parse{expr}}
-         ""  ->
-            parts.push with `ENode{{}, {=}, {^p}}`
-         tag ->
-            parts.push with `ENode{{^=tag}, {=}, {^p}}`
+         "" ->
+            parts.push with p
+         ;; ""  ->
+         ;;    parts.push with `ENode{{}, {=}, {^p}}`
+         ;; tag ->
+         ;;    parts.push with `ENode{{^=tag}, {=}, {^p}}`
    push{}
 
    wq = form.env.mark{`wrap-quote`}
