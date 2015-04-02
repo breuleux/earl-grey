@@ -2,7 +2,8 @@
 require:
    "../lex" -> unescape
    "../location" -> Source
-   "./helpers" -> qq
+   "./helpers" ->
+      qq, overridable
    opg
    ;; quaint
 
@@ -91,6 +92,9 @@ parser = new opg.parse.Parser{tok, prio.getOrder{}, finalize}
 parse{text} =
    parser.parse{text}
 
+overridable! mac{"wrap-quote"}! wq_mac{context, info, form, `{^x}`} =
+   `[^x].to-string{}`
+
 mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
    #join{*contents} = parse{s}
    parts = {}
@@ -111,5 +115,7 @@ mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
          tag ->
             parts.push with `ENode{{^=tag}, {=}, {^p}}`
    push{}
-   `ENode{{}, {=}, {^*parts}}.toString{}`
+
+   wq = form.env.mark{`wrap-quote`}
+   `[^wq]{ENode{{}, {=}, {^*parts}}}`
 
