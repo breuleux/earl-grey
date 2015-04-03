@@ -227,7 +227,8 @@ class Translator:
                      @replace{R.g"\n", "\\n"}
                      ["/" ++ [@]] ++ "/"
                [Number? or [=== true] or [=== false] or null?] ->
-                  "(" + String{v} + ")"
+                  ;; "(" + String{v} + ")"
+                  String{v}
                {"::id" => id} when id ->
                   @translate{@register_value{v, id}, mode}                     
                other ->
