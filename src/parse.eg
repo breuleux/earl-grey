@@ -194,14 +194,21 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       "with" = {"X with Y"}
       "eachp" = {"each Y", "each* Y"}
       "each" = {"X each Y", "X each* Y"}
+
+      assign = {"X_=>_Y", "X_=_Y"
+                "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y"
+                "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y"
+                "X_or=_Y", "X_and=_Y", "X_each=_Y"}
+      assignp = {"=_Y"}
+
       lowprio = {"X where Y"
                  "X_!!_Y"
-                 "X_->_Y", "X_=>_Y", "X_=_Y"
-                 "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y"
-                 "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y"
-                 "X_or=_Y", "X_and=_Y", "X_each=_Y"
-                 "X_%_Y"}
-      lowpriop = {"->_Y", "=>_Y", "=_Y", ":_Y", "%_Y"}
+                 "X_->_Y"}
+      lowpriop = {"->_Y", "=>_Y", ":_Y"}
+
+      build = {"X_%_Y"}
+      buildp = {"%_Y"}
+
       "when" = {"X_when_Y"}
       "or" = {"X_or_Y"}
       "and" = {"X_and_Y"}
@@ -230,14 +237,16 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
    }
 
    eg_prio = {
-      comma    = {#all{1}, #all{1}}
-      semico   = {#all{1}, #all{1}}
+      comma    = {#all{5}, #all{5}}
+      semico   = {#all{2}, #all{2}}
       obrack   = {#all{MAX}, #all{1}}
       cbrack   = {#all{1}, #all{MAX}}
 
       "with"   = {#all{1999}, #all{10}}
       ;; "with"  = {#all{11}, #all{10}}
       lowprio  = {#all{11}, #all{10}}
+      assign   = {#all{11}, #all{10}}
+      build    = {#all{11}, #all{10}}
       "each"   = {#all{135}, #all{10}}
       "when"   = {#all{100}, #all{101}}
       "or"     = {#all{110}, #all{111}}
@@ -267,6 +276,8 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       withp    = {#all{MAX}, #all{10}}
       eachp    = {#all{MAX}, #all{10}}
       lowpriop = {#all{MAX}, #all{10}}
+      assignp  = {#all{MAX}, #all{10}}
+      buildp   = {#all{MAX}, #all{10}}
 
       pipe     = {#pipe{550}, #pipe{551}}
 
@@ -504,18 +515,20 @@ finalize{match token} =
       set ops = ops each o -> o[2]
       op = ops[0]
 
+      collapse{args} =
+         var accum = {}
+         args each match arg ->
+            #void{} -> pass
+            {brackets => ""} and #multi{*members} ->
+               accum ++= members
+            else ->
+               accum.push with arg
+         accum
+
       multiargs{var args} =
-
-         set args = args.filter{f} where
-            f{match} = | #void{} -> false
-                       | other -> true
-
-         result = match args:
+         result = match collapse{args}:
             {} ->
-               ;; #void{}
-               ;; #value{undefined}
                #multi{}
-            ;; throw ["At least one expression must be enclosed in []"]
             {x} ->
                ;; Force x's location to include its surrounding []s
                ;; Highlighted snippets will look strange otherwise when
@@ -526,7 +539,7 @@ finalize{match token} =
                if [not isNaN{sumloc.start} and not isNaN{sumloc.end}]:
                   x.location = sumloc
                x
-            other -> #multi{*args}
+            other -> #multi{*other}
 
          result <<: sumloc
 
@@ -570,26 +583,18 @@ finalize{match token} =
                else:
                   result <<: sumloc
 
-         {{"[", *commas, "]"} or commas, _}
-          \ when commas.every{{x} -> x == "," or x == ";"} ->
-            if [op === "["]:
-               set args = args.slice{1, -1}
+         {Array? commas, args} when commas.every{{x} -> x == "," or x == ";"} ->
+            multiargs{args} &: {brackets = ""}
+
+         {{"[", "]"}, _} ->
             multiargs{args} &: {brackets = "[]"}
 
-         {{"{", *commas, "}"}, _}
-          \ when commas.every{{x} -> x == "," or x == ";"} ->
-            #data{*args.slice{1, -1}.filter{f}} <<: sumloc where
-               f{match} =
-                  #void{} -> false
-                  other -> true
+         {{"{", "}"}, _} ->
+            args = collapse{args}
+            #data{*args} <<: sumloc
 
-         {{"(", *commas, ")"}, _}
-          \ when commas.every{{x} -> x == "," or x == ";"} ->
+         {{"(", ")"}, _} ->
             multiargs{args} &: {brackets = "()"}
-            ;; #parens{*args.slice{1, -1}.filter{f}} <<: sumloc where
-            ;;    f{match} =
-            ;;       #void{} -> false
-            ;;       other -> true
 
          ;; {{.WHITE}, _} ->
          ;;    [#send{*args} &: {width = width}] <<: sumloc
