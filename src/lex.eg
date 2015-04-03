@@ -40,6 +40,7 @@ special_ops = {
    "]" => .SFX
    "}" => .SFX
    "," => .IFX
+   ";" => .IFX
    ;; ":" => .IFX
    "." => .PFX
    ;; "'" => .PFX
@@ -61,10 +62,10 @@ regexps = {
    {quaint,  quaint_f}
    {op,     op_f}
    {op2,    op_f}
-   ;; {op4,    op_f}
    {indent, indent_f}
    {indent2, indent2_f}
    {cmnt,   cmnt_f}
+   {op4,    op_f}
    {unkn,   unkn_f}
 } where
 
@@ -242,11 +243,17 @@ regexps = {
   ;; Comment
   cmnt = R```
      start
-     ";"
+     ";;"
      * not in "\n"
   ```
 
   cmnt_f = {m} -> #IGNORE{}
+
+
+  ;; semicolon
+  op4 = R```
+     start, ";"
+  ```
 
 
   ;; Anything else is an error
@@ -321,9 +328,9 @@ indent_tracker{} =
 
       #INDENT{match new_indent} ->
          when [curr === false] ->
-            ;; This is the first line break, we produce ","
+            ;; This is the first line break, we produce ";"
             set curr = new_indent
-            {#OP{.IFX, ","} & {wsb = true, wsa = true}}
+            {#OP{.IFX, ";"} & {wsb = true, wsa = true}}
 
          [> curr] ->
             ;; Indent is larger than before, so we push the previous
@@ -333,8 +340,8 @@ indent_tracker{} =
             {#OP{.PFX, "["} & {wsb = true, wsa = true}}
 
          [=== curr] ->
-            ;; Same as before, ","
-            {#OP{.IFX, ","} & {wsb = true, wsa = true}}
+            ;; Same as before, ";"
+            {#OP{.IFX, ";"} & {wsb = true, wsa = true}}
 
          [< curr] ->
             ;; Smaller than before, so we generate "]" until
@@ -343,7 +350,7 @@ indent_tracker{} =
             while [[stack.length > 0] and [new_indent < curr]]:
                set curr = stack.pop{}
                rval.push{#OP{.SFX, "]"} & {wsb = true, wsa = true}}
-            rval.push{#OP{.IFX, ","} & {wsb = true, wsa = true}}
+            rval.push{#OP{.IFX, ";"} & {wsb = true, wsa = true}}
             rval
 
       #ID{*stuff} -> {token}

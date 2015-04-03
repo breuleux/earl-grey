@@ -186,6 +186,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       wi_sfx = {{match} -> [#SFX{.wide, _} -> true, _ -> false]}
 
       comma = {"X_,_Y"}
+      semico = {"X_;_Y"}
       obrack = {"(_Y", "[_Y", "{_Y"}
       cbrack = {"X_)", "X_]", "X_}"}
 
@@ -230,6 +231,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
    eg_prio = {
       comma    = {#all{1}, #all{1}}
+      semico   = {#all{1}, #all{1}}
       obrack   = {#all{MAX}, #all{1}}
       cbrack   = {#all{1}, #all{MAX}}
 
@@ -568,18 +570,21 @@ finalize{match token} =
                else:
                   result <<: sumloc
 
-         {{"[", *commas, "]"} or commas, _} when commas.every{{x} -> x == ","} ->
+         {{"[", *commas, "]"} or commas, _}
+          \ when commas.every{{x} -> x == "," or x == ";"} ->
             if [op === "["]:
                set args = args.slice{1, -1}
             multiargs{args} &: {brackets = "[]"}
 
-         {{"{", *commas, "}"}, _} when commas.every{{x} -> x == ","} ->
+         {{"{", *commas, "}"}, _}
+          \ when commas.every{{x} -> x == "," or x == ";"} ->
             #data{*args.slice{1, -1}.filter{f}} <<: sumloc where
                f{match} =
                   #void{} -> false
                   other -> true
 
-         {{"(", *commas, ")"}, _} when commas.every{{x} -> x == ","} ->
+         {{"(", *commas, ")"}, _}
+          \ when commas.every{{x} -> x == "," or x == ";"} ->
             multiargs{args} &: {brackets = "()"}
             ;; #parens{*args.slice{1, -1}.filter{f}} <<: sumloc where
             ;;    f{match} =
