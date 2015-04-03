@@ -199,12 +199,12 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
                 "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y"
                 "X_<<=_Y", "X_>>=_Y", "X_>>>=_Y", "X_++=_Y", "X_?=_Y"
                 "X_or=_Y", "X_and=_Y", "X_each=_Y"}
-      assignp = {"=_Y"}
+      assignp = {"=_Y", "=>_Y"}
 
       lowprio = {"X where Y"
                  "X_!!_Y"
                  "X_->_Y"}
-      lowpriop = {"->_Y", "=>_Y", ":_Y"}
+      lowpriop = {"->_Y", ":_Y"}
 
       build = {"X_%_Y"}
       buildp = {"%_Y"}
@@ -242,7 +242,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       obrack   = {#all{MAX}, #all{1}}
       cbrack   = {#all{1}, #all{MAX}}
 
-      "with"   = {#all{1999}, #all{10}}
+      "with"   = {#all{1999}, #all{4}}
       ;; "with"  = {#all{11}, #all{10}}
       lowprio  = {#all{11}, #all{10}}
       assign   = {#all{11}, #all{10}}
@@ -273,7 +273,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       pfx      = {#all{MAX}, #all{3000}}
       pp       = {#all{MAX}, #all{5}}
       when2    = {#all{MAX}, #all{101}}
-      withp    = {#all{MAX}, #all{10}}
+      withp    = {#all{MAX}, #all{4}}
       eachp    = {#all{MAX}, #all{10}}
       lowpriop = {#all{MAX}, #all{10}}
       assignp  = {#all{MAX}, #all{10}}
