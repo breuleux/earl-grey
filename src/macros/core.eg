@@ -181,9 +181,12 @@ mac{"*->"}! genarrow_mac{ctx, _, form, match} =
       throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
 mac{"->"}! arrow_mac{match, _, form, expr} =
-   ;; do:
-   ;;    if form.name:
-   ;;       console.log with form.name
+   do:
+      match expr:
+         `{^_, ^{brackets => ""}}` ->
+            throw E.syntax.fix{"->", expr = form}
+         else ->
+            pass
    #clause ->
       #data{lhs, rhs} = expr
       #clause{lhs, rhs}

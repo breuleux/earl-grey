@@ -277,7 +277,7 @@ class Translator:
                   splice %
                      @translate{f, .expr, true}
                      "("
-                     join{args each x -> @translate{x, .expr}, ","}
+                     join{[args each x -> @translate{x, .expr}], ","}
                      ")"
 
          #send{f, msg} ->
@@ -295,7 +295,7 @@ class Translator:
             @expr{r, mode} where r =
                splice %
                   "[",
-                  join{args each x -> @translate{x, .expr}, ","}
+                  join{[args each x -> @translate{x, .expr}], ","}
                   "]"
 
          #object{*args} ->
@@ -337,7 +337,7 @@ class Translator:
                   if{generator, "*", ""}
                   name
                   "("
-                  join{bindings each x -> @translate{x, .expr}, ","}
+                  join{[bindings each x -> @translate{x, .expr}], ","}
                   "){"
                   @body{body, .return}
                   "})"
