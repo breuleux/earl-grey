@@ -36,7 +36,7 @@ global_variables = {
 
    .___js_fetch, .___node
 
-   .arguments, .this, .exports
+   .arguments, .this, .module, .exports
 
    .send
    .object, .keys, .items, .enumerate

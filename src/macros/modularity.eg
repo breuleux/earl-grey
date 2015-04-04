@@ -117,18 +117,24 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
             r
 
 
-mac{"provide"}! provide_mac{context, _, form, #data{Body! {*expr}}} =
-   exp = form.env.mark{`exports`}
-   #sink with
-      #multi ++
-         expr each
-            s and #symbol{name} ->
-               `[^exp][^=camelCase{name}] = ^s`
-            `^s as ^[#symbol{name} or #value{name}]` ->
-               `[^exp][^=camelCase{name}] = ^s`
-            other ->
-               throw E.syntax.provide with
-                  "Each clause of provide must be 'sym' or 'sym as name'"
+mac{"provide"}! provide_mac{match context, _, form, e} =
+   #pattern ->
+      match e:
+         #void{} -> `module.exports and set ^[#variable{.exports}]`
+         else    -> `(module.exports and set ^[#variable{.exports}])[^e]`
+   else ->
+      #data{Body! {*expr}} = e
+      exp = form.env.mark{`exports`}
+      #sink with
+         #multi ++
+            expr each
+               s and #symbol{name} ->
+                  `[^exp][^=camelCase{name}] = ^s`
+               `^s as ^[#symbol{name} or #value{name}]` ->
+                  `[^exp][^=camelCase{name}] = ^s`
+               other ->
+                  throw E.syntax.provide with
+                     "Each clause of provide must be 'sym' or 'sym as name'"
 
 mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
    #restmacro with {stmts} ->
