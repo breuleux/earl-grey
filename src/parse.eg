@@ -551,21 +551,18 @@ finalize{match token} =
       match {ops, args}:
 
          {{"WHITE", ":"}, {f, arg, body}} ->
-            if body.brackets == "":
-               throw E.syntax.fix{":", expr = body}
-
+            ;; if body.brackets == "":
+            ;;    throw E.syntax.fix{":", expr = body}
             #send{f, #data{arg, body} <<: [arg ++: body]} <<: sumloc
 
          {{":"}, {f, body}} ->
-            if body.brackets == "":
-               throw E.syntax.fix{":", expr = body}
-
+            ;; if body.brackets == "":
+            ;;    throw E.syntax.fix{":", expr = body}
             #send{f, #data{body} <<: body} <<: sumloc
 
          {{"with"}, {target, _b and Body! {*body}}} ->
-            if _b.brackets == "":
-               throw E.syntax.fix{"with", expr = _b}
-
+            ;; if _b.brackets == "":
+            ;;    throw E.syntax.fix{"with", expr = _b}
             var inserted = false
             result = transform{target} with {match expr} ->
                #symbol{"___"} -> [set inserted = true, #multi{*body} <<: _b]
