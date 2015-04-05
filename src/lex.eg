@@ -192,7 +192,8 @@ regexps = {
        \ or "in" or "mod"
        \ or "each" or "as"
        \ or "of" or "is"
-     [+ in "+\\-*/~^<>=%&|?!@#.:"] or boundary
+     [+ in "+*/~^<>=%&|?!@#.:"] or boundary
+     raw "(?!-)"
   ```
 
   ;; ;; `operator`
