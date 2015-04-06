@@ -176,13 +176,13 @@ regexps = {
   ;; ex. +, -, **+, ^%, ...
   op = R```
      start
-     + in "+\\-*/~^<>=%&|?!@#.:"
+     + in "+\\-*/~^<>=%&|?!@#:"
   ```
 
   ;; brackets: [], {}, ()
   op2 = R```
      start
-     in "([{}]),"
+     in "([{}])," or +"."
   ```
 
   ;; Word operators: with, each, each?, where%+%, etc.

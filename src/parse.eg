@@ -153,10 +153,10 @@ class SimplePriority:
             tr each
                .all -> rval = 2**31 - 1
                t when not tracks[t] ->
-                  rval = rval |. 2**_i
+                  rval = rval |+ 2**_i
                   tracks[t] = _i++
                t ->
-                  rval = rval |. 2**tracks[t]
+                  rval = rval |+ 2**tracks[t]
             rval
          {{lt, lp}, {rt, rp}}
 
@@ -166,7 +166,7 @@ class SimplePriority:
       {_, {code1, ord1}} = @prio[i1]
       {{code2, ord2}, _} = @prio[i2]
       match:
-         when [[code1 &. code2] === 0] -> NONE
+         when [[code1 &+ code2] === 0] -> NONE
          when [ord1 > ord2]  -> LEFT
          when [ord1 < ord2]  -> RIGHT
          when [ord1 === ord2] -> BOTH
@@ -219,9 +219,9 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       cmp = {"X_==_Y", "X_!=_Y", "X_is_Y"
              "X_>=_Y", "X_<=_Y"
              "X_>_Y", "X_<_Y"}
-      binxor = {"X_^._Y", "X_^+_Y"}
-      binor = {"X_|._Y", "X_|+_Y"}
-      binand = {"X_&._Y", "X_&+_Y"}
+      binxor = {"X_^+_Y"}
+      binor = {"X_|+_Y"}
+      binand = {"X_&+_Y"}
       shift = {"X_<<_Y", "X_>>_Y", "X_>>>_Y"}
       add = {"X_+_Y", "X_-_Y"}
       mul = {"X_*_Y", "X_/_Y", "X_//_Y", "X_mod_Y"}
