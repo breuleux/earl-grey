@@ -45,6 +45,7 @@ special_ops = {
    "." => .PFX
    ;; "'" => .PFX
    "not" => .PFX
+   "??" => .SFX
    ;; "?" => .IFX
    ;; "!" => .IFX
 }

@@ -219,9 +219,9 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       cmp = {"X_==_Y", "X_!=_Y", "X_is_Y"
              "X_>=_Y", "X_<=_Y"
              "X_>_Y", "X_<_Y"}
-      binxor = {"X_^._Y"}
-      binor = {"X_|._Y"}
-      binand = {"X_&._Y"}
+      binxor = {"X_^._Y", "X_^+_Y"}
+      binor = {"X_|._Y", "X_|+_Y"}
+      binand = {"X_&._Y", "X_&+_Y"}
       shift = {"X_<<_Y", "X_>>_Y", "X_>>>_Y"}
       add = {"X_+_Y", "X_-_Y"}
       mul = {"X_*_Y", "X_/_Y", "X_//_Y", "X_mod_Y"}
@@ -230,6 +230,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       wjuxt = {"X WHITE Y"}
       colon = {"X_:_Y"}
 
+      maysend = {"X_??"}
       pfx = {"._Y", "#_Y", "@_Y"}
       when2 = {"when Y"}
       pp = {"<>_Y"}
@@ -286,6 +287,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       pipe     = {#pipe{550}, #pipe{551}}
 
       sh_ifx   = {#all{1800}, #all{1801}}
+      maysend  = {#all{1850}, #all{MAX}}
       sh_pfx   = {#all{MAX}, #all{1901}}
       sh_sfx   = {#all{1900}, #all{MAX}}
       wi_ifx   = {#customl{900}, #customr{901}}
