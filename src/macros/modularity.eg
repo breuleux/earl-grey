@@ -47,6 +47,9 @@ getreqs{info, req, expr} =
          subp each p -> produce{p, fetch}
          null
 
+      #send{#symbol{"::"}, #data{#void{}, sym and #symbol{name}}} ->
+         fetch{#value{'earlgrey-runtime/std/{name}'}, sym}
+
       #send{#symbol{"^"}, #data{#void{}, name}} ->
          fetch{name, #symbol{info.gensym{}} &: {reqname = name}}
 
