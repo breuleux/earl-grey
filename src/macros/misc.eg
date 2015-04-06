@@ -251,3 +251,13 @@ mac{"tagscope"}! tagscope_mac{context, info, form, `{^[#symbol{name}], ^expr}`} 
 mac{"usescope"}! usescope_mac{context, info, form, `{^[#symbol{name}], ^expr}`} =
    #use{name, expr}
 
+
+;;;;;;;;;;;;;;;;;
+;; ?? OPERATOR ;;
+;;;;;;;;;;;;;;;;;
+
+mac{"??"}! maysend_mac{ctx, info, form, #data{x, #void{}}} =
+   #macro{f} where f{ctx, info, form, msg} =
+      `tmp = ^x, if{tmp === undefined, undefined, tmp[^msg]}`
+
+
