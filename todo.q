@@ -7,6 +7,9 @@ irrelevant.
 TODO
 ====
 
+* Fix `{to-string{} => s} = object` so that it binds properly
+* Fix `a.b! c` so that it binds properly
+
 * add an easier to use context-based macro form (with typical contexts)
 * rename get/set macros to something less common?
 * add getter/setter for properties in classes?
@@ -298,4 +301,5 @@ X find a way to make macros more importable
         resolve symbols in the macro's namespace (requires what the macro
         is using to be provided, though)
 
+X Fix `a??.b??{c}` to bind `a.b` properly
 

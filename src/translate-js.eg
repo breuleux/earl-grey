@@ -198,7 +198,7 @@ class Translator:
                 splice % [@translate{a, .expr}, op, @translate{b, .expr}]
       splice % ["(", e, ")"]
 
-   translate{expr, mode, called = false} =
+   translate{expr, mode, called = if{expr.called, .send, false}} =
 
       rval = match expr:
 

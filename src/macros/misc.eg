@@ -257,7 +257,11 @@ mac{"usescope"}! usescope_mac{context, info, form, `{^[#symbol{name}], ^expr}`} 
 ;;;;;;;;;;;;;;;;;
 
 mac{"??"}! maysend_mac{ctx, info, form, #data{x, #void{}}} =
-   #macro{f} where f{ctx, info, form, msg} =
-      `tmp = ^x, if{tmp === undefined, undefined, tmp[^msg]}`
-
+   #macro{f} where f{ctx, info, form, match msg} =
+      #void{} ->
+         x
+      else ->
+         x &: {called = true}
+         s = `tmp[^msg]` &: {called = form.called}
+         `tmp = ^x, if{tmp === undefined, undefined, ^s}`
 

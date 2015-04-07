@@ -26,6 +26,8 @@ let repr = _repr
 x <<: y =
    if [not Location? x.location]:
       x.location = if{not y or Location? y, y, y.location}
+      if y.called: x.called = y.called
+      if y.name: x.name = y.name
    x
 
 x ++: y =
