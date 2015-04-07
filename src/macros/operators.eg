@@ -93,3 +93,10 @@ overridable! mac{"**"}! exp_mac{context, _, form, expr} =
          `Math.pow`
       {_, #data{a, b}} ->
          `Math.pow{^a, ^b}`
+
+mac{">>"}! shift_mac{match, _, form, expr} =
+   #pattern ->
+      #data{variable, result} = expr
+      #project{`{^variable} -> {true, ^result}`, variable}
+   else ->
+      #send{#variable{">>"}, expr}

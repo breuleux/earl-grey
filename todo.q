@@ -17,7 +17,6 @@ TODO
 * match x: ..., then result: ...
 * improve match errors
 * object each [k => v] -> [k => v + 1]
-* `[x >> x + 1] = 5` ==> x is 6
 * print b % x probably shouldn't parse as [print b] % x
 * true/false/null/undefined should be like ==true/... implicitly in patterns
 * object, neighbours, etc. should handle iterators in general
@@ -302,4 +301,5 @@ X find a way to make macros more importable
         is using to be provided, though)
 
 X Fix `a??.b??{c}` to bind `a.b` properly
+X `[x >> x + 1] = 5` ==> x is 6
 
