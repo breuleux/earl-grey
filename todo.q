@@ -9,6 +9,8 @@ TODO
 
 * Fix `{to-string{} => s} = object` so that it binds properly
 * Fix `a.b! c` so that it binds properly
+* MAYBE: `{"a", "b"} each @to-upper-case{}`
+* MAYBE: `each x -> x` ==> `[@] each x -> x`
 
 * add an easier to use context-based macro form (with typical contexts)
 * rename get/set macros to something less common?
@@ -17,7 +19,6 @@ TODO
 * match x: ..., then result: ...
 * improve match errors
 * object each [k => v] -> [k => v + 1]
-* print b % x probably shouldn't parse as [print b] % x
 * true/false/null/undefined should be like ==true/... implicitly in patterns
 * object, neighbours, etc. should handle iterators in general
 * Make `predicate? x` behave like in a pattern everywhere (exception on no-match)
@@ -302,4 +303,5 @@ X find a way to make macros more importable
 
 X Fix `a??.b??{c}` to bind `a.b` properly
 X `[x >> x + 1] = 5` ==> x is 6
+X print b % x probably shouldn't parse as [print b] % x
 
