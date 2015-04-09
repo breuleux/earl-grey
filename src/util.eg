@@ -12,6 +12,7 @@ provide:
    Body
    camelCase
    invCamelCase
+   mac1, checker_db
 
 
 GenSym{prefix} =
@@ -171,4 +172,51 @@ camelCase{x} =
 invCamelCase{x} =
    x.replace{R.g"([a-z0-9])([A-Z]+)"} with {_, m1, m2} ->
       m1 + "-" + m2.toLowerCase{}
+
+
+
+mac1{f} = 
+   #macro with {context, scope, form, #data{expr}} ->
+      f{expr}
+
+__chk_ncache = {=}
+__chk_scache = {=}
+
+checker_db{match} =
+   null? -> checker_db.null
+   undefined? -> checker_db.undefined
+   ===true -> checker_db.true
+   ===false -> checker_db.false
+   Number? n ->
+      ;; I believe that the reason why we are caching these macros is
+      ;; so that they can be compared with ==. This is done when
+      ;; optimizing patterns for example. I wrote this way after the
+      ;; fact, so I'm not 100% sure, but that's the only explanation I
+      ;; can think of. There's probably a better way to do all this.
+      if [__chk_ncache[n]]:
+         then: __chk_ncache[n]
+         else:
+            v = mac1{{x} -> `[^x === ^=n]`}
+            __chk_ncache[n] = v
+            v
+   String? s ->
+      if Object.prototype.hasOwnProperty.call{__chk_scache, s}:
+         then: __chk_scache[s]
+         else:
+            v = mac1{{x} -> `[^x === ^=s]`}
+            __chk_scache[s] = v
+            v
+
+checker_db &: {
+   String = mac1 with {x} -> `[typeof{^x} === "string"]`
+   Number = mac1 with {x} -> `[typeof{^x} === "number"]`
+   ;; Array = mac1 with {x} -> `[[instanceof]{^x, Array}]`
+   Array = mac1 with {x} -> `Array.isArray{^x}`
+   true = mac1 with {x} -> x
+   false = mac1 with {x} -> `[not ^x]`
+   null = mac1{{x} -> `[^x === ^=null]`}
+   undefined = mac1{{x} -> `[^x === ^=undefined]`}
+}
+
+
 

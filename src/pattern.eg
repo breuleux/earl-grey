@@ -1,15 +1,12 @@
 
 require:
-   "./pp" ->
-      <>
    "./location" ->
-      [<<:]
+      <<:
    "./util" as util ->
       GenSym, gensym
       classify, classify_contiguous
       identity
       Body, camelCase
-   "./expand" ->
       checker_db
 
 provide:
@@ -620,7 +617,7 @@ opt_clauses{clauses} =
                   match b:
                      #do -> null
                      #check -> set idx = share
-                     other -> <> other
+                     other -> print other
                else:
                   break
          {share, idx}

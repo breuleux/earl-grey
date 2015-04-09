@@ -3,11 +3,11 @@ require:
    "../location" ->
       <<:
    "../expand" ->
-      Scope, mac1
+      Scope
    "../pattern" ->
       parse_clauses
    "../util" ->
-      Body, camelCase
+      Body, camelCase, mac1
 
 globals:
    Infinity
