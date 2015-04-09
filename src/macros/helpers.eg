@@ -6,6 +6,7 @@ require:
       Scope
    "../pattern" ->
       parse_clauses
+      PatternCompiler
    "../util" ->
       Body, camelCase, mac1
 
@@ -36,6 +37,7 @@ provide:
    AssignmentHandler
    qq
    multimacro
+   inject-tools
 
 
 embed_location{match} =
@@ -438,3 +440,12 @@ multimacro{cases}{match context, info, form, expr and topexpr} =
 
    else ->
       ex{.expr, info, expr}
+
+
+inject-tools{info} =
+   info &: {
+      = PatternCompiler
+      = pattern_handlers
+      = camelCase
+      transfer = [<<:]
+   }

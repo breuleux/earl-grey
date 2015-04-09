@@ -5,7 +5,7 @@ require:
    "../expand" ->
       Env, topscope
    "./helpers" ->
-      ctx_mac, expr_mac2, multimacro
+      ctx_mac, expr_mac2, multimacro, inject-tools
 
 inject: mac
 
@@ -45,7 +45,7 @@ mac{"macros"}! macros_mac{context, info, form and {=> env}, #data{body}} =
       items{the_macros} each {k, v} ->
          #declare_raw{#symbol{k} &: {env = env}, #macro{f}} where
             f{ctx, info, form, expr} =
-               v.call{info, expr}
+               v.call{inject-tools{info}, expr}
 
 
 mac{"macro"}! macro_mac = mak{{}} where

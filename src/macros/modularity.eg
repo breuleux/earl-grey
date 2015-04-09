@@ -1,6 +1,7 @@
 
 require:
-   "./helpers" -> Body
+   "./helpers" ->
+      Body, inject-tools
    "../location" -> [<<:]
    "../util" -> camelCase
 
@@ -114,7 +115,7 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
                   `require: ^[pkgs[k]] -> ^[#symbol{ename}] as ^mangled`
             f{ctx, info, form, expr} =
                info.deps = deps
-               v.call{info, expr}
+               v.call{inject-tools{info}, expr}
             r.push with
                #declare_raw{#symbol{k} &: {env = info.env}, #macro{f}}
             r
