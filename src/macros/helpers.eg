@@ -235,7 +235,7 @@ pattern_handlers = {
       special = disregard_specials
       assign{match v, value} =
          #symbol{name} ->
-            #do{#assign{v, value &: {name = name}} <<: v}
+            #do{#assign{v, value &: {name = camelCase{name}}} <<: v}
          v ->
             #do{#assign{v, value} <<: v}
       ;; finalize = true
