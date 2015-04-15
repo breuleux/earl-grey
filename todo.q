@@ -11,6 +11,8 @@ TODO
 * Fix `a.b! c` so that it binds properly
 * MAYBE: `{"a", "b"} each @to-upper-case{}`
 * MAYBE: `each x -> x` ==> `[@] each x -> x`
+* '''a 'b'''' should be equivalent to "a 'b'"
+* MAYBE: swap "" and '' to make former interpolate
 
 * add an easier to use context-based macro form (with typical contexts)
 * rename get/set macros to something less common?
@@ -304,4 +306,4 @@ X find a way to make macros more importable
 X Fix `a??.b??{c}` to bind `a.b` properly
 X `[x >> x + 1] = 5` ==> x is 6
 X print b % x probably shouldn't parse as [print b] % x
-
+X unquote in patterns, e.g. {^Symbol.iterator => it} = ...

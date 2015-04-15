@@ -9,6 +9,18 @@ require:
 
 inject: mac
 
+;;;;;;;;;;;;;
+;; UNQUOTE ;;
+;;;;;;;;;;;;;
+
+mac{"^"}! unquote_mac{match context, info, form, expr} =
+   #pattern ->
+      #data{#void{}, x} = expr
+      #calc{x}
+   else ->
+      throw E.syntax.unquote{'Cannot unquote here.', expr = expr}
+
+
 ;;;;;;;;;;;
 ;; QUOTE ;;
 ;;;;;;;;;;;

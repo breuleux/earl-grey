@@ -88,6 +88,8 @@ class PatternCompiler:
                esubp = @expand{subp, tags}
 
                wrap{match key, value, default = {}} =
+                  #send{#symbol{"^"}, #data{#void{}, kexpr}} ->
+                     {kexpr, value} ++ default
                   #send{x, y} ->
                      wrap{x, p2, default} where
                         p2 = #object_pattern{{y, value} ++ default, pinfo = value.pinfo}
@@ -150,6 +152,11 @@ class PatternCompiler:
             #assign{variable} &: {pinfo = PatternInfo{{}, {variable}}}
          #value{v} ->
             #check{checker_db{v}, #ignore}
+
+         #calc{x} when @opt.strings_as_variables ->
+            #assign{#multi{x}}
+         #calc{x} ->
+            throw E.syntax.pattern{'Computed properties are not allowed here', expr = expr}
 
          #replace{subp, value} ->
             #replace{csubp, value} &: {pinfo = csubp.pinfo} where

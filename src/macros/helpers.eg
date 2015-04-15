@@ -261,8 +261,11 @@ pattern_handlers = {
       allow_nested = true
       allow_arguments = true
       special = disregard_specials
-      assign{#symbol{camelCase! v} or #value{v}, value, _} =
-         #do{#assign{`accum[^=v]`, value} <<: v}
+      assign{match v, value, _} =
+         #symbol{camelCase! name} ->
+            #do{#assign{`accum[^=name]`, value} <<: v}
+         else ->
+            #do{#assign{`accum[^v]`, value} <<: v}
       ;; finalize = true
       declare{_, vars} =
          {#declare{`accum`, `{=}`}}
