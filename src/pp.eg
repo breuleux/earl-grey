@@ -90,14 +90,14 @@ HTML{match, default_tag} =
 
       var accum = if{tag === .raw, {}, {"<", tag}}
       if id:
-         set accum = accum.concat with
+         set-var accum = accum.concat with
             " id=\"", id, "\""
       if classes.length:
-         set accum = accum.concat with
+         set-var accum = accum.concat with
             " class=\"", quotify{classes.join{" "}}, "\""
       if kv:
          kv each {k, v} ->
-            set accum = accum.concat with
+            set-var accum = accum.concat with
                if [v !== null]:
                   then: {" ", k, "=\"", quotify{v}, "\""}
                   else: {" ", k}

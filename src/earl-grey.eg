@@ -187,7 +187,8 @@ class Generator:
          body ->
             wrap{body}
 
-      set ex = opt.hoist{ex}
+      ex = opt.hoist{ex}
+
       var result = @tr.translate{ex, .stmt}
       result = splice %
          "\n'use strict';"
@@ -227,7 +228,7 @@ class Generator:
                Body! {*args} = p
                #interactive{*args}
             else: #multi{p}
-      set ex = opt.hoist{ex}
+      ex = opt.hoist{ex}
       ;; set ex = opt.eliminate_spurious_variables{ex}
 
       var result = @tr.translate{ex, .stmt}

@@ -446,24 +446,24 @@ oparse{next, order, finalize} =
 
          [=== LEFT] ->
             current.push{between}
-            set between = finalize{current}
+            set-var between = finalize{current}
             v = stack.pop{}
-            set left_op = v 0
-            set current = v 1
+            set-var left_op = v 0
+            set-var current = v 1
 
          [=== RIGHT] ->
             stack.push{{left_op, current}}
-            set left_op = right_op
-            set current = {{right_op}, between}
-            set between = finalize{next{}}
-            set right_op = next{}
+            set-var left_op = right_op
+            set-var current = {{right_op}, between}
+            set-var between = finalize{next{}}
+            set-var right_op = next{}
 
          [=== BOTH] or [=== NONE] ->
             current[0].push{right_op}
             current.push{between}
-            set left_op = right_op
-            set between = finalize{next{}}
-            set right_op = next{}
+            set-var left_op = right_op
+            set-var between = finalize{next{}}
+            set-var right_op = next{}
             if [o === NONE]:
                current.tainted = true
 
@@ -509,16 +509,16 @@ finalize{match token} =
       var sumloc = ops[0].location
       ops.slice{1} each
          op ->
-            set sumloc = sumloc ++: op
+            set-var sumloc = sumloc ++: op
       args each
          #void{} ->
             pass
          arg ->
-            set sumloc = sumloc ++: arg
+            set-var sumloc = sumloc ++: arg
 
       orig_ops = ops
       width = ops[0][1]
-      set ops = ops each o -> o[2]
+      set-var ops = ops each o -> o[2]
       op = ops[0]
 
       collapse{args} =
@@ -567,14 +567,14 @@ finalize{match token} =
             ;;    throw E.syntax.fix{"with", expr = _b}
             var inserted = false
             result = transform{target} with {match expr} ->
-               #symbol{"___"} -> [set inserted = true, #multi{*body} <<: _b]
+               #symbol{"___"} -> [set-var inserted = true, #multi{*body} <<: _b]
                [x when x.fromop] and #send{f, #data{a, b}} ->
                    #send{this{f}, #data{this{a}, this{b}} <<: [a ++: b]}
                #data{*args} ->
                    tr = this
                    var res = #data
                    args each
-                      #symbol{"___"} -> [set inserted = true, res ++= body]
+                      #symbol{"___"} -> [set-var inserted = true, res ++= body]
                       other -> res.push with [tr{other} <<: other]
                    res <<: expr
 

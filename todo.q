@@ -15,7 +15,6 @@ TODO
 * MAYBE: swap "" and '' to make former interpolate
 
 * add an easier to use context-based macro form (with typical contexts)
-* rename get/set macros to something less common?
 * add getter/setter for properties in classes?
 
 * match x: ..., then result: ...
@@ -307,3 +306,6 @@ X Fix `a??.b??{c}` to bind `a.b` properly
 X `[x >> x + 1] = 5` ==> x is 6
 X print b % x probably shouldn't parse as [print b] % x
 X unquote in patterns, e.g. {^Symbol.iterator => it} = ...
+X rename get/set macros to something less common?
+  renamed them expr-value/set-var
+

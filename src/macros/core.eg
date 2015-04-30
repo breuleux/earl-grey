@@ -24,7 +24,7 @@ inject: mac
 mac{"var"}! var_mac{#pattern, _, form, argument} =
    #mode{.var, argument}
 
-mac{"set"}! set_mac{#pattern, _, form, argument} =
+mac{"set-var"}! setvar_mac{#pattern, _, form, argument} =
    #mode{.set, argument}
 
 mac{"let"}! let_mac{match, _, form, argument} =
@@ -226,8 +226,8 @@ mac{"try"}! try_mac{#expr{.multi}, info, form, #data{body}} =
                #js_try{body, `{excv} -> ^make_ebody{{x} -> x}`, finally}
             #expr{.expr} ->
                trystmt = #js_try{
-                  `set rval = ^body`
-                  ```{excv} -> ^make_ebody{{x} -> `set rval = ^x`}```
+                  `set-var rval = ^body`
+                  ```{excv} -> ^make_ebody{{x} -> `set-var rval = ^x`}```
                   finally
                }
                `[var rval = false
@@ -251,19 +251,14 @@ mac{"!!"}! tryop_mac{match, info, form, #data{expr, Body! {*clauses}}} =
       parsed_clauses =
          parse_clauses with
             info, `excv`, clauses
-            {wrap = {x} -> `set rval = ^x`}
-      trystmt = #js_try{`set rval = ^expr`, `{excv} -> ^parsed_clauses`, #void{}}
+            {wrap = {x} -> `set-var rval = ^x`}
+      trystmt = #js_try{`set-var rval = ^expr`, `{excv} -> ^parsed_clauses`, #void{}}
       `let [var rval = false]: [^trystmt, rval]`
 
 expr_mac! mac{"throw"}! throw_mac{_, form, arg} =
    #js_throw{arg}
 
-;; expr_mac! mac{"return"}! return_mac{_, form, arg} =
-;;    #js_return{arg}
-
-
-
-mac{"get"}! get_mac{match, _, form, arg} =
+mac{"expr-value"}! exprvalue_mac{match, _, form, arg} =
    #pattern ->
       #special{AssignmentHandler{subp, w}} where
          subp = if{arg == #void{}, null, arg}
@@ -292,7 +287,7 @@ mac{"splice"}! splice_mac{context, _, form, #data{Body! {*stmts}}} =
    #splice{*stmts}
 
 mac{"#"}! hash_mac{context, _, form, #data{#void{}, #symbol{var tag}}} =
-   set tag = #value{tag}
+   set-var tag = #value{tag}
    #macro{f} where f{match, _, form, expr} =
       #pattern ->
          checker_mac = #macro with {context, _, form, #data{expr}} ->

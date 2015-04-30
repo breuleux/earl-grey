@@ -52,9 +52,9 @@ binsearch{xs, x} =
       v = xs[mid]
       match xs[mid]:
          [< x] ->
-            set lo = mid + 1
+            set-var lo = mid + 1
          [> x] ->
-            set hi = mid - 1
+            set-var hi = mid - 1
          [_] ->
             return [mid + 1]
    lo
@@ -75,7 +75,7 @@ classify{*classes, var xs} =
    while xs.length:
       match xs.shift{}:
          #splice{*newxs} ->
-            set xs = newxs ++ xs
+            set-var xs = newxs ++ xs
          #ignore ->
             null
          {cls, x} when results[cls] ->
@@ -103,8 +103,8 @@ classify_contiguous{xs, classifier} =
          else:
             if curr:
                groups.push with curr
-            set curr = {cls, x}
-            set currcls = cls
+            set-var curr = {cls, x}
+            set-var currcls = cls
    if curr:
       groups.push with curr
    groups

@@ -216,7 +216,7 @@ class Translator:
                      "\n" => "\\n"
                      "\\" => "\\\\"
                   }
-                  set v = v.replace{R.g`{"\"" or "\\" or "\n"}`, {m} -> repl[m]}
+                  set-var v = v.replace{R.g`{"\"" or "\\" or "\n"}`, {m} -> repl[m]}
                   "\"" + v + "\""
                undefined? ->
                   "(void 0)"
@@ -433,7 +433,7 @@ class Translator:
                   var xs = args.slice{0, -1} each x ->
                      @translate{x, .expr}
                   xs.push with @translate{args[args.length - 1], mode}
-                  set xs = xs each x when x !== "" -> x
+                  set-var xs = xs each x when x !== "" -> x
                   ;; ["(" + xs.join{","} + ")"]
                   splice % ["(", join{xs, ","}, ")"]
                _ -> @body{#multi{*args}, mode}

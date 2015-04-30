@@ -81,7 +81,7 @@ class PatternCompiler:
          @info.step_all{#pattern, specs} each match spec ->
             #dynsplice{variable} ->
                curidx = null
-               set rest = @expand{variable, tags}
+               set-var rest = @expand{variable, tags}
                #ignore
             #assoc{key, subp} or #assoc{subp} and key is null ->
                setInsidx{spec}
@@ -117,7 +117,7 @@ class PatternCompiler:
 
             #default{variable, value} ->
                curidx = null
-               set has_defaults = true
+               set-var has_defaults = true
                if rest:
                   then: throw E.syntax.pattern{"No default arguments after rest arg."}
                   else: #defaults with {@expand{variable, tags}, value}
@@ -367,10 +367,10 @@ class PatternProcessor:
       #value ->
          x
       init ->
-         set v = v or #symbol{@gen{}}
+         set-var v = v or #symbol{@gen{}}
          v.single_assignment = true
          @temps.push with v
-         @do with `[set ^v = ^init]`
+         @do with `[set-var ^v = ^init]`
          v
 
    process{pattern, rhs, fns} =
@@ -623,7 +623,7 @@ opt_clauses{clauses} =
                   share++
                   match b:
                      #do -> null
-                     #check -> set idx = share
+                     #check -> set-var idx = share
                      other -> print other
                else:
                   break
@@ -646,8 +646,8 @@ opt_clauses{clauses} =
             {j, #check{x}} -> #check{#assign{temps[shared_last + j], x}}
             {j, #do{x}} -> #do{x}
 
-         set shared_last = share
-         set idx_last = idx
+         set-var shared_last = share
+         set-var idx_last = idx
          #clause{vars, varsd, newblocks, body} where newblocks =
             shared.concat{to_share}.concat{rest} where
                rest = blocks.slice{n_to_share}

@@ -360,7 +360,7 @@ class Expander:
          current = stmts.shift{}
          match @step{context, scope, current}:
             #splice{*prepend} ->
-               set stmts = prepend ++ stmts
+               set-var stmts = prepend ++ stmts
             #float{stmt} ->
                pre ++= @step_all{context, scope, {stmt}}
             #sink{stmt} ->
@@ -369,7 +369,7 @@ class Expander:
                ;; We have to mark each resulting statement in case
                ;; it contains generated code.
                e = @mkenv{}
-               set stmts = m{stmts} each
+               set-var stmts = m{stmts} each
                   stmt -> e.mark{stmt}
             x ->
                bulk.push with x
@@ -381,7 +381,7 @@ class Expander:
 
    expand{context, scope, expr} =
       track_location! helper{context, scope, var expr} =
-         set expr = @step{context, scope, expr}
+         set-var expr = @step{context, scope, expr}
    
          match expr:
    
@@ -451,7 +451,7 @@ class Expander:
                      #declare_raw{variable and #symbol{s}, value} ->
                         {=> env} = variable
                         env.bind{newscope, s} with value
-                        set changes = true
+                        set-var changes = true
                         #ignore
                      #declare{variable and #symbol{s}, value = null} ->
                         {=> env} = variable
@@ -465,7 +465,7 @@ class Expander:
                               v &: {mutable = expr.all_mutable or variable.mutable}
                               v &: {top = variable.top}
                               env.bind{newscope, s} with v
-                              set changes = true
+                              set-var changes = true
                               if value:
                                  then:
                                     #splice with
@@ -474,7 +474,7 @@ class Expander:
                                  else:
                                     #vars{v}
                      #declare{v and #variable{_}, value = null} ->
-                        set changes = true
+                        set-var changes = true
                         if value:
                            then:
                               #splice with
@@ -485,7 +485,7 @@ class Expander:
                      #undeclare{#symbol{s} and variable} ->
                         {=> env} = variable
                         env.bind{newscope, s} with undefined
-                        set changes = true
+                        set-var changes = true
                         #ignore
                      other ->
                         #newargs{other}
@@ -515,7 +515,7 @@ class Expander:
                      #array{} -> false
                      other ->
                         arr_parts.push{arr}
-                        set arr = #array{}
+                        set-var arr = #array{}
    
                decl_obj{} =
                   match objindex:
@@ -535,7 +535,7 @@ class Expander:
                      #object{} -> false
                      other ->
                         obj_parts.push{obj}
-                        set obj = #object{}
+                        set-var obj = #object{}
 
                @step_all{#expr{.data}, scope, args} each
                   #assoc{} ->
@@ -687,7 +687,7 @@ class Expander:
                      if [s.name.slice{0, name.length + 1} === [name + "/"]]:
                         break
                      else:
-                        set s = s.parent
+                        set-var s = s.parent
                   if s:
                      helper{context, s, x}
                   else:

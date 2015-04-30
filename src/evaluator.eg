@@ -15,7 +15,7 @@ evaluator{options} =
       if options.globvar:
          match global[options.globvar]:
             undefined? ->
-               get global[options.globvar] =
+               gl =
                   match options.global:
                      === true ->
                         global
@@ -27,6 +27,8 @@ evaluator{options} =
                         ;; for v in global:
                         ;;    _glob[v] = global[v]
                         ;; _glob
+               global[options.globvar] = gl
+               gl
             g -> g
       else:
          global

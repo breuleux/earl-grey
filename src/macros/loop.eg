@@ -97,7 +97,7 @@ mac{"each"}! each_mac{match, info and {=> env}, form, var expr} =
 
             forof = true
             wrap_pattern{x, toplevel} =
-               set ends_with_test =
+               set-var ends_with_test =
                   match x:
                      #test -> toplevel
                      other -> false
@@ -154,7 +154,7 @@ mac{"each*"}! each_gen_mac{match, info and {=> env}, form, var expr} =
 
             forof = true
             wrap_pattern{x, toplevel} =
-               set ends_with_test =
+               set-var ends_with_test =
                   match x:
                      #test -> toplevel
                      other -> false

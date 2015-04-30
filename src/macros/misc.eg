@@ -146,7 +146,7 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
          #send{`static`, #data{Body! {*methods}}} ->
             statics ++= methods
          `constructor[^args] = ^body` or `constructor = ^args -> ^body` ->
-            set ctor = {args, body}
+            set-var ctor = {args, body}
             #splice{}
          `^lhs = ^rhs` ->
             ;; parse_pattern{info, lhs, rhs} with

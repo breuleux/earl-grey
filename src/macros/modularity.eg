@@ -124,8 +124,8 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
 mac{"provide"}! provide_mac{match context, _, form, e} =
    #pattern ->
       match e:
-         #void{} -> `module.exports and set ^[#variable{.exports}]`
-         else    -> `(module.exports and set ^[#variable{.exports}])[^e]`
+         #void{} -> `module.exports and set-var ^[#variable{.exports}]`
+         else    -> `(module.exports and set-var ^[#variable{.exports}])[^e]`
    else ->
       #data{Body! {*expr}} = e
       exp = form.env.mark{`exports`}
