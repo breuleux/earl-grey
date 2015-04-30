@@ -176,6 +176,8 @@ class Info:
       {=> location} -> location.text{}
       else -> null
 
+   raw{x} = @gettext{x}
+
    with_scope{newscope} =
       Info{@context, newscope, @form, @arg, @expander}
 
