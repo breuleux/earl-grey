@@ -58,7 +58,10 @@ overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
    #expr ->
       #multi{body}
 
-mac{"%"}! buildnode_mac{context, info and {=> env}, form, #data{descr, var contents}} =
+overridable! mac{"%"}! buildnode_mac{context
+                                     info and {=> env}
+                                     form
+                                     #data{descr, var contents}} =
    match context:
       #check or #project ->
          return #nostep{form}
