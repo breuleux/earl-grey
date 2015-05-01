@@ -2,8 +2,9 @@
 Earl Grey
 =========
 
-Earl Grey is a new language that compiles to JavaScript (ES6). Here's
-a quick rundown of its amazing features:
+Earl Grey ([website](http://breuleux.github.io/earl-grey/)) is a new
+language that compiles to JavaScript (ES6). Here's a quick rundown of
+its amazing features:
 
 * Python-like syntax
 * Fully compatible with the node.js ecosystem
@@ -25,7 +26,7 @@ a quick rundown of its amazing features:
 Resources
 ---------
 
-* [Website](http://breuleux.github.io/earl-grey/repl)
+* [Website](http://breuleux.github.io/earl-grey/)
 * [Installation instructions](http://breuleux.github.io/earl-grey/use.html)
 * [Documentation](http://breuleux.github.io/earl-grey/doc.html)
 * [Try it here!](http://breuleux.github.io/earl-grey/repl)
