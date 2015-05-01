@@ -142,6 +142,7 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
    helper{name, super, stmts} =
       var statics = #data{`[=]`}
       var ctor = {#data{}, #multi{} & {env = env}}
+
       new_stmts = stmts each
          #send{`static`, #data{Body! {*methods}}} ->
             statics ++= methods
@@ -153,8 +154,11 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
             PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs} where opt =
                pattern_handlers.build_object & {
                   allow_nested = false
-                  assign{#symbol{camelCase! v} or #value{v}, value} =
-                     #do{#assign{`[^name].prototype[^=v]`, value} <<: v}
+                  assign{match, value} =
+                     #symbol{camelCase! v} or #value{v} ->
+                        #do{#assign{`[^name].prototype[^=v]`, value} <<: v}
+                     v ->
+                        #do{#assign{`[^name].prototype[^v]`, value} <<: v}
                   declare{vars} = {}
                   wrap_target{match} =
                      `^args -> ^body` ->
@@ -215,6 +219,8 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
 
    match expr:
       #data{match, Body! {*stmts}} ->
+         `[^name < ^super]` ->
+            helper{name, super, stmts}
          `[^name {^super}]` ->
             helper{name, super, stmts}
          `[^name {}]` or [#symbol{_} and name] ->
