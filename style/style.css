@@ -1,0 +1,234 @@
+@import url(http://fonts.googleapis.com/css?family=Mate+SC);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans);
+@import url("hl-xcode.css");
+body {
+  width: 100%;
+  margin: auto;
+  font-family: 'Open Sans', sans-serif;
+  background-color: #fafafa;
+  color: #333;
+  font-size: 14pt;
+  background-color: #eee; }
+
+.container {
+  width: 100%; }
+
+.container > * {
+  width: 950px;
+  margin: auto; }
+
+#main-container {
+  background-color: white; }
+
+#main {
+  padding-top: 10px;
+  padding-bottom: 10px; }
+
+#twocol-container {
+  background-color: white; }
+
+#twocol {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; }
+  #twocol #toc {
+    box-sizing: border-box;
+    width: 400px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 50px; }
+  #twocol #main {
+    width: 950px; }
+
+@media screen and (min-width: 1750px) {
+  #toc {
+    flex-grow: 1; }
+  #tail {
+    flex-grow: 1;
+    box-sizing: border-box;
+    width: 400px; } }
+
+@media screen and (max-width: 1000px) {
+  #twocol {
+    display: block; }
+    #twocol #toc {
+      width: 100%;
+      padding-top: 10px;
+      box-sizing: border-box; }
+  #twocol #main, #main {
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 30px;
+    padding-right: 30px; } }
+
+#nav-container, #foot-container {
+  height: 80px; }
+
+#nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  height: 80px;
+  font-family: 'Mate SC', sans-serif; }
+  #nav img {
+    vertical-align: middle; }
+  #nav .navlink {
+    box-sizing: border-box;
+    position: relative;
+    height: 80px;
+    line-height: 80px;
+    vertical-align: middle;
+    border-bottom: 5px solid transparent;
+    font-size: 20pt;
+    text-align: center; }
+  #nav .navlink:hover {
+    border-bottom: 5px solid black; }
+  #nav .navlink a {
+    padding-left: 30px;
+    padding-right: 30px;
+    display: inline-block;
+    font-weight: bold;
+    text-decoration: none;
+    color: black; }
+  #nav .curnav.navlink {
+    background-color: #ddd;
+    border-bottom: 5px solid transparent; }
+  #nav .curnav:after {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    margin-left: -40px;
+    content: '';
+    width: 0;
+    height: 0;
+    border-top: solid 25px #ddd;
+    /* border-top: solid 25px black */
+    border-left: solid 40px transparent;
+    border-right: solid 40px transparent; }
+  #nav .curnav.navlink:hover {
+    border-bottom: 5px solid transparent; }
+  #nav .navlink a:focus {
+    outline: none; }
+  #nav .navlink a:hover {
+    text-decoration: none; }
+
+#foot {
+  padding: 15px 0 15px 0; }
+
+/* HEADERS */
+h1.title {
+  color: #41727b;
+  font-weight: bold;
+  background-color: #fff;
+  margin: auto;
+  padding-left: 30px;
+  padding-right: 30px;
+  font-size: 3em; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Mate SC';
+  color: black; }
+
+h1 {
+  font-size: 2.3em;
+  border-bottom: 4px solid black; }
+
+h2 {
+  font-size: 2em;
+  border-bottom: 2px solid #888; }
+
+h3 {
+  font-size: 1.7em; }
+
+h4 {
+  font-size: 1.35em; }
+
+h5 {
+  font-size: 1.2em; }
+
+h6 {
+  font-size: 1.1em; }
+
+/* CODE */
+/* code */
+/*   background-color: #eee */
+pre {
+  background-color: #eef;
+  padding: 5px; }
+
+pre.hl {
+  background-color: #f5f5ec;
+  padding: 5px;
+  margin-left: 15px;
+  margin-right: 15px; }
+
+/* LISTS */
+ul {
+  list-style-type: disc; }
+
+/* TABLES */
+table {
+  border: 2px solid black;
+  border-collapse: collapse; }
+
+table th {
+  text-align: left;
+  border-bottom: 2px solid black;
+  background-color: #ddf; }
+
+tr:nth-child(odd) {
+  background-color: #f8f8ff; }
+
+tr:nth-child(even) {
+  background-color: #eeeef8; }
+
+table th, table td {
+  padding-left: 5px;
+  padding-right: 5px;
+  border-right: 1px solid black; }
+
+/* LINKS */
+a {
+  text-decoration: none;
+  color: #7646b3; }
+
+a:hover {
+  text-decoration: underline;
+  color: #7646b3; }
+
+/* MISC */
+strong {
+  color: #000; }
+
+/* BOXES */
+.note:before {
+  content: "Note: ";
+  font-weight: bold; }
+
+.note {
+  color: #550;
+  background-color: #ffd; }
+
+.tip:before {
+  content: "Tip: ";
+  font-weight: bold; }
+
+.tip {
+  color: #005;
+  background-color: #ddf; }
+
+.warning:before {
+  content: "Warning: ";
+  font-weight: bold; }
+
+.warning {
+  color: #500;
+  background-color: #fdd; }
+
+.note, .tip, .warning {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px; }

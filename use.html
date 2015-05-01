@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
+    <title>Earl Grey documentation</title>
+    <link rel="stylesheet" type="text/css" href="/style/style.css">
+    </head>
+
+  <body>
+
+
+
+
+
+<div id="nav-container" class="container"><div id="nav">
+    <div id="logo" class="navlink"><a href="/"><img src="/assets/earlgrey-text.svg" height="70px" alt="Earl Grey"></a></div>
+    <div id="use" class="navlink"><a href="/use.html">use</a></div>
+    <div id="doc" class="navlink"><a href="/doc.html">learn</a></div>
+    <div id="repl" class="navlink"><a href="/repl">try it!</a></div>
+    <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey">source</a></div></div></div>
+
+
+
+<div id="twocol-container" class="container"><div id="twocol">
+    
+
+
+
+
+<div id="toc">
+  <script>document.getElementById("use").className = "navlink curnav"</script>
+  <ul class="toc"><li><a href="#install">Install</a></li><li><a href="#runtime">Runtime</a></li><li><a href="#workflow">Workflow</a></li><ul><li><a href="#standalone">Standalone</a></li><li><a href="#compile">Compile</a></li><li><a href="#withgulp">With gulp</a></li><li><a href="#withbrowserify">With browserify</a></li></ul><li><a href="#whatdoesitlooklike">What does it look like?</a></li><li><a href="#learnmore">Learn more</a></li></ul></div>
+<div id="main">
+
+<h1 id="install">Install</h1>
+
+<p>First you will need to install:</p>
+
+<ul><li><strong><a href="https://iojs.org/en/index.html">iojs</a></strong>, which is a fork of node.js with support for ES6.
+  <span class="note">If you have <code>node</code> installed, you can use the <code>earl5</code> command instead</span></li><li><strong><a href="https://www.npmjs.com/">npm</a></strong>, the package manager for node/iojs</li></ul>
+
+<p>
+</p>
+
+<p>Once <code>iojs</code> and <code>npm</code> are installed, run:</p>
+
+<p><pre class="hl">npm install -g earlgrey</pre></p>
+
+<p>This will install the <code>earl</code> command. Run <code>earl</code> (or <code>earl5</code> if you don't
+have <code>iojs</code> installed) with no arguments to start an interactive
+interpreter, or run an EG program as:</p>
+
+<p><pre class="hl">earl run file.eg</pre></p>
+
+
+<h1 id="runtime">Runtime</h1>
+
+<p>Earl Grey scripts depend on the <code>earlgrey-runtime</code> package. You don't
+need to install it if you run a script with <code>earl run</code>, but for all
+the other methods you will need to do execute this in the root
+directory of your project:</p>
+
+<p><pre class="hl">npm install earlgrey-runtime --save</pre></p>
+
+
+<h1 id="workflow">Workflow</h1>
+
+<p>At the moment you can use EG standalone, compile it, use it with
+<strong><a href="E.syntax.undeclared: Undeclared variable: gulp">gulp</a></strong>, and/or with <strong><a href="E.syntax.undeclared: Undeclared variable: browserify">browserify</a></strong></p>
+
+<h3 id="standalone">Standalone</h3>
+
+<p>Run a script like this:</p>
+
+<p><pre class="hl">earl run script.eg</pre></p>
+
+<p><code>earl</code> will cache the result of compilation in <code>egcache/script.js</code> (and
+does so with all dependencies). This means that the second time you
+run your script, it should start running nearly instantaneously, and
+if you change one file, only that file will be recompiled.</p>
+
+<p>If you run into issues, you may force recompilation of your script and
+of <em>all</em> of its dependencies with the <code>-r</code> flag:</p>
+
+<p><pre class="hl">earl run -r script.eg</pre></p>
+
+<p>If you only want to trigger recompilation of a single file, use the
+<code>touch</code> utility to change its last change date. That will do the trick :)</p>
+
+
+<h3 id="compile">Compile</h3>
+
+<p>Compile a script or all the scripts within a directory with:</p>
+
+<p><pre class="hl">earl compile file.eg
+earl compile -o dest.js file.eg
+earl compile -o dest/ src/</pre></p>
+
+<p>The <code>-s</code> flag writes source maps, I recommend using it. By default
+<code>earl</code> generates EcmaScript 6 code. You can generate ES5 code instead
+with the <code>5</code> flag.</p>
+
+<p>For instance, the command that follows verbosely compiles <code>src/**/*.eg</code>
+into ES5-compatible <code>dest/**/*.js</code> (using babel):</p>
+
+<p><pre class="hl">earl compile -<span class="hljs-number">5</span>vso dest/ src/</pre></p>
+
+<p>As with <code>earl run</code>, <code>earl compile</code> avoids needless recompiling. Use
+the <code>-r</code> flag to force recompilation.</p>
+
+<p>You will not be able to run the compiled scripts without first
+installing the <a href="#runtime">runtime</a>.</p>
+
+
+<h3 id="withgulp">With gulp</h3>
+
+<p>The <strong><a href="https://github.com/breuleux/gulp-earl">gulp-earl</a></strong> package defines a source transformer for use with
+<code>gulp</code>. It supports source maps via the <a href="https://github.com/floridoo/gulp-sourcemaps">gulp-sourcemaps</a>
+package.</p>
+
+<p>
+</p>
+
+<p>Here's a sample task for your <code>gulpfile.js</code></p>
+
+<p><pre class="hl"><span class="hljs-keyword">var</span> earl = <span class="hljs-built_in">require</span>(<span class="hljs-string">'gulp-earl'</span>);
+
+gulp.task(<span class="hljs-string">'earl'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  gulp.src(<span class="hljs-string">'./src/**/*.eg'</span>)
+    .pipe(earl({}))
+    .pipe(gulp.dest(<span class="hljs-string">'./build/'</span>))
+});</pre></p>
+
+<p><span class="tip">
+  You can also write gulpfiles in Earl Grey. The <strong><a href="https://github.com/breuleux/earl-gulp">earl-gulp</a></strong>
+  package defines a neat <code>task</code> macro for the purpose. Do note that
+  this is the <code>earl-gulp</code> package and not the <code>gulp-earl</code> package. They
+  are different (sorry for the confusion!)</span></p>
+
+
+
+<p>Don't forget to also install the <a href="#runtime">runtime</a>.</p>
+
+
+<h3 id="withbrowserify">With browserify</h3>
+
+<p>The <strong><a href="E.syntax.undeclared: Undeclared variable: earlify">earlify</a></strong> package defines a source transformer for use with
+<code>browserify</code>. Install it:</p>
+
+<p><pre class="hl">npm install earlify --save</pre></p>
+
+<p>Then run it like this:</p>
+
+<p><pre class="hl">browserify -t earlify script.eg &gt; bundle.js</pre></p>
+
+<p>Don't forget to also install the <a href="#runtime">runtime</a>.</p>
+
+
+<h1 id="whatdoesitlooklike">What does it look like?</h1>
+
+<p>I am not sure what are the best examples to give here. Let's start
+with a straightforward example, counting all unique words in a
+paragraph of text:</p>
+
+<p><pre class="hl">countWords<span class="hljs-punctuation">(</span>text<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   counts <span class="hljs-operator">=</span> <span class="hljs-keyword">new </span>Map<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
+   words <span class="hljs-operator">=</span> text<span class="hljs-string">.split</span><span class="hljs-punctuation">(</span>R<span class="hljs-string">"\W+"</span><span class="hljs-punctuation">)</span>
+   words <span class="hljs-wordop">each</span> word <span class="hljs-operator">-&gt;</span>
+      currentCount <span class="hljs-operator">=</span> counts<span class="hljs-string">.get</span><span class="hljs-punctuation">(</span>word<span class="hljs-punctuation">)</span> <span class="hljs-wordop">or</span> <span class="hljs-number">0</span>
+      counts<span class="hljs-string">.set</span><span class="hljs-punctuation">(</span>word<span class="hljs-punctuation">,</span> currentCount <span class="hljs-operator">+</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span>
+   consume<span class="hljs-punctuation">(</span>counts<span class="hljs-string">.entries</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span><span class="hljs-string">.sort</span><span class="hljs-punctuation">(</span>compare<span class="hljs-punctuation">)</span> <span class="hljs-wordop">where</span>
+      compare<span class="hljs-punctuation">(</span><span class="hljs-punctuation">{</span>w1<span class="hljs-punctuation">,</span> c1<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>w2<span class="hljs-punctuation">,</span> c2<span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> c2 <span class="hljs-operator">-</span> c1</pre></p>
+
+
+<p><strong>Generators</strong>: the following defines a generator for the Fibonacci
+sequence and then prints all the even Fibonacci numbers less than
+100. It shows off a little bit of everything:</p>
+
+<p><pre class="hl"><span class="hljs-keyword">gen </span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   <span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1</span><span class="hljs-punctuation">}</span>
+   <span class="hljs-keyword">while </span>true:
+      <span class="hljs-keyword">yield </span>a
+      <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>b<span class="hljs-punctuation">,</span> a <span class="hljs-operator">+</span> b<span class="hljs-punctuation">}</span>
+
+fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-wordop">each</span>
+   <span class="hljs-operator">&gt;</span> <span class="hljs-number">100</span> <span class="hljs-operator">-&gt;</span>
+      <span class="hljs-keyword">break</span>
+   n <span class="hljs-wordop">when</span> n <span class="hljs-wordop">mod</span> <span class="hljs-number">2</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span>
+      <span class="hljs-keyword">print </span>n</pre></p>
+
+<p>The <code>each</code> operator accepts multiple clauses, which makes it
+especially easy to work on heterogenous arrays.</p>
+
+<p><strong>Asynchronous</strong>: EG has async and await keywords to facilitate
+asynchronous programming, all based on Promises. Existing
+callback-based functionality can be converted to Promises using
+<code>promisify</code>:</p>
+
+<p><pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> request
+g <span class="hljs-operator">=</span> promisify<span class="hljs-punctuation">(</span>request<span class="hljs-string">.get</span><span class="hljs-punctuation">)</span>
+<span class="hljs-keyword">async </span>getXKCD<span class="hljs-punctuation">(</span>n <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   response <span class="hljs-operator">=</span> <span class="hljs-keyword">await </span>g<span class="hljs-punctuation">(</span><span class="hljs-string">'http://xkcd.com/info.{n}.json'</span><span class="hljs-punctuation">)</span>
+   JSON<span class="hljs-string">.parse</span><span class="hljs-punctuation">(</span>response<span class="hljs-string">.body</span><span class="hljs-punctuation">)</span>
+<span class="hljs-keyword">async</span><span class="hljs-punctuation">:</span>
+   <span class="hljs-keyword">print </span><span class="hljs-punctuation">(</span><span class="hljs-keyword">await </span>getXKCD<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span><span class="hljs-string">.alt</span></pre></p>
+
+
+<p>Also: <strong>classes</strong>:</p>
+
+<p><pre class="hl"><span class="hljs-keyword">class </span>Person:
+
+   <span class="hljs-comment">;; Instance @fields can be set directly in argument lists</span>
+   constructor<span class="hljs-punctuation">(</span><span class="hljs-member">@name</span><span class="hljs-punctuation">,</span> <span class="hljs-member">@age</span><span class="hljs-punctuation">,</span> <span class="hljs-member">@job</span> <span class="hljs-operator">=</span> <span class="hljs-string">"unemployed"</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      pass
+
+   <span class="hljs-comment">;; Default arguments</span>
+   marchTowardsDeath<span class="hljs-punctuation">(</span>years <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      <span class="hljs-member">@age</span> <span class="hljs-operator">+=</span> years
+
+   <span class="hljs-comment">;; Individual arguments can be matched on</span>
+   sayHello<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      <span class="hljs-comment">;; This matches a Person instance and extracts its name field</span>
+      <span class="hljs-comment">;; or else it matches a String directly</span>
+      Person<span class="hljs-operator">?</span> <span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> name<span class="hljs-punctuation">}</span> <span class="hljs-wordop">or</span> String<span class="hljs-operator">?</span> name <span class="hljs-operator">-&gt;</span>
+         <span class="hljs-keyword">print </span><span class="hljs-string">'Hello {name}, I am {@name}!'</span>
+      ElderGod<span class="hljs-operator">?</span> <span class="hljs-operator">-&gt;</span>
+         <span class="hljs-keyword">print </span><span class="hljs-string">"AAAAAAAHHHHHHHHHHHHHHHH!"</span>
+      <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span>
+         <span class="hljs-keyword">print </span><span class="hljs-string">"I don't know what to say."</span>
+
+<span class="hljs-comment">;; .xyz is the same thing as "xyz", just a bit shorter to type</span>
+p1 <span class="hljs-operator">=</span> <span class="hljs-keyword">new </span>Person<span class="hljs-punctuation">(</span><span class="hljs-string">.Sylvie</span><span class="hljs-punctuation">,</span> <span class="hljs-number">37</span><span class="hljs-punctuation">,</span> <span class="hljs-string">.accountant</span><span class="hljs-punctuation">)</span>
+<span class="hljs-comment">;; You don't have to use "new"</span>
+p2 <span class="hljs-operator">=</span> Person<span class="hljs-punctuation">(</span><span class="hljs-string">.Michel</span><span class="hljs-punctuation">,</span> <span class="hljs-number">43</span><span class="hljs-punctuation">,</span> <span class="hljs-string">.farmer</span><span class="hljs-punctuation">)</span>
+p1<span class="hljs-string">.sayHello</span><span class="hljs-punctuation">(</span>p2<span class="hljs-punctuation">)</span></pre></p>
+
+
+<p><strong>Pattern</strong> matching is very useful. It makes it easier to work with
+regular expressions, for example:</p>
+
+<p><pre class="hl">mangle<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>email<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+
+   <span class="hljs-comment">;; regexp! transforms the input into an array of match groups</span>
+   <span class="hljs-comment">;; (the first is always the whole match)</span>
+   R<span class="hljs-string">"^([a-z.]+)@([a-z.]+)$"</span><span class="hljs-operator">!</span> <span class="hljs-punctuation">{</span>_<span class="hljs-punctuation">,</span> name<span class="hljs-punctuation">,</span> host<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span>
+      <span class="hljs-string">'{name} AT {host}'</span>
+
+   <span class="hljs-comment">;; regexp? will just test if the regexp matches, but it won't</span>
+   <span class="hljs-comment">;; transform the input</span>
+   R<span class="hljs-string">"@"</span><span class="hljs-operator">?</span> <span class="hljs-operator">-&gt;</span>
+      <span class="hljs-string">"It looks like an email but I'm too daft to parse it."</span>
+
+   <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span>
+      <span class="hljs-string">"This is not an email at all!"</span></pre></p>
+
+<h1 id="learnmore">Learn more</h1>
+
+<ul><li>Go through the <strong><a href="/repl">interactive tutorial</a></strong>. It
+  runs in your browser, no need to install anything!</li><li>See the <strong><a href="/doc.html">documentation</a></strong> for an overview of
+  all of EG's features.</li></ul>
+
+</div>
+
+    <div id="tail"></div></div></div>
+
+
+<div id="foot-container" class="container"><div id="foot"><span class="footlink"></span></div></div>
+</body></html>
+

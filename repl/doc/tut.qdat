@@ -1,5 +1,5 @@
 
-10-start ---> The Earl Grey programming language --->
+[10-start = The Earl Grey programming language] --->
 
   | `Enter or `[Ctrl-Enter]             | Evaluate an expression
   | `[Shift-Enter]                      | Insert a new line
@@ -14,7 +14,7 @@
   .big % __ Just show me cool stuff: /cool
 
 
-20-expressions ---> Variables and expressions --->
+[20-expressions = Variables and expressions] --->
 
   .note %
     For the purpose of this tutorial, I will assume you are already
@@ -24,15 +24,13 @@
   How should one start a tutorial, usually? Man, I don't know. But I
   know there are two very useful things programming languages can do:
 
-  #
-    __[Doing math!] Like /[1 + 1] (<- psst! you can _click these!) You can
+  # __[Doing math!] Like /[1 + 1] (<- psst! you can _click these!) You can
     do math with Earl Grey. The operator precedence you learned at
     school (well I hope you did) will work just fine: (`mod is modulo)
 
     / 99 + 7 * (18 - 3) mod 10
 
-  #
-    __[Putting stuff in variables!] Sometimes you just need to put
+  # __[Putting stuff in variables!] Sometimes you just need to put
     something in a variable so that you can use it later. A variable
     can contain dashes:
 
@@ -45,7 +43,7 @@
   Type /next to get to the next topic.
 
 
-30-arrays ---> Arrays --->
+[30-arrays = Arrays] --->
 
   Variables are nice, but a variable can only hold one thing, and
   that's a bummer. If only there was a way to hold more than one thing
@@ -67,7 +65,7 @@
   Type /next to get to the next topic.
 
 
-31-arrays2 ---> ...Arrays --->
+[31-arrays2 = ...Arrays] --->
 
   Now, what can you do on arrays? Well, all operations supported in
   JavaScript are also supported, and the syntax is the same. See
@@ -91,7 +89,7 @@
   Type /next to get to the next topic.
 
 
-40-objects ---> Objects --->
+[40-objects = Objects] --->
 
   __Objects map _names, which are strings, numbers or symbols, to
   _stuff, which can be anything. Like arrays, objects are declared
@@ -117,7 +115,7 @@
   Type /next to get to the next topic.
 
 
-50-functions ---> Functions --->
+[50-functions = Functions] --->
 
   Numbers, strings, arrays and objects are amazing, but you won't get
   very far without better abstractions. A __function lets you
@@ -137,7 +135,7 @@
 
 
 
-51-functions2 ---> ...Functions --->
+[51-functions2 = ...Functions] --->
 
   Sometimes you may need to give a function to another function to do
   stuff. For example, the `for-each method of arrays takes a function
@@ -146,26 +144,22 @@
   Depending on the situation, there are four ways to do it. Yes,
   four. Do you have a problem with that?
 
-  #
-    Declare a named function, especially if you need it elsewhere:
+  # Declare a named function, especially if you need it elsewhere:
 
     / f(x) = print x
       {1, 2, 3}.for-each(f)
 
-  #
-    Inline, for small functions
+  # Inline, for small functions
 
     / {1, 2, 3}.for-each(x -> print x)
 
-  #
-    `with operator, to avoid brackets and indent the body, when
+  # `with operator, to avoid brackets and indent the body, when
     the function is the last argument
 
     / {1, 2, 3}.for-each with x ->
          print x
 
-  #
-    `where operator, if it is clearer\/more practical to name the
+  # `where operator, if it is clearer\/more practical to name the
     function, especially when the function isn't the last argument
 
     / set-timeout(f, 1000) where f() =
@@ -175,7 +169,7 @@
 
 
 
-60-conditions ---> Conditions --->
+[60-conditions = Conditions] --->
 
   __[`if] executes code conditionally. Its syntax is the same as in
   Python:
@@ -195,7 +189,7 @@
   Type /next to get to the next topic.
 
 
-70-loops ---> Loops --->
+[70-loops = Loops] --->
 
   __[`while] loops work as they do in Python:
 
@@ -218,7 +212,7 @@
   Type /next to get to the next topic.
 
 
-71-loops2 ---> ...Loops --->
+[71-loops2 = ...Loops] --->
 
   The __[`each] operator is the generic way to loop over sequences
   such as arrays or ranges.
@@ -254,7 +248,7 @@
 
 
 
-80-patterns ---> Pattern matching --->
+[80-patterns = Pattern matching] --->
 
   As you just saw, `each's clauses let you match patterns against
   values. But you can do that almost everywhere in EG! It would be
@@ -278,7 +272,7 @@
   Type /next to get to the next topic.
 
 
-81-patterns2 ---> ...Pattern matching --->
+[81-patterns2 = ...Pattern matching] --->
 
   `match specializes in matching:
 
@@ -310,7 +304,7 @@
   Type /next to get to the next topic.
 
 
-90-documents ---> Documents --->
+[90-documents = Documents] --->
 
   EG comes with a mini-language to define "documents". Assuming you
   know HTML, it is relatively straightforward:
@@ -340,7 +334,7 @@
   Type /next to get to the next topic.
 
 
-100-libraries ---> Libraries --->
+[100-libraries = Libraries] --->
 
   Use `require to import libraries. If you use it here, it will import
   from the `npm repositories. Pretty neat!
@@ -353,7 +347,7 @@
   Type /next to get to the next topic.
 
 
-110-async ---> Asynchronous programming --->
+[110-async = Asynchronous programming] --->
 
   Sometimes you need to wait for data, or for some event to happen in
   order to keep doing something. Maybe you're waiting for a file to be
@@ -394,7 +388,7 @@
   Type /next to get to the next topic.
 
 
-1000-the-end ---> The End --->
+[1000-the-end = The End] --->
 
   The tutorial is over :\)
 

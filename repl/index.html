@@ -1,31 +1,44 @@
-<!doctype html>
+
+<!DOCTYPE html>
 
 <html>
-  <title>Earl Grey</title>
+
   <head>
-    <link rel="stylesheet" type="text/css" href="style/codemirror.css" />
-    <link rel="stylesheet" type="text/css" href="style/repl.css" />
-    <script src="https://jspm.io/system@0.16.js"></script>
-    <script type="text/javascript" src="repl.js"></script>
-  </head>
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
+    <title>Try Earl Grey!</title>
+    <link rel="stylesheet" type="text/css" href="/style/style.css">
+    <script src="https://jspm.io/system@0.16.js"></script><script src="/repl/repl.js"></script><link rel="stylesheet" type="text/css" href="/repl/style/repl.css"><link rel="stylesheet" type="text/css" href="/repl/style/codemirror.css"></head>
+
   <body>
 
-    <div id="help">
-    </div>
 
-    <div id="box">
-      <div id="interactive">
-      </div>
 
-      <div id="inputline" class="in hasinput">
-        <div class="inbanner"></div>
-        <div id="inputbox"><textarea id="code"></textarea></div>
-      </div>
-    </div>
 
-    <script>
-      repl = require("main").setup();
-    </script>
 
-  </body>
-</html>
+<div id="nav-container" class="container"><div id="nav">
+    <div id="logo" class="navlink"><a href="/"><img src="/assets/earlgrey-text.svg" height="70px" alt="Earl Grey"></a></div>
+    <div id="use" class="navlink"><a href="/use.html">use</a></div>
+    <div id="doc" class="navlink"><a href="/doc.html">learn</a></div>
+    <div id="repl" class="navlink"><a href="/repl">try it!</a></div>
+    <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey">source</a></div></div></div>
+
+
+
+<div id="main-container" class="container"><div id="main">
+
+<div id="box">
+  <div id="interactive"></div>
+  <div id="inputline" class="in hasinput">
+    <div class="inbanner"></div>
+    <div id="inputbox"><textarea id="code"></textarea></div></div></div>
+
+<script>
+  document.getElementById("repl").className = "navlink curnav"
+  repl = require("repl").setup();</script>
+
+</div></div>
+
+
+<div id="foot-container" class="container"><div id="foot"><span class="footlink"></span></div></div>
+</body></html>
+

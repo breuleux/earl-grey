@@ -54,7 +54,9 @@ h2 code {
 }
 
 .big:before {
-    content: "\2192";
+    content: "\25b6";
+    color: orange;
+    margin-right: 10px;
 }
 
 

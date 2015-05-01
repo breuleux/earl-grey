@@ -1,6 +1,6 @@
 
 
-arith ---> Redefining arithmetic --->
+[arith = Redefining arithmetic] --->
   doc =
 
     You may redefine arithmetic operators as you see fit. The
@@ -11,7 +11,7 @@ arith ---> Redefining arithmetic --->
     100 + 10 where
        a + b = a - b
 
-curry ---> Currying --->
+[curry = Currying] --->
   doc =
 
     Currying
@@ -25,7 +25,7 @@ curry ---> Currying --->
     {1, 2, 3}.map(add(10))
 
 
-markdown ---> Markdown --->
+[markdown = Markdown] --->
   doc =
 
     Let's display some Markdown@@{L1}~! It is really quite simple,
@@ -48,7 +48,7 @@ markdown ---> Markdown --->
     div[raw] % parse(grocery-list)
 
 
-multiplication ---> A multiplication table --->
+[multiplication = A multiplication table] --->
   doc =
 
     The `[%] operator in Earl Grey can be used to build HTML. So let's
@@ -62,7 +62,7 @@ multiplication ---> A multiplication table --->
           td % i * j
 
 
-flot ---> Plotting with flot --->
+[flot = Plotting with flot] --->
   doc =
 
     This code will draw a nice plot using flot@@{L1}.
@@ -87,7 +87,7 @@ flot ---> Plotting with flot --->
     undefined
 
 
-paint ---> Crappy Paint --->
+[paint = Crappy Paint] --->
 
   doc =
 
@@ -124,7 +124,7 @@ paint ---> Crappy Paint --->
 
 
 
-game ---> A simple game --->
+[game = A simple game] --->
   doc =
     Simple game.
 
@@ -160,7 +160,7 @@ game ---> A simple game --->
              ctx.fill-style = map[x][y]
              ctx.fill()
        set-timeout(-> canvas.focus(), 10)
-       print "GLUB! Use arrow keys. Eat blue. Avoid black. (My high score is 62)"
+       print "GLUB! Use arrow keys. Eat blue. Avoid black. (My high score is 77)"
        print canvas
     game(15, 30, 150)
     undefined
