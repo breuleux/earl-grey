@@ -21,6 +21,7 @@
     "earl5": "bin/earl5"
   },
   "scripts": {
+    "prepublish": "bin/bootstrap 2 && bin/bootstrap -5 2",
     "test": "mocha"
   },
   "homepage": "http://breuleux.github.io/earl-grey/repl",
