@@ -5,7 +5,7 @@
   "main": "./6.js",
   "dependencies": {
     "babel": "^4.5.5",
-    "earlgrey-runtime": ">=0.0.5",
+    "earlgrey-runtime": ">=0.0.7",
     "js-beautify": "1.5.x",
     "multi-stage-sourcemap": "^0.2.1",
     "opg": ">=0.0.3",
@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "mocha": "^2.2.1",
-    "earl-mocha": ">=0.0.1"
+    "earl-mocha": ">=0.0.2"
   },
   "bin": {
     "earl": "bin/earl",
