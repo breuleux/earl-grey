@@ -671,7 +671,7 @@ f<span class="hljs-punctuation">(</span><span class="hljs-punctuation">{</span><
 
 <p><code>chain</code> can be embedded and you get a nice pipeline going on:</p>
 
-<p><pre class="hl">capitalize-words<span class="hljs-punctuation">(</span>chain<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<p><pre class="hl">capitalize-words<span class="hljs-punctuation">(</span><span class="hljs-keyword">chain</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-member">@trim</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
    <span class="hljs-member">@split</span><span class="hljs-punctuation">(</span>R<span class="hljs-string">" +"</span><span class="hljs-punctuation">)</span> <span class="hljs-wordop">each</span> w <span class="hljs-wordop">when</span> w <span class="hljs-operator">!=</span> <span class="hljs-string">""</span> <span class="hljs-operator">-&gt;</span>
       w<span class="hljs-punctuation">[</span><span class="hljs-number">0</span><span class="hljs-punctuation">]</span><span class="hljs-string">.to-upper-case</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> w<span class="hljs-string">.slice</span><span class="hljs-punctuation">(</span><span class="hljs-number">1</span><span class="hljs-punctuation">)</span>
@@ -715,9 +715,9 @@ one variable, an array of the declared variables:</p>
 
 <p>You can, however, modify this behavior:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> expr-value<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>  <span class="hljs-comment">;; ==&gt; 2</span>
+<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-keyword">expr-value</span><span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>  <span class="hljs-comment">;; ==&gt; 2</span>
 <span class="hljs-punctuation">{</span>_<span class="hljs-punctuation">,</span> <span class="hljs-keyword">return</span><span class="hljs-punctuation">,</span> _<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>      <span class="hljs-comment">;; immediately returns 2 from the function</span>
-<span class="hljs-punctuation">{</span>yield<span class="hljs-punctuation">,</span> yield<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; yields 1, then yields 2</span></pre></p>
+<span class="hljs-punctuation">{</span><span class="hljs-keyword">yield</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">yield</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; yields 1, then yields 2</span></pre></p>
 
 <p>Note that it's not particularly useful to declare variables alongside
 <code>return</code> since there's no way to use them after the function returns.</p>
@@ -1073,7 +1073,8 @@ converted into something else, for instance HTML:</p>
          href <span class="hljs-operator">=</span> <span class="hljs-string">"http://example.com"</span>
          <span class="hljs-string">"stuff"</span>
 
-node<span class="hljs-string">.toHTML</span><span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span></pre></p>
+<span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>html
+html<span class="hljs-punctuation">(</span>node<span class="hljs-punctuation">)</span></pre></p>
 
 <p>Would produce:</p>
 
