@@ -5,7 +5,6 @@ body {
   width: 100%;
   margin: auto;
   font-family: 'Open Sans', sans-serif;
-  background-color: #fafafa;
   color: #333;
   font-size: 14pt;
   background-color: #eee; }
@@ -192,11 +191,11 @@ table th, table td {
 /* LINKS */
 a {
   text-decoration: none;
-  color: #7646b3; }
+  /* color: #7646b3 */ }
 
 a:hover {
   text-decoration: underline;
-  color: #7646b3; }
+  /* color: #7646b3 */ }
 
 /* MISC */
 strong {
