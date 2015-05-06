@@ -123,22 +123,21 @@
     undefined
 
 
-
-[game = A simple game] --->
+[snake = Snake!] --->
   doc =
-    Simple game.
+    The snake game
 
   code =
-    ;; A simple game: eat blue things and crap out black things that
-    ;; you need to avoid. I... uh... code-golfed this a bit. Sorry!
-    game(len, tl, interval) =
-       map = 1..len each x -> 1..len each y -> null
+    ;; snake game. Sorry for the code density, I code-golfed it a bit.
+    require: /dom
+    snake(len, tl, interval) =
+       map = 1..len each x -> 1..len each y -> 0
        r() = Math.floor(Math.random() * len)
-       spwn(color and {x, y} is {r(), r()}) =
-          if{map[x][y], spwn(color), (map[x][y] = color, {x, y})}
-       var {{px, py}, dx, dy, score, ate} = {spwn{.red}, 0, 0, 0, false}
-       1..5 each i -> spwn(.blue)
-       canvas = DOM with canvas %
+       spwn(value and {x, y} is {r(), r()}) =
+          if{map[x][y], spwn(value), (map[x][y] = value, {x, y})}
+       var {{px, py}, dx, dy, score} = {spwn{1}, 0, 0, 0}
+       1..5 each i -> spwn(-1)
+       canvas = dom with canvas %
           width and height = '{len * tl}px'
           tabindex = 1000
           onkeydown(e) =
@@ -146,21 +145,20 @@
              {dx, dy} = {39={1,0},37={-1,0},40={0,1},38={0,-1}}[e.which]
        ctx = canvas.get-context("2d")
        loop = set-interval(f, interval) where f() =
-          map[px][py] = if{ate, .black, null}
+          map[px][py] = score + 1
           {px, py} = {u(px,dx), u(py,dy)} where u(p,d) = (p+d+len) mod len
-          match map[px][py]:
-             .blue  -> (spwn(.blue), score += 1, ate = true)
-             .black -> (print 'Game Over! {score} points!', clear-interval(loop))
-             else   -> ate = false
-          map[px][py] = .red
+          if dx or dy: match map[px][py]:
+             < 0 -> (spwn(-1); score += 1)
+             > 0 -> (print 'Game Over! {score} points!'; clear-interval(loop))
+             0 -> 0...len each x -> 0...len each y when map[x][y]>0 -> map[x][y]-=1
+          map[px][py] = score + 1
           ctx.clear-rect(0, 0, canvas.width, canvas.height)
           0...len each x -> 0...len each y when map[x][y] ->
-             ctx.begin-path()
-             ctx.arc(tl*(x+0.5), tl*(y+0.5), tl/2, 0, 2*Math.PI)
-             ctx.fill-style = map[x][y]
-             ctx.fill()
+             ctx.fill-style = if{map[x][y] < 0, .blue, .red}
+             ctx.fill-rect(tl * x, tl * y, tl, tl)
        set-timeout(-> canvas.focus(), 10)
-       print "GLUB! Use arrow keys. Eat blue. Avoid black. (My high score is 77)"
+       print "Snake: use arrow keys to move"
        print canvas
-    game(15, 30, 150)
+    snake(15, 30, 150)
     undefined
+
