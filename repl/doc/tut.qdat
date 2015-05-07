@@ -160,8 +160,9 @@
 
   # [`where operator, if it is clearer\/more practical to name the function, especially when the function isn't the last argument]
 
-    / set-timeout(f, 1000) where f() =
-         print "watch for it..."
+    / print "watch for it..."
+      set-timeout(f, 1000) where f() =
+         print "there it is!"
 
   Type /next to get to the next topic.
 
@@ -202,7 +203,7 @@
   C-style `for loops are available, if for some reason you want to use
   them, but they require commas instead of semicolons:
 
-  / for (var i = 10, i >= 0, i--): print i
+  / for (var i = 10; i >= 0; i--): print i
 
   `break and `continue inside loops work as they do in other
   languages.
