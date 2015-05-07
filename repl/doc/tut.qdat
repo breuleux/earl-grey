@@ -144,23 +144,21 @@
   Depending on the situation, there are four ways to do it. Yes,
   four. Do you have a problem with that?
 
-  # Declare a named function, especially if you need it elsewhere:
+  # [Declare a named function, especially if you need it elsewhere:]
 
     / f(x) = print x
       {1, 2, 3}.for-each(f)
 
-  # Inline, for small functions
+  # [Inline, for small functions]
 
     / {1, 2, 3}.for-each(x -> print x)
 
-  # `with operator, to avoid brackets and indent the body, when
-    the function is the last argument
+  # [`with operator, to avoid brackets and indent the body, when the function is the last argument]
 
     / {1, 2, 3}.for-each with x ->
          print x
 
-  # `where operator, if it is clearer\/more practical to name the
-    function, especially when the function isn't the last argument
+  # [`where operator, if it is clearer\/more practical to name the function, especially when the function isn't the last argument]
 
     / set-timeout(f, 1000) where f() =
          print "watch for it..."
@@ -327,9 +325,10 @@
           tr % 1..10 each col ->
              td % row * col
 
-  These objects can be converted to HTML using the `toHTML method:
+  These objects can be converted to HTML with the `[/html] package:
 
-  / (em % "hello").toHTML()
+  / require: /html
+    html(em % "hello")
 
   Type /next to get to the next topic.
 
@@ -337,7 +336,8 @@
 [100-libraries = Libraries] --->
 
   Use `require to import libraries. If you use it here, it will import
-  from the `npm repositories. Pretty neat!
+  from the `npm repositories. Pretty neat! (Give a few seconds for the
+  package to be fetched the first time, it can be a bit slow).
 
   / require: markdown
     div[raw] % markdown.parse("This *works*! Yay!")
