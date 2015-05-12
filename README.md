@@ -2,6 +2,8 @@
 Earl Grey
 =========
 
+[![Join the chat at https://gitter.im/breuleux/earl-grey](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/breuleux/earl-grey?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Earl Grey ([website](http://breuleux.github.io/earl-grey/)) is a new
 language that compiles to JavaScript (ES6). Here's a quick rundown of
 its amazing features:
