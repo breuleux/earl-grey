@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
+    <title>Contributing to Earl Grey</title>
+    <link rel="stylesheet" type="text/css" href="/earl-grey/style/style.css">
+    </head>
+
+  <body>
+
+
+
+
+
+<div id="nav-container" class="container"><div id="nav">
+    <div id="logo" class="navlink"><a href="/earl-grey/"><img src="/earl-grey/assets/earlgrey-text.svg" height="70px" alt="Earl Grey"></a></div>
+    <div id="use" class="navlink"><a href="/earl-grey/use.html">use</a></div>
+    <div id="doc" class="navlink"><a href="/earl-grey/doc.html">learn</a></div>
+    <div id="repl" class="navlink"><a href="/earl-grey/repl">try it!</a></div>
+    <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey">source</a></div></div></div>
+
+
+
+<div id="twocol-container" class="container"><div id="twocol">
+    
+
+<div id="toc"><ul class="toc"><li><a href="#contributetoearlgrey">Contribute to Earl Grey</a></li><li><a href="#syntaxhighlighting">Syntax highlighting</a></li><ul><li><a href="#keywordhighlightingtest">Keyword highlighting test</a></li><li><a href="#edgecasehighlightingtest">Edge-case highlighting test</a></li><li><a href="#highlightingwishlist">Highlighting wishlist</a></li><li><a href="#existingcode">Existing code</a></li></ul><li><a href="#editorsupport">Editor support</a></li></ul></div>
+<div id="main">
+
+<p>
+
+</p>
+
+
+<h1 id="contributetoearlgrey">Contribute to Earl Grey</h1>
+
+<p>Here is an (incomplete) list of ways you can contribute to the
+development and tooling of Earl Grey, and information about how to do
+it.</p>
+
+<p>Earl Grey's source code is <strong><a href="https://github.com/breuleux/earl-grey">available on Github</a></strong>.</p>
+
+<ul><li><a href="https://github.com/breuleux/earl-grey/issues">Report an issue</a></li></ul>
+
+<p>It is written in Earl Grey. Of course. Unfortunately, it is not yet
+very well documented, but I will get around to it (I will get around
+to it faster if you show interest).</p>
+
+<ul><li>Join the <code>#earlgrey</code> channel on FreeNode.</li><li><p>Join the gitter chat!</p>
+
+  <p><a href="https://gitter.im/breuleux/earl-grey?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Join the chat at https://gitter.im/breuleux/earl-grey" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a></p></li></ul>
+
+
+
+
+<h1 id="syntaxhighlighting">Syntax highlighting</h1>
+
+<p>Okay. Let's say you want to highlight Earl Grey.</p>
+
+<p>First of all, there are really only two criteria for good syntax
+highlighting (at least from my understanding):</p>
+
+<ol><li>Make it look <em>good</em>.</li><li>Make the important parts of the code <em>stand out</em>.</li></ol>
+
+<p>Now, Earl Grey is a bit unique because it has a macro system, and this
+macro system lets you define your own shiny new control structures,
+for example <code>describe</code> and <code>it</code> from <strong><a href="https://github.com/earl-mocha">earl-mocha</a></strong>:</p>
+
+<p><pre class="hl"><span class="hljs-keyword">describe </span><span class="hljs-string">"MyClass"</span><span class="hljs-punctuation">:</span>
+   <span class="hljs-keyword">it </span><span class="hljs-string">"my-method"</span><span class="hljs-punctuation">:</span>
+      <span class="hljs-operator">...</span></pre></p>
+
+<p>Or <code>task</code> from <strong><a href="https://github.com/earl-gulp">earl-gulp</a></strong>:</p>
+
+<p><pre class="hl"><span class="hljs-keyword">task </span>my-task <span class="hljs-operator">&lt;</span> task-it-depends-on<span class="hljs-punctuation">:</span>
+   <span class="hljs-operator">...</span></pre></p>
+
+<p>Wouldn't it be nice if a syntax highlighter could pick up on <code>describe</code>
+and <code>it</code> and <code>task</code> and make them stand out? Good news: this can be
+done. It requires some lookahead and lookbehind, so it may be a bit
+tricky to do it properly in some editors/libraries, but it's really
+great if you can get it working.</p>
+
+<p>Here's how it works.</p>
+
+<p>Given that:</p>
+
+<ul><li>A "symbol" is any sequence of characters that denotes a symbol in
+  EG: <code>xyz</code>, <code>var</code>, <code>my-symbol</code>, and so on, but <strong>not</strong> the following
+  symbols: <code>as and each each in is mod not of or when where with</code>. These
+  symbols are operators and should be highlighted separately.</li><li><code>and= or= mod= each= each* each*=</code> are also operators
+  (<em>technically</em>, so are <code>is*&amp;</code>, <code>not***</code>, and other sequences of an
+  operator word and operator characters, but you'll be forgiven if you
+  ignore this detail).</li><li><code>key</code> is the symbol that should be highlighted as a keyword.</li></ul>
+
+<p>What we want to highlight are these:</p>
+
+<ul><li><strong>Control forms:</strong>
+  <ul><li><strong><code>key expr1: expr2</code></strong>, for example <code>if x &lt; y: x + y</code></li><li><strong><code>key: expr</code></strong>, for example <code>require: package</code></li></ul></li><li><strong>Call form:</strong>
+  <ul><li><strong><code>key expr</code></strong>, for example <code>return x + y</code> or <code>print "hello"</code></li></ul></li></ul>
+
+<p>Now, the basic idea is this:</p>
+
+<ul><li>Highlight <strong><code>key token</code></strong> when:
+  <ul><li>There is whitespace between <code>key</code> and <code>token</code></li><li><code>token</code> is a symbol, a string, a number, or is an operator followed
+    by no whitespace. In other words, <code>a + b</code> does not highlight <code>a</code>,
+    but <code>a +b</code> does.</li><li>Notice that this rule will also highlight <code>key expr1: expr</code>,
+    so we get that for free! Hurray!</li></ul></li><li>Highlight <strong><code>key:</code></strong> when:
+  <ul><li><code>key</code> is <em>not preceded</em> by an operator.</li><li>Unless the operator is a "low-priority" operator from this list:
+    <code>= -&gt; =&gt; % each each* where with , ;</code>, as well as all the assignment
+    operators <code>+= -= or= mod= ...</code></li></ul></li><li>Highlight these common keywords:
+  <strong><code>await break chain continue else expr-value match return yield</code>.</strong>
+  These keywords are often found in isolation, for example <code>break</code> in
+  <code>while true: break</code>. For clarity they should still be highlighted
+  as keywords; just add them manually.</li></ul>
+
+
+<h2 id="keywordhighlightingtest">Keyword highlighting test</h2>
+
+<p>You should highlight <code>key</code> like in the following block of code, but
+avoid highlighting <code>nokey</code>.</p>
+
+<p><pre class="hl"><span class="hljs-keyword">key </span>x
+<span class="hljs-keyword">key </span><span class="hljs-operator">+</span>x<span class="hljs-punctuation">;</span> <span class="hljs-keyword">key </span><span class="hljs-member">@x</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">key </span><span class="hljs-string">.x</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">key </span><span class="hljs-string">"x"</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">key </span><span class="hljs-number">0</span>
+<span class="hljs-keyword">key </span><span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">)</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">key </span><span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">key </span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">}</span>
+nokey<span class="hljs-string">.x</span><span class="hljs-punctuation">;</span> nokey<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">}</span>
+
+<span class="hljs-keyword">key </span>x <span class="hljs-operator">+</span> y
+<span class="hljs-keyword">key </span><span class="hljs-keyword">key </span>x
+x <span class="hljs-operator">+</span> <span class="hljs-keyword">key </span>y
+nokey <span class="hljs-operator">+</span> x
+
+<span class="hljs-keyword">key</span><span class="hljs-punctuation">:</span> x
+<span class="hljs-keyword">key </span>nokey: y
+<span class="hljs-keyword">key </span>x <span class="hljs-operator">&gt;</span> nokey<span class="hljs-punctuation">:</span> z
+x <span class="hljs-operator">+</span> <span class="hljs-keyword">key </span>nokey: z
+
+x <span class="hljs-operator">+</span> nokey<span class="hljs-punctuation">:</span> y
+x <span class="hljs-operator">mod</span> nokey<span class="hljs-punctuation">:</span> y
+x <span class="hljs-operator">=</span> <span class="hljs-keyword">key</span><span class="hljs-punctuation">:</span> y
+x <span class="hljs-wordop">each</span> <span class="hljs-keyword">key</span><span class="hljs-punctuation">:</span> y
+
+<span class="hljs-keyword">nokey </span>mod: y      <span class="hljs-comment">;; do not highlight nokey, because mod is an operator</span>
+
+<span class="hljs-comment">;; Highlight all of these:</span>
+<span class="hljs-keyword">await</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">break</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">chain</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">continue</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">else</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">expr-value</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">return</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">yield</span></pre></p>
+
+
+<h2 id="edgecasehighlightingtest">Edge-case highlighting test</h2>
+
+<p>Dashes in variable names can complicate highlighting a bit, so here
+are tests for edge cases:</p>
+
+<p><pre class="hl"><span class="hljs-keyword">key-word</span><span class="hljs-punctuation">:</span> xyz
+nokey <span class="hljs-operator">-</span> x<span class="hljs-punctuation">:</span> yz
+
+<span class="hljs-comment">;; Some keywords may contain operators as a subpart. If your regexp</span>
+<span class="hljs-comment">;; uses \b to single out operators like each, is or in, you may</span>
+<span class="hljs-comment">;; fail to highlight these properly:</span>
+beaches           <span class="hljs-comment">;; Do not highlight each inside the word beaches</span>
+each-thing        <span class="hljs-comment">;; Do not highlight each</span>
+sleep-in          <span class="hljs-comment">;; Do not highlight in</span>
+<span class="hljs-keyword">before-each</span><span class="hljs-punctuation">:</span> xyz  <span class="hljs-comment">;; Highlight before-each as a keyword</span>
+<span class="hljs-keyword">is-great</span><span class="hljs-punctuation">:</span> xyz     <span class="hljs-comment">;; Highlight is-great as a keyword</span></pre></p>
+
+
+<h2 id="highlightingwishlist">Highlighting wishlist</h2>
+
+<p>I never implemented these, but I wish someone would:</p>
+
+<p><pre class="hl"><span class="hljs-comment">;; highlight a word followed by indent</span>
+key       <span class="hljs-comment">;; &lt;- highlight this; my highlighter doesn't :\(</span>
+   x
+   nokey
+   x</pre></p>
+
+
+
+<h2 id="existingcode">Existing code</h2>
+
+<p>For this website, I highlight EG using the
+<a href="https://highlightjs.org/">highlight.js</a>
+library. The code for the syntax mode is
+<a href="https://github.com/breuleux/eg-doc/blob/master/hl.eg">here</a></p>
+
+<p>It is fairly basic. It doesn't do string interpolation, nor does it
+have fancy features like highlighting function arguments. But I only
+have so much time!</p>
+
+<p>Feel free to do better :)</p>
+
+
+<h1 id="editorsupport">Editor support</h1>
+
+<p>Please follow <a href="#syntaxhighlighting">the guidelines above</a> for syntax
+highlighting.</p>
+
+<p>You can use <a href="/earl-grey/repl/">the REPL</a> as a baseline of what I
+believe minimum editor support should be like.</p>
+
+<ul><li>My convention for indent is 3 spaces. It is an uncommon convention,
+  but I think it looks best for EG (but feel free to disregard my
+  advice).</li><li><p>The editor should start a new indented block if the previous line
+  ends with an operator (chiefly <code>:</code>, <code>=</code>, <code>-&gt;</code>, <code>each</code>, <code>where</code>,
+  etc.), or an opening bracket.</p>
+
+  <p>You may want to amend this rule for suffix <code>++</code> or <code>[--];</code> a more
+  general way is to check whether the trailing operator is preceded by
+  whitespace. In other words, <code>a ++</code></p></li></ul>
+
+<p>Some features not found in the REPL (I'm lazy) but recommended:</p>
+
+<ul><li>Remember that a leading backslash indicates that the current line
+  continuates the previous. Format accordingly.</li><li>The auto-indent functionality for a selected block of text should
+  indent the first line of the block but <em>preserve</em> the relative layout
+  of all the other lines, so e.g. if the second line is indented 5
+  more than the first, this remains true.</li></ul>
+
+
+</div>
+
+    <div id="tail"></div></div></div>
+
+
+<div id="foot-container" class="container"><div id="foot"><span class="footlink"></span></div></div>
+</body></html>
+
