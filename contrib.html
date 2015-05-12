@@ -207,9 +207,10 @@ believe minimum editor support should be like.</p>
   ends with an operator (chiefly <code>:</code>, <code>=</code>, <code>-&gt;</code>, <code>each</code>, <code>where</code>,
   etc.), or an opening bracket.</p>
 
-  <p>You may want to amend this rule for suffix <code>++</code> or <code>[--];</code> a more
+  <p>You may want to amend this rule for suffix <code>++</code> or <code>--</code>; a more
   general way is to check whether the trailing operator is preceded by
-  whitespace. In other words, <code>a ++</code></p></li></ul>
+  whitespace. In other words, <code>a ++</code> would indent the next line,
+  but <code>a++</code> would not.</p></li></ul>
 
 <p>Some features not found in the REPL (I'm lazy) but recommended:</p>
 
