@@ -148,6 +148,11 @@ x <span class="hljs-wordop">each</span> <span class="hljs-keyword">key</span><sp
 <span class="hljs-comment">;; Highlight all of these:</span>
 <span class="hljs-keyword">await</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">break</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">chain</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">continue</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">else</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">expr-value</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">return</span><span class="hljs-punctuation">;</span> <span class="hljs-keyword">yield</span></pre></p>
 
+<p>Just for the record, there is a small bug in the highlighter I use on
+this page that makes it so that the <code>mod</code> operator above isn't bolded,
+even though it should be. This is caused by some unfortunate
+interference between some of my rules. Pretend they are bolded.</p>
+
 
 <h2 id="edgecasehighlightingtest">Edge-case highlighting test</h2>
 
@@ -172,7 +177,7 @@ sleep-in          <span class="hljs-comment">;; Do not highlight in</span>
 <p>I never implemented these, but I wish someone would:</p>
 
 <p><pre class="hl"><span class="hljs-comment">;; highlight a word followed by indent</span>
-key       <span class="hljs-comment">;; &lt;- highlight this; my highlighter doesn't :\(</span>
+key       <span class="hljs-comment">;; &lt;- highlight this; my highlighter doesn't</span>
    x
    nokey
    x</pre></p>
