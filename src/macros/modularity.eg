@@ -73,7 +73,7 @@ getreqs{info, req, expr} =
             v
 
       #send{#symbol{operator}, _} when expr.fromop ->
-         s = match info.raw{expr}.trim{}:
+         s = match info.raw{expr}.trim{}.replace{R"^,+|,+$", ""}:
             R"^\.*/"? x -> x
             R"^(\.+)(.*)"! {_, match pfx, rest} ->
                "." ->
