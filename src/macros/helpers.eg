@@ -124,17 +124,26 @@ protected_value{name, value}{match, _, form, arg} =
 var_operator{name} = {match, {=> env}, form, expr} ->
    #check or #project ->
       #nostep{form}
+   {fromop => false?} ->
+      sym = #symbol{name} & {env = env}
+      #send{sym, expr}
    else ->
-      ;; {=> env} = form
       sym = #symbol{name} & {env = env}
       match expr:
          #void{} ->
             sym
-         #data{#void, match} ->
+         #data{#void, match expr} ->
+            {brackets => "[]"} ->
+               #send{sym, expr}
+            {brackets => "()"} ->
+               #multi{*args} = #multi! expr
+               #send{sym, #data{*args}}
             #symbol{s} ->
                #send{sym, #value{camelCase{s}}}
-            other ->
-               #send{sym, other}
+            else ->
+               #send{sym, expr}
+         else ->
+            #send{sym, expr}
 
 accum_flags{mac, also_values = true} =
    make{flags}{context, info, form, match} =
