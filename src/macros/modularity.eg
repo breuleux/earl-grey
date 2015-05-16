@@ -72,6 +72,22 @@ getreqs{info, req, expr} =
                   else: `getProperty{^pkgv, ^pkg, ^=rqn}`
             v
 
+      #send{#symbol{operator}, _} when expr.fromop ->
+         s = match info.raw{expr}:
+            R"^\.*/"? x -> x
+            R"^(\.+)(.*)"! {_, match pfx, rest} ->
+               "." ->
+                  '{pfx}/{rest}'
+               else ->
+                  '{dotdots.join{""}}{rest}' where
+                     dotdots = 2..pfx.length each _ -> "../"
+            text ->
+               text
+         {*, name} = s.split{"/"}
+         sym = info.mark{#symbol{name}}
+         logName{sym}
+         fetch{#value{s}, sym}
+
       #send{name and #symbol{s}, args and #data{*_}} ->
          logName{name}
          fetch{#value{s}, name, args}
