@@ -450,5 +450,7 @@ inject-tools{info} =
       = PatternCompiler
       = pattern_handlers
       = camelCase
+      multimacro{cases} =
+         multimacro{cases}{info.context, info, info.form, info.arg}
       transfer = [<<:]
    }
