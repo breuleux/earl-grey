@@ -73,7 +73,7 @@ getreqs{info, req, expr} =
             v
 
       #send{#symbol{operator}, _} when expr.fromop ->
-         s = match info.raw{expr}:
+         s = match info.raw{expr}.trim{}:
             R"^\.*/"? x -> x
             R"^(\.+)(.*)"! {_, match pfx, rest} ->
                "." ->
@@ -83,7 +83,7 @@ getreqs{info, req, expr} =
                      dotdots = 2..pfx.length each _ -> "../"
             text ->
                text
-         {*, name} = s.split{"/"}
+         {*, R"^[a-zA-Z0-9_\-]+$"? name} = s.split{"/"}
          sym = info.mark{#symbol{name}}
          logName{sym}
          fetch{#value{s}, sym}
