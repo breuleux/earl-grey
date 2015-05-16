@@ -83,7 +83,13 @@ getreqs{info, req, expr} =
                      dotdots = 2..pfx.length each _ -> "../"
             text ->
                text
-         {*, R"^[a-zA-Z0-9_\-]+$"? name} = s.split{"/"}
+         name = match s.split{"/"}:
+            {*, R"^[a-zA-Z0-9_\-]+$"? name} -> name
+            {*, other} ->
+               throw E.syntax.module{
+                  '`{other}` is not a valid symbol; use `require: "{s}" as xyz` instead'
+                  {node = expr}
+               }
          sym = info.mark{#symbol{name}}
          logName{sym}
          fetch{#value{s}, sym}
