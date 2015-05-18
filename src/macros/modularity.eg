@@ -126,7 +126,7 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
             vs = vars each v -> `= ^v`
       body <<: arg
       the_macros = info.go{body, .parse, .eval}
-      #splice{*macs} where macs =
+      declarations = #splice{*macs} where macs =
          items{the_macros} each {k, v} when Function? v ->
             var r = #splice{}
             deps = if{v.__deps, clone{v.__deps}, {=}}
@@ -142,6 +142,8 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
                #declare_raw{#symbol{k} &: {env = info.env}, #macro{f}}
             r
 
+      #restmacro with {stmts} ->
+         {declarations, #multi{*stmts}}
 
 mac{"provide"}! provide_mac{match context, _, form, e} =
    #pattern ->
