@@ -178,4 +178,7 @@ mac{"inject"}! inject_mac{context, _, form, #data{Body! {*expr}}} =
 mac{"globals"}! globals_mac{context, _, form, #data{Body! {*vars}}} =
    #splice{*globs, `undefined`} where globs =
       vars each variable and #symbol{s} ->
-         #declare_raw{variable, #variable{camelCase{s}} &: {top = true}}
+         #splice{
+            #declare_raw{variable, #variable{camelCase{s}} &: {top = true, mutable = true}}
+            `if typeof{^variable} === "undefined": global[^=s] = undefined`
+         }
