@@ -15,8 +15,12 @@ mac{"__require"}! __require_mac{context, info, form, expr} =
    req = #variable{.require} &: {top = true}
    `[^req][^expr]`
 
+mac{"__require-m"}! __requirem_mac{context, info, form, expr} =
+   req = #variable{.require} &: {top = true}
+   `[^req][^expr]`
 
-getreqs{info, req, expr} =
+
+getreqs{info, req, expr, prefix = null} =
 
    stmts = {}
    names = {}
@@ -26,6 +30,12 @@ getreqs{info, req, expr} =
    logName{name and [#symbol{camelCase! n} or #variable{n}]} =
       names.push with name
       pkgs[n] = curpkg
+      if prefix === null:
+         name
+      else:
+         match name:
+            #symbol{s} -> #symbol{prefix + s} <<: name
+            #variable{s} -> #symbol{prefix + s} <<: name
 
    topfetch{pkg, v, args = null} =
       curpkg = pkg
@@ -38,8 +48,7 @@ getreqs{info, req, expr} =
    produce{match expr, fetch} =
 
       #symbol{s} ->
-         logName{expr}
-         fetch{#value{s}, expr}
+         fetch{#value{s}, logName{expr}}
 
       #value{String? s} ->
          fetch{expr, #symbol{info.gensym{}} &: {reqname = s}}
@@ -55,9 +64,8 @@ getreqs{info, req, expr} =
          fetch{name, #symbol{info.gensym{}} &: {reqname = name}}
 
       #send{#symbol{"as"}, #data{pkg, s}} ->
-         logName{s}
          produce{pkg} with {the_pkg, _, args = null} ->
-            fetch{the_pkg, s, args}
+            fetch{the_pkg, logName{s}, args}
 
       #send{#symbol{"->"}, #data{pkg, subp}} ->
          pkgv = produce{pkg, fetch}
@@ -91,12 +99,10 @@ getreqs{info, req, expr} =
                   {node = expr}
                }
          sym = info.mark{#symbol{name}}
-         logName{sym}
-         fetch{#value{s}, sym}
+         fetch{#value{s}, logName{sym}}
 
       #send{name and #symbol{s}, args and #data{*_}} ->
-         logName{name}
-         fetch{#value{s}, name, args}
+         fetch{#value{s}, logName{name}, args}
 
    produce{expr, topfetch}
    {stmts, names, pkgs}
@@ -119,13 +125,14 @@ mac{"require"}! require_mac{context, info, form, match arg} =
 
 mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
    #data{expr} or expr is arg ->
-      req = info.mark{`__require`}
-      {stmts, vars, pkgs} = getreqs{info, req, expr}
+      req = info.mark{`__require-m`}
+      {stmts, vars, pkgs} = getreqs{info, req, expr, "$MAC$"}
       body =
          #multi{*stmts, #data{*vs}} where
-            vs = vars each v -> `= ^v`
+            vs = vars each v and #symbol{s} -> `^v = ^[#symbol{"$MAC$" + s}]`
       body <<: arg
       the_macros = info.go{body, .parse, .eval}
+      user-req = info.mark{`require`}
       declarations = #splice{*macs} where macs =
          items{the_macros} each {k, v} when Function? v ->
             var r = #splice{}
@@ -134,7 +141,8 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
                items{v.__deps or {=}} each {name, ename} ->
                   mangled = #variable{info.gensym{"_mdep_" + name}}
                   deps[name] = mangled
-                  `require: ^[pkgs[k]] -> ^[#symbol{ename}] as ^mangled`
+                  `[^user-req]: ^[pkgs[k]] -> ^[#symbol{ename}] as ^mangled`
+                     \ &: {env = info.env}
             f{ctx, info, form, expr} =
                info.deps = deps
                v.call{inject-tools{info}, expr}
