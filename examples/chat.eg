@@ -1,0 +1,136 @@
+
+require:
+   spacebear -> [State, DependentState, RenderState]
+   /browser -> document
+
+require-macros:
+   spacebear -> [%, reactive, transact]
+
+provide: main
+
+User(name) = {name = name, status = .present}
+
+reactive nickname(person) =
+   span % {"<"; span % [class = person.status; person.name]; ">\xA0"}
+
+reactive reply(data) =
+   cls = match @search-string.to-lower-case():
+      "" -> ".normal"
+      in data.text.to-lower-case() -> ".bold"
+      else -> ".faded"
+   div.reply[^cls] % {nickname(data.poster); data.text}
+
+reactive box(lines) =
+   div.lines[#chatlines] % lines each line -> reply(line)
+
+reactive chatter-id(person) =
+   div.user-header %
+      if @current.name === person.name:
+         then:
+            div %
+               input %
+                  value = person.name
+                  onchange{e} =
+                     transact: person.name = e.target.value
+               if @people.length > 1:
+                  button %
+                     "Leave"
+                     onclick{e} =
+                        transact:
+                           person.status = .absent
+                           @people.remove{person}
+                        transact:
+                           @current = @people.get{0}
+         else:
+            b %
+               person.name
+               onclick{e} =
+                  transact: @current = person
+
+reactive user-list(users) =
+   div.user-list %
+      div % '{users.length} user{if{users.length == 1, " is", "s are"}} connected'
+      users each person -> chatter-id(person)
+      button %
+         "Add user"
+         onclick{e} =
+            transact: @people.push with User{'Guest{@guest-id += 1}'}
+
+reactive reply-box() =
+   form.reply-box %
+      nickname{@current}
+      input %
+         value = @next-line
+         onchange(e) =
+            transact: @next-line = e.target.value
+      onsubmit(e) =
+         transact:
+            if @lines.length > 100:
+               @lines.shift{}
+            @lines.push with {
+               poster = @current
+               text = @next-line
+            }
+            @next-line = ""
+         let box = document.get-element-by-id{"chatlines"}
+         box.scroll-top = box.scroll-height
+         false
+
+reactive search() =
+   input[#search] %
+      value = @search-string
+      onkeyup(e) =
+         transact: @search-string = e.target.value
+
+reactive chat(state) =
+   div.app %
+      div.chat-box %
+         user-list(state.people)
+         box(state.lines)
+      reply-box()
+      if @search-string === "":
+         then:
+            div.reply-box %
+               "Search:\xA0"
+               input[#search] %
+                  value = @search-string
+                  onkeyup(e) =
+                     transact: @search-string = e.target.value
+         else:
+            div.reply-box %
+               "Search:\xA0"
+               input[#search] %
+                  value = @search-string
+                  onkeyup(e) =
+                     transact: @search-string = e.target.value
+
+people and {alice, bob} = {User{"Alice"}, User{"Bob"}}
+
+init = {
+   guest-id = 0
+   people = people
+   current = alice
+   lines = {
+      {poster = alice, text = "Hello Bob!"}
+      {poster = bob, text = "Hello Alice!"}
+   }
+   next-line = ""
+   search-string = ""
+}
+
+main{} =
+   RenderState{State{init}, chat, .inject}
+
+   ;; mount-node = document.get-element-by-id{.inject}
+   ;; put{x} =
+   ;;    print "Overwriting contents!"
+   ;;    contents = x.install{}
+   ;;    if contents === mount-node.child-nodes[0]:
+   ;;       return
+   ;;    if mount-node.child-nodes.length > 0:
+   ;;       mount-node.remove-child{mount-node.child-nodes[0]}
+   ;;    mount-node.append-child{contents}
+
+   ;; ;; put{x} = mount-node.append-child{x.install{}}
+   ;; ;; System{init, chat, {action{x} = put{x}}}
+
