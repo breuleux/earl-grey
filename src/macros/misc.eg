@@ -108,7 +108,9 @@ overridable! mac{"%"}! buildnode_mac{context
                kv.push with spl
             other ->
                xs.push with wrap{other}
-         #array{*xs}
+         match xs:
+            {x} -> x
+            else -> #array{*xs}
       pair and `[^k = ^v]` ->
          kv.push with pair
          #array{}
