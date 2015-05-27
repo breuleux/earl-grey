@@ -1,0 +1,13 @@
+
+require:
+   "earlgrey/5" as eg
+   "earlgrey/lib5/expand" ->
+      topscope
+   repple
+   jquery
+
+provide:
+   eg, topscope
+   repple
+   jquery
+

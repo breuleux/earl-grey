@@ -32,7 +32,7 @@
 
 <div id="toc">
   <script>document.getElementById("use").className = "navlink curnav"</script>
-  <ul class="toc"><li><a href="#install">Install</a></li><li><a href="#runtime">Runtime</a></li><li><a href="#workflow">Workflow</a></li><ul><li><a href="#standalone">Standalone</a></li><li><a href="#compile">Compile</a></li><li><a href="#withgulp">With gulp</a></li><li><a href="#withbrowserify">With browserify</a></li></ul><li><a href="#whatdoesitlooklike">What does it look like?</a></li><li><a href="#toolingsupport">Tooling support</a></li><li><a href="#learnmore">Learn more</a></li></ul></div>
+  <ul class="toc"><li><a href="#install">Install</a></li><li><a href="#runtime">Runtime</a></li><li><a href="#workflow">Workflow</a></li><ul><li><a href="#standalone">Standalone</a></li><li><a href="#compile">Compile</a></li><li><a href="#withgulp">With gulp</a></li><li><a href="#inthebrowser">In the browser</a></li></ul><li><a href="#whatdoesitlooklike">What does it look like?</a></li><li><a href="#toolingsupport">Tooling support</a></li><li><a href="#learnmore">Learn more</a></li></ul></div>
 <div id="main">
 
 <h1 id="install">Install</h1>
@@ -69,7 +69,11 @@ directory of your project:</p>
 <h1 id="workflow">Workflow</h1>
 
 <p>At the moment you can use EG standalone, compile it, use it with
-<strong><a href="E.syntax.undeclared: Undeclared variable: gulp">gulp</a></strong>, and/or with <strong><a href="E.syntax.undeclared: Undeclared variable: browserify">browserify</a></strong></p>
+<strong><a href="https://github.com/gulpjs/gulp/blob/master/docs/getting-started.md">gulp</a></strong>, and/or run it in the browser with
+<strong><a href="http://browserify.org">browserify</a></strong>.</p>
+
+<p>
+</p>
 
 <h3 id="standalone">Standalone</h3>
 
@@ -145,18 +149,25 @@ gulp.task(<span class="hljs-string">'earl'</span>, <span class="hljs-function"><
 <p>Don't forget to also install the <a href="#runtime">runtime</a>.</p>
 
 
-<h3 id="withbrowserify">With browserify</h3>
+<h3 id="inthebrowser">In the browser</h3>
 
-<p>The <strong><a href="E.syntax.undeclared: Undeclared variable: earlify">earlify</a></strong> package defines a source transformer for use with
-<code>browserify</code>. Install it:</p>
-
-<p><pre class="hl">npm install earlify --save</pre></p>
-
-<p>Then run it like this:</p>
-
-<p><pre class="hl">browserify -t earlify script.eg &gt; bundle.js</pre></p>
-
-<p>Don't forget to also install the <a href="#runtime">runtime</a>.</p>
+<p>In order to use EG scripts in the browser, it is necessary to bundle
+them using <strong><a href="http://browserify.org">browserify</a></strong>.
+<br></br>
+The <strong><a href="E.syntax.undeclared: Undeclared variable: earlify">earlify</a></strong> package defines a source transformer for use with
+<code>browserify</code>. Install it:
+<pre class="hl">npm install earlify --save</pre>
+Then run it like this:
+<pre class="hl">browserify -t earlify script.eg &gt; bundle.js</pre>
+Don't forget to also install the <a href="#runtime">runtime</a>.
+<span class="note">
+  Global variables like <code>document</code> or <code>window</code> are not available by
+  default in Earl Grey. You must declare them like this:
+  <pre class="hl"><span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span>
+   document<span class="hljs-punctuation">,</span> window</pre>
+  The same goes if you include external scripts on your page and they
+  declare global variables that you want to use: declare their
+  existence in a <code>globals</code> block, then use them as you normally would.</span></p>
 
 
 <h1 id="whatdoesitlooklike">What does it look like?</h1>

@@ -1,0 +1,192 @@
+
+require:
+   "eg" ->
+      eg, topscope
+      repple ->
+         Editor, DOM, Outputter
+      jquery
+
+provide:
+   setup
+
+globals:
+   System
+   document, window, alert, setTimeout, Element
+   decodeURIComponent
+
+
+dom-node-clear{x} =
+   while x.children.length > 0:
+      x.removeChild{x.children[0]}
+
+
+normalize-module-name{match} =
+   RegExp{"^raw:"}? x -> x.slice{4}
+   RegExp{":"}? x -> x
+   x -> "npm:" + x
+
+
+eged{elements} =
+
+   globvar = "$eg$global"
+   gene = eg.Generator with {
+      interactive = true
+      globvar = globvar
+      es5 = true
+      noboil = true
+   }
+   _ev = eg.evaluator with {
+      globvar = globvar
+      global = global
+      filename = "<repl>"
+      showname = "<repl>"
+      cwd = "<repl>"
+   }
+
+   $out = Outputter{elements.results, true}
+
+   ;; ev{text} =
+   ;;    code = gene.generate{eg.Source{text, "<repl>"}}
+   ;;    _ev{code}
+
+   async evi{text} =
+      var code = null
+      try:
+         code = gene.generateInteractive{eg.Source{text, "<repl>"}}
+      catch E.please-load? {message => module-name}:
+         __reqcache[module-name] =
+            await System.import{normalize-module-name{module-name}}
+         return evi{text}
+      _ev{code}
+
+   ed = Editor with {
+      elements = elements
+      async eval{text} =
+         try:
+            res = await evi{text}
+            #success{res}
+         catch e:
+            #failure{e}
+      prepare{} =
+         dom-node-clear{elements.results}
+      success{v} =
+         print v
+      failure{err} =
+         $out.log{err}
+   }
+
+   glob = global
+
+   ed.setenv{values} =
+      items{values} each {name, value} ->
+         gene.env.bind{topscope, name, #variable{name}}
+         glob[name] = value
+      undefined
+
+   __reqcache = {=}
+
+   ed.setenv with {
+      $out = $out
+      $currenti = -1
+      dir = require: /dir
+      jQuery = jquery
+      = System
+      = DOM
+      = Outputter
+      = normalize-module-name
+      = __reqcache
+      = global
+   }
+
+   ed.eval with S[
+      globals:
+         window, document, alert, Element
+
+      wait = promisify with {d, f} -> setTimeout.call{null, f, d}
+
+      _load{match url} =
+         R".js$"? ->
+            new Promise with {resolve, reject} ->
+               document.getElementsByTagName{"head"}[0].appendChild with
+                  DOM with script %
+                     async = true
+                     type = "text/javascript"
+                     src = url
+                     onload{} = resolve{undefined}
+         R".css$"? ->
+            document.getElementsByTagName{"head"}[0].appendChild with
+               DOM with link %
+                  rel = "stylesheet"
+                  type = "text/css"
+                  href = url
+            undefined
+         else ->
+            throw E.unknown_resource_type{url}
+
+      inline-macro print{match expr}:
+         `^expr in ^[#symbol{target}]` ->
+            ```
+            t = ^expr
+            Outputter{document.get-element-by-id{^=target}, true}.log{t}
+            t
+            ```
+         else ->
+            `t = ^expr, $out.log{t}, t`
+
+      inline-macro __require{#data{expr}}:
+         ```
+         await System.import{normalize-module-name{^expr}}
+         ```
+
+      inline-macro __require-m{#data{expr}}:
+         ```
+         match __reqcache[^expr]:
+            undefined? ->
+               throw E.please-load{^expr}
+            Error? e ->
+               throw e
+            module ->
+               module
+         ```
+
+      inline-macro load{url}:
+         `await _load{^url}`
+
+   ]
+
+   ed
+
+
+fget{url} =
+   new Promise with {resolve, reject} ->
+      jquery.ajax with {
+         url = url
+         type = "GET"
+         contentType = "text/plain"
+         error{jqxhr, statusText, error} =
+            reject{E.ajax{error or statusText, {statusText = statusText, error = error}}}
+         success{result} =
+            resolve{result}
+      }
+
+
+async setup{} =
+   results = document.get-element-by-id{"result"}
+   textarea = document.get-element-by-id{"textarea-editor"}
+   ed = eged{= textarea, = results}
+   ed.setenv with {
+      $ed = ed
+   }
+   ed.cm.focus{}
+   ed.cm.set-size{.auto, "100%"}
+   match window.location.search[1..].split{"/"}[0]:
+      "" ->
+         pass
+      name ->
+         text =
+            try:
+               await fget{'../examples/{name}'}
+            catch e:
+               ';; Could not load example: {name}'
+         ed.cm.set-value{text}
+   ed
