@@ -139,10 +139,15 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
             deps = if{v.__deps, clone{v.__deps}, {=}}
             r ++=
                items{v.__deps or {=}} each {name, ename} ->
-                  mangled = #variable{info.gensym{"_mdep_" + name}}
+                  ;; TODO: setting the global seems to make the REPL work, but
+                  ;; it would be better not to do that...
+                  mangled-name = info.gensym{"_mdep_" + name}
+                  mangled = #variable{mangled-name}
                   deps[name] = mangled
-                  `[^user-req]: ^[pkgs[k]] -> ^[#symbol{ename}] as ^mangled`
-                     \ &: {env = info.env}
+                  #splice with
+                     `[^user-req]: ^[pkgs[k]] -> ^[#symbol{ename}] as ^mangled`
+                        \ &: {env = info.env}
+                     `global[^=mangled-name] = ^mangled`
             f{ctx, info, form, expr} =
                info.deps = deps
                v.call{inject-tools{info}, expr}
