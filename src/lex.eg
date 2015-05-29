@@ -223,8 +223,8 @@ regexps = {
   ;; Indent
   indent = R```
      start
-     *["\n", *" ", ";", * not in "\n"]
-     +["\n", {*" "}]
+     *[?"\r", "\n", *" ", ";", * not in "\r\n"]
+     +[?"\r", "\n", {*" "}]
   ```
 
   indent_f = {m} ->
@@ -261,7 +261,7 @@ regexps = {
   ;; Anything else is an error
   unkn = R```
      start
-     any
+     any or "\n" or "\r"
   ```
 
   unkn_f = {m} ->

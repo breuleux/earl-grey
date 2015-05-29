@@ -214,9 +214,14 @@ class Translator:
                   repl = {
                      "\"" => "\\\""
                      "\n" => "\\n"
+                     "\r" => "\\r"
+                     "\b" => "\\b"
                      "\\" => "\\\\"
                   }
-                  set-var v = v.replace{R.g`{"\"" or "\\" or "\n"}`, {m} -> repl[m]}
+                  set-var v = v.replace{
+                     R.g`{"\"" or "\\" or "\n" or "\r" or "\b"}`
+                     {m} -> repl[m]
+                  }
                   "\"" + v + "\""
                undefined? ->
                   "(void 0)"
