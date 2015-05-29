@@ -67,6 +67,7 @@ regexps = {
    {indent2, indent2_f}
    {cmnt,   cmnt_f}
    {op4,    op_f}
+   {ign,    ign_f}
    {unkn,   unkn_f}
 } where
 
@@ -223,8 +224,8 @@ regexps = {
   ;; Indent
   indent = R```
      start
-     *[?"\r", "\n", *" ", ";", * not in "\r\n"]
-     +[?"\r", "\n", {*" "}]
+     *["\n", *" ", ";;", * not in "\n"]
+     +["\n", {*" "}]
   ```
 
   indent_f = {m} ->
@@ -258,6 +259,15 @@ regexps = {
   ```
 
 
+  ;; ignore
+  ign = R```
+     "\r"
+  ```
+
+  ign_f = {m} ->
+     #IGNORE{}
+
+
   ;; Anything else is an error
   unkn = R```
      start
@@ -271,7 +281,7 @@ regexps = {
 
 ;; TODO: ignore blank lines before continuation
 ws_re = R`[start, *" ", *["\n", *" ", "\\ ", *" "]]`
-eol_re = R`[start, *" ", "\n" or end]`
+eol_re = R`[start, *" ", ?"\r", "\n" or end]`
 
 
 produce{src} =
