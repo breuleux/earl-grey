@@ -112,8 +112,8 @@ parse{text} =
 overridable! mac{"wrap-quote"}! wq_mac{context, info, form, `{^x}`} =
    `[^x].to-string{}`
 
-mac{"'"}! interpolate_mac{context, info, form, expr and #value{s}} =
-   #join{*contents} = parse{s}
+mac{"'"}! interpolate_mac{context, info, form, #value{s}} =
+   #join{*contents} or contents is {} = parse{s}
    parts = {}
    var current = ""
    push{} =
