@@ -236,17 +236,18 @@ class Expander:
       info = Info{context, scope, form, arg, @}
       rval = m{context, info, form, arg} !!
          E.match? {args => {{=> value}}} ->
+            #send{#symbol{name}, _} or name is "<unknown>" = form
             e = match value:
                === context ->
                   E.syntax.context{msg, {context = context, form = form}} where
-                     msg = "The macro cannot be found in this context."
+                     msg = 'The macro cannot be found in context \{{context}\}.'
                other ->
                   find{match arg} =
                      === value ->
                         E.syntax.argument{msg, {context = context
                                                 argument = arg
                                                 form = form}} where
-                           msg = "The macro expected something different."
+                           msg = 'The macro `{name}` expected something different. You should bug the macro/language implementer to improve their error messages.'
                      {type, *xs} ->
                         xs each find! x ->
                            if x: return x
@@ -257,7 +258,7 @@ class Expander:
                   if err:
                      then: err
                      else: E.syntax.failure{msg, {form = form, value = value}} where
-                        msg = "The macro expected something different (could not locate error in the source)."
+                        msg = 'An error occurred in the `{name}` macro. You should bug the macro/language implementer to fix this.'
             ;; e <<: form
             throw e
          e ->
