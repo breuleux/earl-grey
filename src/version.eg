@@ -1,3 +1,6 @@
 
+require:
+   ..package -> version
+
 provide:
-   "0.0.4" as version
+   version
