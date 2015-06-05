@@ -4,7 +4,7 @@ require:
       Source
       format_error
       highlight_locations
-   fs, path
+   fs, path, mkdirp
    "earlgrey-runtime/5"
 
 
@@ -219,7 +219,11 @@ compile_path{p, opts} =
                from = path.join{p, d}
                if opts.output:
                   to = path.join{out, d}
-                  fs.mkdirSync{to} !! e -> "ignore error"
+                  dirstat = fs.lstatSync{to} !! e -> null
+                  if not dirstat or not dirstat.isDirectory{}:
+                     mkdirp.sync{to} !! e ->
+                        print e
+                        print 'Could not create directory {to}'
             {.file, match} ->
                R`[start, {*any}, ".eg", end]`! results when results ->
                   {x, name} = results
@@ -248,7 +252,7 @@ compile_path{p, opts} =
                      if map:
                         fs.writeFileSync{to + ".map", map}
                   catch e:
-                     "Could not write: " + to
+                     print "Could not write: " + to
                when not opts.output ->
                   null
                f ->
@@ -412,4 +416,3 @@ _run{match, opts} =
    stuff ->
       usage_error with
          "Invalid use. Did you mean: earl run " + stuff.join{" "}
-
