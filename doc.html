@@ -15,12 +15,17 @@
 
 
 
+
+
 <div id="nav-container" class="container"><div id="nav">
     <div id="logo" class="navlink"><a href="/earl-grey/"><img src="/earl-grey/assets/earlgrey-text.svg" height="70px" alt="Earl Grey"></a></div>
-    <div id="use" class="navlink"><a href="/earl-grey/use.html">use</a></div>
-    <div id="doc" class="navlink"><a href="/earl-grey/doc.html">learn</a></div>
+    <div id="use" class="navlink dropdown">
+      <span><a href="/earl-grey/use.html">learn</a></span>
+      <ul><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></div>
     <div id="repl" class="navlink"><a href="/earl-grey/repl">try it!</a></div>
-    <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey">source</a></div></div></div>
+    <div id="social">
+       <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey"><img title="breuleux/earl-grey" src="/earl-grey/assets/github.png" height="32px" alt="breuleux/earl-grey on GitHub"></a></div>
+       <div id="twitter" class="navlink"><a href="https://twitter.com/earlgreylang"><img title="@earlgreylang" src="/earl-grey/assets/twitter.png" height="50px" alt="@earlgreylang"></a></div></div></div></div>
 
 
 
@@ -28,7 +33,7 @@
     
 
 <div id="toc">
-  <script>document.getElementById("doc").className = "navlink curnav"</script>
+  <script>//document.getElementById("doc").className = "navlink curnav"</script>
   <ul class="toc"><li><a href="#basicsyntax">Basic syntax</a></li><ul><li><a href="#comments">Comments</a></li><li><a href="#blocks">Blocks</a></li><li><a href="#variables">Variables</a></li><ul><li><a href="#globalvariables">Global variables</a></li></ul><li><a href="#literalsanddatastructures">Literals and data structures</a></li><ul><li><a href="#strings">Strings</a></li><li><a href="#interpolatedstrings">Interpolated strings</a></li><li><a href="#numbers">Numbers</a></li><li><a href="#arraysandobjects">Arrays and objects</a></li></ul><li><a href="#functions">Functions</a></li><ul><li><a href="#splicing">Splicing</a></li><li><a href="#declaringfunctions">Declaring functions</a></li><li><a href="#redeclaringoperators">(Re-)declaring operators</a></li></ul><li><a href="#ifandwhile">if and while</a></li><li><a href="#looping">Looping</a></li><ul><li><a href="#each">each</a></li></ul></ul><li><a href="#patternmatching">Pattern matching</a></li><ul><li><a href="#checkers">Checkers</a></li><li><a href="#projectors">Projectors</a></li><li><a href="#inlineprojectors">Inline projectors</a></li><li><a href="#destructuring">Destructuring</a></li><li><a href="#destructuringobjects">Destructuring objects</a></li><li><a href="#when">when</a></li><li><a href="#or">or</a></li><li><a href="#and">and</a></li><li><a href="#operators">Operators</a></li><li><a href="#embeddedcontrolstructures">Embedded control structures</a></li><li><a href="#is">is</a></li><li><a href="#assignmentwrappers">Assignment wrappers</a></li></ul><li><a href="#asynchronouscode">Asynchronous code</a></li><ul><li><a href="#generators">Generators</a></li><li><a href="#promisesandasyncawait">Promises and async/await</a></li></ul><li><a href="#classes">Classes</a></li><ul><li><a href="#defining">Defining</a></li><li><a href="#instantiating">Instantiating</a></li><li><a href="#subclassing">Subclassing</a></li><li><a href="#staticmethods">Static methods</a></li><li><a href="#specialmethods">Special methods</a></li><li><a href="#todo">TODO</a></li></ul><li><a href="#miscellaneous">Miscellaneous</a></li><ul><li><a href="#chain">chain</a></li><li><a href="#regularexpressions">Regular expressions</a></li><li><a href="#errorsandexceptions">Errors and exceptions</a></li></ul><li><a href="#modulesystem">Module system</a></li><ul><li><a href="#require"><code>require</code></a></li><li><a href="#provide"><code>provide</code></a></li><li><a href="#inject"><code>inject</code></a></li><li><a href="#requiremacros"><code>require-macros</code></a></li></ul><li><a href="#documentbuildingsyntax">Document-building syntax</a></li><li><a href="#macros">Macros</a></li><ul><li><a href="#invariants">Invariants</a></li><li><a href="#quote">quote</a></li><li><a href="#inlinemacro">inline-macro</a></li><li><a href="#macro">macro</a></li><ul><li><a href="#dependencies">Dependencies</a></li></ul><li><a href="#hygiene">Hygiene</a></li><ul><li><a href="#capturingnames">Capturing names</a></li></ul></ul></ul></div>
 <div id="main">
 
