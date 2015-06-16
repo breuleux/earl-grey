@@ -1,6 +1,5 @@
 
 require:
-   ;; "./earl-grey" as eg
    fs
    path
    "source-map-support" as sm
@@ -20,8 +19,8 @@ sm.install{}
 getCache{file, opts = {=}} =
 
    cachedir = path.join{path.dirname{file}, "egcache"}
-   cache = path.join{cachedir, path.basename{file}.replace{R".eg$", ".js"}}
-   cacheoptsFile = cache.replace{R".js$", ".json"}
+   cache = path.join{cachedir, path.basename{file}.replace{R".eg$|$", ".js"}}
+   cacheoptsFile = cache.replace{R".js$|$", ".json"}
 
    sstat = fs.statSync{file}
    cstat = fs.statSync{cache} !! e -> null
