@@ -61,6 +61,7 @@ regexps = {
    {quasi,  quasi_f}
    {quaint2, quaint_f}
    {quaint,  quaint_f}
+   {hashbang, cmnt_f}
    {op,     op_f}
    {op2,    op_f}
    {indent, indent_f}
@@ -247,6 +248,12 @@ regexps = {
   cmnt = R```
      start
      ";;"
+     * not in "\n"
+  ```
+
+  hashbang = R```
+     start
+     "#!"
      * not in "\n"
   ```
 
