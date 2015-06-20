@@ -1,4 +1,5 @@
 
+
 require:
    "../util" ->
       camelCase
@@ -139,7 +140,8 @@ mac{"_lambda"}! _lambda_mac{context, info, form, match} =
          #array_pattern{fw, {}, {}, undefined?} ->
             decls = {}
             newargs = zip{fw, args} each {match, arg} ->
-               #assign{expr and #symbol{v}} when expr.declare_mode != .set ->
+               #assign{expr and [#symbol{v} or #variable{v}]}
+                  \ when expr.declare_mode != .set ->
                   match expr.declare_mode:
                      .let -> expr &: {mutable = false}
                      .var -> expr &: {mutable = true}
