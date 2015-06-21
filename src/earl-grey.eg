@@ -149,6 +149,7 @@ toCodeAndSourceMap{node, url} =
 class Generator:
 
    constructor{@opts = {=}} =
+      require: "./register" -> install{@opts}
       @tr = Translator{null, @opts.globvar}
       @env = std.stdenv.fork{}
       @interactive = @opts.interactive
