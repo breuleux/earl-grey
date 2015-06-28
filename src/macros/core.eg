@@ -47,6 +47,9 @@ expr_mac! mac{"letrec"}! letrec_mac{_, form, #data{Body! {*bindings}, body}} =
 mac{"where"}! where_mac{context, _, form, #data{body, bindings}} =
    `letrec{^bindings, ^body}`
 
+mac{"raw-symbol"}! rawsym_mac{context, info, form, #data{sym and #symbol{name}}} =
+   sym.env.mark{#raw-symbol{name}}
+
 mac{"."}! dot_mac{context, _, form, #data{#void{}, expr}} =
    f{expr} where f{match} =
       #symbol{camelCase! x} ->

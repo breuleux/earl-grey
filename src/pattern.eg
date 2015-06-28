@@ -143,6 +143,10 @@ class PatternCompiler:
             p = @expand{handler.expand{@info}, tags, toplevel, false}
             p.pinfo.handlers.push with handler
             p
+         #raw-symbol{s} ->
+            variable = [#symbol{s} <<: expr] & tags
+            variable.env = expr.env
+            #assign{variable} &: {pinfo = PatternInfo{{}, {variable}}}
          #symbol or #variable ->
             variable = expr & tags
             #assign{variable} &: {pinfo = PatternInfo{{}, {variable}}}
