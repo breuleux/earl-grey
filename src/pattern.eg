@@ -166,8 +166,8 @@ class PatternCompiler:
             #replace{csubp, value} &: {pinfo = csubp.pinfo} where
                csubp = @expand{subp, tags, toplevel, false}
 
-         #test{condition, subp} ->
-            #test{condition, csubp} &: {pinfo = csubp.pinfo} where
+         #test{condition, subp, before = false} ->
+            #test{condition, csubp, before} &: {pinfo = csubp.pinfo} where
                csubp = @expand{subp, tags, toplevel, false}
          #project{projector, subp, unconditional = false} ->
             #project{projector, csubp
@@ -203,27 +203,34 @@ class PatternCompiler:
             cxs = xs each x -> @expand{x, tags}
             #all{*cxs} &: {pinfo = PatternInfo.mergeAll{cxs}}
 
+         do:
+            make-any{xs} =
+               canon{all} = all.sort{}.join{","}
+               normalize{vars} =
+                  canon{vars each #symbol{v} -> v}
+               pps = xs each x -> @expand{x, tags}
+               neighbours{pps} each {pp1, pp2} ->
+                  v1 = pp1.pinfo.vars
+                  v2 = pp2.pinfo.vars
+                  if [normalize{v1} !== normalize{v2}]:
+                     throw E.syntax.pattern{
+                        "Both branches of 'or' must contain the same variables"
+                        {vars1 = v1.sort{} <<: pp1
+                         vars2 = v2.sort{} <<: pp2}
+                     }
+                  ;; if keys{pp1.specials} != {} or keys{pp2.specials} != {}:
+                  ;;    throw E.syntax.pattern{
+                  ;;       "Neither branch of 'or' may contain special tokens."
+                  ;;       {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
+                  ;;        special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
+                  ;;    }
+               #any{*pps} &: {pinfo = pps[0] and pps[0].pinfo}
+
          #any{*xs} ->
-            canon{all} = all.sort{}.join{","}
-            normalize{vars} =
-               canon{vars each #symbol{v} -> v}
-            pps = xs each x -> @expand{x, tags}
-            neighbours{pps} each {pp1, pp2} ->
-               v1 = pp1.pinfo.vars
-               v2 = pp2.pinfo.vars
-               if [normalize{v1} !== normalize{v2}]:
-                  throw E.syntax.pattern{
-                     "Both branches of 'or' must contain the same variables"
-                     {vars1 = v1.sort{} <<: pp1
-                      vars2 = v2.sort{} <<: pp2}
-                  }
-               ;; if keys{pp1.specials} != {} or keys{pp2.specials} != {}:
-               ;;    throw E.syntax.pattern{
-               ;;       "Neither branch of 'or' may contain special tokens."
-               ;;       {special1 = keys{pp1.specials}.sort{} <<: pp1.pattern
-               ;;        special2 = keys{pp2.specials}.sort{} <<: pp2.pattern}
-               ;;    }
-            #any{*pps} &: {pinfo = pps[0] and pps[0].pinfo}
+            make-any{xs}
+
+         #if{cond, t, f} ->
+            make-any with {#test{cond, t, true}, f}
 
          #data{*args} ->
             specs = @parse_specs{args, tags}
@@ -389,9 +396,13 @@ class PatternProcessor:
          #replace{subp, value} ->
             @process{subp, value, fns}
 
-         #test{condition, subp} ->
-            @process{subp, rhs, fns}
-            @check{condition, {test = true}}
+         #test{condition, subp, before = false} ->
+            if before:
+               @check{condition, {test = true}}
+               @process{subp, rhs, fns}
+            else:
+               @process{subp, rhs, fns}
+               @check{condition, {test = true}}
 
          #check{checker, #ignore} ->
             @check with `[^checker]{^rhs}`
