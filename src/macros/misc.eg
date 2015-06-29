@@ -281,11 +281,18 @@ mac{"usescope"}! usescope_mac{context, info, form, `{^[#symbol{name}], ^expr}`} 
 ;;;;;;;;;;;;;;;;;
 
 mac{"??"}! maysend_mac{ctx, info, form, #data{x, #void{}}} =
-   #macro{f} where f{ctx, info, form, match msg} =
-      #void{} ->
-         x
-      else ->
-         x &: {called = true}
-         s = `tmp[^msg]` &: {called = form.called}
-         `tmp = ^x, if{tmp === undefined, undefined, ^s}`
+   var accum = `tmp`
+   #macro{f} where f{match ctx, info, form, msg} =
+      #pattern ->
+         throw E.syntax.not-implemented{
+            "?? cannot be used in an assignment or pattern yet"
+            expr = form
+         }
+      match is msg ->
+         #void{} ->
+            `tmp = ^x; if{tmp === undefined or tmp === null, tmp, ^accum}`
+         else ->
+            accum = `[^accum][^msg]`
+            x &: {called = true}
+            #macro{f}
 
