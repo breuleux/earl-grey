@@ -10,6 +10,7 @@ require:
       overridable
       pattern_handlers
       Body
+      multimacro
    "../pattern" ->
       ;; parse_pattern
       PatternCompiler
@@ -133,6 +134,18 @@ mac{"print"}! print_mac{context, info, form, match} =
       `console.log{}`
    arg ->
       `t = ^arg, console.log{t}, t`
+
+mac{"method"}! method_mac{ctx, info, form, expr} =
+   multimacro{cases}{ctx, info, form, expr} where cases = {
+      project{match expr} =
+         `_lambda{^args, ^pre, ^body, ^post, ^gen}` ->
+            {at, self} = info.mark{`@`, `self`}
+            `_lambda{^args, [^pre, let ^at and ^self = this], ^body, ^post, ^gen}`
+         `^args -> ^body` ->
+            info.mark{`^args @-> ^body`}
+         else ->
+            throw E.syntax.invalid-method{"Invalid use of method", node = expr}
+   }
 
 
 

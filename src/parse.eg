@@ -201,8 +201,8 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
                 "X_or=_Y", "X_and=_Y", "X_each=_Y"}
       assignp = {"=_Y", "=>_Y"}
 
-      lbda = {"X_->_Y"}
-      lbdap = {"->_Y"}
+      lbda = {"X_->_Y", "X_*->_Y", "X_@->_Y"}
+      lbdap = {"->_Y", "*->_Y", "@->_Y"}
 
       lowprio = {"X where Y"
                  "X_!!_Y"}

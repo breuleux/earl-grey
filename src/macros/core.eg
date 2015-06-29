@@ -188,6 +188,10 @@ mac{"*->"}! genarrow_mac{ctx, _, form, match} =
    other ->
       throw E.syntax.lambda{"Bad lambda syntax", {node = other}}
 
+mac{"@->"}! metharrow_mac{ctx, info, form, #data{args, body}} =
+   {at, self} = info.mark{`@`, `self`}
+   `_lambda{^args, [let ^at and ^self = this], ^body, ^=null}`
+
 mac{"->"}! arrow_mac{match, _, form, expr} =
    ;; do:
    ;;    match expr:
