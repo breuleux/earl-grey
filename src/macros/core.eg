@@ -60,6 +60,9 @@ mac{"."}! dot_mac{context, _, form, #data{#void{}, expr}} =
          throw E.syntax.dot{"Argument to '.' must be a symbol or an array"
                             {argument = other}}
 
+mac{"as"}! as_mac{ctx, info, form, #data{rhs, lhs}} =
+   `^lhs = ^rhs`
+
 mac{"="}! equal_mac{match, info, form, expr} =
 
    #pattern ->
