@@ -21,6 +21,12 @@ inject: mac
    "@" => var_operator{"$it"}
 }
 
+
+;;;;;;;;;;;
+;; CHAIN ;;
+;;;;;;;;;;;
+
+
 class ChainHandler:
    constructor{@env} =
       @wrapOrder = 2
@@ -46,9 +52,20 @@ mac{"chain"}! chain_mac{match, info, form, expr} =
    else ->
       #nostep{form}
 
+
+;;;;;;;;;;;
+;; USING ;;
+;;;;;;;;;;;
+
 expr_mac! mac{"using"}! using_mac{_, form, #data{defn and {=> env}, body}} =
    it = `@` & {env = env}
    `let [^it = ^defn]: ^body`
+
+
+
+;;;;;;;;
+;; DO ;;
+;;;;;;;;
 
 overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
    #clause ->
@@ -58,6 +75,12 @@ overridable! mac{"do"}! do_mac{match, _, form, #data{body}} =
       #do{#splice{*stmts}}
    #expr ->
       #multi{body}
+
+
+
+;;;;;;;;;;;;;;;;
+;; % OPERATOR ;;
+;;;;;;;;;;;;;;;;
 
 overridable! mac{"%"}! buildnode_mac{context
                                      info and {=> env}
@@ -120,6 +143,11 @@ overridable! mac{"%"}! buildnode_mac{context
    node = form.env.mark{`ENode`}
    `[^node]{^tags, ^kv, ^contents}`
 
+
+;;;;;;;
+;; S ;;
+;;;;;;;
+
 mac{"S"}! S_mac{context, info, form, match arg} =
    #send{#symbol{"'"}, _} ->
       `String{^arg}`
@@ -129,11 +157,23 @@ mac{"S"}! S_mac{context, info, form, match arg} =
             R"^\[(.|\n)*\]$"? text -> text.substring{1, text.length - 1}
             text -> text
 
+
+
+;;;;;;;;;;;
+;; PRINT ;;
+;;;;;;;;;;;
+
 mac{"print"}! print_mac{context, info, form, match} =
    #void{} ->
       `console.log{}`
    arg ->
       `t = ^arg, console.log{t}, t`
+
+
+
+;;;;;;;;;;;;
+;; METHOD ;;
+;;;;;;;;;;;;
 
 mac{"method"}! method_mac{ctx, info, form, expr} =
    multimacro{cases}{ctx, info, form, expr} where cases = {
