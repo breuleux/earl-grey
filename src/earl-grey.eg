@@ -149,6 +149,8 @@ toCodeAndSourceMap{node, url} =
 class Generator:
 
    constructor{@opts = {=}} =
+      if @opts.runtime === undefined:
+         @opts.runtime = "earlgrey-runtime"
       require: "./register" -> install{@opts}
       @tr = Translator{null, @opts.globvar}
       @env = std.stdenv.fork{}
@@ -196,9 +198,11 @@ class Generator:
          match opts.noboil:
             true? -> ""
             when opts.es5 ->
-               "require('earlgrey-runtime/5');"
+               "require('" + opts.runtime + "/5');"
+               ;; "require('earlgrey-runtime/5');"
             else ->
-               "require('earlgrey-runtime/6');"
+               "require('" + opts.runtime + "/6');"
+               ;; "require('earlgrey-runtime/6');"
          result
       result = collapse{result}
 
@@ -210,6 +214,7 @@ class Generator:
 
    generate{source, var opts = {=}} =
 
+      ;; opts = [{noboil = @interactive} & @opts] & opts
       opts = [{noboil = @interactive} & @opts] & opts
 
       t = tokenize{source}
@@ -239,9 +244,9 @@ class Generator:
          match opts.noboil:
             true? -> ""
             when opts.es5 ->
-               "require('earlgrey-runtime/5');"
+               "require('" + opts.runtime + "/5');"
             else ->
-               "require('earlgrey-runtime/6');"
+               "require('" + opts.runtime + "/6');"
          @tr.dump_store{} ;; useless at this point I think
          result
 
