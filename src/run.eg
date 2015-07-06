@@ -319,6 +319,7 @@ _run{match, opts} =
          "5" and es5       = #flag{.es5}
       }
       o.noboil = true
+      o.runtime = if{o.noboil, null, "earlgrey-runtime"}
 
       if not o.es6 and process.title == .node:
          o.es5 = true
@@ -386,6 +387,7 @@ _run{match, opts} =
          "5" and es5      = #flag{.es5}
          v and verbose    = #flag{.verbose}
       }
+      o.runtime = if{o.noboil, null, "earlgrey-runtime"}
 
       require: "./register" as register
       register.install{o}

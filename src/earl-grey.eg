@@ -155,6 +155,7 @@ class Generator:
       @tr = Translator{null, @opts.globvar}
       @env = std.stdenv.fork{}
       @interactive = @opts.interactive
+      if @interactive: @opts.runtime = null
       @_eval = null
       @pipeline = Pipeline{{es5 = process.title == .node} & @opts}
       @expander = std.make_expander{@pipeline}
@@ -195,14 +196,20 @@ class Generator:
       var result = @tr.translate{ex, .stmt}
       result = splice %
          "\n'use strict';"
-         match opts.noboil:
-            true? -> ""
-            when opts.es5 ->
-               "require('" + opts.runtime + "/5');"
-               ;; "require('earlgrey-runtime/5');"
-            else ->
-               "require('" + opts.runtime + "/6');"
-               ;; "require('earlgrey-runtime/6');"
+         ;; match opts.noboil:
+         ;;    true? -> ""
+         ;;    when opts.es5 ->
+         ;;       "require('" + opts.runtime + "/5');"
+         ;;       ;; "require('earlgrey-runtime/5');"
+         ;;    else ->
+         ;;       "require('" + opts.runtime + "/6');"
+         ;;       ;; "require('earlgrey-runtime/6');"
+         match opts.runtime:
+            null? -> ""
+            rt when opts.es5 ->
+               "require('" + rt + "/5');"
+            rt ->
+               "require('" + rt + "/6');"
          result
       result = collapse{result}
 
@@ -241,12 +248,18 @@ class Generator:
       ;; if not opts.noboil:
       result = splice %
          "\n'use strict';"
-         match opts.noboil:
-            true? -> ""
-            when opts.es5 ->
-               "require('" + opts.runtime + "/5');"
-            else ->
-               "require('" + opts.runtime + "/6');"
+         ;; match opts.noboil:
+         ;;    true? -> ""
+         ;;    when opts.es5 ->
+         ;;       "require('" + opts.runtime + "/5');"
+         ;;    else ->
+         ;;       "require('" + opts.runtime + "/6');"
+         match opts.runtime:
+            null? -> ""
+            rt when opts.es5 ->
+               "require('" + rt + "/5');"
+            rt ->
+               "require('" + rt + "/6');"
          @tr.dump_store{} ;; useless at this point I think
          result
 
@@ -296,8 +309,8 @@ class Generator:
       @_eval
 
    evaluate{source} =
-      @getEval{source.url}{@generate{source, {noboil = true}}.code}
+      @getEval{source.url}{@generate{source, {noboil = true, runtime = null}}.code}
 
    evaluateInteractive{source, opts = {=}} =
-      @getEval{source.url}{@generateInteractive{source, opts & {noboil = true}}}
+      @getEval{source.url}{@generateInteractive{source, opts & {noboil = true, runtime = null}}}
 
