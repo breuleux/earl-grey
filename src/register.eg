@@ -69,7 +69,7 @@ load{opts}{module, file} =
 
 extensions = {".eg"}
 
-install{opts = {recompile = false, noboil = true, runtime = null}} =
+install{opts = {recompile = false, runtime = null}} =
    req = require
    extensions each ext ->
       if not req.extensions[ext]:

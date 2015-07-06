@@ -162,7 +162,7 @@ class Generator:
 
    generateInteractive{source, var opts = {=}} =
 
-      opts = [{noboil = @interactive} & @opts] & opts
+      opts = @opts & opts
 
       t = tokenize{source}
       p = parse{t}
@@ -196,14 +196,6 @@ class Generator:
       var result = @tr.translate{ex, .stmt}
       result = splice %
          "\n'use strict';"
-         ;; match opts.noboil:
-         ;;    true? -> ""
-         ;;    when opts.es5 ->
-         ;;       "require('" + opts.runtime + "/5');"
-         ;;       ;; "require('earlgrey-runtime/5');"
-         ;;    else ->
-         ;;       "require('" + opts.runtime + "/6');"
-         ;;       ;; "require('earlgrey-runtime/6');"
          match opts.runtime:
             null? -> ""
             rt when opts.es5 ->
@@ -221,8 +213,7 @@ class Generator:
 
    generate{source, var opts = {=}} =
 
-      ;; opts = [{noboil = @interactive} & @opts] & opts
-      opts = [{noboil = @interactive} & @opts] & opts
+      opts = @opts & opts
 
       t = tokenize{source}
       p = parse{t}
@@ -245,15 +236,8 @@ class Generator:
       ;; set ex = opt.eliminate_spurious_variables{ex}
 
       var result = @tr.translate{ex, .stmt}
-      ;; if not opts.noboil:
       result = splice %
          "\n'use strict';"
-         ;; match opts.noboil:
-         ;;    true? -> ""
-         ;;    when opts.es5 ->
-         ;;       "require('" + opts.runtime + "/5');"
-         ;;    else ->
-         ;;       "require('" + opts.runtime + "/6');"
          match opts.runtime:
             null? -> ""
             rt when opts.es5 ->
@@ -309,8 +293,8 @@ class Generator:
       @_eval
 
    evaluate{source} =
-      @getEval{source.url}{@generate{source, {noboil = true, runtime = null}}.code}
+      @getEval{source.url}{@generate{source, {runtime = null}}.code}
 
    evaluateInteractive{source, opts = {=}} =
-      @getEval{source.url}{@generateInteractive{source, opts & {noboil = true, runtime = null}}}
+      @getEval{source.url}{@generateInteractive{source, opts & {runtime = null}}}
 
