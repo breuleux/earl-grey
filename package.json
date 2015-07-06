@@ -5,7 +5,7 @@
   "main": "./6.js",
   "dependencies": {
     "babel": "^4.5.5",
-    "earlgrey-runtime": ">=0.0.8",
+    "earlgrey-runtime": ">=0.0.9",
     "js-beautify": "1.5.x",
     "mkdirp": "^0.5.1",
     "multi-stage-sourcemap": "^0.2.1",
