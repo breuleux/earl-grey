@@ -22,6 +22,21 @@ inject: mac
 }
 
 
+;;;;;;;;;;;;;;;;;;
+;; PARAMETERIZE ;;
+;;;;;;;;;;;;;;;;;;
+
+mac{"parameterize"}! parameterize_mac{ctx, info, form, expr} =
+   #data{#multi! #multi{*instructions}} = expr
+   #splice{*xs} where xs =
+      instructions each
+         `^k = ^v` and #symbol{name} is k ->
+            info.setopt{name, info.go{v, .parse, .eval}}
+            #multi{}
+         stmt ->
+            throw E.syntax.parameterize{"Invalid parametrization", node = stmt}
+
+
 ;;;;;;;;;;;
 ;; CHAIN ;;
 ;;;;;;;;;;;

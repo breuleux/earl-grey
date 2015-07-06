@@ -55,30 +55,6 @@ class Scope:
                @top = false} =
       @options = {=}
 
-   getopt{opt} =
-      match:
-         when Object.prototype.hasOwnProperty.call{@options, opt} ->
-            @options[opt]
-         when @parent === null ->
-            undefined
-         otherwise ->
-            @parent.getopt{opt}
-
-   setopt{opt, value} =
-      @options[opt] = value
-
-   ;; gensym{} =
-   ;;    @expander.gensym{}
-
-   ;; step{context, expr} =
-   ;;    @expander.step{context, @, expr}
-
-   ;; step_all{context, exprs} =
-   ;;    @expander.step_all{context, @, exprs}
-
-   ;; expand{context, expr} =
-   ;;    @expander.expand{context, @, expr}
-
    fork{} =
       Scope{@}
 
@@ -90,6 +66,7 @@ class Env:
 
    constructor{} =
       @scopes = {=}
+      @options = {=}
 
    list_bindings{origin} =
       values = {=}
@@ -98,6 +75,26 @@ class Env:
          values &: @scopes[scope.name]
          scope = scope.parent
       values
+
+
+   getopt{scope, name, level = 0} =
+      if [scope === null]:
+         return undefined
+      scope_data = @options[scope.name]
+      if [scope_data and Object.prototype.hasOwnProperty.call{scope_data, name}]:
+         if level == 0:
+            scope_data[name]
+         else:
+            @getopt{scope.parent, name, level - 1}
+      else:
+         @getopt{scope.parent, name, level}
+
+   setopt{scope, name, value} =
+      if [not @options[scope.name]]:
+         @options[scope.name] = {=}
+      s = @options[scope.name]
+      s[name] and s[camelCase{name}] and s[invCamelCase{name}] = value
+
 
    resolve{scope, name, level = 0} =
       if [scope === null]:
@@ -147,6 +144,11 @@ class Env:
             if [not e.scopes[scope]]:
                e.scopes[scope] = {=}
             e.scopes[scope][k] = v
+      items{@options} each {scope, bindings} ->
+         items{bindings} each {k, v} ->
+            if [not e.options[scope]]:
+               e.options[scope] = {=}
+            e.options[scope][k] = v
       e
 
    toString{} =
@@ -205,6 +207,12 @@ class Info:
 
    go{x, start, end} =
       @expander.pipeline.go{x, start, end}
+
+   getopt{name} =
+      @env.getopt{@scope, name}
+
+   setopt{name, value} =
+      @env.setopt{@scope, name, value}
 
 
 
@@ -446,9 +454,10 @@ class Expander:
                var changes = false
                {=> newargs, => vars} = classify{.newargs, .vars} with
                   @step_all{#expr{.multi}, stepscope, args} each
-                     #option{opt, value} ->
-                        newscope.setopt{opt, value}
-                        #ignore
+                     ;; #option{opt, value} ->
+                     ;;    {=> env} = expr
+                     ;;    env.setopt{newscope, opt, value}
+                     ;;    #ignore
                      #declare_raw{variable and #symbol{s}, value} ->
                         {=> env} = variable
                         env.bind{newscope, s} with value
@@ -578,62 +587,6 @@ class Expander:
                      arr
 
                helper{context, scope, @mkenv{}.mark{r}}
-
-
-
-            ;; #data{*args} ->
-   
-            ;;    var is_obj = false
-            ;;    var obj = #object{}
-            ;;    var arr = #array{}
-            ;;    arr_parts = {}
-            ;;    obj_parts = {}
-   
-            ;;    new_arr_part{} =
-            ;;       match arr:
-            ;;          #array{} -> false
-            ;;          other ->
-            ;;             arr_parts.push{arr}
-            ;;             set arr = #array{}
-
-            ;;    new_obj_part{} =
-            ;;       match obj:
-            ;;          #object{} -> false
-            ;;          other ->
-            ;;             obj_parts.push{obj}
-            ;;             set obj = #object{}
-   
-            ;;    @step_all{#expr{.data}, scope, args} each
-            ;;       #assoc{} ->
-            ;;          set is_obj = true
-            ;;       #assoc{k, v} ->
-            ;;          set is_obj = true
-            ;;          obj.push with #array{k, v}
-            ;;       #dynsplice{expr} ->
-            ;;          new_arr_part{}
-            ;;          arr_parts.push{expr}
-            ;;       #objsplice{expr} ->
-            ;;          set is_obj = true
-            ;;          new_obj_part{}
-            ;;          obj_parts.push{expr}
-            ;;       other ->
-            ;;          arr.push{other}
-   
-            ;;    new_arr_part{}
-            ;;    new_obj_part{}
-   
-            ;;    r = match arr_parts:
-            ;;       {} when is_obj ->
-            ;;          util.construct{obj_parts, f, #object{}} where
-            ;;             f{x, rest} = `[^x &: ^rest]`
-
-            ;;       when is_obj ->
-            ;;          throw E.syntax.array.object{"Cannot mix array and object notations."}
-   
-            ;;       other ->
-            ;;          util.construct{arr_parts.reverse{}, f, #array{}} where
-            ;;             f{x, rest} = `[^rest].concat{^x}`
-            ;;    helper{context, scope, @mkenv{}.mark{r}}
    
             #assign{target, value} ->
                t = helper{#expr{.expr}, scope, target}

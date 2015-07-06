@@ -30,6 +30,8 @@ getCache{file, opts = {=}} =
          ecmascript = if{opts.es5, 5, 6}
          earlgrey = version
       }
+      runtime = opts.runtime
+      parameters = opts.parameters or {=}
    }
 
    {g, compiled, srcfile} =

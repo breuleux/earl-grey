@@ -154,6 +154,8 @@ class Generator:
       require: "./register" -> install{@opts}
       @tr = Translator{null, @opts.globvar}
       @env = std.stdenv.fork{}
+      items{@opts.parameters or {=}} each {k, v} ->
+         @env.setopt{exp.topscope, k, v}
       @interactive = @opts.interactive
       if @interactive: @opts.runtime = null
       @_eval = null

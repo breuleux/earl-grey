@@ -112,21 +112,27 @@ extract_options{clone! argv, opttable, optmessage} =
    process_option{original, opt, last} =
       match opttable[opt]:
          undefined? ->
-            ;; throw E.option{"Unrecognized option: " + original, original}
             usage_error{"Unrecognized " + optmessage + ": " + original}
          #flag{name} ->
             results[name] = true
          #value{name} when last ->
-            associate = name
+            results[name] = true
+            associate = value -> results[name] = value
          #value{name} ->
             results[name] = true
+
+   lenient-parse{x} =
+      try:
+         JSON.parse{x}
+      catch e:
+         x
 
    while argv.length:
       arg = argv.shift{}
       match arg:
          R"^--([a-zA-Z_0-9\-]+)=(.*)"! {_, opt, value} ->
             process_option{arg, opt, true}
-            results[associate] = value
+            associate{value}
             associate = null
 
          R"^--([a-zA-Z_\-0-9]+)"! {_, opt} ->
@@ -136,8 +142,21 @@ extract_options{clone! argv, opttable, optmessage} =
             enumerate{opts} each {i, ch} ->
                process_option{arg, ch, i == opts.length - 1}
 
+         R"^--:([a-zA-Z_0-9\-]+)=(.*)"! {_, opt, value} ->
+            results.parameters or= {=}
+            results.parameters[opt] = lenient-parse{value}
+
+         R"^--:no-([a-zA-Z_\-0-9]+)"! {_, opt} ->
+            results.parameters or= {=}
+            results.parameters[opt] = false
+
+         R"^--:([a-zA-Z_\-0-9]+)"! {_, opt} ->
+            results.parameters or= {=}
+            results.parameters[opt] = true
+            ;; associate = value -> results.parameters[opt] = lenient-parse{value}
+
          other when associate ->
-            results[associate] = other
+            associate{other}
             associate = null
 
          other ->
