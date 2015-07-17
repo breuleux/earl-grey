@@ -178,6 +178,9 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
    eg_groups = OperatorGroups with {
 
+      "eachp" = {{match} -> [[#PFX{_, R"^each"?} -> true], [_ -> false]]}
+      "each" = {{match} -> [[#IFX{_, R"^each"?} -> true], [_ -> false]]}
+
       sh_ifx = {{match} -> [[#IFX{.short, _} -> true], [_ -> false]]}
       sh_pfx = {{match} -> [[#PFX{.short, _} -> true], [_ -> false]]}
       sh_sfx = {{match} -> [[#SFX{.short, _} -> true], [_ -> false]]}
@@ -192,8 +195,9 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
 
       "withp" = {"with Y"}
       "with" = {"X with Y"}
-      "eachp" = {"each Y", "each* Y"}
-      "each" = {"X each Y", "X each* Y"}
+
+      ;; "eachp" = {"each Y", "each* Y"}
+      ;; "each" = {"X each Y", "X each* Y"}
 
       assign = {"X_=>_Y", "X_=_Y"
                 "X_:=_Y", "X_+=_Y", "X_-=_Y", "X_*=_Y", "X_/=_Y"
