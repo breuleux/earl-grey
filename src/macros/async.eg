@@ -79,3 +79,41 @@ mac{"async"}! async_mac{match, info, form, expr} =
       `{^x}` or x ->
          `spawn.call{this, {} *-> [try{await ^x}, catch{e, console.error{e.stack}}]}`
 
+
+mac{"eager-await"}! eager_await_mac{ctx, _, form, expr} =
+   ```
+   match ^expr:
+      Promise? p -> await p
+      x -> x
+   ```
+
+mac{"eager-async"}! eager_async_mac{match, info, form, expr} =
+   do:
+      aw = info.mark{`await`}
+      wrap{body} =
+         ```
+         inline-macro [^aw]{expr}: `eager-await ^expr`
+         ^body
+         ```
+   when expr == #void{} ->
+      #nostep{form}
+   #pattern ->
+      #project{#macro{mac}, expr, true} where mac{*blah, #data{match e}} =
+         #use{env, x} ->
+            #use{env, mac.call{this, #data{x}}}
+         `^arg -> ^body` ->
+            `^arg -> spawn.call{this, {} *-> ^wrap{body}, true}`
+         `_lambda{^arg, ^pre, ^body, ^post, ^_}` ->
+            ;; TODO: this is wrong; post should be inside the spawn
+            `_lambda{^arg, ^pre, spawn.call{this, {} *-> ^wrap{body}, true}, ^post, ^=false}`
+         else ->
+            throw E.syntax.async{"async must decorate a function", {node = e}}
+   match is expr ->
+      `{^arg -> ^body}` or `^arg -> ^body` ->
+         `^arg -> spawn.call{this, {} *-> ^wrap{body}, true}`
+      `{_lambda{^arg, ^pre, ^body, ^post, ^_}}` ->
+         ;; TODO: this is wrong; post should be inside the spawn
+         `_lambda{^arg, ^pre, spawn.call{this, {} *-> ^wrap{body}, true}, ^post, ^=false}`
+      `{^x}` or x ->
+         `spawn.call{this, {} *-> [try{await ^x}, catch{e, console.error{e.stack}}], true}`
+
