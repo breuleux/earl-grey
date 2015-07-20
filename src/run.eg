@@ -432,7 +432,12 @@ _run{match, opts} =
             paths each p ->
                compile_path{p, o}
 
-
+   {.clean, var root = ""} ->
+      require: del
+      if root === "": root = "."
+      paths = del.sync{'{root}/**/egcache/'}
+      paths each path ->
+         print 'Deleted {path}'
 
    stuff ->
       usage_error with
