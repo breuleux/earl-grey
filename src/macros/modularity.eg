@@ -27,6 +27,13 @@ getreqs{info, req, expr, prefix = null} =
    var curpkg = null
    pkgs = {=}
 
+   w{var x, args = null, wrap = null} =
+      if args:
+         x = `[^x][^args]`
+      if wrap:
+         x = wrap{x}
+      x
+
    logName{name and [#symbol{camelCase! n} or #variable{n}]} =
       names.push with name
       pkgs[n] = curpkg
@@ -37,12 +44,10 @@ getreqs{info, req, expr, prefix = null} =
             #symbol{s} -> #symbol{prefix + s} <<: name
             #variable{s} -> #symbol{prefix + s} <<: name
 
-   topfetch{pkg, v, args = null} =
+   topfetch{pkg, v, args = null, wrap = null} =
       curpkg = pkg
-      stmts.push with
-         if args:
-            then: `let ^v = [^req]{^pkg}[^args]`
-            else: `let ^v = [^req]{^pkg}`
+      imp = w{`[^req]{^pkg}`, args, wrap}
+      stmts.push with `let ^v = ^imp`
       v
 
    produce{match expr, fetch} =
@@ -64,42 +69,47 @@ getreqs{info, req, expr, prefix = null} =
          fetch{name, #symbol{info.gensym{}} &: {reqname = name}}
 
       #send{#symbol{"as"}, #data{pkg, s}} ->
-         produce{pkg} with {the_pkg, _, args = null} ->
-            fetch{the_pkg, logName{s}, args}
+         produce{pkg} with {the_pkg, _, args = null, wrap = null} ->
+            fetch{the_pkg, logName{s}, args, wrap}
 
       #send{#symbol{"->"}, #data{pkg, subp}} ->
          pkgv = produce{pkg, fetch}
          rqn = pkgv.reqname or pkgv[1]
-         produce{subp} with {_pkg, v, args = null} ->
+         produce{subp} with {_pkg, v, args = null, wrap = null} ->
             let pkg = match _pkg:
                #value{camelCase! s} -> #value{s}
                x -> x
-            stmts.push{`let ^v = ^x`} where x =
-               if args:
-                  then: `getProperty{^pkgv, ^pkg, ^=rqn}[^args]`
-                  else: `getProperty{^pkgv, ^pkg, ^=rqn}`
+            imp = w{`getProperty{^pkgv, ^pkg, ^=rqn}`, args, wrap}
+            stmts.push{`let ^v = ^imp`}
             v
 
-      #send{#symbol{operator}, _} when expr.fromop ->
-         s = match info.raw{expr}.trim{}.replace{R"^,+|,+$", ""}:
-            R"^\.*/"? x -> x
-            R"^(\.+)(.*)"! {_, match pfx, rest} ->
-               "." ->
-                  '{pfx}/{rest}'
-               else ->
-                  '{dotdots.join{""}}{rest}' where
-                     dotdots = 2..pfx.length each _ -> "../"
-            text ->
-               text
-         name = match s.split{"/"}:
-            {*, R"^[a-zA-Z0-9_\-]+$"? name} -> name
-            {*, other} ->
-               throw E.syntax.module{
-                  '`{other}` is not a valid symbol; use `require: "{s}" as xyz` instead'
-                  {node = expr}
-               }
-         sym = info.mark{#symbol{name}}
-         fetch{#value{s}, logName{sym}}
+      #send{#symbol{match operator}, args} when expr.fromop ->
+         "!" ->
+            #data{projector, subp} = args
+            produce{subp} with {the_pkg, name, args = null, var wrap = null} ->
+               wrap or= [x -> x]
+               fetch{the_pkg, name, args, wrap2} where wrap2{x} =
+                  `[^projector]{^wrap{x}}`
+         else ->
+            s = match info.raw{expr}.trim{}.replace{R"^,+|,+$", ""}:
+               R"^\.*/"? x -> x
+               R"^(\.+)(.*)"! {_, match pfx, rest} ->
+                  "." ->
+                     '{pfx}/{rest}'
+                  else ->
+                     '{dotdots.join{""}}{rest}' where
+                        dotdots = 2..pfx.length each _ -> "../"
+               text ->
+                  text
+            name = match s.split{"/"}:
+               {*, R"^[a-zA-Z0-9_\-]+$"? name} -> name
+               {*, other} ->
+                  throw E.syntax.module{
+                     '`{other}` is not a valid symbol; use `require: "{s}" as xyz` instead'
+                     {node = expr}
+                  }
+            sym = info.mark{#symbol{name}}
+            fetch{#value{s}, logName{sym}}
 
       #send{name and #symbol{s}, args and #data{*_}} ->
          fetch{#value{s}, logName{name}, args}
