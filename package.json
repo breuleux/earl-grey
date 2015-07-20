@@ -1,12 +1,12 @@
 {
   "name": "earlgrey",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
   "main": "./6.js",
   "dependencies": {
     "babel": "^4.5.5",
     "del": "^1.2.0",
-    "earlgrey-runtime": ">=0.0.9",
+    "earlgrey-runtime": ">=0.0.10",
     "js-beautify": "1.5.x",
     "mkdirp": "^0.5.1",
     "multi-stage-sourcemap": "^0.2.1",
