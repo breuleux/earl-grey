@@ -134,7 +134,7 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
       the_macros = info.go{body, .parse, .eval}
       user-req = info.mark{`require`}
       declarations = #splice{*macs} where macs =
-         items{the_macros} each {k, v} when Function? v ->
+         items{the_macros} each {k, {"macro" => v} or v} when Function? v ->
             var r = #splice{}
             deps = if{v.__deps, clone{v.__deps}, {=}}
             r ++=
