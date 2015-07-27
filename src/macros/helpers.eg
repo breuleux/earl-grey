@@ -126,9 +126,12 @@ var_operator{name} = {match, {=> env}, form, expr} ->
       #nostep{form}
    {fromop => false?} ->
       sym = #symbol{name} & {env = env}
-      #send{sym, expr}
+      #send{sym <<: expr, expr}
    else ->
-      sym = #symbol{name} & {env = env}
+      sym = [#symbol{name} & {env = env}] <<:
+         match form:
+            #send{x, _} -> x
+            else -> form
       match expr:
          #void{} ->
             sym

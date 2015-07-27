@@ -18,7 +18,7 @@ require:
 inject: mac
 
 [items{defns} each {k, v} -> mac{k}{v}] where defns = {
-   "@" => var_operator{"$it"}
+   "@" => var_operator{"@_"}
 }
 
 
