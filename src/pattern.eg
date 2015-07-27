@@ -232,6 +232,12 @@ class PatternCompiler:
          #if{cond, t, f} ->
             make-any with {#test{cond, t, true}, f}
 
+         #maybe{pattern, default = `null`} ->
+            p = @expand{pattern, tags}
+            r = #any{p, #all{*ps}} where
+               ps = p.pinfo.vars each v -> #replace{#assign{v}, default}
+            r &: {pinfo = p.pinfo}
+
          #data{*args} ->
             specs = @parse_specs{args, tags}
 
@@ -310,7 +316,6 @@ class PatternCompiler:
             pass
          match is cpattern ->
             #assign{#symbol{name} or #variable{name}} ->
-               ;; print {name, target}
                target.name = name
             else ->
                {target, expr} = {#variable{@info.gensym{"$targ"}} <<: target, target}
@@ -389,8 +394,6 @@ class PatternProcessor:
          #ignore ->
             @do{rhs}
          #assign{sym} ->
-            ;; print {sym, rhs}
-            ;; @parts.push with fns.assign{sym, rhs &: {name = sym}}
             @parts.push with fns.assign{sym, rhs}
 
          #replace{subp, value} ->

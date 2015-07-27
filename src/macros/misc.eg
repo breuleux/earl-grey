@@ -348,3 +348,11 @@ mac{"??"}! maysend_mac{ctx, info, form, #data{x, #void{}}} =
             x &: {called = true}
             #macro{f}
 
+
+;;;;;;;;;;;
+;; MAYBE ;;
+;;;;;;;;;;;
+
+mac{"maybe"}! maybe_mac{ctx, info, form, expr} =
+   #maybe{expr}
+
