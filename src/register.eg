@@ -73,7 +73,8 @@ extensions = {".eg"}
 
 install{opts = {recompile = false, runtime = null}} =
    req = require
-   extensions each ext ->
-      if not req.extensions[ext]:
-         req.extensions[ext] = load{opts}
+   if [xreg = req.extensions]:
+      extensions each ext ->
+         if not xreg[ext]:
+            xreg[ext] = load{opts}
 
