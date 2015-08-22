@@ -1,6 +1,6 @@
 {
   "name": "earlgrey",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Programming language compiling to JavaScript, featuring macros, dynamic typing annotations and pattern matching.",
   "main": "./6.js",
   "dependencies": {
