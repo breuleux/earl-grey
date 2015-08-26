@@ -34,7 +34,7 @@ evaluator{options} =
          global
 
    if module._nodeModulePaths:
-      paths = module._nodeModulePaths{options.cwd}
+      paths = if{options.cwd, module._nodeModulePaths{options.cwd}, {}}
 
       e_module = new module{options.showname}
       e_module &: {
