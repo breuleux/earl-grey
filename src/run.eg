@@ -312,6 +312,7 @@ run{argv} =
    _run{cmd, opts} !!
       e ->
          display_error{e, true}
+         process.exit{1}
 
 
 _run{match, opts} =
