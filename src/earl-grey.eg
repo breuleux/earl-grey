@@ -29,6 +29,7 @@ provide:
    tokenize, parse
    Generator
    version
+   compile
 
 
 es5Transform{x, opts = null} =
@@ -72,14 +73,14 @@ class Pipeline:
          r = "\"use strict\";" + prep + ";(" + rval + ")"
 
    evaluate{src} =
-      loc = src.location or {source = {url = "<eval>"}}
+      url = src.location??.source??.url
       ev{src.code} where
          ev = evaluator with {
             globvar = src.globvar
             global = src.global
-            filename = loc.source.url
-            showname = loc.source.url
-            cwd = loc.source.url
+            filename = url or "<eval>"
+            showname = url or "<eval>"
+            cwd = url
          }
 
    go{x, match start, end} =
@@ -95,10 +96,6 @@ class Pipeline:
          @go{@evaluate{x}, .eval, end}
       else ->
          throw E.pipeline{"Unknown pipeline stage: " + start}
-
-
-;; generate{source} =
-;;    Generator{}.generate{source}
 
 
 collapse{match node} =
@@ -299,4 +296,8 @@ class Generator:
 
    evaluateInteractive{source, opts = {=}} =
       @getEval{source.url}{@generateInteractive{source, opts & {runtime = null}}}
+
+
+compile{source, options = {=}} =
+   Generator{options}.generate{Source{source, options.path or "<file>"}}
 
