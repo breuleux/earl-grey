@@ -298,6 +298,9 @@ class Generator:
       @getEval{source.url}{@generateInteractive{source, opts & {runtime = null}}}
 
 
-compile{source, options = {=}} =
-   Generator{options}.generate{Source{source, options.path or "<file>"}}
+compile{match source, options = {=}} =
+   String? ->
+      Generator{options}.generate{Source{source, options.path or "<file>"}}
+   Source? ->
+      Generator{options}.generate{source}
 
