@@ -232,10 +232,10 @@ class PatternCompiler:
          #if{cond, t, f} ->
             make-any with {#test{cond, t, true}, f}
 
-         #maybe{pattern, default = `null`} ->
+         #maybe{pattern, default = null} ->
             p = @expand{pattern, tags}
             r = #any{p, #all{*ps}} where
-               ps = p.pinfo.vars each v -> #replace{#assign{v}, default}
+               ps = p.pinfo.vars each v -> #check{checker_db{default}, #assign{v}}
             r &: {pinfo = p.pinfo}
 
          #data{*args} ->
