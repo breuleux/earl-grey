@@ -31,6 +31,9 @@
     "type": "git",
     "url": "https://github.com/breuleux/earl-grey"
   },
+  "engines": {
+    "node": ">=4.0.0"
+  },
   "keywords": [
     "Programming language",
     "Macros",
