@@ -156,7 +156,9 @@ class Generator:
       @interactive = @opts.interactive
       if @interactive: @opts.runtime = null
       @_eval = null
-      @pipeline = Pipeline{{es5 = process.title == .node} & @opts}
+      use-es6 =
+         parseInt{process.version.split{"."}[0].slice{1}} >= 4 or process.title == "iojs"
+      @pipeline = Pipeline{{es5 = not use-es6} & @opts}
       @expander = std.make_expander{@pipeline}
 
    generateInteractive{source, var opts = {=}} =

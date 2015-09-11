@@ -341,7 +341,8 @@ _run{match, opts} =
       o.noboil = true
       o.runtime = if{o.noboil, null, "earlgrey-runtime"}
 
-      if not o.es6 and process.title == .node:
+      if not o.es6 and process.title == .node
+         \ and parseInt{process.version.split{"."}[0].slice{1}} < 4:
          o.es5 = true
 
       require: "./register" as register
