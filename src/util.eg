@@ -175,9 +175,12 @@ invCamelCase{x} =
 
 
 
-mac1{f} = 
-   #macro with {context, scope, form, #data{expr}} ->
-      f{expr}
+mac1{f, name = null} = 
+   #macro with {context, scope, form, match} ->
+      #data{expr} ->
+         f{expr}
+      #void{} when name ->
+         #variable{name}
 
 __chk_ncache = {=}
 __chk_scache = {=}
@@ -208,14 +211,14 @@ checker_db{match} =
             v
 
 checker_db &: {
-   String = mac1 with {x} -> `[typeof{^x} === "string"]`
-   Number = mac1 with {x} -> `[typeof{^x} === "number"]`
-   ;; Array = mac1 with {x} -> `[[instanceof]{^x, Array}]`
-   Array = mac1 with {x} -> `Array.isArray{^x}`
-   true = mac1 with {x} -> x
-   false = mac1 with {x} -> `[not ^x]`
-   null = mac1{{x} -> `[^x === ^=null]`}
-   undefined = mac1{{x} -> `[^x === ^=undefined]`}
+   String = mac1{f, .String} where f{x} = `[typeof{^x} === "string"]`
+   Number = mac1{f, .Number} where f{x} = `[typeof{^x} === "number"]`
+   ;; Array = mac1{f} where f{x} = `[[instanceof]{^x, Array}]`
+   Array = mac1{f, .Array} where f{x} = `Array.isArray{^x}`
+   true = mac1{f, .true} where f{x} = x
+   false = mac1{f, .false} where f{x} = `[not ^x]`
+   null = mac1{f, .null} where f{x} = `[^x === ^=null]`
+   undefined = mac1{f, .undefined} where f{x} = `[^x === ^=undefined]`
 }
 
 

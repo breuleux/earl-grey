@@ -234,8 +234,12 @@ class PatternCompiler:
 
          #maybe{pattern, default = null} ->
             p = @expand{pattern, tags}
-            r = #any{p, #all{*ps}} where
-               ps = p.pinfo.vars each v -> #check{checker_db{default}, #assign{v}}
+            r =
+               match p.pinfo.vars:
+                  {v} -> #any{p, #check{checker_db{default}, #assign{v}}}
+                  vs ->
+                     ps = vs each v -> #check{checker_db{default}, #assign{v}}
+                     #any{p, #all{*ps}}
             r &: {pinfo = p.pinfo}
 
          #data{*args} ->
