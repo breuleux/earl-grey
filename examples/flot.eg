@@ -1,8 +1,0 @@
-load "https://code.jquery.com/jquery-2.1.3.min.js"
-load "http://www.flotcharts.org/flot/jquery.flot.js"
-globals: $
-$.plot($out.elem) with {
-   1..100 each i -> {i, Math.sin(i / 10)}
-   1..100 each i -> {i, Math.sin(i / 10 - 1)}
-   1..100 each i -> {i, Math.sin(i / 10) + 0.25}
-}

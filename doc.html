@@ -7,124 +7,128 @@
     <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
     <title>Earl Grey documentation</title>
     <link rel="stylesheet" type="text/css" href="/earl-grey/style/style.css">
-    </head>
+    <script src="/earl-grey/lib/toc-scroll.js"></script></head>
 
   <body>
+    
 
 
 
 
 
-
+<div id="sidebar"><div id="sidebar-contents">
+  <ul class="toc"><li><a href="#basicsyntax">Basic syntax</a></li><ul><li><a href="#comments">Comments</a></li><li><a href="#blocks">Blocks</a></li><li><a href="#variables">Variables</a></li><ul><li><a href="#globalvariables">Global variables</a></li></ul><li><a href="#literalsanddatastructures">Literals and data structures</a></li><ul><li><a href="#strings">Strings</a></li><li><a href="#interpolatedstrings">Interpolated strings</a></li><li><a href="#numbers">Numbers</a></li><li><a href="#arraysandobjects">Arrays and objects</a></li></ul><li><a href="#functions">Functions</a></li><ul><li><a href="#splicing">Splicing</a></li><li><a href="#declaringfunctions">Declaring functions</a></li><li><a href="#redeclaringoperators">(Re-)declaring operators</a></li></ul><li><a href="#ifandwhile">if and while</a></li><li><a href="#looping">Looping</a></li><ul><li><a href="#each">each</a></li></ul></ul><li><a href="#patternmatching">Pattern matching</a></li><ul><li><a href="#checkers">Checkers</a></li><li><a href="#projectors">Projectors</a></li><li><a href="#inlineprojectors">Inline projectors</a></li><li><a href="#destructuring">Destructuring</a></li><li><a href="#destructuringobjects">Destructuring objects</a></li><li><a href="#when">when</a></li><li><a href="#or">or</a></li><li><a href="#and">and</a></li><li><a href="#operators">Operators</a></li><li><a href="#embeddedcontrolstructures">Embedded control structures</a></li><li><a href="#is">is</a></li><li><a href="#assignmentwrappers">Assignment wrappers</a></li></ul><li><a href="#asynchronouscode">Asynchronous code</a></li><ul><li><a href="#generators">Generators</a></li><li><a href="#promisesandasyncawait">Promises and async/await</a></li></ul><li><a href="#classes">Classes</a></li><ul><li><a href="#defining">Defining</a></li><li><a href="#instantiating">Instantiating</a></li><li><a href="#subclassing">Subclassing</a></li><li><a href="#staticmethods">Static methods</a></li><li><a href="#specialmethods">Special methods</a></li><li><a href="#todo">TODO</a></li></ul><li><a href="#miscellaneous">Miscellaneous</a></li><ul><li><a href="#chain">chain</a></li><li><a href="#regularexpressions">Regular expressions</a></li><li><a href="#errorsandexceptions">Errors and exceptions</a></li></ul><li><a href="#modulesystem">Module system</a></li><ul><li><a href="#require"><code class="hl">require</code></a></li><li><a href="#provide"><code class="hl">provide</code></a></li><li><a href="#inject"><code class="hl">inject</code></a></li><li><a href="#requiremacros"><code class="hl">require-macros</code></a></li></ul><li><a href="#documentbuildingsyntax">Document-building syntax</a></li><li><a href="#macros">Macros</a></li><ul><li><a href="#invariants">Invariants</a></li><li><a href="#quote">quote</a></li><li><a href="#inlinemacro">inline-macro</a></li><li><a href="#macro">macro</a></li><ul><li><a href="#dependencies">Dependencies</a></li></ul><li><a href="#hygiene">Hygiene</a></li><ul><li><a href="#capturingnames">Capturing names</a></li></ul></ul></ul></div></div>
 
 <div id="nav-container" class="container"><div id="nav">
-    <div id="logo" class="navlink"><a href="/earl-grey/"><img src="/earl-grey/assets/earlgrey-text.svg" height="70px" alt="Earl Grey"></a></div>
+    <div id="logo" class="navlink"><a href="/earl-grey/index.html"><img src="/earl-grey/assets/earlgrey-text.svg" height="60px" alt="Earl Grey"></a></div>
     <div id="use" class="navlink dropdown">
       <span><a href="/earl-grey/use.html">learn</a></span>
       <ul><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></div>
-    <div id="repl" class="navlink"><a href="/earl-grey/repl">try it!</a></div>
+    
+    <div id="repl" class="navlink"><a href="/earl-grey/repl.html">try it!</a></div>
     <div id="social">
        <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey"><img title="breuleux/earl-grey" src="/earl-grey/assets/github.png" height="32px" alt="breuleux/earl-grey on GitHub"></a></div>
        <div id="twitter" class="navlink"><a href="https://twitter.com/earlgreylang"><img title="@earlgreylang" src="/earl-grey/assets/twitter.png" height="50px" alt="@earlgreylang"></a></div></div></div></div>
 
 
 
-<div id="twocol-container" class="container"><div id="twocol">
-    
+<div id="main-container" class="container"><div id="main">
 
-<div id="toc">
-  <script>//document.getElementById("doc").className = "navlink curnav"</script>
-  <ul class="toc"><li><a href="#basicsyntax">Basic syntax</a></li><ul><li><a href="#comments">Comments</a></li><li><a href="#blocks">Blocks</a></li><li><a href="#variables">Variables</a></li><ul><li><a href="#globalvariables">Global variables</a></li></ul><li><a href="#literalsanddatastructures">Literals and data structures</a></li><ul><li><a href="#strings">Strings</a></li><li><a href="#interpolatedstrings">Interpolated strings</a></li><li><a href="#numbers">Numbers</a></li><li><a href="#arraysandobjects">Arrays and objects</a></li></ul><li><a href="#functions">Functions</a></li><ul><li><a href="#splicing">Splicing</a></li><li><a href="#declaringfunctions">Declaring functions</a></li><li><a href="#redeclaringoperators">(Re-)declaring operators</a></li></ul><li><a href="#ifandwhile">if and while</a></li><li><a href="#looping">Looping</a></li><ul><li><a href="#each">each</a></li></ul></ul><li><a href="#patternmatching">Pattern matching</a></li><ul><li><a href="#checkers">Checkers</a></li><li><a href="#projectors">Projectors</a></li><li><a href="#inlineprojectors">Inline projectors</a></li><li><a href="#destructuring">Destructuring</a></li><li><a href="#destructuringobjects">Destructuring objects</a></li><li><a href="#when">when</a></li><li><a href="#or">or</a></li><li><a href="#and">and</a></li><li><a href="#operators">Operators</a></li><li><a href="#embeddedcontrolstructures">Embedded control structures</a></li><li><a href="#is">is</a></li><li><a href="#assignmentwrappers">Assignment wrappers</a></li></ul><li><a href="#asynchronouscode">Asynchronous code</a></li><ul><li><a href="#generators">Generators</a></li><li><a href="#promisesandasyncawait">Promises and async/await</a></li></ul><li><a href="#classes">Classes</a></li><ul><li><a href="#defining">Defining</a></li><li><a href="#instantiating">Instantiating</a></li><li><a href="#subclassing">Subclassing</a></li><li><a href="#staticmethods">Static methods</a></li><li><a href="#specialmethods">Special methods</a></li><li><a href="#todo">TODO</a></li></ul><li><a href="#miscellaneous">Miscellaneous</a></li><ul><li><a href="#chain">chain</a></li><li><a href="#regularexpressions">Regular expressions</a></li><li><a href="#errorsandexceptions">Errors and exceptions</a></li></ul><li><a href="#modulesystem">Module system</a></li><ul><li><a href="#require"><code>require</code></a></li><li><a href="#provide"><code>provide</code></a></li><li><a href="#inject"><code>inject</code></a></li><li><a href="#requiremacros"><code>require-macros</code></a></li></ul><li><a href="#documentbuildingsyntax">Document-building syntax</a></li><li><a href="#macros">Macros</a></li><ul><li><a href="#invariants">Invariants</a></li><li><a href="#quote">quote</a></li><li><a href="#inlinemacro">inline-macro</a></li><li><a href="#macro">macro</a></li><ul><li><a href="#dependencies">Dependencies</a></li></ul><li><a href="#hygiene">Hygiene</a></li><ul><li><a href="#capturingnames">Capturing names</a></li></ul></ul></ul></div>
-<div id="main">
+
+
+
+
+
+
+<script>document.getElementById("use").className = "navlink curnav dropdown"</script>
 
 <h1 id="basicsyntax">Basic syntax</h1>
-
 
 <h2 id="comments">Comments</h2>
 
 <p>Comments must be prefixed with two semicolons and go until the end of
 the line.</p>
 
-<p><pre class="hl"><span class="hljs-comment">;; This is a comment.</span></pre></p>
+<pre class="hl"><span class="hljs-comment">;; This is a comment.</span></pre>
 
 
 <h2 id="blocks">Blocks</h2>
 
-<p>Indent groups statements in Earl Grey. Alternatively, you can use
-square <code>[]</code> brackets:</p>
+Indent groups statements in Earl Grey. Alternatively, you can use
+square <code class="hl"><span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span></code> brackets:
 
-<p><pre class="hl">hello
+<pre class="hl">hello
    superb
-   world</pre></p>
+   world</pre>
 
 <p>is equivalent to:</p>
 
-<p><pre class="hl">hello<span class="hljs-punctuation">[</span>superb<span class="hljs-punctuation">;</span> world<span class="hljs-punctuation">]</span></pre></p>
+<pre class="hl">hello<span class="hljs-punctuation">[</span>superb<span class="hljs-punctuation">;</span> world<span class="hljs-punctuation">]</span></pre>
 
-<p>It is recommended to use indent to denote blocks, so you will not use
+It is recommended to use indent to denote blocks, so you will not use
 square brackets much in practice. Just be aware that the expression
-<code>[a]</code> is equivalent to plain <code>a</code>, and <code>[a, b, c]</code> is going to return
-<code>c</code> (commas and semi-colons are equivalent in EG).</p>
+<code class="hl"><span class="hljs-punctuation">[</span>a<span class="hljs-punctuation">]</span></code> is equivalent to plain <code class="hl">a</code>, and <code class="hl"><span class="hljs-punctuation">[</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">,</span> c<span class="hljs-punctuation">]</span></code> is going to return
+<code class="hl">c</code> (commas and semi-colons are equivalent in EG).
 
-<p>Save for indented blocks, <em>all</em> line breaks are semi-colons in Earl
+Save for indented blocks, <em>all</em> line breaks are semi-colons in Earl
 Grey. There is <em>no</em> implicit line continuation. This being said, you
 can break a statement over multiple lines by <em>prefixing</em> continuating
-lines with <code>\ </code>:</p>
+lines with <code class="hl">\ </code>:
 
-<p><pre class="hl">a
+<pre class="hl">a
 \ <span class="hljs-operator">+</span> b
-\ <span class="hljs-operator">+</span> c</pre></p>
+\ <span class="hljs-operator">+</span> c</pre>
 
 <p>is equivalent to:</p>
 
-<p><pre class="hl">a <span class="hljs-operator">+</span> b <span class="hljs-operator">+</span> c</pre></p>
+<pre class="hl">a <span class="hljs-operator">+</span> b <span class="hljs-operator">+</span> c</pre>
 
-<p>Be aware that indent isn't going to work for this: replacing the
-backslashes with indent will yield <code>a[+ b; + c]</code>.</p>
+Be aware that indent isn't going to work for this: replacing the
+backslashes with indent will yield <code class="hl">a<span class="hljs-punctuation">[</span><span class="hljs-operator">+</span> b<span class="hljs-punctuation">;</span> <span class="hljs-operator">+</span> c<span class="hljs-punctuation">]</span></code>.
 
 
 <h2 id="variables">Variables</h2>
 
 <p>Variables can be declared as mutable or immutable</p>
 
-<p><pre class="hl"><span class="hljs-keyword">var </span>x <span class="hljs-operator">=</span> <span class="hljs-number">123</span>        <span class="hljs-comment">;; mutable variable</span>
-<span class="hljs-keyword">let </span>y <span class="hljs-operator">=</span> <span class="hljs-string">"hello"</span>    <span class="hljs-comment">;; const variable (immutable)</span></pre></p>
+<pre class="hl"><span class="hljs-keyword">var </span>x <span class="hljs-operator">=</span> <span class="hljs-number">123</span>        <span class="hljs-comment">;; mutable variable</span>
+<span class="hljs-keyword">let </span>y <span class="hljs-operator">=</span> <span class="hljs-string">"hello"</span>    <span class="hljs-comment">;; const variable (immutable)</span></pre>
 
 <p>Hyphens are allowed inside variable names. This is valid:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">var </span>my-variable <span class="hljs-operator">=</span> <span class="hljs-number">1234</span></pre></p>
+<pre class="hl"><span class="hljs-keyword">var </span>my-variable <span class="hljs-operator">=</span> <span class="hljs-number">1234</span></pre>
 
 <p>Scoping is lexical: variables declared in a block are only valid in
 that block.</p>
 
 <p>If you simply write:</p>
 
-<p><pre class="hl">x <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span></pre></p>
+<pre class="hl">x <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span></pre>
 
-<p>Then what happens depends on whether a variable called <code>x</code> already
-exists in scope.</p>
+Then what happens depends on whether a variable called <code class="hl">x</code> already
+exists in scope.
 
 <ul><li>It <strong>exists</strong> and is <strong>mutable</strong>: the variable is modified.</li><li>It <strong>exists</strong> and is <strong>immutable</strong>: compile time error.</li><li>It <strong>does not exist</strong>: it is declared in the current block as <em>immutable</em>.</li></ul>
 
-<p>This means that most of the time you can declare variables without the
-<code>let</code> keyword, assuming they don't already exist. You only need <code>let</code>
+This means that most of the time you can declare variables without the
+<code class="hl">let</code> keyword, assuming they don't already exist. You only need <code class="hl">let</code>
 if you are shadowing an existing variable. I recommend only using
-<code>var</code> if absolutely necessary -- if you follow that advice it is
-basically impossible to make scoping errors.</p>
+<code class="hl">var</code> if absolutely necessary -- if you follow that advice it is
+basically impossible to make scoping errors.
 
-<p>Note that the <code>var</code> and <code>let</code> keywords can be used inside
-patterns. For instance:</p>
+Note that the <code class="hl">var</code> and <code class="hl">let</code> keywords can be used inside
+patterns. For instance:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">let </span>z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>   <span class="hljs-comment">;; x and y are mutable; z isn't</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">let </span>z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>   <span class="hljs-comment">;; x and y are mutable; z isn't</span></pre>
 
-<p>The <strong><code>where</code></strong> statement is another alternative to declare variables
+<p>The <strong><code class="hl"><span class="hljs-wordop">where</span></code></strong> statement is another alternative to declare variables
 local to single expressions. Here's a funny example:</p>
 
-<p><pre class="hl">x <span class="hljs-operator">+</span> y <span class="hljs-wordop">where</span>
+<pre class="hl">x <span class="hljs-operator">+</span> y <span class="hljs-wordop">where</span>
    x <span class="hljs-operator">=</span> <span class="hljs-number">100</span>
    y <span class="hljs-operator">=</span> <span class="hljs-number">200</span>
    x <span class="hljs-operator">+</span> y <span class="hljs-operator">=</span> x <span class="hljs-operator">-</span> y
-<span class="hljs-comment">;; ==&gt; -100</span></pre></p>
+<span class="hljs-comment">;; ==&gt; -100</span></pre>
 
 <p>(Yes, you can do that)</p>
 
@@ -132,8 +136,8 @@ local to single expressions. Here's a funny example:</p>
 
 <p>Global variables need to be declared to be accessible:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span>
-   document<span class="hljs-punctuation">,</span> google<span class="hljs-punctuation">,</span> React</pre></p>
+<pre class="hl"><span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span>
+   document<span class="hljs-punctuation">,</span> google<span class="hljs-punctuation">,</span> React</pre>
 
 
 <h2 id="literalsanddatastructures">Literals and data structures</h2>
@@ -142,119 +146,121 @@ local to single expressions. Here's a funny example:</p>
 
 <p>Use double quotes:</p>
 
-<p><pre class="hl"><span class="hljs-string">"this is a string"</span>
+<pre class="hl"><span class="hljs-string">"this is a string"</span>
 <span class="hljs-string">"Escape \" with a backslash"</span>
 <span class="hljs-string">'single-quoted strings support interpolation'</span>
 <span class="hljs-string">"""this is a
    "long"
-   multiline string"""</span></pre></p>
+   multiline string"""</span></pre>
 
 <p>The prefix dot operator creates strings as well, but only if the
 string represents a valid variable name:</p>
 
-<p><pre class="hl"><span class="hljs-string">.hello</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-string">"hello"</span></pre></p>
+<pre class="hl"><span class="hljs-string">.hello</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-string">"hello"</span></pre>
 
 <p>If there are dashes in a dot-string, it is converted to camelCase:</p>
 
-<p><pre class="hl"><span class="hljs-string">.hello-world</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-string">"helloWorld"</span></pre></p>
+<pre class="hl"><span class="hljs-string">.hello-world</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-string">"helloWorld"</span></pre>
 
-<p>This means that if you write a method call with dashes, for instance
-<code>document.get-element-by-id("some-id")</code>, it will compile to
-<code>document.getElementById("some-id")</code>. You have the choice of either
-notation.</p>
+This means that if you write a method call with dashes, for instance
+<code class="hl">document<span class="hljs-string">.get-element-by-id</span><span class="hljs-punctuation">(</span><span class="hljs-string">"some-id"</span><span class="hljs-punctuation">)</span></code>, it will compile to
+<code class="hl">document<span class="hljs-string">.getElementById</span><span class="hljs-punctuation">(</span><span class="hljs-string">"some-id"</span><span class="hljs-punctuation">)</span></code>. You have the choice of either
+notation.
 
 
 <h3 id="interpolatedstrings">Interpolated strings</h3>
 
 <p>Single quotes are interpolated.</p>
 
-<p><pre class="hl">n <span class="hljs-operator">=</span> <span class="hljs-number">3</span>
+<pre class="hl">n <span class="hljs-operator">=</span> <span class="hljs-number">3</span>
 <span class="hljs-keyword">print </span><span class="hljs-string">'there are {n} little piggies'</span>
-<span class="hljs-comment">;; ==&gt; there are 3 little piggies</span></pre></p>
+<span class="hljs-comment">;; ==&gt; there are 3 little piggies</span></pre>
 
 <h3 id="numbers">Numbers</h3>
 
-<p><pre class="hl"><span class="hljs-number">123</span>                <span class="hljs-comment">;; decimal</span>
+<pre class="hl"><span class="hljs-number">123</span>                <span class="hljs-comment">;; decimal</span>
 <span class="hljs-number">16rDEADBEEF</span>        <span class="hljs-comment">;; hex</span>
-<span class="hljs-number">2r100101011.101</span>    <span class="hljs-comment">;; binary</span></pre></p>
+<span class="hljs-number">2r100101011.101</span>    <span class="hljs-comment">;; binary</span></pre>
 
 <h3 id="arraysandobjects">Arrays and objects</h3>
 
 <p>Both arrays and object literals are defined with curly braces:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>            <span class="hljs-comment">;; an array</span>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>            <span class="hljs-comment">;; an array</span>
 <span class="hljs-punctuation">{</span>a <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> b <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>       <span class="hljs-comment">;; an object</span>
-<span class="hljs-punctuation">{</span><span class="hljs-string">"a"</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"b"</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span> <span class="hljs-comment">;; the same object</span></pre></p>
+<span class="hljs-punctuation">{</span><span class="hljs-string">"a"</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"b"</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span> <span class="hljs-comment">;; the same object</span></pre>
 
 <p>You can also "mix" the notations:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> a <span class="hljs-operator">=</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> b <span class="hljs-operator">=</span> <span class="hljs-number">4</span><span class="hljs-punctuation">}</span> <span class="hljs-comment">;; an array with fields named a and b</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> a <span class="hljs-operator">=</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> b <span class="hljs-operator">=</span> <span class="hljs-number">4</span><span class="hljs-punctuation">}</span> <span class="hljs-comment">;; an array with fields named a and b</span></pre>
 
 <p><strong>Empty data structures</strong> are denoted as follows:</p>
 
-<p><pre class="hl">empty-array  <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span>
-empty-object <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-punctuation">}</span></pre></p>
+<pre class="hl">empty-array  <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span>
+empty-object <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-punctuation">}</span></pre>
 
 
 <h2 id="functions">Functions</h2>
 
 <p>There are several different, but equivalent notations to call functions:</p>
 
-<p><pre class="hl">func<span class="hljs-punctuation">(</span>arg1<span class="hljs-punctuation">,</span> arg2<span class="hljs-punctuation">)</span>           <span class="hljs-comment">;; the usual notation</span>
+<pre class="hl">func<span class="hljs-punctuation">(</span>arg1<span class="hljs-punctuation">,</span> arg2<span class="hljs-punctuation">)</span>           <span class="hljs-comment">;; the usual notation</span>
 func<span class="hljs-punctuation">{</span>arg1<span class="hljs-punctuation">,</span> arg2<span class="hljs-punctuation">}</span>           <span class="hljs-comment">;; curly bracket notation</span>
 func<span class="hljs-punctuation">(</span>arg1<span class="hljs-punctuation">)</span> <span class="hljs-wordop">with</span> arg2       <span class="hljs-comment">;; with-notation</span>
 func<span class="hljs-punctuation">(</span>___<span class="hljs-punctuation">,</span> arg2<span class="hljs-punctuation">)</span> <span class="hljs-wordop">with</span> arg1  <span class="hljs-comment">;; with-notation (using placeholder)</span>
-func <span class="hljs-wordop">with</span> arg              <span class="hljs-comment">;; with-notation (single argument)</span></pre></p>
+func <span class="hljs-wordop">with</span> arg              <span class="hljs-comment">;; with-notation (single argument)</span></pre>
 
 <p>The with-notation can be used to increase readability. For instance:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-string">.map</span><span class="hljs-punctuation">(</span>x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">*</span> x<span class="hljs-punctuation">)</span>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-string">.map</span><span class="hljs-punctuation">(</span>x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">*</span> x<span class="hljs-punctuation">)</span>
 <span class="hljs-operator">&lt;=&gt;</span>
 <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-string">.map</span> <span class="hljs-wordop">with</span> x <span class="hljs-operator">-&gt;</span>
-   x <span class="hljs-operator">*</span> x</pre></p>
+   x <span class="hljs-operator">*</span> x</pre>
 
 <p>The gains are most visible when the body of the function is large.</p>
 
 
 <h3 id="splicing">Splicing</h3>
 
-<p>You can apply a function to a list of arguments using the <code>*</code>
-splicing operator, <code>[]</code>, or simple juxtaposition:</p>
+You can apply a function to a list of arguments using the <code class="hl"><span class="hljs-operator">*</span></code>
+splicing operator, <code class="hl"><span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span></code>, or simple juxtaposition:
 
-<p><pre class="hl">args <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>
-func<span class="hljs-punctuation">(</span><span class="hljs-operator">*</span>args<span class="hljs-punctuation">)</span> <span class="hljs-operator">&lt;=&gt;</span> func<span class="hljs-punctuation">[</span>args<span class="hljs-punctuation">]</span> <span class="hljs-operator">&lt;=&gt;</span> <span class="hljs-keyword">func </span>args</pre></p>
+<pre class="hl">args <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>
+func<span class="hljs-punctuation">(</span><span class="hljs-operator">*</span>args<span class="hljs-punctuation">)</span> <span class="hljs-operator">&lt;=&gt;</span> func<span class="hljs-punctuation">[</span>args<span class="hljs-punctuation">]</span> <span class="hljs-operator">&lt;=&gt;</span> <span class="hljs-keyword">func </span>args</pre>
 
 <p>EG considers function application to be a special case of indexing
 where the index is a list of arguments, hence why the above works.</p>
 
 <h3 id="declaringfunctions">Declaring functions</h3>
 
-<p><pre class="hl">square<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">square<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    x <span class="hljs-operator">*</span> x
 
-square <span class="hljs-operator">=</span> x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">*</span> x</pre></p>
+square <span class="hljs-operator">=</span> x <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">*</span> x</pre>
 
 <p>The notation also works inside an object:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>a <span class="hljs-operator">=</span> <span class="hljs-number">10</span><span class="hljs-punctuation">,</span> mul<span class="hljs-punctuation">(</span>b<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> this<span class="hljs-string">.a</span> <span class="hljs-operator">*</span> b<span class="hljs-punctuation">}</span><span class="hljs-string">.mul</span><span class="hljs-punctuation">(</span><span class="hljs-number">20</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; =&gt; 200</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>a <span class="hljs-operator">=</span> <span class="hljs-number">10</span><span class="hljs-punctuation">,</span> mul<span class="hljs-punctuation">(</span>b<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> this<span class="hljs-string">.a</span> <span class="hljs-operator">*</span> b<span class="hljs-punctuation">}</span><span class="hljs-string">.mul</span><span class="hljs-punctuation">(</span><span class="hljs-number">20</span><span class="hljs-punctuation">)</span>
+<span class="hljs-comment">;; =&gt; 200</span></pre>
 
-<p>There is no need to <code>return</code> from a function (although you can). The
-last evaluated expression is used as the return value.</p>
+There is no need to <code class="hl"><span class="hljs-keyword">return</span></code> from a function (although you can). The
+last evaluated expression is used as the return value.
 
 <h3 id="redeclaringoperators">(Re-)declaring operators</h3>
 
-<p>Operator applications in EG, such as <code>a + b</code>, desugar to the function
-call <code>[+]{a, b}</code>. You can thus redefine almost any operator locally:
+Operator applications in EG, such as <code class="hl">a <span class="hljs-operator">+</span> b</code>, desugar to the function
+call <code class="hl"><span class="hljs-punctuation">[</span><span class="hljs-operator">+</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span></code>. You can thus redefine almost any operator locally:
+
 <pre class="hl">bizarro<span class="hljs-punctuation">(</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">let </span>x <span class="hljs-operator">+</span> y <span class="hljs-operator">=</span> outer<span class="hljs-punctuation">{</span><span class="hljs-operator">+</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span>
    <span class="hljs-keyword">let </span>x <span class="hljs-operator">-</span> y <span class="hljs-operator">=</span> outer<span class="hljs-punctuation">{</span><span class="hljs-operator">-</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span>
    a <span class="hljs-operator">+</span> b <span class="hljs-operator">-</span> c
 bizarro<span class="hljs-punctuation">(</span><span class="hljs-number">10</span><span class="hljs-punctuation">,</span> <span class="hljs-number">20</span><span class="hljs-punctuation">,</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span>  <span class="hljs-comment">;; ==&gt; 0</span></pre>
-<span class="note">
-  <ul><li><code>let</code> must be used in order to shadow the existing bindings.</li><li><code>outer</code> returns the previous binding of a variable, which is
-    necessary above to avoid unwanted mutual recursion.</li><li>The curly braces notation must be used because <code>outer</code>, <code>+</code> and <code>-</code>
-    are macros and <code>()</code> cannot be used to provide macro arguments.</li></ul></span></p>
+
+<div class="note">
+  <ul><li><code class="hl">let</code> must be used in order to shadow the existing bindings.</li><li><code class="hl">outer</code> returns the previous binding of a variable, which is
+    necessary above to avoid unwanted mutual recursion.</li><li>The curly braces notation must be used because <code class="hl">outer</code>, <code class="hl"><span class="hljs-operator">+</span></code> and <code class="hl"><span class="hljs-operator">-</span></code>
+    are macros and <code class="hl"><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></code> cannot be used to provide macro arguments.</li></ul></div>
 
 
 <h2 id="ifandwhile">if and while</h2>
@@ -262,44 +268,45 @@ bizarro<span class="hljs-punctuation">(</span><span class="hljs-number">10</span
 
 <p><strong>If statements</strong> are written as they are in Python:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">if </span>x <span class="hljs-operator">&lt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">if </span>x <span class="hljs-operator">&lt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
    do_something<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">elif </span>x <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
    do_something_else<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">else</span><span class="hljs-punctuation">:</span>
-   flail_incoherently<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre></p>
+   flail_incoherently<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre>
 
-<p><code>if</code> can also be written as an expression. It's not a ternary operator
-because I honestly don't think it's worth tweaking syntax for:</p>
+<code class="hl">if</code> can also be written as an expression. It's not a ternary operator
+because I honestly don't think it's worth tweaking syntax for:
 
-<p><pre class="hl">if<span class="hljs-punctuation">{</span>x <span class="hljs-operator">&lt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">}</span></pre></p>
+<pre class="hl">if<span class="hljs-punctuation">{</span>x <span class="hljs-operator">&lt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">}</span></pre>
 
 
 <p><strong>While statements</strong>, again, look like Python's:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">10</span>
+<pre class="hl"><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">10</span>
 <span class="hljs-keyword">while </span>i <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
    <span class="hljs-keyword">print </span>i
-   i<span class="hljs-operator">--</span></pre></p>
+   i<span class="hljs-operator">--</span></pre>
 
-<p>If you want to give a label to a <code>while</code> loop (or to <em>any</em> loop), you
-need to use <code>while.label</code>, just like this:</p>
+If you want to give a label to a <code class="hl">while</code> loop (or to <em>any</em> loop), you
+need to use <code class="hl">while<span class="hljs-string">.label</span></code>, just like this:
 
-<p><pre class="hl"><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">0</span>
+<pre class="hl"><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">0</span>
 while<span class="hljs-string">.outer</span> <span class="hljs-keyword">true</span><span class="hljs-punctuation">:</span>
    <span class="hljs-keyword">var </span>j <span class="hljs-operator">=</span> <span class="hljs-number">0</span>
    while<span class="hljs-string">.inner</span> <span class="hljs-keyword">true</span><span class="hljs-punctuation">:</span>
       <span class="hljs-keyword">if </span>i <span class="hljs-operator">*</span> j <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">40</span><span class="hljs-punctuation">:</span>
          <span class="hljs-keyword">break </span>outer  <span class="hljs-comment">;; this will break out of both while loops!</span>
       j<span class="hljs-operator">++</span>
-   i<span class="hljs-operator">++</span></pre></p>
+   i<span class="hljs-operator">++</span></pre>
 
 
 <h2 id="looping">Looping</h2>
 
-<p>EG defines <code>for</code> statements that are a cross between JavaScript's
+EG defines <code class="hl">for</code> statements that are a cross between JavaScript's
 semantics and Python's syntax, which means that it comes in three
 flavors:
+
 <pre class="hl"><span class="hljs-keyword">for </span><span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">;</span> i <span class="hljs-operator">&lt;</span> <span class="hljs-number">10</span><span class="hljs-punctuation">;</span> i<span class="hljs-operator">++</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
    <span class="hljs-keyword">print </span>i
 
@@ -310,75 +317,76 @@ flavors:
    <span class="hljs-keyword">print </span>element</pre>
 They work like you'd expect (with one little gotcha*). I'm telling you
 about them because you are free to use what you see fit, but in my
-opinion, <strong><code>for</code> should not be used</strong>:
-<span class="warning"><p>
+opinion, <strong><code class="hl">for</code> should not be used</strong>:
+
+<div class="warning"><p>
   *Earl Grey parses commas and semicolons as essentially the same, so
   this will not work:</p>
 
-  <p><pre class="hl"><span class="hljs-keyword">for </span><span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">var </span>j <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">;</span> i <span class="hljs-operator">&lt;</span> <span class="hljs-number">10</span><span class="hljs-punctuation">;</span> i<span class="hljs-operator">++</span><span class="hljs-punctuation">,</span> j<span class="hljs-operator">++</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
-   <span class="hljs-keyword">print </span>i <span class="hljs-operator">+</span> j</pre></p>
+  <pre class="hl"><span class="hljs-keyword">for </span><span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">var </span>j <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">;</span> i <span class="hljs-operator">&lt;</span> <span class="hljs-number">10</span><span class="hljs-punctuation">;</span> i<span class="hljs-operator">++</span><span class="hljs-punctuation">,</span> j<span class="hljs-operator">++</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+   <span class="hljs-keyword">print </span>i <span class="hljs-operator">+</span> j</pre>
 
   <p>EG will think the first comma is a semicolon. Here's a valid
   alternative:</p>
 
-  <p><pre class="hl"><span class="hljs-keyword">for </span><span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>i<span class="hljs-punctuation">,</span> j<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">;</span> i <span class="hljs-operator">&lt;</span> <span class="hljs-number">10</span><span class="hljs-punctuation">;</span> <span class="hljs-punctuation">(</span>i<span class="hljs-operator">++</span><span class="hljs-punctuation">;</span> j<span class="hljs-operator">++</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
-   <span class="hljs-keyword">print </span>i <span class="hljs-operator">+</span> j</pre></p></span></p>
+  <pre class="hl"><span class="hljs-keyword">for </span><span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>i<span class="hljs-punctuation">,</span> j<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">;</span> i <span class="hljs-operator">&lt;</span> <span class="hljs-number">10</span><span class="hljs-punctuation">;</span> <span class="hljs-punctuation">(</span>i<span class="hljs-operator">++</span><span class="hljs-punctuation">;</span> j<span class="hljs-operator">++</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+   <span class="hljs-keyword">print </span>i <span class="hljs-operator">+</span> j</pre></div>
 
 
 <h3 id="each">each</h3>
 
-<p>EG's <strong><code>each</code></strong> operator should be used instead of <code>for</code>, either as a
-statement:</p>
+EG's <strong><code class="hl"><span class="hljs-wordop">each</span></code></strong> operator should be used instead of <code class="hl">for</code>, either as a
+statement:
 
-<p><pre class="hl"><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> <span class="hljs-keyword">print </span>i <span class="hljs-operator">*</span> i</pre></p>
+<pre class="hl"><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> <span class="hljs-keyword">print </span>i <span class="hljs-operator">*</span> i</pre>
 
 <p>or as an expression:</p>
 
-<p><pre class="hl">squares <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> i <span class="hljs-operator">*</span> i</pre></p>
+<pre class="hl">squares <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> i <span class="hljs-operator">*</span> i</pre>
 
-<p><code>each</code> in a statement position compiles to a straight <code>for..of</code> loop, so
+<code class="hl"><span class="hljs-wordop">each</span></code> in a statement position compiles to a straight <code class="hl">for<span class="hljs-operator">..</span><span class="hljs-operator">of</span></code> loop, so
 it's no less efficient. In expression position, it acts as an array
-comprehension.</p>
+comprehension.
 
-<p>Besides doubling up as array comprehensions, what makes <code>each</code> a useful
-looping method is that it makes use of EG's built-in pattern matcher:</p>
+Besides doubling up as array comprehensions, what makes <code class="hl"><span class="hljs-wordop">each</span></code> a useful
+looping method is that it makes use of EG's built-in pattern matcher:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">13</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"car"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"tramway"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">517</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">13</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"car"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"tramway"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">517</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
    Number<span class="hljs-operator">?</span> n <span class="hljs-operator">-&gt;</span> n <span class="hljs-operator">+</span> <span class="hljs-number">1</span>
    String<span class="hljs-operator">?</span> s <span class="hljs-operator">-&gt;</span> s <span class="hljs-operator">+</span> <span class="hljs-string">"s"</span>
    <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-keyword">throw </span>E<span class="hljs-string">.unknown</span><span class="hljs-punctuation">(</span><span class="hljs-string">"I don't know."</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; ==&gt; {14, "cars", "tramways", 518}</span></pre></p>
+<span class="hljs-comment">;; ==&gt; {14, "cars", "tramways", 518}</span></pre>
 
-<p>You can also use <code>when</code> to filter data:</p>
+You can also use <code class="hl"><span class="hljs-wordop">when</span></code> to filter data:
 
-<p><pre class="hl"><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-wordop">when</span> i <span class="hljs-wordop">mod</span> <span class="hljs-number">2</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> i
-<span class="hljs-comment">;; ==&gt; {2, 4, 6, 8, 10}</span></pre></p>
+<pre class="hl"><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-wordop">when</span> i <span class="hljs-wordop">mod</span> <span class="hljs-number">2</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> i
+<span class="hljs-comment">;; ==&gt; {2, 4, 6, 8, 10}</span></pre>
 
-<p><code>break</code> and <code>continue</code> work with <code>each</code>:</p>
+<code class="hl"><span class="hljs-keyword">break</span></code> and <code class="hl"><span class="hljs-keyword">continue</span></code> work with <code class="hl"><span class="hljs-wordop">each</span></code>:
 
-<ul><li><code>break</code> stops the comprehension. It is the only way to halt
-  iteration before the end of the sequence.</li><li><code>continue</code> starts the next iteration but without accumulating a
+<ul><li><code class="hl"><span class="hljs-keyword">break</span></code> stops the comprehension. It is the only way to halt
+  iteration before the end of the sequence.</li><li><code class="hl"><span class="hljs-keyword">continue</span></code> starts the next iteration but without accumulating a
   value. You can use it as an alternative way to filter.</li></ul>
 
-<p><pre class="hl"><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">100</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span>
+<pre class="hl"><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">100</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span>
    <span class="hljs-keyword">if </span>i <span class="hljs-operator">&gt;</span> <span class="hljs-number">10</span><span class="hljs-punctuation">:</span>
       <span class="hljs-keyword">break</span>
    <span class="hljs-keyword">elif </span>i <span class="hljs-wordop">mod</span> <span class="hljs-number">2</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
       i
    <span class="hljs-keyword">else</span><span class="hljs-punctuation">:</span>
       <span class="hljs-keyword">continue</span>
-<span class="hljs-comment">;; ==&gt; {2, 4, 6, 8, 10}</span></pre></p>
+<span class="hljs-comment">;; ==&gt; {2, 4, 6, 8, 10}</span></pre>
 
-<p>When using pattern matching with <code>each</code>, EG will throw an exception if
+When using pattern matching with <code class="hl"><span class="hljs-wordop">each</span></code>, EG will throw an exception if
 a value does not match any of the patterns <em>unless</em> the last pattern
-contains a <code>when</code> clause. In other words:</p>
+contains a <code class="hl"><span class="hljs-wordop">when</span></code> clause. In other words:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"x"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
-   Number<span class="hljs-operator">?</span> n <span class="hljs-operator">-&gt;</span> n            <span class="hljs-comment">;; ERROR! "x" does not match</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"x"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
+   Number<span class="hljs-operator">?</span> n <span class="hljs-operator">-&gt;</span> n            <span class="hljs-comment">;; ERROR! "x" does not match</span></pre>
 
 <p>But these expressions will not throw exceptions:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"x"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"x"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
    n <span class="hljs-wordop">when</span> Number<span class="hljs-operator">?</span> n <span class="hljs-operator">-&gt;</span> n     <span class="hljs-comment">;; ==&gt; {1, 2, 3}</span>
 
 <span class="hljs-punctuation">{</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">4</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">5</span><span class="hljs-punctuation">,</span> <span class="hljs-number">6</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
@@ -386,7 +394,7 @@ contains a <code>when</code> clause. In other words:</p>
 
 <span class="hljs-punctuation">{</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">4</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">5</span><span class="hljs-punctuation">,</span> <span class="hljs-number">6</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">each</span>
    <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> x <span class="hljs-operator">+</span> y
-   <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-keyword">continue</span>          <span class="hljs-comment">;; ==&gt; {5, 11}</span></pre></p>
+   <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-keyword">continue</span>          <span class="hljs-comment">;; ==&gt; {5, 11}</span></pre>
 
 <p>The first form is recommended if it is easy to express the condition
 as an expression. However, some filters are best expressed by
@@ -394,19 +402,19 @@ patterns, in which case the third form would be preferred (because it
 is less confusing -- you can use the second form if you insist on
 writing a one-liner, though).</p>
 
-<p><code>each</code> is <em>eager</em>: it will iterate over all elements and execute the
-payload on each, returning an array. The <em>lazy</em> version of <code>each</code> is the
-<code>each*</code> operator.</p>
+<code class="hl"><span class="hljs-wordop">each</span></code> is <em>eager</em>: it will iterate over all elements and execute the
+payload on each, returning an array. The <em>lazy</em> version of <code class="hl"><span class="hljs-wordop">each</span></code> is the
+<code class="hl"><span class="hljs-wordop">each</span><span class="hljs-operator">*</span></code> operator.
 
 
 <h1 id="patternmatching">Pattern matching</h1>
 
-<p>The <code>match</code> operator feeds an input into a series of "clauses" and
+The <code class="hl"><span class="hljs-keyword">match</span></code> operator feeds an input into a series of "clauses" and
 enters the body of the first matching clause. In a clause, one can
 check the type of a value, cast or transform it, deconstruct an array
-into elements and bind them to variables, and more:</p>
+into elements and bind them to variables, and more:
 
-<p><pre class="hl"><span class="hljs-keyword">match </span>command:
+<pre class="hl"><span class="hljs-keyword">match </span>command:
    <span class="hljs-punctuation">{</span><span class="hljs-string">"move"</span><span class="hljs-punctuation">,</span> Number<span class="hljs-operator">!</span> dx<span class="hljs-punctuation">,</span> Number<span class="hljs-operator">!</span> dy<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span>
       <span class="hljs-comment">;; Isn't this nicer than calling parseFloat manually?</span>
       this<span class="hljs-string">.x</span> <span class="hljs-operator">+=</span> dx
@@ -419,12 +427,12 @@ into elements and bind them to variables, and more:</p>
       this<span class="hljs-string">.die-horribly</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
    <span class="hljs-punctuation">{</span><span class="hljs-string">"attack"</span><span class="hljs-punctuation">,</span> enemy<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span>
       enemy<span class="hljs-string">.hp</span> <span class="hljs-operator">-=</span> this<span class="hljs-string">.attack</span>
-      this<span class="hljs-string">.hp</span> <span class="hljs-operator">-=</span> enemy<span class="hljs-string">.attack</span></pre></p>
+      this<span class="hljs-string">.hp</span> <span class="hljs-operator">-=</span> enemy<span class="hljs-string">.attack</span></pre>
 
 <p>A pattern can also be found on the left side of a declaration or
 assignment, for example:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>String<span class="hljs-operator">?</span> x<span class="hljs-punctuation">,</span> Number<span class="hljs-operator">?</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-string">"apple"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3.14159</span><span class="hljs-punctuation">}</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>String<span class="hljs-operator">?</span> x<span class="hljs-punctuation">,</span> Number<span class="hljs-operator">?</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-string">"apple"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3.14159</span><span class="hljs-punctuation">}</span></pre>
 
 
 <h3 id="checkers">Checkers</h3>
@@ -432,8 +440,8 @@ assignment, for example:</p>
 <p>A <strong>checker</strong> verifies that the thing to match satisfies some predicate,
 for instance that it is of a certain type.</p>
 
-<p><pre class="hl">Number<span class="hljs-operator">?</span> n <span class="hljs-operator">=</span> <span class="hljs-number">123</span>     <span class="hljs-comment">;; OK</span>
-Number<span class="hljs-operator">?</span> n <span class="hljs-operator">=</span> <span class="hljs-string">"hello"</span> <span class="hljs-comment">;; ERROR</span></pre></p>
+<pre class="hl">Number<span class="hljs-operator">?</span> n <span class="hljs-operator">=</span> <span class="hljs-number">123</span>     <span class="hljs-comment">;; OK</span>
+Number<span class="hljs-operator">?</span> n <span class="hljs-operator">=</span> <span class="hljs-string">"hello"</span> <span class="hljs-comment">;; ERROR</span></pre>
 
 
 <h3 id="projectors">Projectors</h3>
@@ -442,47 +450,47 @@ Number<span class="hljs-operator">?</span> n <span class="hljs-operator">=</span
 it to a certain type or applies some kind of transformation. Further
 pattern matching can be applied on the transformed value.</p>
 
-<p><pre class="hl">Number<span class="hljs-operator">!</span> n <span class="hljs-operator">=</span> <span class="hljs-string">"123"</span>          <span class="hljs-comment">;; n is the number 123</span>
+<pre class="hl">Number<span class="hljs-operator">!</span> n <span class="hljs-operator">=</span> <span class="hljs-string">"123"</span>          <span class="hljs-comment">;; n is the number 123</span>
 Array<span class="hljs-operator">!</span> a <span class="hljs-operator">=</span> <span class="hljs-number">5</span>               <span class="hljs-comment">;; a is the array {5}</span>
-Array<span class="hljs-operator">!</span> <span class="hljs-punctuation">{</span>Number<span class="hljs-operator">!</span> a<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-string">"10"</span>  <span class="hljs-comment">;; a is the number 10</span></pre></p>
+Array<span class="hljs-operator">!</span> <span class="hljs-punctuation">{</span>Number<span class="hljs-operator">!</span> a<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-string">"10"</span>  <span class="hljs-comment">;; a is the number 10</span></pre>
 
 <p><strong>Important</strong>: Projectors are applied <strong>left to right</strong>. This could be a
 bit counter-intuitive sometimes, so let me give you clear examples
 that you can use as reference:</p>
 
-<p><pre class="hl">add-one<span class="hljs-operator">!</span> multiply-by-two<span class="hljs-operator">!</span> x <span class="hljs-operator">=</span> <span class="hljs-number">10</span>   <span class="hljs-comment">;; x is ((10 + 1) * 2) = 22</span>
-multiply-by-two<span class="hljs-operator">!</span> add-one<span class="hljs-operator">!</span> x <span class="hljs-operator">=</span> <span class="hljs-number">10</span>   <span class="hljs-comment">;; x is ((10 * 2) + 1) = 21</span></pre></p>
+<pre class="hl">add-one<span class="hljs-operator">!</span> multiply-by-two<span class="hljs-operator">!</span> x <span class="hljs-operator">=</span> <span class="hljs-number">10</span>   <span class="hljs-comment">;; x is ((10 + 1) * 2) = 22</span>
+multiply-by-two<span class="hljs-operator">!</span> add-one<span class="hljs-operator">!</span> x <span class="hljs-operator">=</span> <span class="hljs-number">10</span>   <span class="hljs-comment">;; x is ((10 * 2) + 1) = 21</span></pre>
 
 <p>Projectors also work on functions, where they are quite useful. For
 example:</p>
 
-<p><pre class="hl">curry<span class="hljs-operator">!</span> f<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x <span class="hljs-operator">+</span> y</pre></p>
+<pre class="hl">curry<span class="hljs-operator">!</span> f<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x <span class="hljs-operator">+</span> y</pre>
 
-<p>They can also save you some typing if you use them on function
-arguments. If you wanted to implement a <code>save-all</code> function that works
-on an array of files, but also on a single file, you could write:</p>
+They can also save you some typing if you use them on function
+arguments. If you wanted to implement a <code class="hl">save-all</code> function that works
+on an array of files, but also on a single file, you could write:
 
-<p><pre class="hl">save-all<span class="hljs-punctuation">(</span>Array<span class="hljs-operator">!</span> files<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
-   files <span class="hljs-wordop">each</span> file <span class="hljs-operator">-&gt;</span> file<span class="hljs-string">.save</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre></p>
+<pre class="hl">save-all<span class="hljs-punctuation">(</span>Array<span class="hljs-operator">!</span> files<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   files <span class="hljs-wordop">each</span> file <span class="hljs-operator">-&gt;</span> file<span class="hljs-string">.save</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre>
 
 <p>instead of, say:</p>
 
-<p><pre class="hl">save-all<span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span>files<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">save-all<span class="hljs-punctuation">(</span><span class="hljs-keyword">var </span>files<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    if <span class="hljs-wordop">not</span> Array<span class="hljs-operator">?</span> files<span class="hljs-punctuation">:</span>
       files <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>files<span class="hljs-punctuation">}</span>
-   files <span class="hljs-wordop">each</span> file <span class="hljs-operator">-&gt;</span> file<span class="hljs-string">.save</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre></p>
+   files <span class="hljs-wordop">each</span> file <span class="hljs-operator">-&gt;</span> file<span class="hljs-string">.save</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre>
 
 
 <h3 id="inlineprojectors">Inline projectors</h3>
 
-<p>The <code>&gt;&gt;</code> operator, in a pattern, transforms the match result. That
+The <code class="hl"><span class="hljs-operator">&gt;&gt;</span></code> operator, in a pattern, transforms the match result. That
 can be useful sometimes, usually in argument lists or nested patterns
 where you can't simply apply the transform on the expression to the
-right of the equal sign.</p>
+right of the equal sign.
 
-<p><pre class="hl">x <span class="hljs-operator">&gt;&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-punctuation">(</span>x <span class="hljs-operator">+</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">*</span> <span class="hljs-number">2</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>    <span class="hljs-comment">;; x is 22</span>
+<pre class="hl">x <span class="hljs-operator">&gt;&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-punctuation">(</span>x <span class="hljs-operator">+</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">*</span> <span class="hljs-number">2</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>    <span class="hljs-comment">;; x is 22</span>
 x <span class="hljs-operator">&gt;&gt;</span> <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-number">6</span>            <span class="hljs-comment">;; x is {6, 6}</span>
-x <span class="hljs-operator">&gt;&gt;</span> x<span class="hljs-string">.trim</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> <span class="hljs-string">"  xyz "</span>   <span class="hljs-comment">;; x is "xyz"</span></pre></p>
+x <span class="hljs-operator">&gt;&gt;</span> x<span class="hljs-string">.trim</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> <span class="hljs-string">"  xyz "</span>   <span class="hljs-comment">;; x is "xyz"</span></pre>
 
 
 <h3 id="destructuring">Destructuring</h3>
@@ -490,61 +498,61 @@ x <span class="hljs-operator">&gt;&gt;</span> x<span class="hljs-string">.trim</
 <p>An array of patterns matches an array of the same length, and then
 tries to match each value with the corresponding pattern:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>      <span class="hljs-comment">;; x is 1, y is 2, z is 3</span>
+<pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>      <span class="hljs-comment">;; x is 1, y is 2, z is 3</span>
 <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; ERROR</span>
-<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>    <span class="hljs-comment">;; ERROR</span></pre></p>
+<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>    <span class="hljs-comment">;; ERROR</span></pre>
 
-<p>The <code>*</code> splicing operator matches any number of elements:</p>
+The <code class="hl"><span class="hljs-operator">*</span></code> splicing operator matches any number of elements:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-operator">*</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span> <span class="hljs-number">5</span><span class="hljs-punctuation">}</span>   <span class="hljs-comment">;; x is 1, y is {2, 3, 4}, z is 5</span>
-<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-operator">*</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>            <span class="hljs-comment">;; x is 1, y is {}, z is 2</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-operator">*</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span> <span class="hljs-number">5</span><span class="hljs-punctuation">}</span>   <span class="hljs-comment">;; x is 1, y is {2, 3, 4}, z is 5</span>
+<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-operator">*</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>            <span class="hljs-comment">;; x is 1, y is {}, z is 2</span></pre>
 
 <p>You can assign a default value to a pattern in case it is missing.</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">,</span> z <span class="hljs-operator">=</span> <span class="hljs-string">"absent"</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>  <span class="hljs-comment">;; x is 1, y is 2, z is "absent"</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">,</span> z <span class="hljs-operator">=</span> <span class="hljs-string">"absent"</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>  <span class="hljs-comment">;; x is 1, y is 2, z is "absent"</span></pre>
 
 <p>This also works to define default values for arguments in
 functions. Note that the default value will be recomputed every time
 it is needed (or not at all, if it is unneeded). For example:</p>
 
-<p><pre class="hl">f<span class="hljs-punctuation">(</span>x <span class="hljs-operator">=</span> <span class="hljs-punctuation">[</span><span class="hljs-keyword">print </span><span class="hljs-string">"missing"</span><span class="hljs-punctuation">;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x
+<pre class="hl">f<span class="hljs-punctuation">(</span>x <span class="hljs-operator">=</span> <span class="hljs-punctuation">[</span><span class="hljs-keyword">print </span><span class="hljs-string">"missing"</span><span class="hljs-punctuation">;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x
 f<span class="hljs-punctuation">(</span><span class="hljs-number">55</span><span class="hljs-punctuation">)</span>     <span class="hljs-comment">;; ==&gt; returns 55</span>
 f<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>       <span class="hljs-comment">;; ==&gt; prints "missing", and returns 0</span>
-f<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>       <span class="hljs-comment">;; ==&gt; prints "missing" *again*, and returns 0</span></pre></p>
+f<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>       <span class="hljs-comment">;; ==&gt; prints "missing" *again*, and returns 0</span></pre>
 
-<p>(remember that <code>stmt1; stmt2</code> executes both statements in sequence
-and returns <code>stmt2</code>. It's not an array).</p>
+(remember that <code class="hl">stmt1<span class="hljs-punctuation">;</span> stmt2</code> executes both statements in sequence
+and returns <code class="hl">stmt2</code>. It's not an array).
 
-<p>This means that unlike in Python, if you define an empty array <code>{}</code> as
-a default value, it will always be a fresh array.</p>
+This means that unlike in Python, if you define an empty array <code class="hl"><span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span></code> as
+a default value, it will always be a fresh array.
 
 
 <h3 id="destructuringobjects">Destructuring objects</h3>
 
-<p>The <code>=&gt;</code> operator inside patterns lets you extract object fields.</p>
+The <code class="hl"><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span></code> operator inside patterns lets you extract object fields.
 
-<p><code>=&gt; xyz</code> will extract the field named <code>xyz</code> into the variable <code>xyz</code>:</p>
+<code class="hl"><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> xyz</code> will extract the field named <code class="hl">xyz</code> into the variable <code class="hl">xyz</code>:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> x<span class="hljs-punctuation">,</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>        <span class="hljs-comment">;; x is 1, y is 2</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> x<span class="hljs-punctuation">,</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>        <span class="hljs-comment">;; x is 1, y is 2</span></pre>
 
-<p><code>xyz =&gt; abc</code> will extract the field named <code>xyz</code> into the variable <code>abc</code>:</p>
+<code class="hl">xyz <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> abc</code> will extract the field named <code class="hl">xyz</code> into the variable <code class="hl">abc</code>:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> a<span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>    <span class="hljs-comment">;; a is 1, b is 2</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> a<span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>    <span class="hljs-comment">;; a is 1, b is 2</span></pre>
 
 <p>The right hand side can be a pattern. If there is no left hand side,
 but that the right hand side defines a single variable, then the left
 hand side is set to the name of that sole variable:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-comment">;; a is 1, b is 2, y is 3</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-comment">;; a is 1, b is 2, y is 3</span></pre>
 
 <p>You don't have to extract all fields:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> x<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>              <span class="hljs-comment">;; x is 1, the y field is ignored</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> x<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>              <span class="hljs-comment">;; x is 1, the y field is ignored</span></pre>
 
-<p>The unquote operator <code>^</code> can be used to match a dynamic key if needed:</p>
+The unquote operator <code class="hl"><span class="hljs-operator">^</span></code> can be used to match a dynamic key if needed:
 
-<p><pre class="hl">key <span class="hljs-operator">=</span> <span class="hljs-string">"x"</span>
-<span class="hljs-punctuation">{</span><span class="hljs-operator">^</span>key <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">66</span><span class="hljs-punctuation">}</span>               <span class="hljs-comment">;; y is 66</span></pre></p>
+<pre class="hl">key <span class="hljs-operator">=</span> <span class="hljs-string">"x"</span>
+<span class="hljs-punctuation">{</span><span class="hljs-operator">^</span>key <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">66</span><span class="hljs-punctuation">}</span>               <span class="hljs-comment">;; y is 66</span></pre>
 
 
 
@@ -553,19 +561,19 @@ hand side is set to the name of that sole variable:</p>
 <p>The <strong>when</strong> operator lets you write arbitrary conditions for a
 clause:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">match </span>command:
+<pre class="hl"><span class="hljs-keyword">match </span>command:
    <span class="hljs-punctuation">{</span><span class="hljs-string">"move"</span><span class="hljs-punctuation">,</span> dx<span class="hljs-punctuation">,</span> dy<span class="hljs-punctuation">}</span> <span class="hljs-wordop">when</span> dx<span class="hljs-operator">*</span>dx <span class="hljs-operator">+</span> dy<span class="hljs-operator">*</span>dy <span class="hljs-operator">&gt;</span> threshold <span class="hljs-operator">-&gt;</span>
       running<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
    <span class="hljs-punctuation">{</span><span class="hljs-string">"move"</span><span class="hljs-punctuation">,</span> dx<span class="hljs-punctuation">,</span> dy<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span>
       walking<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
-   <span class="hljs-operator">...</span></pre></p>
+   <span class="hljs-operator">...</span></pre>
 
 
 <h3 id="or">or</h3>
 
 <p><strong>or</strong> will try to match one of a series of patterns</p>
 
-<p><pre class="hl"><span class="hljs-keyword">match </span>x:
+<pre class="hl"><span class="hljs-keyword">match </span>x:
    <span class="hljs-comment">;; match 0, or 1</span>
    <span class="hljs-number">0</span> <span class="hljs-wordop">or</span> <span class="hljs-number">1</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span>
 
@@ -573,7 +581,7 @@ clause:</p>
    Number<span class="hljs-operator">?</span> x <span class="hljs-wordop">or</span> String<span class="hljs-operator">?</span> x <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span>
 
    <span class="hljs-comment">;; will match {123} or 123, putting 123 in x in both situations</span>
-   <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">}</span> <span class="hljs-wordop">or</span> x <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></pre></p>
+   <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">}</span> <span class="hljs-wordop">or</span> x <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></pre>
 
 <p><strong>All sub-patterns must contain the same variables.</strong></p>
 
@@ -585,34 +593,34 @@ most specific should come first.</p>
 
 <p><strong>and</strong> will try to match every pattern (again, in order):</p>
 
-<p><pre class="hl">Number<span class="hljs-operator">?</span> n <span class="hljs-wordop">and</span> <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-operator">-</span><span class="hljs-number">5</span>     <span class="hljs-comment">;; ERROR!</span></pre></p>
+<pre class="hl">Number<span class="hljs-operator">?</span> n <span class="hljs-wordop">and</span> <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-operator">-</span><span class="hljs-number">5</span>     <span class="hljs-comment">;; ERROR!</span></pre>
 
-<p>That may not be obvious at first, but <code>and</code> is useful to create
-aliases:</p>
+That may not be obvious at first, but <code class="hl"><span class="hljs-wordop">and</span></code> is useful to create
+aliases:
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span> <span class="hljs-wordop">and</span> z <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>   <span class="hljs-comment">;; x is 1, y is 2, z is {1, 2}</span></pre></p>
+<pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span> <span class="hljs-wordop">and</span> z <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>   <span class="hljs-comment">;; x is 1, y is 2, z is {1, 2}</span></pre>
 
-<p>So instead of writing something like <code>x = y = 0</code> to initialize two
-variables to zero, you should write <code>x and y = 0</code>.</p>
+So instead of writing something like <code class="hl">x <span class="hljs-operator">=</span> y <span class="hljs-operator">=</span> <span class="hljs-number">0</span></code> to initialize two
+variables to zero, you should write <code class="hl">x <span class="hljs-wordop">and</span> y <span class="hljs-operator">=</span> <span class="hljs-number">0</span></code>.
 
 
 <h3 id="operators">Operators</h3>
 
-<p><strong>Comparison operators</strong> (<code>== != &lt; &lt;= &gt; &gt;= in</code>) can be used partially
-(except for <code>is</code> which has a different meaning). The left hand side is
+<strong>Comparison operators</strong> (<code class="hl"><span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-operator">!=</span> <span class="hljs-operator">&lt;</span> <span class="hljs-operator">&lt;=</span> <span class="hljs-operator">&gt;</span> <span class="hljs-operator">&gt;=</span> in</code>) can be used partially
+(except for <code class="hl"><span class="hljs-wordop">is</span></code> which has a different meaning). The left hand side is
 a pattern, which will only be matched if the predicate on the current
-value is true. In other words:</p>
+value is true. In other words:
 
-<p><pre class="hl">n <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>     <span class="hljs-comment">;; n is 10</span>
-n <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-operator">-</span><span class="hljs-number">10</span>    <span class="hljs-comment">;; ERROR</span></pre></p>
+<pre class="hl">n <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>     <span class="hljs-comment">;; n is 10</span>
+n <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-operator">-</span><span class="hljs-number">10</span>    <span class="hljs-comment">;; ERROR</span></pre>
 
 <p>You can also leave the left hand side empty:</p>
 
-<p><pre class="hl">compare<span class="hljs-punctuation">(</span>value<span class="hljs-punctuation">,</span> threshold<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">compare<span class="hljs-punctuation">(</span>value<span class="hljs-punctuation">,</span> threshold<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">match </span>value:
       <span class="hljs-operator">&gt;</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"above"</span>
       <span class="hljs-operator">&lt;</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"below"</span>
-      <span class="hljs-operator">=</span><span class="hljs-operator">=</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"equal"</span></pre></p>
+      <span class="hljs-operator">=</span><span class="hljs-operator">=</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"equal"</span></pre>
 
 
 <h3 id="embeddedcontrolstructures">Embedded control structures</h3>
@@ -620,166 +628,166 @@ n <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <sp
 <p>The previous idiom of creating a function and matching one argument is
 useful enough to have a <strong>shorthand</strong>:</p>
 
-<p><pre class="hl">compare<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>value<span class="hljs-punctuation">,</span> threshold<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">compare<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>value<span class="hljs-punctuation">,</span> threshold<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-operator">&gt;</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"above"</span>
    <span class="hljs-operator">&lt;</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"below"</span>
-   <span class="hljs-operator">=</span><span class="hljs-operator">=</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"equal"</span></pre></p>
+   <span class="hljs-operator">=</span><span class="hljs-operator">=</span> threshold <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"equal"</span></pre>
 
-<p>Using the word <code>match</code> in <em>any</em> pattern will cause the body associated
-to the pattern to become a list of clauses, matching in <code>match</code>'s
-place. To illustrate:</p>
+Using the word <code class="hl"><span class="hljs-keyword">match</span></code> in <em>any</em> pattern will cause the body associated
+to the pattern to become a list of clauses, matching in <code class="hl"><span class="hljs-keyword">match</span></code>'s
+place. To illustrate:
 
-<p><pre class="hl"><span class="hljs-keyword">match </span>expr: <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>z<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></pre></p>
+<pre class="hl"><span class="hljs-keyword">match </span>expr: <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>z<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></pre>
 
 <p>can also be written:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">match </span>expr: <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>z<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></pre></p>
+<pre class="hl"><span class="hljs-keyword">match </span>expr: <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>z<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></pre>
 
 <p>Here's naive fibonacci using the shorthand:</p>
 
-<p><pre class="hl">fib<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">fib<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">0</span>
    <span class="hljs-number">1</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">1</span>
-   n <span class="hljs-operator">-&gt;</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">2</span><span class="hljs-punctuation">)</span></pre></p>
+   n <span class="hljs-operator">-&gt;</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">2</span><span class="hljs-punctuation">)</span></pre>
 
 <p>You can give a name to the match and it will be bound in all clauses:</p>
 
-<p><pre class="hl">fib<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">fib<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">0</span>
    <span class="hljs-number">1</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">1</span>
-   <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">2</span><span class="hljs-punctuation">)</span></pre></p>
+   <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> fib<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">2</span><span class="hljs-punctuation">)</span></pre>
 
 <p>The feature also works for rest arguments:</p>
 
-<p><pre class="hl">concat<span class="hljs-punctuation">(</span><span class="hljs-operator">*</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">concat<span class="hljs-punctuation">(</span><span class="hljs-operator">*</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
     <span class="hljs-punctuation">{</span>String<span class="hljs-operator">?</span> a<span class="hljs-punctuation">,</span> String<span class="hljs-operator">?</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> a <span class="hljs-operator">+</span> b
-    <span class="hljs-punctuation">{</span>Array<span class="hljs-operator">?</span> a<span class="hljs-punctuation">,</span> Array<span class="hljs-operator">?</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> a <span class="hljs-operator">++</span> b</pre></p>
+    <span class="hljs-punctuation">{</span>Array<span class="hljs-operator">?</span> a<span class="hljs-punctuation">,</span> Array<span class="hljs-operator">?</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> a <span class="hljs-operator">++</span> b</pre>
 
-<p>Other features can be embedded in arguments. For instance, <code>each</code> can
-be used in a pattern:</p>
+Other features can be embedded in arguments. For instance, <code class="hl"><span class="hljs-wordop">each</span></code> can
+be used in a pattern:
 
-<p><pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-wordop">each</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x <span class="hljs-operator">*</span> x
+<pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-wordop">each</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x <span class="hljs-operator">*</span> x
 f<span class="hljs-punctuation">(</span><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">5</span><span class="hljs-punctuation">)</span>                 <span class="hljs-comment">;; =&gt; {1, 4, 9, 16, 25}</span>
 
 enhance<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    Number<span class="hljs-operator">?</span> n <span class="hljs-operator">-&gt;</span> n <span class="hljs-operator">*</span> n
    String<span class="hljs-operator">?</span> s <span class="hljs-operator">-&gt;</span> s <span class="hljs-operator">+</span> <span class="hljs-string">"s"</span>
    <span class="hljs-punctuation">(</span><span class="hljs-wordop">each</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">-&gt;</span> enhance<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">)</span> <span class="hljs-comment">;; short for xs -&gt; xs each x -&gt; enhance(x)</span>
-enhance<span class="hljs-punctuation">(</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"cake"</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span> <span class="hljs-comment">;; =&gt; {1, 4, "cakes"}</span></pre></p>
+enhance<span class="hljs-punctuation">(</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"cake"</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span> <span class="hljs-comment">;; =&gt; {1, 4, "cakes"}</span></pre>
 
-<p><span class="warning">
-  The parentheses around <code>(each x)</code> are needed above, otherwise the
-  clause is parsed like <code>each (x -&gt; enhance(x))</code>, which is not legal
-  (at least not yet).</span></p>
+<p><div class="warning">
+  The parentheses around <code class="hl"><span class="hljs-punctuation">(</span><span class="hljs-wordop">each</span> x<span class="hljs-punctuation">)</span></code> are needed above, otherwise the
+  clause is parsed like <code class="hl"><span class="hljs-wordop">each</span> <span class="hljs-punctuation">(</span>x <span class="hljs-operator">-&gt;</span> enhance<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span></code>, which is not legal
+  (at least not yet).</div></p>
 
-<p><code>each</code> in this case can be anywhere in a pattern, and multiple <code>each</code>
-found in the same pattern will nest in the order that they are found:</p>
+<code class="hl"><span class="hljs-wordop">each</span></code> in this case can be anywhere in a pattern, and multiple <code class="hl"><span class="hljs-wordop">each</span></code>
+found in the same pattern will nest in the order that they are found:
 
-<p><pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-wordop">each</span> x<span class="hljs-punctuation">,</span> <span class="hljs-wordop">each</span> y<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x <span class="hljs-operator">+</span> y
+<pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-wordop">each</span> x<span class="hljs-punctuation">,</span> <span class="hljs-wordop">each</span> y<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> x <span class="hljs-operator">+</span> y
 f<span class="hljs-punctuation">(</span><span class="hljs-punctuation">{</span><span class="hljs-string">"a"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"b"</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-string">"x"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"y"</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; ==&gt; {{"ax", "ay"}, {"bx", "by"}}</span></pre></p>
+<span class="hljs-comment">;; ==&gt; {{"ax", "ay"}, {"bx", "by"}}</span></pre>
 
-<p><code>chain</code> can be embedded and you get a nice pipeline going on:</p>
+<code class="hl"><span class="hljs-keyword">chain</span></code> can be embedded and you get a nice pipeline going on:
 
-<p><pre class="hl">capitalize-words<span class="hljs-punctuation">(</span><span class="hljs-keyword">chain</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">capitalize-words<span class="hljs-punctuation">(</span><span class="hljs-keyword">chain</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-member">@trim</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
    <span class="hljs-member">@split</span><span class="hljs-punctuation">(</span>R<span class="hljs-string">" +"</span><span class="hljs-punctuation">)</span> <span class="hljs-wordop">each</span> w <span class="hljs-wordop">when</span> w <span class="hljs-operator">!=</span> <span class="hljs-string">""</span> <span class="hljs-operator">-&gt;</span>
       w<span class="hljs-punctuation">[</span><span class="hljs-number">0</span><span class="hljs-punctuation">]</span><span class="hljs-string">.to-upper-case</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> w<span class="hljs-string">.slice</span><span class="hljs-punctuation">(</span><span class="hljs-number">1</span><span class="hljs-punctuation">)</span>
    <span class="hljs-member">@join</span><span class="hljs-punctuation">(</span><span class="hljs-string">" "</span><span class="hljs-punctuation">)</span>
 capitalize-words<span class="hljs-punctuation">(</span><span class="hljs-string">" pulp  fiction "</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; =&gt; "Pulp Fiction"</span></pre></p>
+<span class="hljs-comment">;; =&gt; "Pulp Fiction"</span></pre>
 
 
 <h3 id="is">is</h3>
 
-<p>Sometimes you may need or want to give a value to a variable inside a
-pattern. You can do this with <code>is</code>:</p>
+Sometimes you may need or want to give a value to a variable inside a
+pattern. You can do this with <code class="hl"><span class="hljs-wordop">is</span></code>:
 
-<p><pre class="hl">x <span class="hljs-wordop">and</span> y <span class="hljs-wordop">is</span> <span class="hljs-number">10</span> <span class="hljs-operator">=</span> <span class="hljs-number">5</span>                     <span class="hljs-comment">;; x is 5, y is 10</span>
-<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span> <span class="hljs-wordop">or</span> x <span class="hljs-wordop">is</span> <span class="hljs-number">0</span> <span class="hljs-wordop">and</span> y <span class="hljs-wordop">is</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-string">"blah"</span>  <span class="hljs-comment">;; x is 0, y is 0</span></pre></p>
+<pre class="hl">x <span class="hljs-wordop">and</span> y <span class="hljs-wordop">is</span> <span class="hljs-number">10</span> <span class="hljs-operator">=</span> <span class="hljs-number">5</span>                     <span class="hljs-comment">;; x is 5, y is 10</span>
+<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span> <span class="hljs-wordop">or</span> x <span class="hljs-wordop">is</span> <span class="hljs-number">0</span> <span class="hljs-wordop">and</span> y <span class="hljs-wordop">is</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-string">"blah"</span>  <span class="hljs-comment">;; x is 0, y is 0</span></pre>
 
 <p>One use case is to remove one level of nesting in the following code:</p>
 
-<p><pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span>
       <span class="hljs-keyword">match </span>x:
-         <span class="hljs-operator">...</span></pre></p>
+         <span class="hljs-operator">...</span></pre>
 
 <p>The above can be rewritten:</p>
 
-<p><pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">f<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">,</span> x<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-wordop">and</span> <span class="hljs-keyword">match</span> <span class="hljs-wordop">is</span> x <span class="hljs-operator">-&gt;</span>
-      <span class="hljs-operator">...</span></pre></p>
+      <span class="hljs-operator">...</span></pre>
 
 <h3 id="assignmentwrappers">Assignment wrappers</h3>
 
-<p>The keywords <code>expr-value</code>, <code>return</code>, <code>yield</code> and <code>await</code> may be used in a
+The keywords <code class="hl"><span class="hljs-keyword">expr-value</span></code>, <code class="hl"><span class="hljs-keyword">return</span></code>, <code class="hl"><span class="hljs-keyword">yield</span></code> and <code class="hl"><span class="hljs-keyword">await</span></code> may be used in a
 pattern on the left hand side of an assignment. Normally, an
 assignment returns the variable it declares, or if there is more than
-one variable, an array of the declared variables:</p>
+one variable, an array of the declared variables:
 
-<p><pre class="hl">x <span class="hljs-operator">=</span> <span class="hljs-number">4</span>                           <span class="hljs-comment">;; ==&gt; 4</span>
+<pre class="hl">x <span class="hljs-operator">=</span> <span class="hljs-number">4</span>                           <span class="hljs-comment">;; ==&gt; 4</span>
 <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>y<span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span><span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span>       <span class="hljs-comment">;; ==&gt; {1, 2, 3}</span>
 <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> _<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span>   <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; ==&gt; {1, 2}</span>
-<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> String<span class="hljs-operator">!</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; ==&gt; {1, "2"}</span></pre></p>
+<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> String<span class="hljs-operator">!</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; ==&gt; {1, "2"}</span></pre>
 
 <p>You can, however, modify this behavior:</p>
 
-<p><pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-keyword">expr-value</span><span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>  <span class="hljs-comment">;; ==&gt; 2</span>
+<pre class="hl"><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> <span class="hljs-keyword">expr-value</span><span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>  <span class="hljs-comment">;; ==&gt; 2</span>
 <span class="hljs-punctuation">{</span>_<span class="hljs-punctuation">,</span> <span class="hljs-keyword">return</span><span class="hljs-punctuation">,</span> _<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>      <span class="hljs-comment">;; immediately returns 2 from the function</span>
-<span class="hljs-punctuation">{</span><span class="hljs-keyword">yield</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">yield</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; yields 1, then yields 2</span></pre></p>
+<span class="hljs-punctuation">{</span><span class="hljs-keyword">yield</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">yield</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">}</span>         <span class="hljs-comment">;; yields 1, then yields 2</span></pre>
 
-<p>Note that it's not particularly useful to declare variables alongside
-<code>return</code> since there's no way to use them after the function returns.</p>
+Note that it's not particularly useful to declare variables alongside
+<code class="hl"><span class="hljs-keyword">return</span></code> since there's no way to use them after the function returns.
 
-<p><span class="warning">
+<p><div class="warning">
   Combining more than one of these in the same pattern is currently a
-  bit flaky.</span></p>
+  bit flaky.</div></p>
 
 
 
 <h1 id="asynchronouscode">Asynchronous code</h1>
 
-<p>Like ES6, EG has generators. Like ES7 (proposed), it has <code>async</code> and
-<code>await</code> keywords.</p>
+Like ES6, EG has generators. Like ES7 (proposed), it has <code class="hl">async</code> and
+<code class="hl"><span class="hljs-keyword">await</span></code> keywords.
 
 <h3 id="generators">Generators</h3>
 
-<p>A generator is a function that can produce (<code>yield</code>) an arbitrary
+A generator is a function that can produce (<code class="hl"><span class="hljs-keyword">yield</span></code>) an arbitrary
 number of values as they are requested by a consumer. For instance,
-this is a generator for the Fibonacci numbers:</p>
+this is a generator for the Fibonacci numbers:
 
-<p><pre class="hl"><span class="hljs-keyword">gen </span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl"><span class="hljs-keyword">gen </span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1</span><span class="hljs-punctuation">}</span>
    <span class="hljs-keyword">while </span>true:
       <span class="hljs-keyword">yield </span>a
-      <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>b<span class="hljs-punctuation">,</span> a <span class="hljs-operator">+</span> b<span class="hljs-punctuation">}</span></pre></p>
+      <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>b<span class="hljs-punctuation">,</span> a <span class="hljs-operator">+</span> b<span class="hljs-punctuation">}</span></pre>
 
-<p>That function is an infinite loop, but at each invocation of <code>yield
-a</code>, it sends the value of <code>a</code> to the consumer and stops until the
-consumer asks for the next value. The <code>consume</code> function can be used
-to retrieve a certain number of values from the generator:</p>
+That function is an infinite loop, but at each invocation of <code class="hl"><span class="hljs-keyword">yield</span>
+a</code>, it sends the value of <code class="hl">a</code> to the consumer and stops until the
+consumer asks for the next value. The <code class="hl">consume</code> function can be used
+to retrieve a certain number of values from the generator:
 
-<p><pre class="hl">consume<span class="hljs-punctuation">(</span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span> <span class="hljs-comment">;; ==&gt; {0, 1, 1, 2, 3, 5, 8, 13, 21, 34}</span></pre></p>
+<pre class="hl">consume<span class="hljs-punctuation">(</span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span> <span class="hljs-comment">;; ==&gt; {0, 1, 1, 2, 3, 5, 8, 13, 21, 34}</span></pre>
 
-<p><code>each</code> and <code>for...of</code> will consume a generator until a <code>break</code>
-statement is encountered. <code>each*</code> will create a new generator:</p>
+<code class="hl"><span class="hljs-wordop">each</span></code> and <code class="hl">for<span class="hljs-operator">...</span><span class="hljs-operator">of</span></code> will consume a generator until a <code class="hl"><span class="hljs-keyword">break</span></code>
+statement is encountered. <code class="hl"><span class="hljs-wordop">each</span><span class="hljs-operator">*</span></code> will create a new generator:
 
-<p><pre class="hl">fibsquared <span class="hljs-operator">=</span> fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-wordop">each</span><span class="hljs-operator">*</span> n <span class="hljs-operator">-&gt;</span> n <span class="hljs-operator">*</span> n
+<pre class="hl">fibsquared <span class="hljs-operator">=</span> fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-wordop">each</span><span class="hljs-operator">*</span> n <span class="hljs-operator">-&gt;</span> n <span class="hljs-operator">*</span> n
 consume<span class="hljs-punctuation">(</span>fibsquared<span class="hljs-punctuation">,</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; ==&gt; {0, 1, 1, 4, 9, 25, 64, 169, 441, 1156}</span></pre></p>
+<span class="hljs-comment">;; ==&gt; {0, 1, 1, 4, 9, 25, 64, 169, 441, 1156}</span></pre>
 
-<p>Here the difference between <code>each</code> and <code>each*</code> is that <code>each</code> will
-keep accumulating values until it runs out of memory, whereas <code>each*</code>
-is lazy just like <code>fib</code>.</p>
+Here the difference between <code class="hl"><span class="hljs-wordop">each</span></code> and <code class="hl"><span class="hljs-wordop">each</span><span class="hljs-operator">*</span></code> is that <code class="hl"><span class="hljs-wordop">each</span></code> will
+keep accumulating values until it runs out of memory, whereas <code class="hl"><span class="hljs-wordop">each</span><span class="hljs-operator">*</span></code>
+is lazy just like <code class="hl">fib</code>.
 
 
 <h3 id="promisesandasyncawait">Promises and async/await</h3>
 
-<p>Promises and generators are ES6's answer to callback hell and EG
-supports them. <code>async</code> and <code>await</code> make them even easier to use:</p>
+Promises and generators are ES6's answer to callback hell and EG
+supports them. <code class="hl">async</code> and <code class="hl"><span class="hljs-keyword">await</span></code> make them even easier to use:
 
-<p><pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> fs
+<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> fs
 readFile <span class="hljs-operator">=</span> promisify<span class="hljs-punctuation">(</span>fs<span class="hljs-string">.readFile</span><span class="hljs-punctuation">)</span>
 
 <span class="hljs-keyword">async </span>cat<span class="hljs-punctuation">(</span><span class="hljs-operator">*</span>files<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
@@ -790,95 +798,95 @@ readFile <span class="hljs-operator">=</span> promisify<span class="hljs-punctua
 
 <span class="hljs-keyword">async</span><span class="hljs-punctuation">:</span>
    cat<span class="hljs-punctuation">(</span><span class="hljs-string">"file1"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"file2"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"file3"</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; returns immediately</span></pre></p>
+<span class="hljs-comment">;; returns immediately</span></pre>
 
 <p>Here's how it works:</p>
 
-<ul><li><code>require: fs</code> fetches node.js's filesystem module</li><li><p><code>promisify(fs.readFile)</code> changes <code>fs.readFile</code>'s callback-based
+<ul><li><code class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> fs</code> fetches node.js's filesystem module</li><li><code class="hl">promisify<span class="hljs-punctuation">(</span>fs<span class="hljs-string">.readFile</span><span class="hljs-punctuation">)</span></code> changes <code class="hl">fs<span class="hljs-string">.readFile</span></code>'s callback-based
   interface to a Promise-based interface, which is necessary to work
-  with async.</p>
+  with async.
 
-  <p><code>promisify</code> should work on any function that implements node's callback
-  interface, i.e. where the last argument has the form <code>{error, result} -&gt; ...</code></p></li><li><code>await readFile(file, .utf8)</code> reads the file <em>asynchronously</em>, in
-  the background. At that moment, the execution of <code>cat</code> stops and
-  other tasks can be executed while waiting for the file to be read.</li><li>Once the file is read, the result is given back to <code>cat</code>. It keeps
-  going until all the files have been read, and then it prints them.</li><li>If <code>readFile</code> calls back with an error, an exception will be raised.
+  <code class="hl">promisify</code> should work on any function that implements node's callback
+  interface, i.e. where the last argument has the form <code class="hl"><span class="hljs-punctuation">{</span>error<span class="hljs-punctuation">,</span> result<span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span></code></li><li><code class="hl"><span class="hljs-keyword">await </span>readFile<span class="hljs-punctuation">(</span>file<span class="hljs-punctuation">,</span> <span class="hljs-string">.utf8</span><span class="hljs-punctuation">)</span></code> reads the file <em>asynchronously</em>, in
+  the background. At that moment, the execution of <code class="hl">cat</code> stops and
+  other tasks can be executed while waiting for the file to be read.</li><li>Once the file is read, the result is given back to <code class="hl">cat</code>. It keeps
+  going until all the files have been read, and then it prints them.</li><li>If <code class="hl">readFile</code> calls back with an error, an exception will be raised.
   However, when an async function is called without a corresponding
-  <code>await</code>, the error will be ignored. The <code>async:</code> block mitigates
+  <code class="hl"><span class="hljs-keyword">await</span></code>, the error will be ignored. The <code class="hl"><span class="hljs-keyword">async</span><span class="hljs-punctuation">:</span></code> block mitigates
   this issue by wrapping the async call, catching the error, and
   logging it.</li></ul>
 
 
 <h1 id="classes">Classes</h1>
 
-<p>The <code>class</code> keyword can be used to declare a new class.</p>
+The <code class="hl">class</code> keyword can be used to declare a new class.
 
-<p>Each method has a reference to the object in the variable <code>self</code> and as
-the <code>@</code> operator. Here's a simple class to get you started:</p>
+Each method has a reference to the object in the variable <code class="hl">self</code> and as
+the <code class="hl"><span class="hljs-operator">@</span></code> operator. Here's a simple class to get you started:
 
 <h3 id="defining">Defining</h3>
 
-<p><pre class="hl"><span class="hljs-keyword">class </span>Person:
+<pre class="hl"><span class="hljs-keyword">class </span>Person:
    constructor<span class="hljs-punctuation">(</span>name<span class="hljs-punctuation">,</span> age<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
       <span class="hljs-member">@name</span> <span class="hljs-operator">=</span> name
       <span class="hljs-member">@age</span> <span class="hljs-operator">=</span> age
    advance-inexorably-towards-death<span class="hljs-punctuation">(</span>n <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
       <span class="hljs-member">@age</span> <span class="hljs-operator">+=</span> n
    say-name<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
-      <span class="hljs-keyword">print </span><span class="hljs-string">'Hello! My name is {@name}!'</span></pre></p>
+      <span class="hljs-keyword">print </span><span class="hljs-string">'Hello! My name is {@name}!'</span></pre>
 
 <p>Instead of setting values in the constructor manually as the above
 you can also use the following shortcut:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">class </span>Person:
+<pre class="hl"><span class="hljs-keyword">class </span>Person:
    constructor<span class="hljs-punctuation">(</span><span class="hljs-member">@name</span><span class="hljs-punctuation">,</span> <span class="hljs-member">@age</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
       <span class="hljs-comment">;; pass is a placeholder keyword; like in Python it just means "do nothing"</span>
-      pass</pre></p>
+      pass</pre>
 
 <p>This works for all methods, not just the constructor.</p>
 
 
 <h3 id="instantiating">Instantiating</h3>
 
-<p>Instantiating a class can be done with the <code>new</code> keyword, or not. It
-doesn't matter.</p>
+Instantiating a class can be done with the <code class="hl">new</code> keyword, or not. It
+doesn't matter.
 
-<p><pre class="hl">alice <span class="hljs-operator">=</span> <span class="hljs-keyword">new </span>Person<span class="hljs-punctuation">(</span><span class="hljs-string">"alice"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">25</span><span class="hljs-punctuation">)</span>
+<pre class="hl">alice <span class="hljs-operator">=</span> <span class="hljs-keyword">new </span>Person<span class="hljs-punctuation">(</span><span class="hljs-string">"alice"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">25</span><span class="hljs-punctuation">)</span>
 bob <span class="hljs-operator">=</span> Person<span class="hljs-punctuation">(</span><span class="hljs-string">"bob"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">44</span><span class="hljs-punctuation">)</span>
-bob<span class="hljs-string">.advance-inexorably-towards-death</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre></p>
+bob<span class="hljs-string">.advance-inexorably-towards-death</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></pre>
 
-<p><span class="note">
-  The <code>new</code> keyword may be needed to instantiate some classes in third
-  party packages, check their documentation to be sure.</span></p>
+<div class="note">
+  The <code class="hl">new</code> keyword may be needed to instantiate some classes in third
+  party packages, check their documentation to be sure.</div>
 
 
 <h3 id="subclassing">Subclassing</h3>
 
-<p>The <code>&lt;</code> operator is used to define the superclass of a new class.</p>
+The <code class="hl"><span class="hljs-operator">&lt;</span></code> operator is used to define the superclass of a new class.
 
-<p><pre class="hl"><span class="hljs-keyword">class </span>Baker <span class="hljs-operator">&lt;</span> Person<span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">class </span>Baker <span class="hljs-operator">&lt;</span> Person<span class="hljs-punctuation">:</span>
    bake<span class="hljs-punctuation">(</span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
       <span class="hljs-keyword">print </span><span class="hljs-string">'{@name} is baking {n} cake{if{n &gt; 1, "s", ""}}!'</span>
 
 carmen <span class="hljs-operator">=</span> Baker<span class="hljs-punctuation">(</span><span class="hljs-string">"carmen"</span><span class="hljs-punctuation">,</span> <span class="hljs-number">30</span><span class="hljs-punctuation">)</span>
 carmen<span class="hljs-string">.bake</span><span class="hljs-punctuation">(</span><span class="hljs-number">1</span><span class="hljs-punctuation">)</span>
 carmen<span class="hljs-string">.advance-inexorably-towards-death</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
-carmen<span class="hljs-string">.bake</span><span class="hljs-punctuation">(</span><span class="hljs-number">20</span><span class="hljs-punctuation">)</span></pre></p>
+carmen<span class="hljs-string">.bake</span><span class="hljs-punctuation">(</span><span class="hljs-number">20</span><span class="hljs-punctuation">)</span></pre>
 
-<p>There is no <code>super</code> keyword at the moment. I'll fix that at some point.</p>
+There is no <code class="hl">super</code> keyword at the moment. I'll fix that at some point.
 
 
 <h3 id="staticmethods">Static methods</h3>
 
-<p>Define static methods for a class using a <code>static:</code> block:</p>
+Define static methods for a class using a <code class="hl"><span class="hljs-keyword">static</span><span class="hljs-punctuation">:</span></code> block:
 
-<p><pre class="hl"><span class="hljs-keyword">class </span>Person:
+<pre class="hl"><span class="hljs-keyword">class </span>Person:
    <span class="hljs-keyword">static</span><span class="hljs-punctuation">:</span>
       make-twins<span class="hljs-punctuation">(</span>name1<span class="hljs-punctuation">,</span> name2<span class="hljs-punctuation">,</span> age<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
          <span class="hljs-punctuation">{</span>Person<span class="hljs-punctuation">(</span>name1<span class="hljs-punctuation">,</span> age<span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> Person<span class="hljs-punctuation">(</span>name2<span class="hljs-punctuation">,</span> age<span class="hljs-punctuation">)</span><span class="hljs-punctuation">}</span>
    constructor<span class="hljs-punctuation">(</span><span class="hljs-member">@name</span><span class="hljs-punctuation">,</span> <span class="hljs-member">@age</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
       pass
-   <span class="hljs-operator">...</span></pre></p>
+   <span class="hljs-operator">...</span></pre>
 
 
 <h3 id="specialmethods">Special methods</h3>
@@ -886,16 +894,16 @@ carmen<span class="hljs-string">.bake</span><span class="hljs-punctuation">(</sp
 <p>There are a few interesting special methods you can define on a class
 to customize its behavior:</p>
 
-<ul><li><code>Symbol.iterator</code> is used by <code>each</code> and <code>for..of</code> to iterate over your
-  object. You must return a generator (use <code>gen</code> and <code>yield</code>, see
-  below).</li><li><code>Symbol.check</code> is consulted by the <code>?</code> operator.</li><li><code>Symbol.project</code> is consulted by the <code>!</code> operator.</li><li><code>Symbol.contains</code> is consulted by the <code>in</code> operator.</li></ul>
+<ul><li><code class="hl">Symbol<span class="hljs-string">.iterator</span></code> is used by <code class="hl"><span class="hljs-wordop">each</span></code> and <code class="hl">for<span class="hljs-operator">..</span><span class="hljs-operator">of</span></code> to iterate over your
+  object. You must return a generator (use <code class="hl">gen</code> and <code class="hl"><span class="hljs-keyword">yield</span></code>, see
+  below).</li><li><code class="hl">Symbol<span class="hljs-string">.check</span></code> is consulted by the <code class="hl"><span class="hljs-operator">?</span></code> operator.</li><li><code class="hl">Symbol<span class="hljs-string">.project</span></code> is consulted by the <code class="hl"><span class="hljs-operator">!</span></code> operator.</li><li><code class="hl">Symbol<span class="hljs-string">.contains</span></code> is consulted by the <code class="hl"><span class="hljs-wordop">in</span></code> operator.</li></ul>
 
-<p>Under ES6 semantics, these methods are not strings, but special
-symbols. You will therefore need the unquote operator <code>^</code> to set
-them, but it's easy enough:</p>
+Under ES6 semantics, these methods are not strings, but special
+symbols. You will therefore need the unquote operator <code class="hl"><span class="hljs-operator">^</span></code> to set
+them, but it's easy enough:
 
 
-<p><pre class="hl"><span class="hljs-keyword">class </span>Multiples:
+<pre class="hl"><span class="hljs-keyword">class </span>Multiples:
    constructor<span class="hljs-punctuation">(</span><span class="hljs-member">@n</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
       pass
 
@@ -930,15 +938,15 @@ mul3<span class="hljs-operator">?</span> x <span class="hljs-operator">=</span> 
 mul3<span class="hljs-operator">!</span> y <span class="hljs-operator">=</span> <span class="hljs-number">25</span>
 
 <span class="hljs-comment">;; the following is true</span>
-<span class="hljs-number">3</span> <span class="hljs-operator">in</span> mul3</pre></p>
+<span class="hljs-number">3</span> <span class="hljs-operator">in</span> mul3</pre>
 
-<p><span class="note">
-  Don't forget the parentheses around <code>(^Symbol.iterator)</code> and friends.
+<div class="note">
+  Don't forget the parentheses around <code class="hl"><span class="hljs-punctuation">(</span><span class="hljs-operator">^</span>Symbol<span class="hljs-string">.iterator</span><span class="hljs-punctuation">)</span></code> and friends.
   Otherwise you will get an error like "symbol/string is not a function".
-  That's normal because <code>^</code> means to set the key corresponding to the
+  That's normal because <code class="hl"><span class="hljs-operator">^</span></code> means to set the key corresponding to the
   value of an expression and without the parentheses it'll think the key
-  is the value of the whole expression <code>Symbol.iterator()</code> instead of just
-  <code>Symbol.iterator.</code></span></p>
+  is the value of the whole expression <code class="hl">Symbol<span class="hljs-string">.iterator</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span></code> instead of just
+  <code class="hl">Symbol<span class="hljs-string">.iterator</span></code>.</div>
 
 
 <h3 id="todo">TODO</h3>
@@ -946,7 +954,7 @@ mul3<span class="hljs-operator">!</span> y <span class="hljs-operator">=</span> 
 <p>There are some missing features I'll add at some point, tell me if you
 need them.</p>
 
-<ul><li><code>super</code> keyword</li><li>getter/setters</li></ul>
+<ul><li><code class="hl">super</code> keyword</li><li>getter/setters</li></ul>
 
 
 
@@ -955,31 +963,31 @@ need them.</p>
 
 <h3 id="chain">chain</h3>
 
-<p><code>chain</code> is how you chain methods in EG.</p>
+<code class="hl"><span class="hljs-keyword">chain</span></code> is how you chain methods in EG.
 
-<p>The body of <code>chain</code> should contain a sequence of statements. The return
-value of each statement is tied to the <code>@</code> operator in the next.</p>
+The body of <code class="hl"><span class="hljs-keyword">chain</span></code> should contain a sequence of statements. The return
+value of each statement is tied to the <code class="hl"><span class="hljs-operator">@</span></code> operator in the next.
 
 <p>Here's an example:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">chain </span><span class="hljs-string">"hello"</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">chain </span><span class="hljs-string">"hello"</span><span class="hljs-punctuation">:</span>
    <span class="hljs-comment">;; @ is "hello"</span>
    <span class="hljs-member">@replace</span><span class="hljs-punctuation">(</span><span class="hljs-string">"o"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">""</span><span class="hljs-punctuation">)</span>
    <span class="hljs-comment">;; @ is "hell"</span>
    <span class="hljs-punctuation">{</span><span class="hljs-operator">@</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"is"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"freezing"</span><span class="hljs-punctuation">}</span>
    <span class="hljs-comment">;; @ is {"hell", "is", "freezing"}</span>
    <span class="hljs-member">@join</span><span class="hljs-punctuation">(</span><span class="hljs-string">" "</span><span class="hljs-punctuation">)</span>
-<span class="hljs-comment">;; ==&gt; "hell is freezing"</span></pre></p>
+<span class="hljs-comment">;; ==&gt; "hell is freezing"</span></pre>
 
 
 <h3 id="regularexpressions">Regular expressions</h3>
 
-<p>Regular expressions are written with the <code>R</code> prefix, for instance,
-<code>R"\d+(\.\d*)?"</code></p>
+Regular expressions are written with the <code class="hl">R</code> prefix, for instance,
+<code class="hl">R<span class="hljs-string">"\d+(\.\d*)?"</span></code>
 
 <p>They can be used as checkers or projectors. For example:</p>
 
-<p><pre class="hl">mangle<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>email<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hl">mangle<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>email<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
 
    <span class="hljs-comment">;; regexp! transforms the input into an array of match groups</span>
    <span class="hljs-comment">;; (the first is always the whole match)</span>
@@ -992,14 +1000,14 @@ value of each statement is tied to the <code>@</code> operator in the next.</p>
       <span class="hljs-string">"It looks like an email but I'm too daft to parse it."</span>
 
    <span class="hljs-keyword">else</span> <span class="hljs-operator">-&gt;</span>
-      <span class="hljs-string">"This is not an email at all!"</span></pre></p>
+      <span class="hljs-string">"This is not an email at all!"</span></pre>
 
 
 <h3 id="errorsandexceptions">Errors and exceptions</h3>
 
-<ul><li><code>throw</code> is used to throw an exception</li><li><code>try</code> and <code>catch</code> are used to catch an exception</li><li><code>finally</code> is used for cleanup</li><li><code>E</code> is used to build customized exceptions</li></ul>
+<ul><li><code class="hl">throw</code> is used to throw an exception</li><li><code class="hl">try</code> and <code class="hl">catch</code> are used to catch an exception</li><li><code class="hl">finally</code> is used for cleanup</li><li><code class="hl">E</code> is used to build customized exceptions</li></ul>
 
-<p><pre class="hl"><span class="hljs-keyword">try</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">try</span><span class="hljs-punctuation">:</span>
    <span class="hljs-keyword">throw </span>E<span class="hljs-string">.test</span><span class="hljs-string">.my-error</span><span class="hljs-punctuation">(</span><span class="hljs-string">"This is my error."</span><span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">catch </span>TypeError<span class="hljs-operator">?</span> e<span class="hljs-punctuation">:</span>
    <span class="hljs-keyword">print </span><span class="hljs-string">"There was a type error."</span>
@@ -1008,74 +1016,74 @@ value of each statement is tied to the <code>@</code> operator in the next.</p>
 <span class="hljs-keyword">catch </span>e:
    <span class="hljs-keyword">print </span><span class="hljs-string">"Some other error."</span>
 <span class="hljs-keyword">finally</span><span class="hljs-punctuation">:</span>
-   <span class="hljs-keyword">print </span><span class="hljs-string">"We are done."</span></pre></p>
+   <span class="hljs-keyword">print </span><span class="hljs-string">"We are done."</span></pre>
 
 
 
 <h1 id="modulesystem">Module system</h1>
 
-<p><code>require</code> may be used to import functionality from other
-modules. <code>provide</code> may be used to export functionality.</p>
+<code class="hl">require</code> may be used to import functionality from other
+modules. <code class="hl">provide</code> may be used to export functionality.
 
-<h3 id="require"><code>require</code></h3>
+<h3 id="require"><code class="hl">require</code></h3>
 
-<p>Ideally, all of a module's imports should be in a single <code>require</code>
-block.</p>
+Ideally, all of a module's imports should be in a single <code class="hl">require</code>
+block.
 
-<p><pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span>
    fs<span class="hljs-punctuation">,</span> path
    react <span class="hljs-wordop">as</span> React
    something<span class="hljs-punctuation">(</span><span class="hljs-number">1234</span><span class="hljs-punctuation">)</span>
    <span class="hljs-string">"./mymodule"</span> <span class="hljs-operator">-&gt;</span>
-      some-function<span class="hljs-punctuation">,</span> other-function <span class="hljs-operator">as</span> blah</pre></p>
+      some-function<span class="hljs-punctuation">,</span> other-function <span class="hljs-operator">as</span> blah</pre>
 
 <p>This is roughly equivalent to the following JavaScript:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">var</span> fs           = <span class="hljs-built_in">require</span>(<span class="hljs-string">"fs"</span>)
+<pre class="hl"><span class="hljs-keyword">var</span> fs           = <span class="hljs-built_in">require</span>(<span class="hljs-string">"fs"</span>)
   , path         = <span class="hljs-built_in">require</span>(<span class="hljs-string">"path"</span>)
   , React        = <span class="hljs-built_in">require</span>(<span class="hljs-string">"react"</span>)
   , something    = <span class="hljs-built_in">require</span>(<span class="hljs-string">"something"</span>)(<span class="hljs-number">1234</span>)
   , _temp        = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./mymodule"</span>)
   , someFunction = _temp.someFunction
-  , blah         = _temp.otherFunction;</pre></p>
+  , blah         = _temp.otherFunction;</pre>
 
-<h3 id="provide"><code>provide</code></h3>
+<h3 id="provide"><code class="hl">provide</code></h3>
 
-<p><code>provide</code> fills the module's exports:</p>
+<code class="hl">provide</code> fills the module's exports:
 
-<p><pre class="hl"><span class="hljs-keyword">provide</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">provide</span><span class="hljs-punctuation">:</span>
    fn1<span class="hljs-punctuation">,</span> fn2
-   fn3 <span class="hljs-operator">as</span> xyz</pre></p>
+   fn3 <span class="hljs-operator">as</span> xyz</pre>
 
 <p>It is recommended to put it at the beginning of the file so that it is
 clear what symbols the module provides.</p>
 
-<h3 id="inject"><code>inject</code></h3>
+<h3 id="inject"><code class="hl">inject</code></h3>
 
 <p>TODO</p>
 
-<h3 id="requiremacros"><code>require-macros</code></h3>
+<h3 id="requiremacros"><code class="hl">require-macros</code></h3>
 
-<p><code>require-macros</code> works like <code>require</code>, but the imported symbols are
-defined as macros.</p>
+<code class="hl">require-macros</code> works like <code class="hl">require</code>, but the imported symbols are
+defined as macros.
 
-<p><code>earl</code> currently does not take into account the dependencies listed by
-<code>require-macros</code> when deciding whether to recompile a file or not. If
+<code class="hl">earl</code> currently does not take into account the dependencies listed by
+<code class="hl">require-macros</code> when deciding whether to recompile a file or not. If
 those dependencies change, dependents may not be recompiled, so you
-will need to <code>touch</code> them or use the <code>-r</code> flag to force them to be.</p>
+will need to <code class="hl">touch</code> them or use the <code class="hl"><span class="hljs-operator">-</span>r</code> flag to force them to be.
 
 
 <h1 id="documentbuildingsyntax">Document-building syntax</h1>
 
-<p>The <code>%</code> operator can be used to build structured "documents". It
-creates an instance of the <code>ENode</code> data structure, which contains a
-set of tags and attributes along with a list of children.</p>
+The <code class="hl"><span class="hljs-operator">%</span></code> operator can be used to build structured "documents". It
+creates an instance of the <code class="hl">ENode</code> data structure, which contains a
+set of tags and attributes along with a list of children.
 
-<p><code>ENode</code> instances mostly just hold structure and are meant to be
-converted into something else, for instance HTML:</p>
+<code class="hl">ENode</code> instances mostly just hold structure and are meant to be
+converted into something else, for instance HTML:
 
 
-<p><pre class="hl">node <span class="hljs-operator">=</span>
+<pre class="hl">node <span class="hljs-operator">=</span>
    div<span class="hljs-struct">#main</span> <span class="hljs-operator">%</span>
       <span class="hljs-string">"Some text"</span>
       strong <span class="hljs-operator">%</span> <span class="hljs-number">1234</span>
@@ -1084,26 +1092,26 @@ converted into something else, for instance HTML:</p>
          <span class="hljs-string">"stuff"</span>
 
 <span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>html
-html<span class="hljs-punctuation">(</span>node<span class="hljs-punctuation">)</span></pre></p>
+html<span class="hljs-punctuation">(</span>node<span class="hljs-punctuation">)</span></pre>
 
 <p>Would produce:</p>
 
-<p><pre class="hl"><span class="hljs-tag">&lt;<span class="hljs-title">div</span> <span class="hljs-attribute">id</span>=<span class="hljs-value">"main"</span>&gt;</span>
+<pre class="hl"><span class="hljs-tag">&lt;<span class="hljs-title">div</span> <span class="hljs-attribute">id</span>=<span class="hljs-value">"main"</span>&gt;</span>
   Some text
   <span class="hljs-tag">&lt;<span class="hljs-title">strong</span>&gt;</span>1234<span class="hljs-tag">&lt;/<span class="hljs-title">strong</span>&gt;</span>
   <span class="hljs-tag">&lt;<span class="hljs-title">a</span> <span class="hljs-attribute">class</span>=<span class="hljs-value">"large blue"</span> <span class="hljs-attribute">href</span>=<span class="hljs-value">"http://example.com"</span>&gt;</span>stuff<span class="hljs-tag">&lt;/<span class="hljs-title">a</span>&gt;</span>
-<span class="hljs-tag">&lt;/<span class="hljs-title">div</span>&gt;</span></pre></p>
+<span class="hljs-tag">&lt;/<span class="hljs-title">div</span>&gt;</span></pre>
 
 
 <h1 id="macros">Macros</h1>
 
 <p>There are two means of defining macros in EG:</p>
 
-<ul><li><code>inline-macro</code> defines a macro for use in the current file and the
+<ul><li><code class="hl">inline-macro</code> defines a macro for use in the current file and the
   current scope. They cannot be exported from the module at the
-  moment.</li><li><code>macro</code> defines an exportable macro. It cannot be used in the file or
+  moment.</li><li><code class="hl">macro</code> defines an exportable macro. It cannot be used in the file or
   scope in which it is defined, but it can be imported with
-  <code>require-macros</code> and used from other modules.</li></ul>
+  <code class="hl">require-macros</code> and used from other modules.</li></ul>
 
 <p>I wouldn't say it's the best setup, but it's still fairly good, and
 the one that exists at the moment.</p>
@@ -1124,8 +1132,8 @@ a(b, c)       &lt;=&gt; a{b, c}
 (a)           &lt;=&gt; [a]       &lt;=&gt; a
 (a, b)        &lt;=&gt; [a, b]</pre></li><li><strong>Operator rules</strong>: operator applications desugar to function/macro
   calls. If the operator is prefix or postfix, one of the arguments
-  will be void. Except for commas, colons and <code>with</code>, <em>all</em> operators
-  undergo that simplification, including core ones like <code>=</code> or <code>-&gt;</code>:
+  will be void. Except for commas, colons and <code class="hl"><span class="hljs-wordop">with</span></code>, <em>all</em> operators
+  undergo that simplification, including core ones like <code class="hl"><span class="hljs-operator">=</span></code> or <code class="hl"><span class="hljs-operator">-&gt;</span></code>:
   <pre class="hl">a + b         &lt;=&gt; [+]{a, b}
 + a           &lt;=&gt; [+]{[], a}
 a +           &lt;=&gt; [+]{a, []}</pre></li><li><strong>Colon rules:</strong>
@@ -1135,95 +1143,95 @@ a b: c        &lt;=&gt; a{b, c}</pre></li><li><strong>Juxtaposition rule:</stron
 
 <p>So for instance:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">if </span>x <span class="hljs-operator">&lt;</span> y<span class="hljs-punctuation">:</span> z   <span class="hljs-operator">&lt;=&gt;</span> if<span class="hljs-punctuation">{</span><span class="hljs-punctuation">[</span><span class="hljs-operator">&lt;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span>
+<pre class="hl"><span class="hljs-keyword">if </span>x <span class="hljs-operator">&lt;</span> y<span class="hljs-punctuation">:</span> z   <span class="hljs-operator">&lt;=&gt;</span> if<span class="hljs-punctuation">{</span><span class="hljs-punctuation">[</span><span class="hljs-operator">&lt;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> z<span class="hljs-punctuation">}</span>
 <span class="hljs-keyword">return </span>x <span class="hljs-operator">+</span> y  <span class="hljs-operator">&lt;=&gt;</span> <span class="hljs-keyword">return</span><span class="hljs-punctuation">[</span><span class="hljs-punctuation">[</span><span class="hljs-operator">+</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">]</span>
-<span class="hljs-keyword">var </span>x <span class="hljs-operator">=</span> <span class="hljs-number">1234</span>  <span class="hljs-operator">&lt;=&gt;</span> <span class="hljs-punctuation">[</span><span class="hljs-operator">=</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">{</span>var<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1234</span><span class="hljs-punctuation">}</span></pre></p>
+<span class="hljs-keyword">var </span>x <span class="hljs-operator">=</span> <span class="hljs-number">1234</span>  <span class="hljs-operator">&lt;=&gt;</span> <span class="hljs-punctuation">[</span><span class="hljs-operator">=</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">{</span>var<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1234</span><span class="hljs-punctuation">}</span></pre>
 
 
 <h3 id="quote">quote</h3>
 
 <p>EG code can be "quoted" by putting it inside backticks:</p>
 
-<p><pre class="hl"><span class="hljs-quote">`a + 2`</span>
+<pre class="hl"><span class="hljs-quote">`a + 2`</span>
 <span class="hljs-comment">;; =&gt; the AST of "a + 2"</span>
-<span class="hljs-comment">;; =&gt; #send{#symbol{"+"}, #data{#symbol{"a"}, #value{2}}}</span></pre></p>
+<span class="hljs-comment">;; =&gt; #send{#symbol{"+"}, #data{#symbol{"a"}, #value{2}}}</span></pre>
 
-<p>You can "unquote" with the caret operators. Use <code>^</code> to insert a bit of
-AST or <code>^=</code> to insert a value.</p>
+You can "unquote" with the caret operators. Use <code class="hl"><span class="hljs-operator">^</span></code> to insert a bit of
+AST or <code class="hl"><span class="hljs-operator">^=</span></code> to insert a value.
 
-<p><pre class="hl">apb <span class="hljs-operator">=</span> <span class="hljs-quote">`a * b`</span>
+<pre class="hl">apb <span class="hljs-operator">=</span> <span class="hljs-quote">`a * b`</span>
 two <span class="hljs-operator">=</span> <span class="hljs-number">2</span>
-<span class="hljs-quote">`^=two * ^apb`</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-quote">`2 * (a + b)`</span></pre></p>
+<span class="hljs-quote">`^=two * ^apb`</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-quote">`2 * (a + b)`</span></pre>
 
 <p>Together these features let you pattern match on code:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">match </span><span class="hljs-quote">`a + b * c`</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">match </span><span class="hljs-quote">`a + b * c`</span><span class="hljs-punctuation">:</span>
    <span class="hljs-quote">`^x + ^y`</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"addition"</span>
    <span class="hljs-quote">`^x * ^y`</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"multiplication"</span>
-   <span class="hljs-quote">`^f ^arg`</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"application"</span></pre></p>
+   <span class="hljs-quote">`^f ^arg`</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-string">"application"</span></pre>
 
-<p>Be careful about the order of patterns. The "application" pattern may
-not look like it, but it would match the expression <code>a + b</code> with <code>+</code>
-in <code>f</code> and <code>{a, b}</code> in <code>arg</code> (because <code>a + b</code> &lt;=&gt; <code>[+] {a, b}</code>).</p>
+Be careful about the order of patterns. The "application" pattern may
+not look like it, but it would match the expression <code class="hl">a <span class="hljs-operator">+</span> b</code> with <code class="hl"><span class="hljs-operator">+</span></code>
+in <code class="hl">f</code> and <code class="hl"><span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span></code> in <code class="hl">arg</code> (because <code class="hl">a <span class="hljs-operator">+</span> b</code> &lt;=&gt; <code class="hl"><span class="hljs-punctuation">[</span><span class="hljs-operator">+</span><span class="hljs-punctuation">]</span> <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span></code>).
 
 
 <h3 id="inlinemacro">inline-macro</h3>
 
 <p>The syntax goes like this:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">inline-macro </span>macro-name<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
-   build-new-expression<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span></pre></p>
+<pre class="hl"><span class="hljs-keyword">inline-macro </span>macro-name<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+   build-new-expression<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span></pre>
 
 <p>The expression is the AST of the argument given to the macro call and
 it is determined like this:</p>
 
-<table><tr><th>Situation</th><th>Value of <code>expression</code></th></tr><tr><td><code>macro-name(x)</code></td><td><code>`{x}`</code></td></tr><tr><td><code>macro-name{x}</code></td><td><code>`{x}`</code></td></tr><tr><td><code>macro-name(x, y)</code></td><td><code>`{x, y}`</code></td></tr><tr><td><code>macro-name[x]</code></td><td><code>`x`</code></td></tr><tr><td><code>macro-name x</code></td><td><code>`x`</code></td></tr><tr><td><code>macro-name[x, y]</code></td><td><code>`[x, y]`</code></td></tr><tr><td><code>macro-name: x</code></td><td><code>`{x}`</code></td></tr><tr><td><code>macro-name x: y</code></td><td><code>`{x, y}`</code></td></tr><tr><td><code>macro-name x: y, z</code></td><td><code>`{x, [y, z]}`</code></td></tr><tr><td><code>macro-name</code></td><td><code>#void{}</code></td></tr></table>
+<table><tr><th>Situation</th><th>Value of <code class="hl">expression</code></th></tr><tr><td><code class="hl">macro-name<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">)</span></code></td><td><code class="hl"><span class="hljs-quote">`{x}`</span></code></td></tr><tr><td><code class="hl">macro-name<span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">}</span></code></td><td><code class="hl"><span class="hljs-quote">`{x}`</span></code></td></tr><tr><td><code class="hl">macro-name<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">)</span></code></td><td><code class="hl"><span class="hljs-quote">`{x, y}`</span></code></td></tr><tr><td><code class="hl">macro-name<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span></code></td><td><code class="hl"><span class="hljs-quote">`x`</span></code></td></tr><tr><td><code class="hl"><span class="hljs-keyword">macro-name </span>x</code></td><td><code class="hl"><span class="hljs-quote">`x`</span></code></td></tr><tr><td><code class="hl">macro-name<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">]</span></code></td><td><code class="hl"><span class="hljs-quote">`[x, y]`</span></code></td></tr><tr><td><code class="hl"><span class="hljs-keyword">macro-name</span><span class="hljs-punctuation">:</span> x</code></td><td><code class="hl"><span class="hljs-quote">`{x}`</span></code></td></tr><tr><td><code class="hl"><span class="hljs-keyword">macro-name </span>x: y</code></td><td><code class="hl"><span class="hljs-quote">`{x, y}`</span></code></td></tr><tr><td><code class="hl"><span class="hljs-keyword">macro-name </span>x: y<span class="hljs-punctuation">,</span> z</code></td><td><code class="hl"><span class="hljs-quote">`{x, [y, z]}`</span></code></td></tr><tr><td><code class="hl">macro-name</code></td><td><code class="hl"><span class="hljs-struct">#void</span><span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span></code></td></tr></table>
 
-<p>The last situation is only triggered if the expander encounters
-<code>macro-name</code> alone and with <em>no</em> arguments. Note that the expression
-isn't inside backticks, you have to match <code>#void{}</code>, literally.</p>
+The last situation is only triggered if the expander encounters
+<code class="hl">macro-name</code> alone and with <em>no</em> arguments. Note that the expression
+isn't inside backticks, you have to match <code class="hl"><span class="hljs-struct">#void</span><span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span></code>, literally.
 
-<p><strong>Example</strong>: <strong>unless</strong> as a counterpart to <code>if</code>:</p>
+<strong>Example</strong>: <strong>unless</strong> as a counterpart to <code class="hl">if</code>:
 
-<p><pre class="hl"><span class="hljs-keyword">inline-macro </span>unless<span class="hljs-punctuation">(</span><span class="hljs-quote">`{^cond, ^body}`</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">inline-macro </span>unless<span class="hljs-punctuation">(</span><span class="hljs-quote">`{^cond, ^body}`</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
    <span class="hljs-quote">`if not ^cond: ^body`</span>
 
 unless<span class="hljs-punctuation">(</span><span class="hljs-number">1</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-keyword">print </span><span class="hljs-string">"all is well"</span><span class="hljs-punctuation">)</span>  <span class="hljs-comment">;; prints "all is well"</span>
 
 <span class="hljs-keyword">unless </span><span class="hljs-number">1</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">:</span>
-   <span class="hljs-keyword">print </span><span class="hljs-string">"all is well"</span>               <span class="hljs-comment">;; same as above</span></pre></p>
+   <span class="hljs-keyword">print </span><span class="hljs-string">"all is well"</span>               <span class="hljs-comment">;; same as above</span></pre>
 
 <p>Here is a simple macro for <strong>assert</strong>:</p>
 
-<p><pre class="hl"><span class="hljs-keyword">inline-macro </span>assert<span class="hljs-punctuation">(</span>cond<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">inline-macro </span>assert<span class="hljs-punctuation">(</span>cond<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
    code <span class="hljs-operator">=</span> <span class="hljs-member">@raw</span><span class="hljs-punctuation">(</span>cond<span class="hljs-punctuation">)</span>
    <span class="hljs-quote">`if{cond, true, throw E.assert("Assertion failed: " + ^code)}`</span>
 
 <span class="hljs-keyword">assert </span><span class="hljs-number">1</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">2</span>
-<span class="hljs-comment">;; =&gt; throws E.assert("Assertion failed: 1 == 2")</span></pre></p>
+<span class="hljs-comment">;; =&gt; throws E.assert("Assertion failed: 1 == 2")</span></pre>
 
 
 <h3 id="macro">macro</h3>
 
-<p>Unlike <code>inline-macro</code>, <code>macro</code> is built to create exportable macros. The
-basic syntax is as follows:</p>
+Unlike <code class="hl">inline-macro</code>, <code class="hl">macro</code> is built to create exportable macros. The
+basic syntax is as follows:
 
-<p><pre class="hl"><span class="hljs-keyword">macro </span>macro-name<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
-   build-new-expression<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span></pre></p>
+<pre class="hl"><span class="hljs-keyword">macro </span>macro-name<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   build-new-expression<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span></pre>
 
 <p>For example:</p>
 
-<p><code>unless.eg</code>:</p>
+<code class="hl">unless<span class="hljs-string">.eg</span></code>:
 
-<p><pre class="hl"><span class="hljs-keyword">provide</span><span class="hljs-punctuation">:</span> unless
+<pre class="hl"><span class="hljs-keyword">provide</span><span class="hljs-punctuation">:</span> unless
 <span class="hljs-keyword">macro </span>unless<span class="hljs-punctuation">(</span><span class="hljs-quote">`{^cond, ^body}`</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
-   <span class="hljs-quote">`if not ^cond: ^body`</span></pre></p>
+   <span class="hljs-quote">`if not ^cond: ^body`</span></pre>
 
-<p><code>script.eg</code>:</p>
+<code class="hl">script<span class="hljs-string">.eg</span></code>:
 
-<p><pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./unless"</span> <span class="hljs-operator">-&gt;</span> unless
+<pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./unless"</span> <span class="hljs-operator">-&gt;</span> unless
 <span class="hljs-keyword">unless </span><span class="hljs-number">1</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">:</span>
-   <span class="hljs-keyword">print </span><span class="hljs-string">"all is well"</span></pre></p>
+   <span class="hljs-keyword">print </span><span class="hljs-string">"all is well"</span></pre>
 
 <h4 id="dependencies">Dependencies</h4>
 
@@ -1231,69 +1239,69 @@ basic syntax is as follows:</p>
 libraries, data structures, and so on. For this purpose it is possible
 to declare a list of dependencies for a macro:</p>
 
-<p><pre class="hl">macro<span class="hljs-punctuation">{</span>dependencies<span class="hljs-punctuation">,</span> <span class="hljs-operator">...</span><span class="hljs-punctuation">}</span> macro-name<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
-   build-new-expression<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span></pre></p>
+<pre class="hl">macro<span class="hljs-punctuation">{</span>dependencies<span class="hljs-punctuation">,</span> <span class="hljs-operator">...</span><span class="hljs-punctuation">}</span> macro-name<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   build-new-expression<span class="hljs-punctuation">(</span>expression<span class="hljs-punctuation">)</span></pre>
 
-<p>Each listed dependency is then associated to a special symbol in
-<code>@deps</code>, and that symbol can be inserted in the generated code.</p>
+Each listed dependency is then associated to a special symbol in
+<code class="hl"><span class="hljs-member">@deps</span></code>, and that symbol can be inserted in the generated code.
 
 <p>Here's an example:</p>
 
-<p><code>uniq.eg</code>:</p>
+<code class="hl">uniq<span class="hljs-string">.eg</span></code>:
 
-<p><pre class="hl"><span class="hljs-keyword">provide</span><span class="hljs-punctuation">:</span> unique-id
+<pre class="hl"><span class="hljs-keyword">provide</span><span class="hljs-punctuation">:</span> unique-id
 <span class="hljs-keyword">var </span>id <span class="hljs-operator">=</span> <span class="hljs-number">0</span>
 next-id<span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> id<span class="hljs-operator">++</span>
 macro<span class="hljs-punctuation">{</span>next-id<span class="hljs-punctuation">}</span> unique-id<span class="hljs-punctuation">(</span><span class="hljs-struct">#void</span><span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">let </span>next-id-sym <span class="hljs-operator">=</span> <span class="hljs-member">@deps</span><span class="hljs-string">.next-id</span>
-   <span class="hljs-quote">`[^next-id-sym]{}`</span></pre></p>
+   <span class="hljs-quote">`[^next-id-sym]{}`</span></pre>
 
-<p><code>script.eg</code>:</p>
+<code class="hl">script<span class="hljs-string">.eg</span></code>:
 
-<p><pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./uniq"</span> <span class="hljs-operator">-&gt;</span> unique-id
+<pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./uniq"</span> <span class="hljs-operator">-&gt;</span> unique-id
 <span class="hljs-keyword">print </span>unique-id    <span class="hljs-comment">;; 0</span>
 <span class="hljs-keyword">print </span>unique-id    <span class="hljs-comment">;; 1</span>
 <span class="hljs-keyword">print </span>unique-id    <span class="hljs-comment">;; 2</span>
-<span class="hljs-operator">...</span></pre></p>
+<span class="hljs-operator">...</span></pre>
 
-<p>The unexported function <code>next-id</code> in <code>uniq.eg</code> is declared as a
-dependency by <code>unique-id</code>, which can generate code using it. Behind the
-scenes, Earl Grey exports <code>next-id</code> under a mangled name and
-automatically imports it along with <code>unique-id</code>. In other words, the
-generated code will look a bit like this:</p>
+The unexported function <code class="hl">next-id</code> in <code class="hl">uniq<span class="hljs-string">.eg</span></code> is declared as a
+dependency by <code class="hl">unique-id</code>, which can generate code using it. Behind the
+scenes, Earl Grey exports <code class="hl">next-id</code> under a mangled name and
+automatically imports it along with <code class="hl">unique-id</code>. In other words, the
+generated code will look a bit like this:
 
-<p><pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./uniq"</span> <span class="hljs-operator">-&gt;</span> unique-id
+<pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./uniq"</span> <span class="hljs-operator">-&gt;</span> unique-id
 <span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"./uniq"</span> <span class="hljs-operator">-&gt;</span> next-id$0
 <span class="hljs-keyword">print </span>next-id$0<span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span>
 <span class="hljs-keyword">print </span>next-id$0<span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span>
 <span class="hljs-keyword">print </span>next-id$0<span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span>
-<span class="hljs-operator">...</span></pre></p>
+<span class="hljs-operator">...</span></pre>
 
 <h3 id="hygiene">Hygiene</h3>
 
-<p><strong>Hygiene</strong> is an important property of macro systems: the goal is to
+<strong>Hygiene</strong> is an important property of macro systems: the goal is to
 keep macros well-behaved by making sure that the variables defined in
 user code do not leak into macro-generated code, and vice versa. For
-instance, a macro generating an <code>if</code> statement ought not to stop
-working if, for some reason, the user rebinds the <code>if</code> variable.</p>
+instance, a macro generating an <code class="hl">if</code> statement ought not to stop
+working if, for some reason, the user rebinds the <code class="hl">if</code> variable.
 
-<p>EG tags every node output by the parser with an <code>env</code> field. Two
+EG tags every node output by the parser with an <code class="hl">env</code> field. Two
 symbols refer to the same variable if and only if looking up their
 names in their respective environments in their respective scopes
 yields the same reference for both. By default, code constructed using
-quote has no <code>env</code>, but when it is returned to the macro expander,
+quote has no <code class="hl">env</code>, but when it is returned to the macro expander,
 untagged nodes are tagged with a fresh environment that looks up
 bindings at the definition site. This protects the user's bindings
-from interfering with the macro's, and vice versa.</p>
+from interfering with the macro's, and vice versa.
 
-<p>By extracting the environment of its form or argument and tagging
+By extracting the environment of its form or argument and tagging
 generated code snippets with it, a macro can "violate" hygiene. This
 lets it intentionally define variables for use inside the macro. This
-is typically done with the <code>@env.mark</code> method. Here is an example:</p>
+is typically done with the <code class="hl"><span class="hljs-member">@env</span><span class="hljs-string">.mark</span></code> method. Here is an example:
 
 <h4 id="capturingnames">Capturing names</h4>
 
-<p><pre class="hl"><span class="hljs-keyword">inline-macro </span>func<span class="hljs-punctuation">(</span>body<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+<pre class="hl"><span class="hljs-keyword">inline-macro </span>func<span class="hljs-punctuation">(</span>body<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
    <span class="hljs-comment">;; Create a function with a single argument named $</span>
    dolla <span class="hljs-operator">=</span> <span class="hljs-member">@env</span><span class="hljs-string">.mark</span><span class="hljs-punctuation">(</span><span class="hljs-quote">`$`</span><span class="hljs-punctuation">)</span>
    <span class="hljs-quote">`^dolla -&gt; ^body`</span>
@@ -1302,39 +1310,32 @@ add10 <span class="hljs-operator">=</span> <span class="hljs-keyword">func </spa
 add10<span class="hljs-punctuation">(</span><span class="hljs-number">91</span><span class="hljs-punctuation">)</span>        <span class="hljs-comment">;; ==&gt; 101</span>
 
 first4 <span class="hljs-operator">=</span> <span class="hljs-keyword">func </span>$<span class="hljs-string">.substring</span><span class="hljs-punctuation">(</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">4</span><span class="hljs-punctuation">)</span>
-first4<span class="hljs-punctuation">(</span><span class="hljs-string">"hello"</span><span class="hljs-punctuation">)</span>  <span class="hljs-comment">;; ==&gt; "hell"</span></pre></p>
+first4<span class="hljs-punctuation">(</span><span class="hljs-string">"hello"</span><span class="hljs-punctuation">)</span>  <span class="hljs-comment">;; ==&gt; "hell"</span></pre>
 
-<p>What we want to do is simple: we want to let the body of <code>func</code> refer
-to its argument with <code>$</code>. If we did this naively, e.g. by returning
-<code>`$ -&gt; ^body`</code>, it would not work, because EG will think that the
-argument named <code>$</code> and the occurrences of <code>$</code> in the body refer to
+What we want to do is simple: we want to let the body of <code class="hl">func</code> refer
+to its argument with <code class="hl">$</code>. If we did this naively, e.g. by returning
+<code class="hl"><span class="hljs-quote">`$ -&gt; ^body`</span></code>, it would not work, because EG will think that the
+argument named <code class="hl">$</code> and the occurrences of <code class="hl">$</code> in the body refer to
 <em>different variables</em>. This is usually a good thing, but now we want
-to defeat it.</p>
+to defeat it.
 
-<p><strong><code>@env</code></strong> is the environment in which the call to the <code>func</code>
+<strong><code class="hl"><span class="hljs-member">@env</span></code></strong> is the environment in which the call to the <code class="hl">func</code>
 statement was made (it could be user code, or it could be another
-macro). <code>@env.mark{`$`}</code> will therefore "mark" a <code>$</code> symbol as
+macro). <code class="hl"><span class="hljs-member">@env</span><span class="hljs-string">.mark</span><span class="hljs-punctuation">{</span><span class="hljs-quote">`$`</span><span class="hljs-punctuation">}</span></code> will therefore "mark" a <code class="hl">$</code> symbol as
 belonging to that same environment, and we save that marked symbol in
-the <code>dolla</code> variable. All we have to do, then, is to use this marked
-variable to declare the argument.</p>
+the <code class="hl">dolla</code> variable. All we have to do, then, is to use this marked
+variable to declare the argument.
 
-<p><span class="note">
-  You can also get an <code>env</code> from <code>body</code> or any other node (e.g. we could
-  have called <code>body.env.mark(`$`)</code>). This will only make a difference
+<div class="note">
+  You can also get an <code class="hl">env</code> from <code class="hl">body</code> or any other node (e.g. we could
+  have called <code class="hl">body<span class="hljs-string">.env</span><span class="hljs-string">.mark</span><span class="hljs-punctuation">(</span><span class="hljs-quote">`$`</span><span class="hljs-punctuation">)</span></code>). This will only make a difference
   if they come from different environments, for instance if another
-  macro was to build the expression <code>`func ^x`</code>. <strong>It is usually
-  safest</strong> to use <code>@env</code> because it refers to the macro call itself,
-  so unintended interference is rather unlikely.</span></p>
+  macro was to build the expression <code class="hl"><span class="hljs-quote">`func ^x`</span></code>. <strong>It is usually
+  safest</strong> to use <code class="hl"><span class="hljs-member">@env</span></code> because it refers to the macro call itself,
+  so unintended interference is rather unlikely.</div>
+</div></div>
 
 
+<div id="foot-container" class="container"><div id="foot"></div></div>
 
-</div>
-
-
-
-    <div id="tail"></div></div></div>
-
-
-<div id="foot-container" class="container"><div id="foot"><span class="footlink"></span></div></div>
-</body></html>
-
+    </body></html>

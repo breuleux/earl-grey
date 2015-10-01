@@ -7,8 +7,9 @@
 @import url("cards.css");
 
 
-#main {
+#repl-container {
   width: 1200px;
+  margin: auto;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
