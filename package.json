@@ -35,9 +35,10 @@
     "node": ">=4.0.0"
   },
   "keywords": [
-    "Programming language",
-    "Macros",
-    "Pattern matching"
+    "earlgrey",
+    "language",
+    "macros",
+    "pattern-matching"
   ],
   "author": "Olivier Breuleux",
   "license": "MIT"
