@@ -34,7 +34,9 @@ getreqs{info, req, expr, prefix = null} =
          x = wrap{x}
       x
 
-   logName{name and [#symbol{camelCase! n} or #variable{n}]} =
+   logName{name and [#symbol{camelCase! n}
+                     \ or #variable{n}
+                     \ or #value{"'" and n}]} =
       names.push with name
       pkgs[n] = curpkg
       if prefix === null:
@@ -43,6 +45,7 @@ getreqs{info, req, expr, prefix = null} =
          res = match name:
             #symbol{s} -> #symbol{prefix + s} <<: name
             #variable{s} -> #symbol{prefix + s} <<: name
+            #value{s} -> #symbol{prefix + s} <<: name
          res.other = name
          res
 
@@ -147,7 +150,8 @@ mac{"requireMacros"}! requiremac_mac{context, info, form, match arg} =
       {stmts, vars, pkgs} = getreqs{info, req, expr, "$MAC$"}
       body =
          #multi{*stmts, #data{*vs}} where
-            vs = vars each v and #symbol{s} -> `^v = ^[#symbol{"$MAC$" + s}]`
+            vs = vars each v and [#symbol{s} or #variable{s} or #value{s}] ->
+               `^v = ^[#symbol{"$MAC$" + s}]`
       body <<: arg
       the_macros = info.go{body, .parse, .eval}
       user-req = info.mark{`require`}

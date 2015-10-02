@@ -147,6 +147,7 @@ class Translator:
          "~" => "__tilde__"
          "." => "__dot__"
          ":" => "__colon__"
+         "'" => "__quote__"
       }
       r = {}
       for [i = 0, i < name.length, ++i]:
