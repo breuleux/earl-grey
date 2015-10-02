@@ -454,10 +454,11 @@ class Expander:
                var changes = false
                {=> newargs, => vars} = classify{.newargs, .vars} with
                   @step_all{#expr{.multi}, stepscope, args} each
-                     ;; #option{opt, value} ->
-                     ;;    {=> env} = expr
-                     ;;    env.setopt{newscope, opt, value}
-                     ;;    #ignore
+                     #option{opt, value} ->
+                        {=> env} = expr
+                        env.setopt{newscope, opt, value}
+                        set-var changes = true
+                        #ignore
                      #declare_raw{variable and #symbol{s}, value} ->
                         {=> env} = variable
                         env.bind{newscope, s} with value
