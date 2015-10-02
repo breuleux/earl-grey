@@ -40,9 +40,16 @@ getreqs{info, req, expr, prefix = null} =
       if prefix === null:
          name
       else:
-         match name:
+         res = match name:
             #symbol{s} -> #symbol{prefix + s} <<: name
             #variable{s} -> #symbol{prefix + s} <<: name
+         res.other = name
+         res
+
+   unlogName{name} =
+      match names.index-of{name.other or name}:
+         === -1 -> pass
+         n -> names.splice{n, 1}
 
    topfetch{pkg, v, args = null, wrap = null} =
       curpkg = pkg
@@ -69,7 +76,8 @@ getreqs{info, req, expr, prefix = null} =
          fetch{name, #symbol{info.gensym{}} &: {reqname = name}}
 
       #send{#symbol{"as"}, #data{pkg, s}} ->
-         produce{pkg} with {the_pkg, _, args = null, wrap = null} ->
+         produce{pkg} with {the_pkg, ignore, args = null, wrap = null} ->
+            unlogName{ignore}
             fetch{the_pkg, logName{s}, args, wrap}
 
       #send{#symbol{"->"}, #data{pkg, subp}} ->
