@@ -10,6 +10,7 @@ require:
 
 provide:
    run
+   display-error
 
 globals:
    JSON
@@ -57,7 +58,7 @@ Global options:
 "
 
 
-display_error{match e, rethrow = false} =
+display-error{match e, rethrow = false} =
    E.syntax? {args => {args}} ->
       console.error{String{e}}
       hls = {.hl1, .hl2, .hl3, .hl4}
@@ -217,7 +218,7 @@ interactive{g, e, o} =
                result = await e{text}
                callback{null, result}
          catch e:
-            display_error{e}
+            display-error{e}
             callback{null, undefined}
    }
    runner = repl.start with settings
@@ -311,7 +312,7 @@ run{argv} =
       }
    _run{cmd, opts} !!
       e ->
-         display_error{e, true}
+         display-error{e, true}
          process.exit{1}
 
 
