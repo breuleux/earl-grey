@@ -216,6 +216,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       buildp = {"%_Y"}
 
       "when" = {"X_when_Y"}
+      "as" = {"X_as_Y"}
       "or" = {"X_or_Y"}
       "and" = {"X_and_Y"}
       "not" = {"not_Y"}
@@ -257,6 +258,7 @@ eg_order = SimplePriority{eg_groups, eg_prio} where
       build    = {#all{13}, #all{10}}
       "each"   = {#all{135}, #all{10}}
       "when"   = {#all{100}, #all{101}}
+      "as"     = {#all{104}, #all{105}}
       "or"     = {#all{110}, #all{111}}
       "and"    = {#all{120}, #all{121}}
       "not"    = {#all{MAX}, #all{131}}
