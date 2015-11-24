@@ -109,8 +109,17 @@ parser = new opg.parse.Parser{tok, prio.getOrder{}, finalize}
 parse{text} =
    parser.parse{text}
 
+
 overridable! mac{"wrap-quote"}! wq_mac{context, info, form, `{^x}`} =
-   `[^x].to-string{}`
+   match x:
+      `ENode{{}, {=}, {^*elements}}` and match is elements ->
+         {v and #value{String?}} -> v
+         {#value{String?}, *} ->
+            elements.reduce{f,} where f{x, y} = `^x + ^y`
+         else ->
+            elements.reduce{f, `""`} where f{x, y} = `^x + ^y`
+      else ->
+         `[^x].to-string{}`
 
 mac{"'"}! interpolate_mac{context, info, form, #value{s}} =
    #join{*contents} or contents is {} = parse{s}
