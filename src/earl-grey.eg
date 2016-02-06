@@ -157,7 +157,10 @@ class Generator:
       if @interactive: @opts.runtime = null
       @_eval = null
       use-es6 =
-         parseInt{process.version.split{"."}[0].slice{1}} >= 4 or process.title == "iojs"
+         match process.title:
+            .node -> parseInt{process.version.split{"."}[0].slice{1}} >= 4
+            .iojs -> true
+            else -> false
       @pipeline = Pipeline{{es5 = not use-es6} & @opts}
       @expander = std.make_expander{@pipeline}
 
