@@ -33,7 +33,7 @@ Resources
 * [Documentation](http://breuleux.github.io/earl-grey/doc.html)
 * [Editor support](http://breuleux.github.io/earl-grey/tooling.html)
 * [Contributing](http://breuleux.github.io/earl-grey/contrib.html)
-* [Try it here!](http://breuleux.github.io/earl-grey/repl)
+* [Try it here!](http://breuleux.github.io/earl-grey/repl.html)
 
 
 Examples
