@@ -1,0 +1,493 @@
+/* Set fonts */
+.true, .false, .null, .undefined, .num, .str, .name, .regexp {
+  font-family: monospace;
+  white-space: pre-wrap; }
+
+/* Primitives */
+.true, .false, .null, .undefined, .num {
+  font-weight: bold; }
+
+.str {
+  white-space: pre;
+  max-height: 200px;
+  overflow: auto; }
+
+.function:before {
+  content: "function "; }
+
+/* Arrays */
+.array {
+  display: inline-block;
+  /* overflow: auto; */
+  margin: 2px;
+  padding: 0px; }
+
+.array > * {
+  display: inline-block;
+  padding: 3px;
+  vertical-align: middle; }
+
+/* Objects */
+.object {
+  display: inline-table;
+  padding: 0px;
+  margin: 2px; }
+
+.object > .assoc {
+  display: table-row; }
+
+.object > .assoc > * {
+  display: table-cell;
+  padding-left: 3px;
+  padding-right: 3px; }
+
+.object > .assoc > :first-child {
+  font-weight: bold;
+  border-right: 1px solid black;
+  vertical-align: middle; }
+
+/* Classes and instances */
+.instance, .class {
+  display: inline-block; }
+
+.instance > .object, .class > .object {
+  margin: 0px; }
+
+.instance .name, .class .name {
+  display: block;
+  padding-left: 3px;
+  padding-right: 3px;
+  font-weight: bold; }
+
+.class > .name::before {
+  content: "class "; }
+
+/* Empty objects */
+.str:empty::before {
+  content: "\"\""; }
+
+.array:empty::before {
+  content: "\2205"; }
+
+.object:empty::before {
+  content: "\2205"; }
+
+/* Miscellaneous */
+.regexp::before {
+  content: "R\""; }
+
+.regexp::after {
+  content: "\""; }
+
+.unknown {
+  font-weight: bold; }
+
+/* References */
+.reference {
+  display: inline-block;
+  font-weight: bold; }
+
+.tagged-node {
+  display: inline-block; }
+
+.tagged-node > * {
+  vertical-align: middle; }
+
+.reference::before {
+  content: "#"; }
+
+.tagged-node > .reference::after {
+  content: "=";
+  margin-right: 3px; }
+
+/* Fanciness */
+.hl, .hl1, .hl2, .hl3, .hlE {
+  font-weight: bold; }
+
+/* Errors */
+.error > * {
+  display: inline-block; }
+
+.error_type {
+  font-weight: bold;
+  margin-right: 10px; }
+
+.error_type:after {
+  content: ":"; }
+
+.traceback {
+  display: block;
+  white-space: pre; }
+
+.source, .source * {
+  display: inline;
+  white-space: pre; }
+
+.sourcepos {
+  margin-left: 5px;
+  margin-right: 5px; }
+
+.sourcecode, .sourcecode * {
+  display: inline; }
+
+.location {
+  font-family: monospace;
+  white-space: pre; }
+
+.lineno {
+  border-right: 2px solid #88f;
+  padding-right: 2px;
+  margin-right: 10px;
+  display: inline-block;
+  text-align: right;
+  min-width: 2em; }
+
+.location > *:first-child > * {
+  margin-right: 8px; }
+
+.location, .source {
+  display: block; }
+
+.location > .lineno, .location > .sourcecode {
+  display: inline; }
+
+/* COLORS */
+.true {
+  color: #080; }
+
+.false {
+  color: #f00; }
+
+.null {
+  color: #888; }
+
+.undefined {
+  color: #888; }
+
+.num {
+  color: #00f; }
+
+.str {
+  color: #000; }
+
+.function {
+  color: blue; }
+
+.array {
+  border: 2px solid #aaa;
+  background-color: #fff; }
+
+.array > :nth-child(odd) {
+  background-color: #fff; }
+
+.array > :nth-child(even) {
+  background-color: #eef; }
+
+.container-array {
+  background-color: #fff !important; }
+
+.container-instance {
+  background-color: #fff !important; }
+
+.container-class {
+  background-color: #fff !important; }
+
+.container-object {
+  background-color: #fff !important; }
+
+.container-collapsed {
+  background-color: #fff !important; }
+
+.object {
+  border: 2px solid #88f;
+  background-color: #fff; }
+
+.instance .name, .class .name {
+  background-color: #88f;
+  color: white; }
+
+.str:empty::before {
+  color: #888; }
+
+.array:empty::before {
+  color: #888; }
+
+.object:empty::before {
+  color: #888; }
+
+.regexp {
+  color: darkblue; }
+
+.regexp::before {
+  color: blue; }
+
+.regexp::after {
+  color: blue; }
+
+.unknown {
+  color: darkorange; }
+
+.reference {
+  color: magenta; }
+
+.hl1 {
+  color: #00f; }
+
+.hl2 {
+  color: #080; }
+
+.hl3 {
+  color: #a80; }
+
+.hlE {
+  color: #f00; }
+
+.red {
+  color: red; }
+
+.green {
+  color: green; }
+
+.blue {
+  color: blue; }
+
+.yellow {
+  color: yellow; }
+
+.cyan {
+  color: cyan; }
+
+.magenta {
+  color: magenta; }
+
+.black {
+  color: black; }
+
+.white {
+  color: white; }
+
+.grey {
+  color: grey; }
+
+.error_type {
+  color: #f00; }
+
+.repple-paste {
+  border: 2px solid #d8d8ff;
+  margin: 2px;
+  display: inline-block;
+  cursor: pointer;
+  font-family: monospace;
+  white-space: pre;
+  background-color: #f8f8ff; }
+
+.repple-paste:hover {
+  background-color: #e8e8ff; }
+
+.repple-card {
+  display: block;
+  border: 2px solid black;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  box-shadow: 5px 5px 0px #eee; }
+  .repple-card h2 {
+    margin-top: 0px;
+    margin-bottom: 0.5em;
+    background-color: #000;
+    color: white;
+    padding: 10px; }
+    .repple-card h2 code {
+      background-color: #66a; }
+  .repple-card table {
+    border: 2px solid black; }
+  .repple-card tr:nth-child(odd) {
+    background: #f8f8ff; }
+  .repple-card tr:nth-child(even) {
+    background: #eeeef8; }
+  .repple-card th, .repple-card td {
+    border: 1px solid #ccc;
+    border-right: 1px solid black;
+    padding: 2px; }
+  .repple-card .blocks .repple-paste {
+    display: block;
+    width: 100%;
+    box-sizing: border-box; }
+
+.repple-card > * {
+  padding-left: 5px;
+  padding-right: 5px; }
+
+.repple-card .note:before {
+  content: "Note: ";
+  font-weight: bold; }
+
+.repple-card .note {
+  color: #550;
+  background-color: #ffd; }
+
+.repple-card .tip:before {
+  content: "Tip: ";
+  font-weight: bold; }
+
+.repple-card .tip {
+  color: #005;
+  background-color: #ddf; }
+
+.repple-card .warning:before {
+  content: "Warning: ";
+  font-weight: bold; }
+
+.repple-card .warning {
+  color: #500;
+  background-color: #fdd; }
+
+.repple-card .success:before {
+  content: "Success: ";
+  font-weight: bold; }
+
+.repple-card .success {
+  color: #050;
+  background-color: #dfd; }
+
+.repple-card .note, .repple-card .tip, .repple-card .warning, .repple-card .success {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px; }
+
+.repple-entry {
+  white-space: pre;
+  font-family: monospace; }
+
+.repple-inputbox {
+  width: 100%; }
+
+.repple-displaybanner, .repple-inbanner {
+  width: 1em; }
+
+.repple-container .repple-entry > * {
+  padding: 7px 0px 5px 4px; }
+
+.repple-outbanner {
+  border-left: 0.2em solid #383;
+  margin-left: 0.4em;
+  margin-right: 0.4em; }
+
+.repple-errbanner {
+  border-left: 0.2em solid #f88;
+  margin-left: 0.4em;
+  margin-right: 0.4em; }
+
+.repple-in, .repple-out, .repple-err, .repple-inputline {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex; }
+
+.repple-result {
+  padding-left: 0.5em;
+  border-left: 3px solid transparent;
+  height: auto; }
+
+/* .repple-entry, .repple-inputbox */
+/*     margin-bottom: 2px; */
+.collapsed:before {
+  content: "..."; }
+
+.collapsed > * {
+  display: none !important; }
+
+textarea.repple-replarea {
+  display: none; }
+
+.repple-entry {
+  height: auto;
+  width: 100%;
+  line-height: 1; }
+
+.repple-card-data {
+  display: none; }
+
+.repple-container {
+  width: 100%;
+  /* border: 2px solid black */
+  overflow-y: hidden; }
+
+.repple-repl-container {
+  padding: 10px; }
+  .repple-repl-container .repple-repl, .repple-repl-container .repple-aside {
+    height: 500px;
+    overflow-y: auto;
+    box-sizing: border-box; }
+
+.repple-repl-aside-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  padding: 10px; }
+  .repple-repl-aside-container .repple-repl, .repple-repl-aside-container .repple-aside {
+    height: 500px;
+    width: 49%;
+    overflow-y: auto;
+    box-sizing: border-box; }
+
+.repple-editor-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  padding: 10px; }
+  .repple-editor-container .repple-editor, .repple-editor-container .repple-aside {
+    height: 500px;
+    width: 49%;
+    overflow-y: auto;
+    box-sizing: border-box; }
+
+.repple-editor-repl-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  padding: 10px; }
+  .repple-editor-repl-container .repple-editor .CodeMirror {
+    height: 100%; }
+  .repple-editor-repl-container .repple-editor, .repple-editor-repl-container .repple-repl {
+    height: 500px;
+    width: 49%;
+    overflow-y: auto;
+    box-sizing: border-box; }
+
+/* COLORS */
+.repple-inbanner, .repple-outbanner {
+  background-color: #383; }

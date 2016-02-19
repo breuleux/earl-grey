@@ -1,38 +1,16 @@
 
 <!DOCTYPE html>
-
 <html>
-
   <head>
-    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
     <title>Earl Grey documentation</title>
-    <link rel="stylesheet" type="text/css" href="/earl-grey/style/style.css">
-    <script src="/earl-grey/lib/toc-scroll.js"></script></head>
-
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8"><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans|Mate+SC|Mate+SC"><link rel="stylesheet" type="text/css" href="resources/look-nice/nav.css"><link rel="stylesheet" type="text/css" href="resources/look-nice/side.css"><script type="text/javascript" src="resources/look-nice/toc-scroll.js"></script><link rel="stylesheet" type="text/css" href="resources/look-nice/main.css"><script type="text/javascript" src="resources/look-nice/nav.js"></script><link rel="stylesheet" type="text/css" href="resources/style/highlight/xcode.css"><link rel="stylesheet" type="text/css" href="resources/style.css"></head>
   <body>
-    
 
-
-
-
-
-<div id="sidebar"><div id="sidebar-contents">
-  <ul class="toc"><li><a href="#install">Install</a></li><li><a href="#runtime">Runtime</a></li><li><a href="#workflow">Workflow</a></li><ul><li><a href="#standalone">Standalone</a></li><li><a href="#compile">Compile</a></li><li><a href="#withgulp">With gulp</a></li><li><a href="#inthebrowser">In the browser</a></li></ul><li><a href="#whatdoesitlooklike">What does it look like?</a></li><li><a href="#toolingsupport">Tooling support</a></li><li><a href="#learnmore">Learn more</a></li></ul></div></div>
-
-<div id="nav-container" class="container"><div id="nav">
-    <div id="logo" class="navlink"><a href="/earl-grey/index.html"><img src="/earl-grey/assets/earlgrey-text.svg" height="60px" alt="Earl Grey"></a></div>
-    <div id="use" class="navlink dropdown">
-      <span><a href="/earl-grey/use.html">learn</a></span>
-      <ul><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></div>
-    
-    <div id="repl" class="navlink"><a href="/earl-grey/repl.html">try it!</a></div>
-    <div id="social">
-       <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey"><img title="breuleux/earl-grey" src="/earl-grey/assets/github.png" height="32px" alt="breuleux/earl-grey on GitHub"></a></div>
-       <div id="twitter" class="navlink"><a href="https://twitter.com/earlgreylang"><img title="@earlgreylang" src="/earl-grey/assets/twitter.png" height="50px" alt="@earlgreylang"></a></div></div></div></div>
-
-
-
-<div id="main-container" class="container"><div id="main">
+<div class="nav-container-desktop"><nav id="nav-leftmost" class="nav-leftmost"><ul></ul></nav><nav id="nav-main" class="nav-main"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li><li>
+  <li class="spacer0"></li></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li><li>
+  <li class="spacer"></li></li><li><a href="https://github.com/breuleux/earl-grey" class="github-badge"><img src="/earl-grey/assets/github.png" alt="breuleux/earl-grey on GitHub" title="breuleux/earl-grey" height="32px"></a></li><li><a href="https://twitter.com/earlgreylang" class="twitter-badge"><img src="/earl-grey/assets/twitter.png" alt="@earlgreylang" title="@earlgreylang" height="50px"></a></li></ul></nav><nav id="nav-rightmost" class="nav-rightmost"><ul></ul></nav></div><div class="nav-container-mobile"><nav class="nav-mobile-menu dropdown"><div class="hamburger"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></div><ul><li><a href="/earl-grey/index.html">home</a></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li></ul></nav><nav id="nav-mobile" class="nav-mobile"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li></ul></nav></div><div id="side"><nav id="nav-side" class="nav-side"><ul><li>
+  <ul class="toc"><li><a href="#install">Install</a></li><li><a href="#runtime">Runtime</a></li><li><a href="#workflow">Workflow</a><ul><li><a href="#standalone">Standalone</a></li><li><a href="#compile">Compile</a></li><li><a href="#withgulp">With gulp</a></li><li><a href="#inthebrowser">In the browser</a></li></ul></li><li><a href="#whatdoesitlooklike">What does it look like?</a></li><li><a href="#toolingsupport">Tooling support</a></li><li><a href="#learnmore">Learn more</a></li></ul></li></ul></nav></div>
+<div class="container">
 
 
 
@@ -43,34 +21,47 @@
 
 
 
-<script>document.getElementById("use").className = "navlink curnav dropdown"</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script>document.querySelector("#nav-main > ul > li:nth-child(4)").className = "dropdown curnav"</script>
 
 <h1 id="install">Install</h1>
 
 <p>First you will need to install:</p>
 
-<ul><li><strong><a href="https://nodejs.org/">node</a></strong> (with version &gt;= 4.0)</li><li><strong><a href="https://www.npmjs.com/">npm</a></strong>, the package manager for node</li></ul>
+<ul><li><strong><a href="https://nodejs.org/">node</a></strong> (with version &gt;= 4.0)</li>
+<li><strong><a href="https://www.npmjs.com/">npm</a></strong>, the package manager for node</li></ul>
 
 
 
-Once <code class="hl">node</code> and <code class="hl">npm</code> are installed, run:
+<p>Once <code class="hlinline">node</code> and <code class="hlinline">npm</code> are installed, run:</p>
 
-<pre class="hl">npm install -g earlgrey</pre>
+<pre class="hljs">npm install -g earlgrey</pre>
 
-This will install the <code class="hl">earl</code> command. Run <code class="hl">earl</code> with no arguments to
-start an interactive interpreter, or run an EG program as:
+<p>This will install the <code class="hlinline">earl</code> command. Run <code class="hlinline">earl</code> with no arguments to
+start an interactive interpreter, or run an EG program as:</p>
 
-<pre class="hl">earl run file.eg</pre>
+<pre class="hljs">earl run file.eg</pre>
 
 
 <h1 id="runtime">Runtime</h1>
 
-Earl Grey scripts depend on the <code class="hl">earlgrey-runtime</code> package. You don't
-need to install it if you run a script with <code class="hl"><span class="hljs-keyword">earl </span>run</code>, but for all
+<p>Earl Grey scripts depend on the <code class="hlinline">earlgrey-runtime</code> package. You don't
+need to install it if you run a script with <code class="hlinline">earl run</code>, but for all
 the other methods you will need to do execute this in the root
-directory of your project:
+directory of your project:</p>
 
-<pre class="hl">npm install earlgrey-runtime --save</pre>
+<pre class="hljs">npm install earlgrey-runtime --save</pre>
 
 
 <h1 id="workflow">Workflow</h1>
@@ -85,41 +76,41 @@ directory of your project:
 
 <p>Run a script like this:</p>
 
-<pre class="hl">earl run script.eg</pre>
+<pre class="hljs">earl run script.eg</pre>
 
-<code class="hl">earl</code> will cache the result of compilation in <code class="hl">egcache<span class="hljs-operator">/</span>script<span class="hljs-string">.js</span></code> (and
+<p><code class="hlinline">earl</code> will cache the result of compilation in <code class="hlinline">egcache/script.js</code> (and
 does so with all dependencies). This means that the second time you
 run your script, it should start running nearly instantaneously, and
-if you change one file, only that file will be recompiled.
+if you change one file, only that file will be recompiled.</p>
 
-If you run into issues, you may force recompilation of your script and
-of <em>all</em> of its dependencies with the <code class="hl"><span class="hljs-operator">-</span>r</code> flag:
+<p>If you run into issues, you may force recompilation of your script and
+of <em>all</em> of its dependencies with the <code class="hlinline">-r</code> flag:</p>
 
-<pre class="hl">earl run -r script.eg</pre>
+<pre class="hljs">earl run -r script.eg</pre>
 
-If you only want to trigger recompilation of a single file, use the
-<code class="hl">touch</code> utility to change its last change date. That will do the trick :)
+<p>If you only want to trigger recompilation of a single file, use the
+<code class="hlinline">touch</code> utility to change its last change date. That will do the trick :)</p>
 
 
 <h3 id="compile">Compile</h3>
 
 <p>Compile a script or all the scripts within a directory with:</p>
 
-<pre class="hl">earl compile file.eg
+<pre class="hljs">earl compile file.eg
 earl compile -o dest.js file.eg
 earl compile -o dest/ src/</pre>
 
-The <code class="hl"><span class="hljs-operator">-</span>s</code> flag writes source maps, I recommend using it. By default
-<code class="hl">earl</code> generates EcmaScript 6 code. You can generate ES5 code instead
-with the <code class="hl"><span class="hljs-number">5</span></code> flag.
+<p>The <code class="hlinline">-s</code> flag writes source maps, I recommend using it. By default
+<code class="hlinline">earl</code> generates EcmaScript 6 code. You can generate ES5 code instead
+with the <code class="hlinline">5</code> flag.</p>
 
-For instance, the command that follows verbosely compiles <code class="hl">src<span class="hljs-operator">/**/*.</span>eg</code>
-into ES5-compatible <code class="hl">dest<span class="hljs-operator">/**/*.</span>js</code> (using babel):
+<p>For instance, the command that follows verbosely compiles <code class="hlinline">src/**/*.eg</code>
+into ES5-compatible <code class="hlinline">dest/**/*.js</code> (using babel):</p>
 
-<pre class="hl">earl compile -<span class="hljs-number">5</span>vso dest/ src/</pre>
+<pre class="hljs">earl compile -<span class="hljs-number">5</span>vso dest/ src/</pre>
 
-As with <code class="hl"><span class="hljs-keyword">earl </span>run</code>, <code class="hl"><span class="hljs-keyword">earl </span>compile</code> avoids needless recompiling. Use
-the <code class="hl"><span class="hljs-operator">-</span>r</code> flag to force recompilation.
+<p>As with <code class="hlinline">earl run</code>, <code class="hlinline">earl compile</code> avoids needless recompiling. Use
+the <code class="hlinline">-r</code> flag to force recompilation.</p>
 
 <p>You will not be able to run the compiled scripts without first
 installing the <a href="#runtime">runtime</a>.</p>
@@ -127,15 +118,15 @@ installing the <a href="#runtime">runtime</a>.</p>
 
 <h3 id="withgulp">With gulp</h3>
 
-The <strong><a href="https://github.com/breuleux/gulp-earl">gulp-earl</a></strong> package defines a source transformer for use with
-<code class="hl">gulp</code>. It supports source maps via the <a href="https://github.com/floridoo/gulp-sourcemaps">gulp-sourcemaps</a>
-package.
+<p>The <strong><a href="https://github.com/breuleux/gulp-earl">gulp-earl</a></strong> package defines a source transformer for use with
+<code class="hlinline">gulp</code>. It supports source maps via the <a href="https://github.com/floridoo/gulp-sourcemaps">gulp-sourcemaps</a>
+package.</p>
 
 
 
-Here's a sample task for your <code class="hl">gulpfile<span class="hljs-string">.js</span></code>
+<p>Here's a sample task for your <code class="hlinline">gulpfile.js</code></p>
 
-<pre class="hl"><span class="hljs-keyword">var</span> earl = <span class="hljs-built_in">require</span>(<span class="hljs-string">'gulp-earl'</span>);
+<pre class="hljs"><span class="hljs-keyword">var</span> earl = <span class="hljs-built_in">require</span>(<span class="hljs-string">'gulp-earl'</span>);
 
 gulp.task(<span class="hljs-string">'earl'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
   gulp.src(<span class="hljs-string">'./src/**/*.eg'</span>)
@@ -145,8 +136,8 @@ gulp.task(<span class="hljs-string">'earl'</span>, <span class="hljs-function"><
 
 <div class="tip">
   You can also write gulpfiles in Earl Grey. The <strong><a href="https://github.com/breuleux/earl-gulp">earl-gulp</a></strong>
-  package defines a neat <code class="hl">task</code> macro for the purpose. Do note that
-  this is the <code class="hl">earl-gulp</code> package and not the <code class="hl">gulp-earl</code> package. They
+  package defines a neat <code class="hlinline">task</code> macro for the purpose. Do note that
+  this is the <code class="hlinline">earl-gulp</code> package and not the <code class="hlinline">gulp-earl</code> package. They
   are different (sorry for the confusion!)</div>
 
 
@@ -159,25 +150,25 @@ gulp.task(<span class="hljs-string">'earl'</span>, <span class="hljs-function"><
 <p>In order to use EG scripts in the browser, it is necessary to bundle
 them using <strong><a href="http://browserify.org">browserify</a></strong>.</p>
 
-The <strong><a href="E.syntax.undeclared: Undeclared variable: earlify [#1]">earlify</a></strong> package defines a source transformer for use with
-<code class="hl">browserify</code>. Install it:
+<p>The <strong><a href="E.not_in_environment: earlify">earlify</a></strong> package defines a source transformer for use with
+<code class="hlinline">browserify</code>. Install it:</p>
 
-<pre class="hl">npm install earlify --save</pre>
+<pre class="hljs">npm install earlify --save</pre>
 
 <p>Then run it like this:</p>
 
-<pre class="hl">browserify -t earlify script.eg &gt; bundle.js</pre>
+<pre class="hljs">browserify -t earlify script.eg &gt; bundle.js</pre>
 
 <p>Don't forget to also install the <a href="#runtime">runtime</a>.</p>
 
 <div class="note">
-  Global variables like <code class="hl">document</code> or <code class="hl">window</code> are not available by
+  Global variables like <code class="hlinline">document</code> or <code class="hlinline">window</code> are not available by
   default in Earl Grey. You must declare them like this:
-  <pre class="hl"><span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span>
+  <pre class="hljs"><span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span>
    document<span class="hljs-punctuation">,</span> window</pre>
   The same goes if you include external scripts on your page and they
   declare global variables that you want to use: declare their
-  existence in a <code class="hl">globals</code> block, then use them as you normally would.</div>
+  existence in a <code class="hlinline">globals</code> block, then use them as you normally would.</div>
 
 
 <h1 id="whatdoesitlooklike">What does it look like?</h1>
@@ -186,7 +177,7 @@ The <strong><a href="E.syntax.undeclared: Undeclared variable: earlify [#1]">ear
 with a straightforward example, counting all unique words in a
 paragraph of text:</p>
 
-<pre class="hl">countWords<span class="hljs-punctuation">(</span>text<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hljs">countWords<span class="hljs-punctuation">(</span>text<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    counts <span class="hljs-operator">=</span> <span class="hljs-keyword">new </span>Map<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
    words <span class="hljs-operator">=</span> text<span class="hljs-string">.split</span><span class="hljs-punctuation">(</span>R<span class="hljs-string">"\W+"</span><span class="hljs-punctuation">)</span>
    words <span class="hljs-wordop">each</span> word <span class="hljs-operator">-&gt;</span>
@@ -200,7 +191,7 @@ paragraph of text:</p>
 sequence and then prints all the even Fibonacci numbers less than
 100. It shows off a little bit of everything:</p>
 
-<pre class="hl"><span class="hljs-keyword">gen </span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hljs"><span class="hljs-keyword">gen </span>fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1</span><span class="hljs-punctuation">}</span>
    <span class="hljs-keyword">while </span>true:
       <span class="hljs-keyword">yield </span>a
@@ -212,15 +203,15 @@ fib<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span
    n <span class="hljs-wordop">when</span> n <span class="hljs-wordop">mod</span> <span class="hljs-number">2</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span>
       <span class="hljs-keyword">print </span>n</pre>
 
-The <code class="hl"><span class="hljs-wordop">each</span></code> operator accepts multiple clauses, which makes it
-especially easy to work on heterogenous arrays.
+<p>The <code class="hlinline">each</code> operator accepts multiple clauses, which makes it
+especially easy to work on heterogenous arrays.</p>
 
-<strong>Asynchronous</strong>: EG has async and await keywords to facilitate
+<p><strong>Asynchronous</strong>: EG has async and await keywords to facilitate
 asynchronous programming, all based on Promises. Existing
 callback-based functionality can be converted to Promises using
-<code class="hl">promisify</code>:
+<code class="hlinline">promisify</code>:</p>
 
-<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> request
+<pre class="hljs"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> request
 g <span class="hljs-operator">=</span> promisify<span class="hljs-punctuation">(</span>request<span class="hljs-string">.get</span><span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">async </span>getXKCD<span class="hljs-punctuation">(</span>n <span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    response <span class="hljs-operator">=</span> <span class="hljs-keyword">await </span>g<span class="hljs-punctuation">(</span><span class="hljs-string">'http://xkcd.com/info.{n}.json'</span><span class="hljs-punctuation">)</span>
@@ -231,7 +222,7 @@ g <span class="hljs-operator">=</span> promisify<span class="hljs-punctuation">(
 
 <p>Also: <strong>classes</strong>:</p>
 
-<pre class="hl"><span class="hljs-keyword">class </span>Person:
+<pre class="hljs"><span class="hljs-keyword">class </span>Person:
 
    <span class="hljs-comment">;; Instance @fields can be set directly in argument lists</span>
    constructor<span class="hljs-punctuation">(</span><span class="hljs-member">@name</span><span class="hljs-punctuation">,</span> <span class="hljs-member">@age</span><span class="hljs-punctuation">,</span> <span class="hljs-member">@job</span> <span class="hljs-operator">=</span> <span class="hljs-string">"unemployed"</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
@@ -262,7 +253,7 @@ p1<span class="hljs-string">.sayHello</span><span class="hljs-punctuation">(</sp
 <p><strong>Pattern</strong> matching is very useful. It makes it easier to work with
 regular expressions, for example:</p>
 
-<pre class="hl">mangle<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>email<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hljs">mangle<span class="hljs-punctuation">(</span><span class="hljs-keyword">match </span>email<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
 
    <span class="hljs-comment">;; regexp! transforms the input into an array of match groups</span>
    <span class="hljs-comment">;; (the first is always the whole match)</span>
@@ -288,13 +279,12 @@ if you wish to contribute tools for popular editors or libraries.</p>
 
 <h1 id="learnmore">Learn more</h1>
 
-<ul><li>Go through the <strong><a href="/earl-grey/repl">interactive tutorial</a></strong>. It
-  runs in your browser, no need to install anything!</li><li>See the <strong><a href="/earl-grey/doc.html">documentation</a></strong> for an overview of
-  all of EG's features.</li></ul>
+<ul><li>Go through the <strong><a href="repl.html">interactive tutorial</a></strong>. It
+  runs in your browser, no need to install anything!</li>
 
-</div></div>
+<li>See the <strong><a href="doc.html">documentation</a></strong> for an overview of
+  all of EG's features.</li>
 
-
-<div id="foot-container" class="container"><div id="foot"></div></div>
-
-    </body></html>
+</ul>
+</div>
+<script type="text/javascript">$$quaintNavFunctionality()</script></body></html>

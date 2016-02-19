@@ -1,42 +1,30 @@
 
 <!DOCTYPE html>
-
 <html>
-
   <head>
-    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
     <title>Earl Grey</title>
-    <link rel="stylesheet" type="text/css" href="/earl-grey/style/style.css">
-    </head>
-
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8"><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans|Mate+SC|Mate+SC"><link rel="stylesheet" type="text/css" href="resources/look-nice/nav.css"><link rel="stylesheet" type="text/css" href="resources/look-nice/side.css"><script type="text/javascript" src="resources/look-nice/toc-scroll.js"></script><link rel="stylesheet" type="text/css" href="resources/look-nice/main.css"><script type="text/javascript" src="resources/look-nice/nav.js"></script><link rel="stylesheet" type="text/css" href="resources/style/highlight/xcode.css"><link rel="stylesheet" type="text/css" href="resources/style.css"></head>
   <body>
-    
+
+<div class="nav-container-desktop"><nav id="nav-leftmost" class="nav-leftmost"><ul></ul></nav><nav id="nav-main" class="nav-main"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li><li>
+  <li class="spacer0"></li></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li><li>
+  <li class="spacer"></li></li><li><a href="https://github.com/breuleux/earl-grey" class="github-badge"><img src="/earl-grey/assets/github.png" alt="breuleux/earl-grey on GitHub" title="breuleux/earl-grey" height="32px"></a></li><li><a href="https://twitter.com/earlgreylang" class="twitter-badge"><img src="/earl-grey/assets/twitter.png" alt="@earlgreylang" title="@earlgreylang" height="50px"></a></li></ul></nav><nav id="nav-rightmost" class="nav-rightmost"><ul></ul></nav></div><div class="nav-container-mobile"><nav class="nav-mobile-menu dropdown"><div class="hamburger"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></div><ul><li><a href="/earl-grey/index.html">home</a></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li></ul></nav><nav id="nav-mobile" class="nav-mobile"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li></ul></nav></div>
+<div class="container">
 
 
 
 
 
-<div id="sidebar"><div id="sidebar-contents"></div></div>
-
-<div id="nav-container" class="container"><div id="nav">
-    <div id="logo" class="navlink"><a href="/earl-grey/index.html"><img src="/earl-grey/assets/earlgrey-text.svg" height="60px" alt="Earl Grey"></a></div>
-    <div id="use" class="navlink dropdown">
-      <span><a href="/earl-grey/use.html">learn</a></span>
-      <ul><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></div>
-    
-    <div id="repl" class="navlink"><a href="/earl-grey/repl.html">try it!</a></div>
-    <div id="social">
-       <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey"><img title="breuleux/earl-grey" src="/earl-grey/assets/github.png" height="32px" alt="breuleux/earl-grey on GitHub"></a></div>
-       <div id="twitter" class="navlink"><a href="https://twitter.com/earlgreylang"><img title="@earlgreylang" src="/earl-grey/assets/twitter.png" height="50px" alt="@earlgreylang"></a></div></div></div></div>
-
-
-
-<div id="main-container" class="container"><div id="main">
 
 
 
 
-<script>document.getElementById("logo").className = "navlink curnav"</script>
+
+
+
+
+
+<script>document.querySelector("#nav-main > ul > :nth-child(1)").className = "curnav arrow"</script>
 
 
 
@@ -44,16 +32,24 @@
 JavaScript. Here's what it has to offer:</p>
 
 <ul><li><strong><a href="#whatdoesitlooklike">Concise and streamlined syntax</a></strong> inspired
-  by the Python language.</li><li>Fully <strong><a href="#compatible">compatible</a></strong> with the node.js ecosystem</li><li>Generators and <strong><a href="#asyncawait">async/await</a></strong> (no callback hell!)</li><li>Powerful, deeply integrated <strong><a href="#patternmatching">pattern matching</a></strong>
-  <ul><li>Used for assignment, function declaration, looping, exceptions...</li></ul></li><li>A <strong><a href="#documentbuilding">document-building DSL</a></strong> with customizable behavior!</li><li>A very powerful hygienic <strong><a href="#macrosystem">macro</a></strong> system!
-  <ul><li>Define your own control structures or DSLs</li><li>Macros integrate seamlessly with the language</li><li>Macro libraries! Test with <strong><a href="https://github.com/breuleux/earl-mocha">earl-mocha</a></strong>, build with <strong><a href="https://github.com/breuleux/earl-gulp,">earl-gulp,</a></strong>
-    make dynamic pages with <strong><a href="https://github.com/breuleux/earl-react">earl-react</a></strong>, etc.</li></ul></li><li>And <strong><a href="#resources">much more!</a></strong></li></ul>
+  by the Python language.</li>
+<li>Fully <strong><a href="#compatible">compatible</a></strong> with the node.js ecosystem</li>
+<li>Generators and <strong><a href="#asyncawait">async/await</a></strong> (no callback hell!)</li>
+<li>Powerful, deeply integrated <strong><a href="#patternmatching">pattern matching</a></strong>
+  <ul><li>Used for assignment, function declaration, looping, exceptions...</li></ul></li>
+<li>A <strong><a href="#documentbuilding">document-building DSL</a></strong> with customizable behavior!</li>
+<li>A very powerful hygienic <strong><a href="#macrosystem">macro</a></strong> system!
+  <ul><li>Define your own control structures or DSLs</li>
+  <li>Macros integrate seamlessly with the language</li>
+  <li>Macro libraries! Test with <strong><a href="https://github.com/breuleux/earl-mocha">earl-mocha</a></strong>, build with <strong><a href="https://github.com/breuleux/earl-gulp,">earl-gulp,</a></strong>
+    make dynamic pages with <strong><a href="https://github.com/breuleux/earl-react">earl-react</a></strong>, etc.</li></ul></li>
+<li>And <strong><a href="#resources">much more!</a></strong></li></ul>
 
 <p>Earl Grey is still in development, be sure to
 <strong><a href="https://github.com/breuleux/earl-grey">star it on GitHub</a></strong>
 to show some support!</p>
 
-<p>Also be sure to check out the <strong><a href="/earl-grey/repl">interactive tutorial</a></strong>.</p>
+<p>Also be sure to check out the <strong><a href="E.not_in_environment: siterootrepl">interactive tutorial</a></strong>.</p>
 
 
 <h2 id="whatdoesitlooklike">What does it look like?</h2>
@@ -66,7 +62,7 @@ seen in other languages in the form of braces and semicolons.</p>
 instance this excerpt of a cutting edge rocket launching application
 in Earl Grey:</p>
 
-<pre class="hl"><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">10</span>
+<pre class="hljs"><span class="hljs-keyword">var </span>i <span class="hljs-operator">=</span> <span class="hljs-number">10</span>
 <span class="hljs-keyword">while </span>i <span class="hljs-operator">&gt;=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
    <span class="hljs-keyword">if </span>i <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">0</span><span class="hljs-punctuation">:</span>
       <span class="hljs-keyword">print </span><span class="hljs-string">"Blast off!"</span>
@@ -80,7 +76,7 @@ the distinction between expressions and statements, variable and
 function declarations, or loops and list comprehensions (which share
 the same syntax in EG):</p>
 
-<pre class="hl">fib<span class="hljs-punctuation">(</span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hljs">fib<span class="hljs-punctuation">(</span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1</span><span class="hljs-punctuation">}</span>
    <span class="hljs-number">1</span><span class="hljs-operator">..</span>n <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span>
       <span class="hljs-punctuation">{</span>a<span class="hljs-punctuation">,</span> b<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>b<span class="hljs-punctuation">,</span> a <span class="hljs-operator">+</span> b<span class="hljs-punctuation">}</span>
@@ -111,21 +107,23 @@ frameworks: <strong><a href="https://github.com/breuleux/gulp-earl">gulp-earl</a
 <p>Editor support is admittedly mediocre at the moment, but it is in
 development:</p>
 
-<ul><li><strong>Emacs</strong>: <strong><a href="https://github.com/breuleux/earl-grey-mode">earl-grey-mode</a></strong></li><li><strong>Atom</strong>: <a href="//atom.io/packages/language-earl-grey">language-earl-grey</a></li></ul>
+<ul><li><strong>Emacs</strong>: <strong><a href="https://github.com/breuleux/earl-grey-mode">earl-grey-mode</a></strong></li>
+
+<li><strong>Atom</strong>: <strong><a href="//atom.io/packages/language-earl-grey">language-earl-grey</a></strong></li>
 
 
 
-<h2 id="asyncawait">async/await</h2>
+</ul><h2 id="asyncawait">async/await</h2>
 
-EG makes asynchronous code a breeze. EG's implementation is based on
+<p>EG makes asynchronous code a breeze. EG's implementation is based on
 Promises as defined by ECMAScript version 6 and many libraries already
 implement this interface. For the rest, existing callback-based
-functionality can be converted to Promises using <code class="hl">promisify</code>.
+functionality can be converted to Promises using <code class="hlinline">promisify</code>.</p>
 
 <p>To give you an idea here is a script to print the alt-text of the
 first ten <a href="http://xkcd.com">XKCD</a> comics, accessed through their JSON API:</p>
 
-<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> request
+<pre class="hljs"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> request
 g <span class="hljs-operator">=</span> promisify<span class="hljs-punctuation">(</span>request<span class="hljs-string">.get</span><span class="hljs-punctuation">)</span>
 
 <span class="hljs-keyword">async </span>getXKCD<span class="hljs-punctuation">(</span>n <span class="hljs-operator">=</span> <span class="hljs-string">""</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
@@ -136,11 +134,11 @@ g <span class="hljs-operator">=</span> promisify<span class="hljs-punctuation">(
    requests <span class="hljs-operator">=</span> <span class="hljs-keyword">await </span><span class="hljs-keyword">all </span><span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> getXKCD<span class="hljs-punctuation">(</span>i<span class="hljs-punctuation">)</span>
    requests <span class="hljs-wordop">each</span> req <span class="hljs-operator">-&gt;</span> <span class="hljs-keyword">print </span>req<span class="hljs-string">.alt</span></pre>
 
-Calls to <code class="hl">getXKCD</code> or <code class="hl">g</code> are asynchronous, which means that they don't
+<p>Calls to <code class="hlinline">getXKCD</code> or <code class="hlinline">g</code> are asynchronous, which means that they don't
 block. The code above will therefore fetch the data for the first ten
-XKCD comics in parallel*, not sequentially. <code class="hl"><span class="hljs-keyword">await</span></code> all` collects the
+XKCD comics in parallel*, not sequentially. <code class="hlinline">await</code> all` collects the
 results for us, returning only when everything is done (and then we
-can print them in order).
+can print them in order).</p>
 
 <p>* Do note that this is only IO parallelism, not <em>true</em>
 parallelism. You cannot use async/await to run ten matrix
@@ -157,9 +155,9 @@ crippled versions of it (usually as destructuring assignment). EG
 gives you <em>everything</em> (short of actual static guarantees, but I'm
 thinking about it).</p>
 
-<code class="hl"><span class="hljs-keyword">match</span></code> can serve as a <code class="hl">switch</code> or <code class="hl">case</code> statement:
+<p><code class="hlinline">match</code> can serve as a <code class="hlinline">switch</code> or <code class="hlinline">case</code> statement:</p>
 
-<pre class="hl">fact<span class="hljs-punctuation">(</span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hljs">fact<span class="hljs-punctuation">(</span>n<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-keyword">match </span>n:
       <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">1</span>
       <span class="hljs-number">1</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">1</span>
@@ -167,13 +165,13 @@ thinking about it).</p>
 
 <p>But we can do better:</p>
 
-<pre class="hl">fact<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+<pre class="hljs">fact<span class="hljs-punctuation">(</span><span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
    <span class="hljs-number">0</span> <span class="hljs-wordop">or</span> <span class="hljs-number">1</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">1</span>
    n <span class="hljs-operator">-&gt;</span> n <span class="hljs-operator">*</span> fact<span class="hljs-punctuation">(</span>n <span class="hljs-operator">-</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span></pre>
 
 <p>We can extract elements from arrays:</p>
 
-<pre class="hl"><span class="hljs-keyword">match </span>process<span class="hljs-string">.argv</span><span class="hljs-punctuation">[</span><span class="hljs-number">2</span><span class="hljs-operator">..</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">:</span>
+<pre class="hljs"><span class="hljs-keyword">match </span>process<span class="hljs-string">.argv</span><span class="hljs-punctuation">[</span><span class="hljs-number">2</span><span class="hljs-operator">..</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">:</span>
    <span class="hljs-punctuation">{</span><span class="hljs-string">"install"</span><span class="hljs-punctuation">,</span> name<span class="hljs-punctuation">}</span>     <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span>
    <span class="hljs-punctuation">{</span><span class="hljs-string">"list"</span><span class="hljs-punctuation">,</span> query <span class="hljs-operator">=</span> <span class="hljs-string">"*"</span><span class="hljs-punctuation">}</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span>
    <span class="hljs-punctuation">{</span><span class="hljs-string">"version"</span><span class="hljs-punctuation">}</span>           <span class="hljs-operator">-&gt;</span> <span class="hljs-operator">...</span>
@@ -181,12 +179,12 @@ thinking about it).</p>
 
 <p>From objects:</p>
 
-<pre class="hl">point <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>
+<pre class="hljs">point <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>x <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> y <span class="hljs-operator">=</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">{</span><span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> x<span class="hljs-punctuation">,</span> <span class="hljs-operator">=</span><span class="hljs-operator">&gt;</span> y<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> point   <span class="hljs-comment">;; x is 2, y is 3</span></pre>
 
 <p>We can do type checking and type coercion:</p>
 
-<pre class="hl">String<span class="hljs-operator">?</span> <span class="hljs-string">"abc"</span>           <span class="hljs-comment">;; ==&gt; true</span>
+<pre class="hljs">String<span class="hljs-operator">?</span> <span class="hljs-string">"abc"</span>           <span class="hljs-comment">;; ==&gt; true</span>
 Array<span class="hljs-operator">!</span> <span class="hljs-string">"abc"</span>            <span class="hljs-comment">;; ==&gt; {"abc"}</span>
 
 repeat<span class="hljs-punctuation">(</span>String<span class="hljs-operator">?</span> thing <span class="hljs-wordop">or</span> Array<span class="hljs-operator">!</span> thing<span class="hljs-punctuation">,</span> Number<span class="hljs-operator">?</span> <span class="hljs-keyword">match</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
@@ -204,51 +202,51 @@ repeat<span class="hljs-punctuation">(</span><span class="hljs-string">"apple"</
 
 <h2 id="documentbuilding">Document building</h2>
 
-Earl Grey's <code class="hl"><span class="hljs-operator">%</span></code> operator can be used to easily build HTML, DOM,
-virtual DOM, and other things:
+<p>Earl Grey's <code class="hlinline">%</code> operator can be used to easily build HTML, DOM,
+virtual DOM, and other things:</p>
 
-<pre class="hl">mul-table <span class="hljs-operator">=</span>
+<pre class="hljs">mul-table <span class="hljs-operator">=</span>
    div<span class="hljs-punctuation">[</span><span class="hljs-struct">#multiplication-table</span><span class="hljs-punctuation">]</span> <span class="hljs-operator">%</span>
       h1 <span class="hljs-operator">%</span> <span class="hljs-string">"Multiplication table"</span>
       table <span class="hljs-operator">%</span> <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span>
          tr <span class="hljs-operator">%</span> <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">10</span> <span class="hljs-wordop">each</span> j <span class="hljs-operator">-&gt;</span>
             td <span class="hljs-operator">%</span> i <span class="hljs-operator">*</span> j</pre>
 
-The resulting data structure can then be transformed in various ways.
-For instance, you can use the <code class="hl"><span class="hljs-operator">/</span>html</code> and <code class="hl"><span class="hljs-operator">/</span>dom</code> standard packages:
+<p>The resulting data structure can then be transformed in various ways.
+For instance, you can use the <code class="hlinline">/html</code> and <code class="hlinline">/dom</code> standard packages:</p>
 
-<code class="hl">html</code> builds a string of HTML that you can print or save in a file:
+<p><code class="hlinline">html</code> builds a string of HTML that you can print or save in a file:</p>
 
-<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>html
+<pre class="hljs"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>html
 <span class="hljs-keyword">print </span>html<span class="hljs-punctuation">(</span>mul-table<span class="hljs-punctuation">)</span></pre>
 
-<code class="hl">dom</code> builds a DOM element that you can append somewhere in your page:
+<p><code class="hlinline">dom</code> builds a DOM element that you can append somewhere in your page:</p>
 
-<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>dom
+<pre class="hljs"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>dom
 document<span class="hljs-string">.get-element-by-id</span><span class="hljs-punctuation">(</span><span class="hljs-string">"target"</span><span class="hljs-punctuation">)</span><span class="hljs-string">.append-child</span><span class="hljs-punctuation">(</span>dom<span class="hljs-punctuation">(</span>mul-table<span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span></pre>
 
-You can also streamline the operation by importing a specialized <code class="hl"><span class="hljs-operator">%</span></code>
-operator to do what you want automatically:
+<p>You can also streamline the operation by importing a specialized <code class="hlinline">%</code>
+operator to do what you want automatically:</p>
 
-<pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>html <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-operator">%</span><span class="hljs-punctuation">)</span>
+<pre class="hljs"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>html <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-operator">%</span><span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">print </span>strong <span class="hljs-operator">%</span> <span class="hljs-string">"Hello world"</span> <span class="hljs-comment">;; ==&gt; "&lt;strong&gt;Hello world&lt;/strong&gt;"</span></pre>
 
 <h3 id="react">React</h3>
 
-In addition to HTML and plain DOM conversions, there is also a
+<p>In addition to HTML and plain DOM conversions, there is also a
 <strong><a href="https://facebook.github.io/react/">react</a></strong> package for Earl Grey called <strong><a href="https://github.com/breuleux/earl-react">earl-react</a></strong> from which
-you can import a <code class="hl"><span class="hljs-operator">%</span></code> operator that builds React virtual DOM nodes:
+you can import a <code class="hlinline">%</code> operator that builds React virtual DOM nodes:</p>
 
 
 
-<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> earl-react <span class="hljs-wordop">as</span> React
+<pre class="hljs"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> earl-react <span class="hljs-wordop">as</span> React
 <span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> earl-react <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-operator">%</span><span class="hljs-punctuation">,</span> component<span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">component </span>HelloMessage:
    render<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> div <span class="hljs-operator">%</span> <span class="hljs-string">'Hello {@props.name}'</span>
 React<span class="hljs-string">.render</span><span class="hljs-punctuation">(</span>HelloMessage <span class="hljs-operator">%</span> name <span class="hljs-operator">=</span> <span class="hljs-string">"Balthazar"</span><span class="hljs-punctuation">,</span> mount-node<span class="hljs-punctuation">)</span></pre>
 
-It would be straightforward to define <code class="hl"><span class="hljs-operator">%</span></code> for other frameworks, or
-for new ones, or to generate other languages such as LaTeX.
+<p>It would be straightforward to define <code class="hlinline">%</code> for other frameworks, or
+for new ones, or to generate other languages such as LaTeX.</p>
 
 
 <h2 id="macrosystem">Macro system</h2>
@@ -257,13 +255,13 @@ for new ones, or to generate other languages such as LaTeX.
 that look native to the language. Macros are fairly easy to write and
 can make code terser and more readable:</p>
 
-<pre class="hl"><span class="hljs-keyword">inline-macro </span>W<span class="hljs-punctuation">(</span>expr<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+<pre class="hljs"><span class="hljs-keyword">inline-macro </span>W<span class="hljs-punctuation">(</span>expr<span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
    <span class="hljs-quote">`(^expr).split(" ")`</span>
 
 W<span class="hljs-string">"apples bananas cantaloupes"</span> <span class="hljs-comment">;; ==&gt; {"apples", "bananas", "cantaloupes"}</span></pre>
 
 
-<pre class="hl"><span class="hljs-keyword">inline-macro </span>unless<span class="hljs-punctuation">(</span><span class="hljs-quote">`{^test, ^body}`</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
+<pre class="hljs"><span class="hljs-keyword">inline-macro </span>unless<span class="hljs-punctuation">(</span><span class="hljs-quote">`{^test, ^body}`</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">:</span>
    <span class="hljs-quote">`if{not ^test, ^body}`</span>
 
 <span class="hljs-keyword">unless </span><span class="hljs-number">1</span> <span class="hljs-operator">=</span><span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-punctuation">:</span>
@@ -275,8 +273,8 @@ there is still some documentation <a href="/earl-grey/doc.html#macros">here</a>.
 
 <h3 id="macrolibraries">Macro libraries</h3>
 
-It is possible to define macro libraries with macros importable via
-<code class="hl">require-macros</code>.
+<p>It is possible to define macro libraries with macros importable via
+<code class="hlinline">require-macros</code>.</p>
 
 <p>In fact, there are <em>already</em> macro libraries for many existing
 JavaScript or node libraries! Here are some of them:</p>
@@ -287,7 +285,7 @@ JavaScript or node libraries! Here are some of them:</p>
 <p><strong><a href="https://github.com/breuleux/earl-mocha">earl-mocha</a></strong> defines a certain amount of macros to help you write
 tests for your applications:</p>
 
-<pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span>
+<pre class="hljs"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span>
    earl-mocha <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span>describe<span class="hljs-punctuation">,</span> it<span class="hljs-punctuation">,</span> assert<span class="hljs-punctuation">,</span> expect-error<span class="hljs-punctuation">)</span>
 
 <span class="hljs-keyword">describe </span><span class="hljs-string">"Array"</span><span class="hljs-punctuation">:</span>
@@ -305,7 +303,7 @@ tests for your applications:</p>
 
 <p>Using <strong><a href="https://github.com/breuleux/earl-gulp">earl-gulp</a></strong>, you can define gulp tasks like this:</p>
 
-<pre class="hl"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> earl-gulp <span class="hljs-operator">-&gt;</span> task
+<pre class="hljs"><span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> earl-gulp <span class="hljs-operator">-&gt;</span> task
 
 <span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> gulp<span class="hljs-punctuation">,</span> gulp-sass<span class="hljs-punctuation">,</span> gulp-earl<span class="hljs-punctuation">,</span> gulp-sourcemaps
 
@@ -331,7 +329,7 @@ tests for your applications:</p>
 <p>React has its own little language called JSX to define components, but
 there's no need for this when you have <strong><a href="https://github.com/breuleux/earl-react">earl-react</a></strong>:</p>
 
-<pre class="hl"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> earl-react <span class="hljs-wordop">as</span> React
+<pre class="hljs"><span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> earl-react <span class="hljs-wordop">as</span> React
 <span class="hljs-keyword">require-macros</span><span class="hljs-punctuation">:</span> earl-react <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-operator">%</span><span class="hljs-punctuation">,</span> component<span class="hljs-punctuation">)</span>
 <span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span> document
 
@@ -364,19 +362,34 @@ React<span class="hljs-string">.render</span><span class="hljs-punctuation">(</s
 
 <h1 id="resources">Resources</h1>
 
-<ul><li><strong><a href="https://github.com/breuleux/earl-grey">Source code</a></strong></li><li><strong><a href="https://github.com/breuleux/earl-grey/issues">Report an issue</a></strong></li><li><strong><a href="/earl-grey/use.html">Install Earl Grey</a></strong></li><li><strong><a href="/earl-grey/tooling.html">Editor/syntax highlighting support</a></strong></li><li>Go through the <strong><a href="/earl-grey/repl">interactive tutorial</a></strong>. It
-  runs in your browser, no need to install anything!</li><li>See the <strong><a href="/earl-grey/doc.html">documentation</a></strong> for an overview of
-  all of EG's features.</li><li><strong><a href="/earl-grey/contrib.html">Contribute!</a></strong></li><li>Follow us on twitter! 
+<ul><li><strong><a href="https://github.com/breuleux/earl-grey">Source code</a></strong></li>
+
+<li><strong><a href="https://github.com/breuleux/earl-grey/issues">Report an issue</a></strong></li>
+
+<li><strong><a href="E.not_in_environment: siterootuse.html">Install Earl Grey</a></strong></li>
+
+<li><strong><a href="E.not_in_environment: siteroottooling.html">Editor/syntax highlighting support</a></strong></li>
+
+<li>Go through the <strong><a href="E.not_in_environment: siterootrepl">interactive tutorial</a></strong>. It
+  runs in your browser, no need to install anything!</li>
+
+<li>See the <strong><a href="E.not_in_environment: siterootdoc.html">documentation</a></strong> for an overview of
+  all of EG's features.</li>
+
+<li><strong><a href="E.not_in_environment: siterootcontrib.html">Contribute!</a></strong></li>
+
+<li>Follow us on twitter! 
       <a href="https://twitter.com/earlgreylang" class="twitter-follow-button" data-show-count="false">Follow @earlgreylang</a>
-      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li><li>Join the gitter chat! <a href="https://gitter.im/breuleux/earl-grey?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Join the chat at https://gitter.im/breuleux/earl-grey" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a></li><li>Or join the <code class="hl"><span class="hljs-struct">#earlgrey</span></code> channel on FreeNode.</li></ul>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li>
+
+<li>Join the gitter chat! <a href="https://gitter.im/breuleux/earl-grey?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Join the chat at https://gitter.im/breuleux/earl-grey" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a></li>
+
+<li>Or join the <code class="hlinline">#earlgrey</code> channel on FreeNode.</li>
 
 
 
 
 
-</div></div>
-
-
-<div id="foot-container" class="container"><div id="foot"></div></div>
-
-    </body></html>
+</ul>
+</div>
+<script type="text/javascript">$$quaintNavFunctionality()</script></body></html>

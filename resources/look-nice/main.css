@@ -1,0 +1,125 @@
+.container {
+  margin: auto; }
+
+html {
+  font-size: 19px; }
+
+body {
+  margin: 0px;
+  font-family: "Open Sans";
+  line-height: 1.5;
+  background: #fafafa;
+  color: #333; }
+
+pre {
+  line-height: 110%; }
+
+a {
+  color: #00f;
+  text-decoration: none; }
+
+a:hover {
+  text-decoration: underline; }
+
+a:visited {
+  color: #808; }
+
+h1 {
+  font-family: "Mate SC";
+  color: #333; }
+
+h2, h3 {
+  font-family: "Mate SC";
+  color: #333;
+  line-height: 1.2; }
+
+h1 {
+  font-size: 2rem; }
+
+h2 {
+  font-size: 1.5rem; }
+
+h3 {
+  font-size: 1.2rem; }
+
+tr:nth-child(even) {
+  background: #fff; }
+
+tr:nth-child(odd) {
+  color: black;
+  background: #fff; }
+
+table {
+  border-collapse: collapse;
+  color: black;
+  width: 100%; }
+
+th {
+  text-align: left;
+  color: white;
+  background: #000; }
+
+th, td {
+  padding: 5px; }
+
+pre {
+  font: Monospace;
+  color: black;
+  background: #fafafa; }
+
+code {
+  font: Monospace;
+  color: black;
+  background: #fafafa; }
+
+/* SHARING */
+.share-buttons {
+  margin-top: 50px;
+  text-align: center; }
+
+.share-buttons > a {
+  margin-left: 10px;
+  margin-right: 10px;
+  display: inline-block; }
+
+.share-buttons img {
+  height: 40px; }
+
+/* QUAINT ERRORS */
+.error {
+  color: red;
+  font-weight: bold; }
+
+div.error {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  white-space: pre;
+  font-size: 11pt;
+  color: red;
+  line-height: 120%;
+  font-weight: bold; }
+
+/* DESKTOP */
+@media screen and (min-device-aspect-ratio: 100/99) {
+  .container {
+    max-width: 970px;
+    padding: 0 10px; }
+  body {
+    font-size: 19px; }
+  pre {
+    font-size: 80%; } }
+
+/* MOBILE */
+@media screen and (max-device-aspect-ratio: 99/100) {
+  pre {
+    font-size: 1.7rem; }
+  table {
+    font-size: 2rem; }
+  .container {
+    padding: 0 50px; }
+  h1 {
+    font-size: 4rem; }
+  h2 {
+    font-size: 2.5rem; }
+  h3 {
+    font-size: 1.5rem; } }

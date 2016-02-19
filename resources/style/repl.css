@@ -1,0 +1,35 @@
+body {
+  font-size: 16px; }
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  box-sizing: border-box; }
+
+.cm-keyword, .cm-wordop, .cm-operator, .cm-open, .cm-close, .cm-punctuation {
+  font-weight: bold; }
+
+.cm-interpolated {
+  color: #f50; }
+
+.repple-card.repple-card-tut h2 {
+  background-color: #66a; }
+
+.repple-card.repple-card-cool h2 {
+  background-color: #a6a; }
+
+.big {
+  display: block;
+  font-size: 14pt;
+  margin-left: 30px; }
+
+.big:before {
+  content: "\25b6";
+  color: orange;
+  margin-right: 10px; }
+
+pre.cool {
+  display: none; }
+
+.container {
+  margin-bottom: 0px; }

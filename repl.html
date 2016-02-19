@@ -1,33 +1,15 @@
 
 <!DOCTYPE html>
-
 <html>
-
   <head>
-    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
     <title>Try Earl Grey!</title>
-    <link rel="stylesheet" type="text/css" href="/earl-grey/style/style.css">
-    <script src="//jspm.io/system@0.16.js"></script><script src="/earl-grey/lib/eg.js"></script><script src="/earl-grey/lib/repl.js"></script><link rel="stylesheet" type="text/css" href="/earl-grey/style/repl/repl.css"><link rel="stylesheet" type="text/css" href="/earl-grey/style/repl/codemirror.css"></head>
-
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8"><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans|Mate+SC|Mate+SC"><link rel="stylesheet" type="text/css" href="resources/look-nice/nav.css"><link rel="stylesheet" type="text/css" href="resources/look-nice/side.css"><script type="text/javascript" src="resources/look-nice/toc-scroll.js"></script><link rel="stylesheet" type="text/css" href="resources/look-nice/main.css"><script type="text/javascript" src="resources/look-nice/nav.js"></script><link rel="stylesheet" type="text/css" href="resources/style/highlight/xcode.css"><link rel="stylesheet" type="text/css" href="resources/style.css"><link rel="stylesheet" type="text/css" href="resources/style/repl.css"><script type="text/javascript" src="https://jspm.io/system@0.19.js"></script><script type="text/javascript" src="resources/repple/earlgrey.js"></script><script type="text/javascript" src="resources/repple/install.js"></script><link rel="stylesheet" type="text/css" href="resources/repple/codemirror.css"><link rel="stylesheet" type="text/css" href="resources/repple/repple.css"></head>
   <body>
-    
 
-
-
-
-
-<div id="sidebar"><div id="sidebar-contents"></div></div>
-
-<div id="nav-container" class="container"><div id="nav">
-    <div id="logo" class="navlink"><a href="/earl-grey/index.html"><img src="/earl-grey/assets/earlgrey-text.svg" height="60px" alt="Earl Grey"></a></div>
-    <div id="use" class="navlink dropdown">
-      <span><a href="/earl-grey/use.html">learn</a></span>
-      <ul><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></div>
-    
-    <div id="repl" class="navlink"><a href="/earl-grey/repl.html">try it!</a></div>
-    <div id="social">
-       <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey"><img title="breuleux/earl-grey" src="/earl-grey/assets/github.png" height="32px" alt="breuleux/earl-grey on GitHub"></a></div>
-       <div id="twitter" class="navlink"><a href="https://twitter.com/earlgreylang"><img title="@earlgreylang" src="/earl-grey/assets/twitter.png" height="50px" alt="@earlgreylang"></a></div></div></div></div>
+<div class="nav-container-desktop"><nav id="nav-leftmost" class="nav-leftmost"><ul></ul></nav><nav id="nav-main" class="nav-main"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li><li>
+  <li class="spacer0"></li></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li><li>
+  <li class="spacer"></li></li><li><a href="https://github.com/breuleux/earl-grey" class="github-badge"><img src="/earl-grey/assets/github.png" alt="breuleux/earl-grey on GitHub" title="breuleux/earl-grey" height="32px"></a></li><li><a href="https://twitter.com/earlgreylang" class="twitter-badge"><img src="/earl-grey/assets/twitter.png" alt="@earlgreylang" title="@earlgreylang" height="50px"></a></li></ul></nav><nav id="nav-rightmost" class="nav-rightmost"><ul></ul></nav></div><div class="nav-container-mobile"><nav class="nav-mobile-menu dropdown"><div class="hamburger"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></div><ul><li><a href="/earl-grey/index.html">home</a></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li></ul></nav><nav id="nav-mobile" class="nav-mobile"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li></ul></nav></div>
+<div class="container">
 
 
 
@@ -35,22 +17,471 @@
 
 
 
-<div id="repl-container" class="container">
 
-  <div id="box">
-    <div id="interactive"></div>
-    <div id="inputline" class="in hasinput">
-      <div class="inbanner"></div>
-      <div id="inputbox"><textarea id="code"></textarea></div></div></div>
 
-  <div id="help"></div></div>
+
+
+
+
+
+
+
+<script>document.querySelector("#nav-main > ul > :nth-child(5)").className = "curnav arrow"</script>
+
+<p><pre id="cool-arith" class="hljs cool"><span class="hljs-comment">;; Look! I'm redefining addition! (locally)</span>
+<span class="hljs-number">100</span> <span class="hljs-operator">+</span> <span class="hljs-number">10</span> <span class="hljs-wordop">where</span>
+   a <span class="hljs-operator">+</span> b <span class="hljs-operator">=</span> a <span class="hljs-operator">-</span> b</pre></p>
+
+<p><pre id="cool-curry" class="hljs cool"><span class="hljs-comment">;; Currying a function using an external library</span>
+<span class="hljs-comment">;; This could take a few seconds to load, be patient    </span>
+<span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> lodash <span class="hljs-operator">-&gt;</span> curry
+curry<span class="hljs-operator">!</span> add<span class="hljs-punctuation">(</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   x <span class="hljs-operator">+</span> y
+<span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">}</span><span class="hljs-string">.map</span><span class="hljs-punctuation">(</span>add<span class="hljs-punctuation">(</span><span class="hljs-number">10</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span></pre></p>
+
+<p><pre id="cool-markdown" class="hljs cool"><span class="hljs-comment">;; Parsing and displaying Markdown</span>
+<span class="hljs-comment">;; This could take a few seconds to load, be patient</span>
+<span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> markdown <span class="hljs-operator">-&gt;</span> parse
+grocery-list <span class="hljs-operator">=</span> <span class="hljs-string">"""
+Grocery list
+------------
+* Potatoes
+* Rice
+* SPAM
+"""</span>
+div<span class="hljs-punctuation">[</span>raw<span class="hljs-punctuation">]</span> <span class="hljs-operator">%</span> parse<span class="hljs-punctuation">(</span>grocery-list<span class="hljs-punctuation">)</span></pre></p>
+
+<p><pre id="cool-flot" class="hljs cool"><span class="hljs-comment">;; Plotting with flot</span>
+<span class="hljs-comment">;; This could take a few seconds to load, be patient</span>
+<span class="hljs-keyword">load </span><span class="hljs-string">"https://code.jquery.com/jquery-2.1.3.min.js"</span>
+<span class="hljs-keyword">load </span><span class="hljs-string">"http://www.flotcharts.org/flot/jquery.flot.js"</span>
+<span class="hljs-keyword">globals</span><span class="hljs-punctuation">:</span> $
+$out<span class="hljs-string">.elem</span><span class="hljs-string">.style</span><span class="hljs-string">.height</span> <span class="hljs-operator">=</span> <span class="hljs-string">"500px"</span> <span class="hljs-comment">;; making room</span>
+$<span class="hljs-string">.plot</span><span class="hljs-punctuation">(</span>$out<span class="hljs-string">.elem</span><span class="hljs-punctuation">)</span> <span class="hljs-wordop">with</span> <span class="hljs-punctuation">{</span>
+   <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">100</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>i<span class="hljs-punctuation">,</span> Math<span class="hljs-string">.sin</span><span class="hljs-punctuation">(</span>i <span class="hljs-operator">/</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">}</span>
+   <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">100</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>i<span class="hljs-punctuation">,</span> Math<span class="hljs-string">.sin</span><span class="hljs-punctuation">(</span>i <span class="hljs-operator">/</span> <span class="hljs-number">10</span> <span class="hljs-operator">-</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">}</span>
+   <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">100</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">{</span>i<span class="hljs-punctuation">,</span> Math<span class="hljs-string">.sin</span><span class="hljs-punctuation">(</span>i <span class="hljs-operator">/</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">+</span> <span class="hljs-number">0.25</span><span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+undefined</pre></p>
+
+<p><pre id="cool-paint" class="hljs cool"><span class="hljs-comment">;; Trivial canvas-based paint app</span>
+<span class="hljs-comment">;; Try setting the color with ctx.stroke-style = "red"</span>
+<span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> offset
+<span class="hljs-keyword">var </span>active <span class="hljs-operator">=</span> false
+offx<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> e<span class="hljs-string">.client-x</span> <span class="hljs-operator">-</span> offset<span class="hljs-punctuation">(</span>canvas<span class="hljs-punctuation">)</span><span class="hljs-string">.left</span>
+offy<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> e<span class="hljs-string">.client-y</span> <span class="hljs-operator">-</span> offset<span class="hljs-punctuation">(</span>canvas<span class="hljs-punctuation">)</span><span class="hljs-string">.top</span>
+canvas <span class="hljs-operator">=</span> dom <span class="hljs-wordop">with</span> canvas <span class="hljs-operator">%</span>
+   width <span class="hljs-wordop">and</span> height <span class="hljs-operator">=</span> <span class="hljs-string">"300px"</span>
+   style <span class="hljs-operator">=</span> <span class="hljs-string">"border:2px solid black; cursor:crosshair"</span>
+   onmousedown<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      active <span class="hljs-operator">=</span> true
+      ctx<span class="hljs-string">.begin-path</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
+      ctx<span class="hljs-string">.move-to</span><span class="hljs-punctuation">(</span>offx<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> offy<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span>
+   <span class="hljs-punctuation">(</span>onmouseup <span class="hljs-wordop">and</span> onmouseout<span class="hljs-punctuation">)</span><span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      active <span class="hljs-operator">=</span> false
+   onmousemove<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      <span class="hljs-keyword">if </span>active:
+         ctx<span class="hljs-string">.line-to</span><span class="hljs-punctuation">(</span>offx<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> offy<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span>
+         ctx<span class="hljs-string">.stroke</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
+ctx <span class="hljs-operator">=</span> canvas<span class="hljs-string">.get-context</span><span class="hljs-punctuation">(</span><span class="hljs-string">"2d"</span><span class="hljs-punctuation">)</span>
+ctx<span class="hljs-string">.line-width</span> <span class="hljs-operator">=</span> <span class="hljs-number">3</span>
+<span class="hljs-keyword">print </span>canvas
+undefined</pre></p>
+
+<p><pre id="cool-snake" class="hljs cool"><span class="hljs-comment">;; snake game. Sorry for the code density, I code-golfed it a bit.</span>
+<span class="hljs-keyword">require</span><span class="hljs-punctuation">:</span> <span class="hljs-operator">/</span>dom
+snake<span class="hljs-punctuation">(</span>len<span class="hljs-punctuation">,</span> tl<span class="hljs-punctuation">,</span> interval<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+   map <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-operator">..</span>len <span class="hljs-wordop">each</span> x <span class="hljs-operator">-&gt;</span> <span class="hljs-number">1</span><span class="hljs-operator">..</span>len <span class="hljs-wordop">each</span> y <span class="hljs-operator">-&gt;</span> <span class="hljs-number">0</span>
+   r<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> Math<span class="hljs-string">.floor</span><span class="hljs-punctuation">(</span>Math<span class="hljs-string">.random</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">*</span> len<span class="hljs-punctuation">)</span>
+   spwn<span class="hljs-punctuation">(</span>value <span class="hljs-wordop">and</span> <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span> <span class="hljs-wordop">is</span> <span class="hljs-punctuation">{</span>r<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> r<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      if<span class="hljs-punctuation">{</span>map<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>y<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> spwn<span class="hljs-punctuation">(</span>value<span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> <span class="hljs-punctuation">(</span>map<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>y<span class="hljs-punctuation">]</span> <span class="hljs-operator">=</span> value<span class="hljs-punctuation">,</span> <span class="hljs-punctuation">{</span>x<span class="hljs-punctuation">,</span> y<span class="hljs-punctuation">}</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">}</span>
+   <span class="hljs-keyword">var </span><span class="hljs-punctuation">{</span><span class="hljs-punctuation">{</span>px<span class="hljs-punctuation">,</span> py<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> dx<span class="hljs-punctuation">,</span> dy<span class="hljs-punctuation">,</span> score<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>spwn<span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">}</span>
+   <span class="hljs-number">1</span><span class="hljs-operator">..</span><span class="hljs-number">5</span> <span class="hljs-wordop">each</span> i <span class="hljs-operator">-&gt;</span> spwn<span class="hljs-punctuation">(</span><span class="hljs-operator">-</span><span class="hljs-number">1</span><span class="hljs-punctuation">)</span>
+   canvas <span class="hljs-operator">=</span> dom <span class="hljs-wordop">with</span> canvas <span class="hljs-operator">%</span>
+      width <span class="hljs-wordop">and</span> height <span class="hljs-operator">=</span> <span class="hljs-string">'{len * tl}px'</span>
+      tabindex <span class="hljs-operator">=</span> <span class="hljs-number">1000</span>
+      onkeydown<span class="hljs-punctuation">(</span>e<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+         e<span class="hljs-string">.prevent-default</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
+         <span class="hljs-punctuation">{</span>dx<span class="hljs-punctuation">,</span> dy<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span><span class="hljs-number">39</span><span class="hljs-operator">=</span><span class="hljs-punctuation">{</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span><span class="hljs-number">0</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span><span class="hljs-number">37</span><span class="hljs-operator">=</span><span class="hljs-punctuation">{</span><span class="hljs-operator">-</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span><span class="hljs-number">0</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span><span class="hljs-number">40</span><span class="hljs-operator">=</span><span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span><span class="hljs-number">1</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span><span class="hljs-number">38</span><span class="hljs-operator">=</span><span class="hljs-punctuation">{</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span><span class="hljs-operator">-</span><span class="hljs-number">1</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">[</span>e<span class="hljs-string">.which</span><span class="hljs-punctuation">]</span>
+   ctx <span class="hljs-operator">=</span> canvas<span class="hljs-string">.get-context</span><span class="hljs-punctuation">(</span><span class="hljs-string">"2d"</span><span class="hljs-punctuation">)</span>
+   loop <span class="hljs-operator">=</span> set-interval<span class="hljs-punctuation">(</span>f<span class="hljs-punctuation">,</span> interval<span class="hljs-punctuation">)</span> <span class="hljs-wordop">where</span> f<span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span>
+      map<span class="hljs-punctuation">[</span>px<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>py<span class="hljs-punctuation">]</span> <span class="hljs-operator">=</span> score <span class="hljs-operator">+</span> <span class="hljs-number">1</span>
+      <span class="hljs-punctuation">{</span>px<span class="hljs-punctuation">,</span> py<span class="hljs-punctuation">}</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">{</span>u<span class="hljs-punctuation">(</span>px<span class="hljs-punctuation">,</span>dx<span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> u<span class="hljs-punctuation">(</span>py<span class="hljs-punctuation">,</span>dy<span class="hljs-punctuation">)</span><span class="hljs-punctuation">}</span> <span class="hljs-wordop">where</span> u<span class="hljs-punctuation">(</span>p<span class="hljs-punctuation">,</span>d<span class="hljs-punctuation">)</span> <span class="hljs-operator">=</span> <span class="hljs-punctuation">(</span>p<span class="hljs-operator">+</span>d<span class="hljs-operator">+</span>len<span class="hljs-punctuation">)</span> <span class="hljs-wordop">mod</span> len
+      <span class="hljs-keyword">if </span>dx <span class="hljs-operator">or</span> dy<span class="hljs-punctuation">:</span> <span class="hljs-keyword">match </span>map<span class="hljs-punctuation">[</span>px<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>py<span class="hljs-punctuation">]</span><span class="hljs-punctuation">:</span>
+         <span class="hljs-operator">&lt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span>spwn<span class="hljs-punctuation">(</span><span class="hljs-operator">-</span><span class="hljs-number">1</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">;</span> score <span class="hljs-operator">+=</span> <span class="hljs-number">1</span><span class="hljs-punctuation">)</span>
+         <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-punctuation">(</span><span class="hljs-keyword">print </span><span class="hljs-string">'Game Over! {score} points!'</span><span class="hljs-punctuation">;</span> clear-interval<span class="hljs-punctuation">(</span>loop<span class="hljs-punctuation">)</span><span class="hljs-punctuation">)</span>
+         <span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> <span class="hljs-number">0</span><span class="hljs-operator">...</span>len <span class="hljs-wordop">each</span> x <span class="hljs-operator">-&gt;</span> <span class="hljs-number">0</span><span class="hljs-operator">...</span>len <span class="hljs-wordop">each</span> y <span class="hljs-wordop">when</span> map<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>y<span class="hljs-punctuation">]</span><span class="hljs-operator">&gt;</span><span class="hljs-number">0</span> <span class="hljs-operator">-&gt;</span> map<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>y<span class="hljs-punctuation">]</span><span class="hljs-operator">-=</span><span class="hljs-number">1</span>
+      map<span class="hljs-punctuation">[</span>px<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>py<span class="hljs-punctuation">]</span> <span class="hljs-operator">=</span> score <span class="hljs-operator">+</span> <span class="hljs-number">1</span>
+      ctx<span class="hljs-string">.clear-rect</span><span class="hljs-punctuation">(</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> canvas<span class="hljs-string">.width</span><span class="hljs-punctuation">,</span> canvas<span class="hljs-string">.height</span><span class="hljs-punctuation">)</span>
+      <span class="hljs-number">0</span><span class="hljs-operator">...</span>len <span class="hljs-wordop">each</span> x <span class="hljs-operator">-&gt;</span> <span class="hljs-number">0</span><span class="hljs-operator">...</span>len <span class="hljs-wordop">each</span> y <span class="hljs-wordop">when</span> map<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>y<span class="hljs-punctuation">]</span> <span class="hljs-operator">-&gt;</span>
+         ctx<span class="hljs-string">.fill-style</span> <span class="hljs-operator">=</span> if<span class="hljs-punctuation">{</span>map<span class="hljs-punctuation">[</span>x<span class="hljs-punctuation">]</span><span class="hljs-punctuation">[</span>y<span class="hljs-punctuation">]</span> <span class="hljs-operator">&lt;</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-string">.blue</span><span class="hljs-punctuation">,</span> <span class="hljs-string">.red</span><span class="hljs-punctuation">}</span>
+         ctx<span class="hljs-string">.fill-rect</span><span class="hljs-punctuation">(</span>tl <span class="hljs-operator">*</span> x<span class="hljs-punctuation">,</span> tl <span class="hljs-operator">*</span> y<span class="hljs-punctuation">,</span> tl<span class="hljs-punctuation">,</span> tl<span class="hljs-punctuation">)</span>
+   set-timeout<span class="hljs-punctuation">(</span><span class="hljs-operator">-&gt;</span> canvas<span class="hljs-string">.focus</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> <span class="hljs-number">10</span><span class="hljs-punctuation">)</span>
+   <span class="hljs-keyword">print </span><span class="hljs-string">"Snake: use arrow keys to move"</span>
+   <span class="hljs-keyword">print </span>canvas
+snake<span class="hljs-punctuation">(</span><span class="hljs-number">15</span><span class="hljs-punctuation">,</span> <span class="hljs-number">30</span><span class="hljs-punctuation">,</span> <span class="hljs-number">150</span><span class="hljs-punctuation">)</span>
+undefined</pre></p>
+
 
 <script>
-  document.getElementById("repl").className = "navlink curnav"
-  repl = require("repl").setup();</script>
+  function $enlarge(objects) {
+    h = Math.max(window.innerHeight - 150, 500) + "px";
+    document.querySelector(".repple-repl").style.height = h;
+    document.querySelector(".repple-aside").style.height = h;
+    console.log(objects);
+    objects.repl.cm.focus();
+  }</script>
 
 
+<div id="repple-385" class="repple-container repple-repl-aside-container"><div class="repple-repl"><div class="repple-scrollback"></div><div class="repple-inputline"><div class="repple-inbanner"></div><div class="repple-inputbox"><textarea class="repple-replarea"></textarea></div></div></div><div class="repple-aside"></div></div><script>$$quaintReppleList.push({"type":"repl-aside","divId":"repple-385","code":"globals:\n   System\n   document\n\nwait = promisify with {d, f} ->\n   set-timeout.call{null, f, d}\n\nnormalize-module-name{match} =\n   RegExp{\"^raw:\"}? x -> x.slice{4}\n   RegExp{\":\"}? x -> x\n   x -> \"npm:\" + x\n\n_cool-cycle = document.query-selector-all{\"pre.cool\"} each elem ->\n   elem.id[5...]\n\n_cool{match} =\n   false? ->\n      name = _cool-cycle.shift{}\n      _cool-cycle.push{name}\n      _cool{name}\n   name ->\n      code = document.get-element-by-id{'cool-{name}'}.text-content\n      $repl.process{code, true, true}\n\ninline-macro cool{match name}:\n  #void{} ->\n     `_cool{}`\n  else ->\n     `_cool{^name}`\n\ninline-macro next{_}:\n  `show-card{\"tut\", null}`\n\ninline-macro __require{#data{expr}}:\n   ```\n   await System.import{normalize-module-name{^expr}}\n   ```\n\ninline-macro print{match expr}:\n   `^expr in ^[#symbol{target}]` ->\n      ```\n      t = ^expr\n      Outputter{document.get-element-by-id{^=target}, true}.log{t}\n      t\n      ```\n   else ->\n      `t = ^expr, $out.log{t}, t`\n\n_load{match url} =\n   R\".js$\"? ->\n      new Promise with {resolve, reject} ->\n         document.getElementsByTagName{\"head\"}[0].appendChild with\n            dom with script %\n               async = true\n               type = \"text/javascript\"\n               src = url\n               onload{} = resolve{undefined}\n   R\".css$\"? ->\n      document.getElementsByTagName{\"head\"}[0].appendChild with\n         dom with link %\n            rel = \"stylesheet\"\n            type = \"text/css\"\n            href = url\n      undefined\n   else ->\n      throw E.unknown_resource_type{url}\n\ninline-macro load{url}:\n   `await _load{^url}`\n\nnext","variable":"$$repple385","cards":{"tut":{"start":{"__main":{"divId":"repple-card-386","order":10}},"expressions":{"__main":{"divId":"repple-card-389","order":20}},"arrays":{"__main":{"divId":"repple-card-395","order":30}},"arrays2":{"__main":{"divId":"repple-card-402","order":31}},"objects":{"__main":{"divId":"repple-card-413","order":40}},"functions":{"__main":{"divId":"repple-card-423","order":50}},"functions2":{"__main":{"divId":"repple-card-428","order":51}},"conditions":{"__main":{"divId":"repple-card-434","order":60}},"loops":{"__main":{"divId":"repple-card-438","order":70}},"loops2":{"__main":{"divId":"repple-card-442","order":71}},"patterns":{"__main":{"divId":"repple-card-447","order":80}},"patterns2":{"__main":{"divId":"repple-card-459","order":81}},"documents":{"__main":{"divId":"repple-card-465","order":90}},"libraries":{"__main":{"divId":"repple-card-472","order":100}},"async":{"__main":{"divId":"repple-card-476","order":110}},"end":{"__main":{"divId":"repple-card-479","order":1000}}}},"language":"earlgrey","theme":"default","after":"$enlarge"});</script><div class="repple-card-data"><div id="repple-card-386"><div class="repple-card repple-card-tut"><h2>The Earl Grey programming language</h2><div><p>
+      <table><tr><td><code class="hlinline">Enter</code> or <code class="hlinline">Ctrl-Enter</code></td><td>Evaluate an expression</td></tr>
+      <tr><td><code class="hlinline">Shift-Enter</code></td><td>Insert a new line</td></tr>
+      <tr><td><code class="hlinline">Up/Down</code> or <code class="hlinline">Ctrl-Up/Ctrl-Down</code></td><td>Navigate history</td></tr>
+      <tr><td><code class="hlinline">Ctrl-L</code></td><td>Clear the screen</td></tr></table></p>
+    
+      <p>Alright, so you have stumbled upon this page for some reason.</p>
+    
+      <p>Good! Stay right here!</p>
+    
+      <p><div class="big"><strong>Start with the tutorial: <script>function $$repple385$387() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$387()" class="repple-paste">next</code></strong></div>
+      <div class="big"><strong>Just show me cool stuff: <script>function $$repple385$388() { $$repple385.process("cool", true, true) }</script><code onclick="$$repple385$388()" class="repple-paste">cool</code></strong></div></p></div></div></div><div id="repple-card-389"><div class="repple-card repple-card-tut"><h2>Variables and expressions</h2><div>
+    
+      <p><div class="note">
+        For the purpose of this tutorial, I will assume you are already
+        familiar with an existing language such as JavaScript, Python or
+        Ruby, which have a similar feature set.</div></p>
+    
+      <p>How should one start a tutorial, usually? Man, I don't know. But I
+      know there are two very useful things programming languages can do:</p>
+    
+      <ol><li><p><strong>Doing math!</strong> Like <script>function $$repple385$390() { $$repple385.process("1 + 1", true, true) }</script><code onclick="$$repple385$390()" class="repple-paste">1 + 1</code> (&lt;- psst! you can <em>click</em> these!) You can
+        do math with Earl Grey. The operator precedence you learned at
+        school (well I hope you did) will work just fine: (<code class="hlinline">mod</code> is modulo)</p>
+    
+        <p><script>function $$repple385$391() { $$repple385.process("99 + 7 * (18 - 3) mod 10", true, true) }</script><code onclick="$$repple385$391()" class="repple-paste">99 + 7 * (18 - 3) mod 10</code></p></li>
+    
+      <li><p><strong>Putting stuff in variables!</strong> Sometimes you just need to put
+        something in a variable so that you can use it later. A variable
+        can contain dashes:</p>
+    
+        <p><script>function $$repple385$392() { $$repple385.process("my-variable = 1 + 2 + 3", true, true) }</script><code onclick="$$repple385$392()" class="repple-paste">my-variable = 1 + 2 + 3</code></p>
+    
+        <p>Why don't you put your name in a variable so you won't forget it?
+        A string is delimited by double quotes. My name is <script>function $$repple385$393() { $$repple385.process("\"Olivier\"", true, true) }</script><code onclick="$$repple385$393()" class="repple-paste">"Olivier"</code> for
+        example.</p></li>
+    
+      </ol><p>Type <script>function $$repple385$394() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$394()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-395"><div class="repple-card repple-card-tut"><h2>Arrays</h2><div>
+    
+      <p>Variables are nice, but a variable can only hold one thing, and
+      that's a bummer. If only there was a way to hold more than one thing
+      in a thing.</p>
+    
+      <p>Oh, that's right, there is!</p>
+    
+      <p><strong>Arrays</strong> store sequences of things. An array in Earl Grey is denoted
+      by curly braces:</p>
+    
+      <p><ul><li>Empty array: <script>function $$repple385$396() { $$repple385.process("{}", true, true) }</script><code onclick="$$repple385$396()" class="repple-paste">{}</code></li>
+      <li>Array of numbers: <script>function $$repple385$397() { $$repple385.process("{12, 87, -4}", true, true) }</script><code onclick="$$repple385$397()" class="repple-paste">{12, 87, -4}</code></li>
+      <li>Array of stuff: <script>function $$repple385$398() { $$repple385.process("{\"Hello\", 123, {\"nested\", \"things\", 10 * 10}}", true, true) }</script><code onclick="$$repple385$398()" class="repple-paste">{"Hello", 123, {"nested", "things", 10 * 10}}</code></li></ul></p>
+    
+      <p>Accessing members of an array may be done using square brackets,
+      starting from zero: <script>function $$repple385$399() { $$repple385.process("{18, 9, 71}[0]", true, true) }</script><code onclick="$$repple385$399()" class="repple-paste">{18, 9, 71}[0]</code>. You can also omit the brackets:
+      <script>function $$repple385$400() { $$repple385.process("{18, 9, 71} 0", true, true) }</script><code onclick="$$repple385$400()" class="repple-paste">{18, 9, 71} 0</code>.</p>
+    
+      <p>Type <script>function $$repple385$401() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$401()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-402"><div class="repple-card repple-card-tut"><h2>...Arrays</h2><div>
+    
+      <p>Now, what can you do on arrays? Well, all operations supported in
+      JavaScript are also supported, and the syntax is the same. See
+      <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">here</a> for a list. This being said, EG defines a few
+      additional operations and shortcuts:</p>
+    
+      <p>(Reminder: you can click these)</p>
+    
+      <div class="blocks">
+        <script>function $$repple385$403() { $$repple385.process("{1, 2, 3, 4}.reverse()", true, true) }</script><code onclick="$$repple385$403()" class="repple-paste">{1, 2, 3, 4}.reverse()</code>
+        <script>function $$repple385$404() { $$repple385.process("{1, 2} ++ {5, 6}", true, true) }</script><code onclick="$$repple385$404()" class="repple-paste">{1, 2} ++ {5, 6}</code>
+        <script>function $$repple385$405() { $$repple385.process("{10, 8, 71, 13, 24}[2...]", true, true) }</script><code onclick="$$repple385$405()" class="repple-paste">{10, 8, 71, 13, 24}[2...]</code>
+        <script>function $$repple385$406() { $$repple385.process("{10, 8, 71, 13, 24}[... -2]", true, true) }</script><code onclick="$$repple385$406()" class="repple-paste">{10, 8, 71, 13, 24}[... -2]</code>
+        <script>function $$repple385$407() { $$repple385.process("{10, 8, 71, 13, 24}[2 ... -2]", true, true) }</script><code onclick="$$repple385$407()" class="repple-paste">{10, 8, 71, 13, 24}[2 ... -2]</code>
+        <script>function $$repple385$408() { $$repple385.process("enumerate({53, 87, -22, 41})", true, true) }</script><code onclick="$$repple385$408()" class="repple-paste">enumerate({53, 87, -22, 41})</code>
+        <script>function $$repple385$409() { $$repple385.process("neighbours({53, 87, -22, 41})", true, true) }</script><code onclick="$$repple385$409()" class="repple-paste">neighbours({53, 87, -22, 41})</code>
+        <script>function $$repple385$410() { $$repple385.process("zip({1, 2, 3, 4}, {11, 22, 33, 44})", true, true) }</script><code onclick="$$repple385$410()" class="repple-paste">zip({1, 2, 3, 4}, {11, 22, 33, 44})</code>
+        <script>function $$repple385$411() { $$repple385.process("{1, 2, 3, 4, 5} each x -> x * x", true, true) }</script><code onclick="$$repple385$411()" class="repple-paste">{1, 2, 3, 4, 5} each x -> x * x</code></div>
+    
+      <p>
+      Type <script>function $$repple385$412() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$412()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-413"><div class="repple-card repple-card-tut"><h2>Objects</h2><div>
+    
+      <p><strong>Objects</strong> map <em>names</em>, which are strings, numbers or symbols, to
+      <em>stuff</em>, which can be anything. Like arrays, objects are declared
+      with curly brackets, but with the addition of the <code class="hlinline">=</code> or <code class="hlinline">=&gt;</code>
+      operator:</p>
+    
+      <p><ul><li>Empty object: <script>function $$repple385$414() { $$repple385.process("{=}", true, true) }</script><code onclick="$$repple385$414()" class="repple-paste">{=}</code></li>
+      <li>My name and age: <script>function $$repple385$415() { $$repple385.process("{name = \"Olivier\", age = 30}", true, true) }</script><code onclick="$$repple385$415()" class="repple-paste">{name = "Olivier", age = 30}</code></li>
+      <li>Also acceptable: <script>function $$repple385$416() { $$repple385.process("{\"name\" => \"Olivier\", \"age\" => 30}", true, true) }</script><code onclick="$$repple385$416()" class="repple-paste">{"name" => "Olivier", "age" => 30}</code></li></ul></p>
+    
+      <p>To get the value of an object's field, use square brackets, the dot
+      operator, or nothing at all:</p>
+    
+      <p><ul><li><script>function $$repple385$417() { $$repple385.process("{name = \"Olivier\"}[\"name\"]", true, true) }</script><code onclick="$$repple385$417()" class="repple-paste">{name = "Olivier"}["name"]</code></li>
+      <li><script>function $$repple385$418() { $$repple385.process("{name = \"Olivier\"} \"name\"", true, true) }</script><code onclick="$$repple385$418()" class="repple-paste">{name = "Olivier"} "name"</code></li>
+      <li><script>function $$repple385$419() { $$repple385.process("{name = \"Olivier\"}.name", true, true) }</script><code onclick="$$repple385$419()" class="repple-paste">{name = "Olivier"}.name</code></li></ul></p>
+    
+      <p><div class="note">
+        <script>function $$repple385$420() { $$repple385.process(".name", true, true) }</script><code onclick="$$repple385$420()" class="repple-paste">.name</code> and <script>function $$repple385$421() { $$repple385.process("\"name\"", true, true) }</script><code onclick="$$repple385$421()" class="repple-paste">"name"</code> are actually the same thing. If a string could
+        be a variable name, then you can put a dot in front instead of quotes
+        around it.</div></p>
+    
+      <p>Type <script>function $$repple385$422() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$422()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-423"><div class="repple-card repple-card-tut"><h2>Functions</h2><div>
+    
+      <p>Numbers, strings, arrays and objects are amazing, but you won't get
+      very far without better abstractions. A <strong>function</strong> lets you
+      encapsulate behavior so that you don't repeat yourself. For
+      instance, define a function to square a number:</p>
+    
+      <p><script>function $$repple385$424() { $$repple385.process("square(x) = x * x", true, true) }</script><code onclick="$$repple385$424()" class="repple-paste">square(x) = x * x</code></p>
+    
+      <p>Simple, eh? You can use it like this: <script>function $$repple385$425() { $$repple385.process("square(5)", true, true) }</script><code onclick="$$repple385$425()" class="repple-paste">square(5)</code>. And if you want to
+      define a long function, then you can <em>indent</em> the body:</p>
+    
+      <p><script>function $$repple385$426() { $$repple385.process("square(x) =\n   print 'I am squaring {x}!'\n   x * x", true, true) }</script><code onclick="$$repple385$426()" class="repple-paste">square(x) =
+   print 'I am squaring {x}!'
+   x * x</code></p>
+    
+      <p>Type <script>function $$repple385$427() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$427()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-428"><div class="repple-card repple-card-tut"><h2>...Functions</h2><div>
+    
+      <p>Sometimes you may need to give a function to another function to do
+      stuff. For example, the <code class="hlinline">for-each</code> method of arrays takes a function
+      to call on every member of the array.</p>
+    
+      <p>Depending on the situation, there are four ways to do it. Yes,
+      four. Do you have a problem with that?</p>
+    
+      <ol><li><p>Declare a named function, especially if you need it elsewhere:</p>
+    
+        <p><script>function $$repple385$429() { $$repple385.process("f(x) = print x\n{1, 2, 3}.for-each(f)", true, true) }</script><code onclick="$$repple385$429()" class="repple-paste">f(x) = print x
+{1, 2, 3}.for-each(f)</code></p></li>
+    
+      <li><p>Inline, for small functions</p>
+    
+        <p><script>function $$repple385$430() { $$repple385.process("{1, 2, 3}.for-each(x -> print x)", true, true) }</script><code onclick="$$repple385$430()" class="repple-paste">{1, 2, 3}.for-each(x -> print x)</code></p></li>
+    
+      <li><p><code class="hlinline">with</code> operator, to avoid brackets and indent the body, when the function is the last argument</p>
+    
+        <p><script>function $$repple385$431() { $$repple385.process("{1, 2, 3}.for-each with x ->\n   print x", true, true) }</script><code onclick="$$repple385$431()" class="repple-paste">{1, 2, 3}.for-each with x ->
+   print x</code></p></li>
+    
+      <li><p><code class="hlinline">where</code> operator, if it is clearer/more practical to name the function, especially when the function isn't the last argument</p>
+    
+        <p><script>function $$repple385$432() { $$repple385.process("print \"watch for it...\"\nset-timeout(f, 1000) where f() =\n   print \"there it is!\"", true, true) }</script><code onclick="$$repple385$432()" class="repple-paste">print "watch for it..."
+set-timeout(f, 1000) where f() =
+   print "there it is!"</code></p></li>
+    
+      </ol><p>Type <script>function $$repple385$433() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$433()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-434"><div class="repple-card repple-card-tut"><h2>Conditions</h2><div>
+    
+      <p><strong><code class="hlinline">if</code></strong> executes code conditionally. Its syntax is the same as in
+      Python:</p>
+    
+      <p><script>function $$repple385$435() { $$repple385.process("if 1 + 1 == 2:\n   \"Everything is fine!\"\nelif 2 + 2 == 4:\n   \"I think this was just a fluke.\"\nelse:\n   \"Oh no! Mathematics are falling apart!\"", true, true) }</script><code onclick="$$repple385$435()" class="repple-paste">if 1 + 1 == 2:
+   "Everything is fine!"
+elif 2 + 2 == 4:
+   "I think this was just a fluke."
+else:
+   "Oh no! Mathematics are falling apart!"</code></p>
+    
+      <p><code class="hlinline">if</code> returns its result. There is also an alternative syntax for
+      one-liners:</p>
+    
+      <p><script>function $$repple385$436() { $$repple385.process("if{1 + 1 == 2, \"yay\", \"boooo!\"}", true, true) }</script><code onclick="$$repple385$436()" class="repple-paste">if{1 + 1 == 2, "yay", "boooo!"}</code></p>
+    
+      <p>Type <script>function $$repple385$437() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$437()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-438"><div class="repple-card repple-card-tut"><h2>Loops</h2><div>
+    
+      <p><strong><code class="hlinline">while</code></strong> loops work as they do in Python:</p>
+    
+      <p><script>function $$repple385$439() { $$repple385.process("var i = 10\nwhile i >= 0:\n   print i\n   i -= 1", true, true) }</script><code onclick="$$repple385$439()" class="repple-paste">var i = 10
+while i >= 0:
+   print i
+   i -= 1</code></p>
+    
+      <p>Note that the <code class="hlinline">var</code> keyword is necessary above because <code class="hlinline">i</code> is a
+      mutable variable.</p>
+    
+      <p>C-style <code class="hlinline">for</code> loops are available, if for some reason you want to use
+      them:</p>
+    
+      <p><script>function $$repple385$440() { $$repple385.process("for (var i = 10; i >= 0; i--): print i", true, true) }</script><code onclick="$$repple385$440()" class="repple-paste">for (var i = 10; i >= 0; i--): print i</code></p>
+    
+      <p><code class="hlinline">break</code> and <code class="hlinline">continue</code> inside loops work as they do in other
+      languages.</p>
+    
+      <p>Type <script>function $$repple385$441() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$441()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-442"><div class="repple-card repple-card-tut"><h2>...Loops</h2><div>
+    
+      <p>The <strong><code class="hlinline">each</code></strong> operator is the generic way to loop over sequences
+      such as arrays or ranges.</p>
+    
+      <p><script>function $$repple385$443() { $$repple385.process("1..100 each i -> i * i", true, true) }</script><code onclick="$$repple385$443()" class="repple-paste">1..100 each i -> i * i</code></p>
+    
+      <p><code class="hlinline">each</code> accepts an indented block, but also multiple <em>clauses</em>,
+      executed in order. A "clause" maps some kind of pattern to a
+      body. There are many kinds of patterns. Can you figure out what
+      these do? (click to verify)</p>
+    
+      <p><script>function $$repple385$444() { $$repple385.process("{1, \"banana\", 6, {98}, {2, 3}, \"mess\", {=}} each\n   Number? i                       -> i + 1\n   String? s when s.ends-with(\"s\") -> s + \"es\"\n   String? s                       -> s + \"s\"\n   {x}                             -> x + 1\n   {x, y}                          -> x + y\n   else                            -> null", true, true) }</script><code onclick="$$repple385$444()" class="repple-paste">{1, "banana", 6, {98}, {2, 3}, "mess", {=}} each
+   Number? i                       -> i + 1
+   String? s when s.ends-with("s") -> s + "es"
+   String? s                       -> s + "s"
+   {x}                             -> x + 1
+   {x, y}                          -> x + y
+   else                            -> null</code></p>
+    
+      <p><code class="hlinline">break</code> and <code class="hlinline">continue</code> can be used to manipulate the stopping
+      condition and the results. For instance, this computes the squares
+      of odd numbers less than ten:</p>
+    
+      <p><script>function $$repple385$445() { $$repple385.process("1..100000 each\n   i when i > 10 ->\n      break\n   i when i mod 2 == 0 ->\n      continue\n   i ->\n      i * i", true, true) }</script><code onclick="$$repple385$445()" class="repple-paste">1..100000 each
+   i when i > 10 ->
+      break
+   i when i mod 2 == 0 ->
+      continue
+   i ->
+      i * i</code></p>
+    
+      <p>Type <script>function $$repple385$446() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$446()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-447"><div class="repple-card repple-card-tut"><h2>Pattern matching</h2><div>
+    
+      <p>As you just saw, <code class="hlinline">each's</code> clauses let you match patterns against
+      values. But you can do that almost everywhere in EG! It would be
+      long to explain all possible patterns, but all these examples should
+      give you an idea:</p>
+    
+      <p><div class="blocks">
+        <script>function $$repple385$448() { $$repple385.process("{x, {y, z}} = {1, {2, 3}}", true, true) }</script><code onclick="$$repple385$448()" class="repple-paste">{x, {y, z}} = {1, {2, 3}}</code>
+        <script>function $$repple385$449() { $$repple385.process("{x, 5} = {1, 2}   ;; This will fail!", true, true) }</script><code onclick="$$repple385$449()" class="repple-paste">{x, 5} = {1, 2}   ;; This will fail!</code>
+        <script>function $$repple385$450() { $$repple385.process("String? s = 4     ;; This will fail!", true, true) }</script><code onclick="$$repple385$450()" class="repple-paste">String? s = 4     ;; This will fail!</code>
+        <script>function $$repple385$451() { $$repple385.process("Array! a = 4      ;; *Create* an array if needed", true, true) }</script><code onclick="$$repple385$451()" class="repple-paste">Array! a = 4      ;; *Create* an array if needed</code>
+        <script>function $$repple385$452() { $$repple385.process("n > 0 = 8         ;; Try with -1 instead of 8", true, true) }</script><code onclick="$$repple385$452()" class="repple-paste">n > 0 = 8         ;; Try with -1 instead of 8</code>
+        <script>function $$repple385$453() { $$repple385.process("double(Number! x) = x + x\ndouble! x = \"9\"", true, true) }</script><code onclick="$$repple385$453()" class="repple-paste">double(Number! x) = x + x
+double! x = "9"</code>
+        <script>function $$repple385$454() { $$repple385.process("{x} or x = 9      ;; Try with {9} instead of 9", true, true) }</script><code onclick="$$repple385$454()" class="repple-paste">{x} or x = 9      ;; Try with {9} instead of 9</code>
+        <script>function $$repple385$455() { $$repple385.process("a and b = 100     ;; Set two variables at the same time", true, true) }</script><code onclick="$$repple385$455()" class="repple-paste">a and b = 100     ;; Set two variables at the same time</code>
+        <script>function $$repple385$456() { $$repple385.process("{=> name} = {name = \"Peter\"}", true, true) }</script><code onclick="$$repple385$456()" class="repple-paste">{=> name} = {name = "Peter"}</code>
+        <script>function $$repple385$457() { $$repple385.process("{p1 => {x => x1, y => y1}, p2 => {x => x2, y => y2}} =\n   {p1 = {x = 1, y = 1}, p2 = {x = 8, y = 3}}", true, true) }</script><code onclick="$$repple385$457()" class="repple-paste">{p1 => {x => x1, y => y1}, p2 => {x => x2, y => y2}} =
+   {p1 = {x = 1, y = 1}, p2 = {x = 8, y = 3}}</code></div></p>
+    
+      <p>Type <script>function $$repple385$458() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$458()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-459"><div class="repple-card repple-card-tut"><h2>...Pattern matching</h2><div>
+    
+      <p><code class="hlinline">match</code> specializes in matching:</p>
+    
+      <p><script>function $$repple385$460() { $$repple385.process("match {7, 8}:\n   {} -> 0\n   {x} -> x\n   {x, y} -> x + y", true, true) }</script><code onclick="$$repple385$460()" class="repple-paste">match {7, 8}:
+   {} -> 0
+   {x} -> x
+   {x, y} -> x + y</code></p>
+    
+      <p>Sometimes it can be useful to match on a function argument
+      immediately, so as shorthand you can put the <code class="hlinline">match</code> keyword directly
+      <em>inside</em> the arguments list:</p>
+    
+      <p><script>function $$repple385$461() { $$repple385.process("fact(match) =\n   0 -> 1\n   n -> n * fact(n - 1)\nfact(10)", true, true) }</script><code onclick="$$repple385$461()" class="repple-paste">fact(match) =
+   0 -> 1
+   n -> n * fact(n - 1)
+fact(10)</code></p>
+    
+      <p>You can nest <code class="hlinline">match</code> inside patterns indefinitely:</p>
+    
+      <p><script>function $$repple385$462() { $$repple385.process("silly(match, y) =\n   {match} -> {match} -> {match} -> x -> x * y\nsilly({{{5}}}, 7)", true, true) }</script><code onclick="$$repple385$462()" class="repple-paste">silly(match, y) =
+   {match} -> {match} -> {match} -> x -> x * y
+silly({{{5}}}, 7)</code></p>
+    
+      <p><div class="tip"><p>
+        The same trick can be used with <code class="hlinline">each</code>:</p>
+    
+        <p><script>function $$repple385$463() { $$repple385.process("square(each x) = x * x\nsquare(1..10)", true, true) }</script><code onclick="$$repple385$463()" class="repple-paste">square(each x) = x * x
+square(1..10)</code></p></div></p>
+    
+      <p>Type <script>function $$repple385$464() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$464()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-465"><div class="repple-card repple-card-tut"><h2>Documents</h2><div>
+    
+      <p>EG comes with a mini-language to define "documents". Assuming you
+      know HTML, it is relatively straightforward:</p>
+    
+      <p><script>function $$repple385$466() { $$repple385.process("strong % \"I AM YELLING!\"", true, true) }</script><code onclick="$$repple385$466()" class="repple-paste">strong % "I AM YELLING!"</code></p>
+    
+      <p><script>function $$repple385$467() { $$repple385.process("span[raw] % \"<em>this works in a pinch</em>\"", true, true) }</script><code onclick="$$repple385$467()" class="repple-paste">span[raw] % "<em>this works in a pinch</em>"</code></p>
+    
+      <p><script>function $$repple385$468() { $$repple385.process("ol %\n   type = \"i\"\n   li % \"Collect Underpants\"\n   li % \"?\"\n   li % \"Profit\"", true, true) }</script><code onclick="$$repple385$468()" class="repple-paste">ol %
+   type = "i"
+   li % "Collect Underpants"
+   li % "?"
+   li % "Profit"</code></p>
+    
+      <p><script>function $$repple385$469() { $$repple385.process(".card %\n   style = \"border: 5px solid black;\"\n   h2 % \"This is not part of the tutorial!\"\n   p % \"Do you know your multiplication table?\"\n   table % 1..10 each row ->\n      tr % 1..10 each col ->\n         td % row * col", true, true) }</script><code onclick="$$repple385$469()" class="repple-paste">.card %
+   style = "border: 5px solid black;"
+   h2 % "This is not part of the tutorial!"
+   p % "Do you know your multiplication table?"
+   table % 1..10 each row ->
+      tr % 1..10 each col ->
+         td % row * col</code></p>
+    
+      <p>These objects can be converted to HTML with the <code class="hlinline">/html</code> package:</p>
+    
+      <p><script>function $$repple385$470() { $$repple385.process("require: /html\nhtml(em % \"hello\")", true, true) }</script><code onclick="$$repple385$470()" class="repple-paste">require: /html
+html(em % "hello")</code></p>
+    
+      <p>Type <script>function $$repple385$471() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$471()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-472"><div class="repple-card repple-card-tut"><h2>Libraries</h2><div>
+    
+      <p>Use <code class="hlinline">require</code> to import libraries. If you use it here, it will import
+      from the <code class="hlinline">npm</code> repositories. Pretty neat! (Give a few seconds for the
+      package to be fetched the first time, it can be a bit slow).</p>
+    
+      <p><script>function $$repple385$473() { $$repple385.process("require: markdown\ndiv[raw] % markdown.parse(\"This *works*! Yay!\")", true, true) }</script><code onclick="$$repple385$473()" class="repple-paste">require: markdown
+div[raw] % markdown.parse("This *works*! Yay!")</code></p>
+    
+      <p>You can check the contents of the package just by typing <script>function $$repple385$474() { $$repple385.process("markdown", true, true) }</script><code onclick="$$repple385$474()" class="repple-paste">markdown</code>.</p>
+    
+      <p>Type <script>function $$repple385$475() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$475()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-476"><div class="repple-card repple-card-tut"><h2>Asynchronous programming</h2><div>
+    
+      <p>Sometimes you need to wait for data, or for some event to happen in
+      order to keep doing something. Maybe you're waiting for a file to be
+      read from the hard drive, for a file to be retrieved online, for a
+      database transaction to complete, and so on. And while you wait, you
+      don't want to stop the whole application, that would just be silly!</p>
+    
+      <p>Enter asynchronous programming.</p>
+    
+      <p><div class="note">
+         By default the interactive interpreter will wait for an
+         asynchronous call to finish before yielding back control to you.
+         If you want to avoid waiting, the trick is to wrap the call(s) in
+         <code class="hlinline">{}</code>s.</div></p>
+    
+      <p>An asynchronous function is marked with the keyword <code class="hlinline">async</code>, and it
+      can freely wait on any sub-operation with <code class="hlinline">await</code>.</p>
+    
+      <p><script>function $$repple385$477() { $$repple385.process("async f(seconds) =\n   await wait(seconds * 1000)\n   print 'I have waited {seconds} seconds.'\n{f{5}, f{1}, f{2}}", true, true) }</script><code onclick="$$repple385$477()" class="repple-paste">async f(seconds) =
+   await wait(seconds * 1000)
+   print 'I have waited {seconds} seconds.'
+{f{5}, f{1}, f{2}}</code></p>
+    
+      <p>Notice that the above does not take 8 seconds to finish, as one
+      would expect from purely sequential execution. Each operation
+      finishes in its own time.</p>
+    
+      <p>EG's implementation is based on ES6's generators and promises, but
+      it looks much nicer :) If a library function advertises that it
+      returns a Promise object, then <code class="hlinline">await</code> will work.</p>
+    
+      <p><div class="note">
+        A lot of functionality, especially in the node ecosystem, uses a
+        different (horrendous) interface based on callbacks. Thankfully,
+        assuming they follow protocol, these functions can be converted
+        with the <code class="hlinline">promisify</code> builtin.</div></p>
+    
+      <p>Type <script>function $$repple385$478() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$478()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-479"><div class="repple-card repple-card-tut"><h2>The End</h2><div>
+    
+      <p>The tutorial is over :)</p>
+    
+      <p>You can restart it with <script>function $$repple385$480() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$480()" class="repple-paste">next</code>, or simply keep playing around in the
+      interactive interpreter. Cheers!</p></div></div></div></div>
 
-<div id="foot-container" class="container"><div id="foot"></div></div>
 
-    </body></html>
+</div>
+<script type="text/javascript">$$quaintNavFunctionality()</script><script type="text/javascript">$$quaintReppleInstall();</script></body></html>

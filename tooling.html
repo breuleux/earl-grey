@@ -1,38 +1,15 @@
 
 <!DOCTYPE html>
-
 <html>
-
   <head>
-    <meta http-equiv="Content-type" content="text/html" charset="UTF-8">
     <title>Tooling</title>
-    <link rel="stylesheet" type="text/css" href="/earl-grey/style/style.css">
-    <script src="/earl-grey/lib/toc-scroll.js"></script></head>
-
+    <meta http-equiv="Content-type" content="text/html" charset="UTF-8"><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans|Mate+SC|Mate+SC"><link rel="stylesheet" type="text/css" href="resources/look-nice/nav.css"><link rel="stylesheet" type="text/css" href="resources/look-nice/side.css"><script type="text/javascript" src="resources/look-nice/toc-scroll.js"></script><link rel="stylesheet" type="text/css" href="resources/look-nice/main.css"><script type="text/javascript" src="resources/look-nice/nav.js"></script><link rel="stylesheet" type="text/css" href="resources/style/highlight/xcode.css"><link rel="stylesheet" type="text/css" href="resources/style.css"></head>
   <body>
-    
 
-
-
-
-
-<div id="sidebar"><div id="sidebar-contents">
-  <ul class="toc"><li><a href="#editorsupport">Editor support</a></li><li><a href="#syntaxhighlighting">Syntax highlighting</a></li></ul></div></div>
-
-<div id="nav-container" class="container"><div id="nav">
-    <div id="logo" class="navlink"><a href="/earl-grey/index.html"><img src="/earl-grey/assets/earlgrey-text.svg" height="60px" alt="Earl Grey"></a></div>
-    <div id="use" class="navlink dropdown">
-      <span><a href="/earl-grey/use.html">learn</a></span>
-      <ul><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></div>
-    
-    <div id="repl" class="navlink"><a href="/earl-grey/repl.html">try it!</a></div>
-    <div id="social">
-       <div id="source" class="navlink"><a href="https://github.com/breuleux/earl-grey"><img title="breuleux/earl-grey" src="/earl-grey/assets/github.png" height="32px" alt="breuleux/earl-grey on GitHub"></a></div>
-       <div id="twitter" class="navlink"><a href="https://twitter.com/earlgreylang"><img title="@earlgreylang" src="/earl-grey/assets/twitter.png" height="50px" alt="@earlgreylang"></a></div></div></div></div>
-
-
-
-<div id="main-container" class="container"><div id="main">
+<div class="nav-container-desktop"><nav id="nav-leftmost" class="nav-leftmost"><ul></ul></nav><nav id="nav-main" class="nav-main"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li><li>
+  <li class="spacer0"></li></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li><li>
+  <li class="spacer"></li></li><li><a href="https://github.com/breuleux/earl-grey" class="github-badge"><img src="/earl-grey/assets/github.png" alt="breuleux/earl-grey on GitHub" title="breuleux/earl-grey" height="32px"></a></li><li><a href="https://twitter.com/earlgreylang" class="twitter-badge"><img src="/earl-grey/assets/twitter.png" alt="@earlgreylang" title="@earlgreylang" height="50px"></a></li></ul></nav><nav id="nav-rightmost" class="nav-rightmost"><ul></ul></nav></div><div class="nav-container-mobile"><nav class="nav-mobile-menu dropdown"><div class="hamburger"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></div><ul><li><a href="/earl-grey/index.html">home</a></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li></ul></nav><nav id="nav-mobile" class="nav-mobile"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li></ul></nav></div>
+<div class="container">
 
 
 
@@ -40,8 +17,18 @@
 
 
 
-<script>document.getElementById("use").className = "navlink curnav dropdown"</script>
 
+
+
+
+
+
+
+
+
+
+
+<script>document.querySelector("#nav-main > ul > :nth-child(4)").className = "dropdown curnav"</script>
 
 
 
@@ -50,29 +37,30 @@
 <p>Editor support is a bit scattered at the moment. Please tell me if you
 are using these modules and file any issues you encounter.</p>
 
-<ul><li><strong>Emacs</strong>: <strong><a href="https://github.com/breuleux/earl-grey-mode">earl-grey-mode</a></strong></li><li><strong>Atom</strong>: <strong><a href="https://atom.io/packages/language-earl-grey">language-earl-grey</a></strong></li><li><strong>CodeMirror</strong>: <a href="https://github.com/breuleux/repple/blob/master/src/earlmode.eg">earlmode.eg</a>; browserify+earlify it and include the file,
-  it should work. Tell me if you try to work with it.</li></ul>
+<ul><li><strong>Emacs</strong>: <strong><a href="https://github.com/breuleux/earl-grey-mode">earl-grey-mode</a></strong></li>
 
+<li><strong>Atom</strong>: <strong><a href="https://atom.io/packages/language-earl-grey">language-earl-grey</a></strong></li>
 
+<li><strong>CodeMirror</strong>: <strong><a href="[https://github.com/breuleux/repple/blob/master/src/earlmode.eg]">earlmode.eg</a></strong>; browserify+earlify it and include the file,
+  it should work. Tell me if you try to work with it.</li>
+
+</ul>
 
 <p>If you wish to <strong>contribute</strong> editor support for an editor which is not
 yet supported, please consult these
-<strong><a href="/earl-grey/contrib.html#editorsupport">guidelines</a></strong>.</p>
+<strong><a href="E.not_in_environment: siterootcontrib.html#editorsupport">guidelines</a></strong>.</p>
 
 
 <h1 id="syntaxhighlighting">Syntax highlighting</h1>
 
 <p>Also scattered.</p>
 
-<ul><li><strong>highlight.js</strong>: <a href="https://github.com/breuleux/eg-doc/blob/master/hl.eg">hl.eg</a></li></ul>
+<ul><li><strong>highlight.js</strong>: <strong><a href="[https://github.com/breuleux/quaint-highlight/blob/master/src/hleg.eg]">hleg.eg</a></strong></li>
 
-<p>If you wish to <strong>contribute</strong> syntax highlighting for a library which is
+</ul><p>If you wish to <strong>contribute</strong> syntax highlighting for a library which is
 currently not supported, please consult these
-<strong><a href="/earl-grey/contrib.html#syntaxhighlighting">guidelines</a></strong>.</p>
-
-</div></div>
+<strong><a href="E.not_in_environment: siterootcontrib.html#syntaxhighlighting">guidelines</a></strong>.</p>
 
 
-<div id="foot-container" class="container"><div id="foot"></div></div>
-
-    </body></html>
+</div>
+<script type="text/javascript">$$quaintNavFunctionality()</script></body></html>
