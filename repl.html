@@ -6,9 +6,9 @@
     <meta http-equiv="Content-type" content="text/html" charset="UTF-8"><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans|Mate+SC|Mate+SC"><link rel="stylesheet" type="text/css" href="resources/look-nice/nav.css"><link rel="stylesheet" type="text/css" href="resources/look-nice/side.css"><script type="text/javascript" src="resources/look-nice/toc-scroll.js"></script><link rel="stylesheet" type="text/css" href="resources/look-nice/main.css"><script type="text/javascript" src="resources/look-nice/nav.js"></script><link rel="stylesheet" type="text/css" href="resources/style/highlight/xcode.css"><link rel="stylesheet" type="text/css" href="resources/style.css"><link rel="stylesheet" type="text/css" href="resources/style/repl.css"><script type="text/javascript" src="https://jspm.io/system@0.19.js"></script><script type="text/javascript" src="resources/repple/earlgrey.js"></script><script type="text/javascript" src="resources/repple/install.js"></script><link rel="stylesheet" type="text/css" href="resources/repple/codemirror.css"><link rel="stylesheet" type="text/css" href="resources/repple/repple.css"></head>
   <body>
 
-<div class="nav-container-desktop"><nav id="nav-leftmost" class="nav-leftmost"><ul></ul></nav><nav id="nav-main" class="nav-main"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li><li>
-  <li class="spacer0"></li></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li><li>
-  <li class="spacer"></li></li><li><a href="https://github.com/breuleux/earl-grey" class="github-badge"><img src="/earl-grey/assets/github.png" alt="breuleux/earl-grey on GitHub" title="breuleux/earl-grey" height="32px"></a></li><li><a href="https://twitter.com/earlgreylang" class="twitter-badge"><img src="/earl-grey/assets/twitter.png" alt="@earlgreylang" title="@earlgreylang" height="50px"></a></li></ul></nav><nav id="nav-rightmost" class="nav-rightmost"><ul></ul></nav></div><div class="nav-container-mobile"><nav class="nav-mobile-menu dropdown"><div class="hamburger"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></div><ul><li><a href="/earl-grey/index.html">home</a></li><li class="dropdown"><a href="/earl-grey/use.html">learn</a><ul class="dropdown-menu"><li><a href="/earl-grey/use.html">Install</a></li><li><a href="/earl-grey/doc.html">Documentation</a></li><li><a href="/earl-grey/tooling.html">Tooling</a></li><li><a href="/earl-grey/contrib.html">Contribute</a></li></ul></li><li><a href="/earl-grey/repl.html">try it!</a></li></ul></nav><nav id="nav-mobile" class="nav-mobile"><ul><li><a href="/earl-grey/index.html"><div id="logo"><img src="/earl-grey/assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li></ul></nav></div>
+<div class="nav-container-desktop"><nav id="nav-leftmost" class="nav-leftmost"><ul></ul></nav><nav id="nav-main" class="nav-main"><ul><li><a href="index.html"><div id="logo"><img src="assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li><li>
+  <li class="spacer0"></li></li><li class="dropdown"><a href="use.html">learn</a><ul class="dropdown-menu"><li><a href="use.html">Install</a></li><li><a href="doc.html">Documentation</a></li><li><a href="tooling.html">Tooling</a></li><li><a href="contrib.html">Contribute</a></li></ul></li><li><a href="repl.html">try it!</a></li><li>
+  <li class="spacer"></li></li><li><a href="https://github.com/breuleux/earl-grey" class="github-badge"><img src="assets/github.png" alt="breuleux/earl-grey on GitHub" title="breuleux/earl-grey" height="32px"></a></li><li><a href="https://twitter.com/earlgreylang" class="twitter-badge"><img src="assets/twitter.png" alt="@earlgreylang" title="@earlgreylang" height="50px"></a></li></ul></nav><nav id="nav-rightmost" class="nav-rightmost"><ul></ul></nav></div><div class="nav-container-mobile"><nav class="nav-mobile-menu dropdown"><div class="hamburger"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></div><ul><li><a href="index.html">home</a></li><li class="dropdown"><a href="use.html">learn</a><ul class="dropdown-menu"><li><a href="use.html">Install</a></li><li><a href="doc.html">Documentation</a></li><li><a href="tooling.html">Tooling</a></li><li><a href="contrib.html">Contribute</a></li></ul></li><li><a href="repl.html">try it!</a></li></ul></nav><nav id="nav-mobile" class="nav-mobile"><ul><li><a href="index.html"><div id="logo"><img src="assets/earlgrey-text.svg" alt="Earl Grey" title="" height="60px" width="284px"></div></a></li></ul></nav></div>
 <div class="container">
 
 
@@ -133,7 +133,7 @@ undefined</pre></p>
   }</script>
 
 
-<div id="repple-385" class="repple-container repple-repl-aside-container"><div class="repple-repl"><div class="repple-scrollback"></div><div class="repple-inputline"><div class="repple-inbanner"></div><div class="repple-inputbox"><textarea class="repple-replarea"></textarea></div></div></div><div class="repple-aside"></div></div><script>$$quaintReppleList.push({"type":"repl-aside","divId":"repple-385","code":"globals:\n   System\n   document\n\nwait = promisify with {d, f} ->\n   set-timeout.call{null, f, d}\n\nnormalize-module-name{match} =\n   RegExp{\"^raw:\"}? x -> x.slice{4}\n   RegExp{\":\"}? x -> x\n   x -> \"npm:\" + x\n\n_cool-cycle = document.query-selector-all{\"pre.cool\"} each elem ->\n   elem.id[5...]\n\n_cool{match} =\n   false? ->\n      name = _cool-cycle.shift{}\n      _cool-cycle.push{name}\n      _cool{name}\n   name ->\n      code = document.get-element-by-id{'cool-{name}'}.text-content\n      $repl.process{code, true, true}\n\ninline-macro cool{match name}:\n  #void{} ->\n     `_cool{}`\n  else ->\n     `_cool{^name}`\n\ninline-macro next{_}:\n  `show-card{\"tut\", null}`\n\ninline-macro __require{#data{expr}}:\n   ```\n   await System.import{normalize-module-name{^expr}}\n   ```\n\ninline-macro print{match expr}:\n   `^expr in ^[#symbol{target}]` ->\n      ```\n      t = ^expr\n      Outputter{document.get-element-by-id{^=target}, true}.log{t}\n      t\n      ```\n   else ->\n      `t = ^expr, $out.log{t}, t`\n\n_load{match url} =\n   R\".js$\"? ->\n      new Promise with {resolve, reject} ->\n         document.getElementsByTagName{\"head\"}[0].appendChild with\n            dom with script %\n               async = true\n               type = \"text/javascript\"\n               src = url\n               onload{} = resolve{undefined}\n   R\".css$\"? ->\n      document.getElementsByTagName{\"head\"}[0].appendChild with\n         dom with link %\n            rel = \"stylesheet\"\n            type = \"text/css\"\n            href = url\n      undefined\n   else ->\n      throw E.unknown_resource_type{url}\n\ninline-macro load{url}:\n   `await _load{^url}`\n\nnext","variable":"$$repple385","cards":{"tut":{"start":{"__main":{"divId":"repple-card-386","order":10}},"expressions":{"__main":{"divId":"repple-card-389","order":20}},"arrays":{"__main":{"divId":"repple-card-395","order":30}},"arrays2":{"__main":{"divId":"repple-card-402","order":31}},"objects":{"__main":{"divId":"repple-card-413","order":40}},"functions":{"__main":{"divId":"repple-card-423","order":50}},"functions2":{"__main":{"divId":"repple-card-428","order":51}},"conditions":{"__main":{"divId":"repple-card-434","order":60}},"loops":{"__main":{"divId":"repple-card-438","order":70}},"loops2":{"__main":{"divId":"repple-card-442","order":71}},"patterns":{"__main":{"divId":"repple-card-447","order":80}},"patterns2":{"__main":{"divId":"repple-card-459","order":81}},"documents":{"__main":{"divId":"repple-card-465","order":90}},"libraries":{"__main":{"divId":"repple-card-472","order":100}},"async":{"__main":{"divId":"repple-card-476","order":110}},"end":{"__main":{"divId":"repple-card-479","order":1000}}}},"language":"earlgrey","theme":"default","after":"$enlarge"});</script><div class="repple-card-data"><div id="repple-card-386"><div class="repple-card repple-card-tut"><h2>The Earl Grey programming language</h2><div><p>
+<div id="repple-1" class="repple-theme-light repple-container repple-repl-aside-container"><div class="repple-repl"><div class="repple-scrollback"></div><div class="repple-inputline"><div class="repple-inbanner"></div><div class="repple-inputbox"><textarea class="repple-replarea"></textarea></div></div></div><div class="repple-aside"></div></div><script>$$quaintReppleList.push({"type":"repl-aside","divId":"repple-1","code":"globals:\n   System\n   document\n\nwait = promisify with {d, f} ->\n   set-timeout.call{null, f, d}\n\nnormalize-module-name{match} =\n   RegExp{\"^raw:\"}? x -> x.slice{4}\n   RegExp{\":\"}? x -> x\n   x -> \"npm:\" + x\n\n_cool-cycle = document.query-selector-all{\"pre.cool\"} each elem ->\n   elem.id[5...]\n\n_cool{match} =\n   false? ->\n      name = _cool-cycle.shift{}\n      _cool-cycle.push{name}\n      _cool{name}\n   name ->\n      code = document.get-element-by-id{'cool-{name}'}.text-content\n      $repl.process{code, true, true}\n\ninline-macro cool{match name}:\n  #void{} ->\n     `_cool{}`\n  else ->\n     `_cool{^name}`\n\ninline-macro next{_}:\n  `show-card{\"tut\", null}`\n\ninline-macro __require{#data{expr}}:\n   ```\n   await System.import{normalize-module-name{^expr}}\n   ```\n\ninline-macro print{match expr}:\n   `^expr in ^[#symbol{target}]` ->\n      ```\n      t = ^expr\n      Outputter{document.get-element-by-id{^=target}, true}.log{t}\n      t\n      ```\n   else ->\n      `t = ^expr, $out.log{t}, t`\n\n_load{match url} =\n   R\".js$\"? ->\n      new Promise with {resolve, reject} ->\n         document.getElementsByTagName{\"head\"}[0].appendChild with\n            dom with script %\n               async = true\n               type = \"text/javascript\"\n               src = url\n               onload{} = resolve{undefined}\n   R\".css$\"? ->\n      document.getElementsByTagName{\"head\"}[0].appendChild with\n         dom with link %\n            rel = \"stylesheet\"\n            type = \"text/css\"\n            href = url\n      undefined\n   else ->\n      throw E.unknown_resource_type{url}\n\ninline-macro load{url}:\n   `await _load{^url}`\n\nnext","variable":"$$repple1","cards":{"tut":{"start":{"__main":{"divId":"repple-card-2","order":10}},"expressions":{"__main":{"divId":"repple-card-5","order":20}},"arrays":{"__main":{"divId":"repple-card-11","order":30}},"arrays2":{"__main":{"divId":"repple-card-18","order":31}},"objects":{"__main":{"divId":"repple-card-29","order":40}},"functions":{"__main":{"divId":"repple-card-39","order":50}},"functions2":{"__main":{"divId":"repple-card-44","order":51}},"conditions":{"__main":{"divId":"repple-card-50","order":60}},"loops":{"__main":{"divId":"repple-card-54","order":70}},"loops2":{"__main":{"divId":"repple-card-58","order":71}},"patterns":{"__main":{"divId":"repple-card-63","order":80}},"patterns2":{"__main":{"divId":"repple-card-75","order":81}},"documents":{"__main":{"divId":"repple-card-81","order":90}},"libraries":{"__main":{"divId":"repple-card-88","order":100}},"async":{"__main":{"divId":"repple-card-92","order":110}},"end":{"__main":{"divId":"repple-card-95","order":1000}}}},"language":"earlgrey","theme":"default","after":"$enlarge"});</script><div class="repple-card-data"><div id="repple-card-2"><div class="repple-card repple-card-tut"><h2>The Earl Grey programming language</h2><div><p>
       <table><tr><td><code class="hlinline">Enter</code> or <code class="hlinline">Ctrl-Enter</code></td><td>Evaluate an expression</td></tr>
       <tr><td><code class="hlinline">Shift-Enter</code></td><td>Insert a new line</td></tr>
       <tr><td><code class="hlinline">Up/Down</code> or <code class="hlinline">Ctrl-Up/Ctrl-Down</code></td><td>Navigate history</td></tr>
@@ -143,8 +143,8 @@ undefined</pre></p>
     
       <p>Good! Stay right here!</p>
     
-      <p><div class="big"><strong>Start with the tutorial: <script>function $$repple385$387() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$387()" class="repple-paste">next</code></strong></div>
-      <div class="big"><strong>Just show me cool stuff: <script>function $$repple385$388() { $$repple385.process("cool", true, true) }</script><code onclick="$$repple385$388()" class="repple-paste">cool</code></strong></div></p></div></div></div><div id="repple-card-389"><div class="repple-card repple-card-tut"><h2>Variables and expressions</h2><div>
+      <p><div class="big"><strong>Start with the tutorial: <script>function $$repple1$3() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$3()" class="repple-paste">next</code></strong></div>
+      <div class="big"><strong>Just show me cool stuff: <script>function $$repple1$4() { $$repple1.process("cool", true, true) }</script><code onclick="$$repple1$4()" class="repple-paste">cool</code></strong></div></p></div></div></div><div id="repple-card-5"><div class="repple-card repple-card-tut"><h2>Variables and expressions</h2><div>
     
       <p><div class="note">
         For the purpose of this tutorial, I will assume you are already
@@ -154,23 +154,23 @@ undefined</pre></p>
       <p>How should one start a tutorial, usually? Man, I don't know. But I
       know there are two very useful things programming languages can do:</p>
     
-      <ol><li><p><strong>Doing math!</strong> Like <script>function $$repple385$390() { $$repple385.process("1 + 1", true, true) }</script><code onclick="$$repple385$390()" class="repple-paste">1 + 1</code> (&lt;- psst! you can <em>click</em> these!) You can
+      <ol><li><p><strong>Doing math!</strong> Like <script>function $$repple1$6() { $$repple1.process("1 + 1", true, true) }</script><code onclick="$$repple1$6()" class="repple-paste">1 + 1</code> (&lt;- psst! you can <em>click</em> these!) You can
         do math with Earl Grey. The operator precedence you learned at
         school (well I hope you did) will work just fine: (<code class="hlinline">mod</code> is modulo)</p>
     
-        <p><script>function $$repple385$391() { $$repple385.process("99 + 7 * (18 - 3) mod 10", true, true) }</script><code onclick="$$repple385$391()" class="repple-paste">99 + 7 * (18 - 3) mod 10</code></p></li>
+        <p><script>function $$repple1$7() { $$repple1.process("99 + 7 * (18 - 3) mod 10", true, true) }</script><code onclick="$$repple1$7()" class="repple-paste">99 + 7 * (18 - 3) mod 10</code></p></li>
     
       <li><p><strong>Putting stuff in variables!</strong> Sometimes you just need to put
         something in a variable so that you can use it later. A variable
         can contain dashes:</p>
     
-        <p><script>function $$repple385$392() { $$repple385.process("my-variable = 1 + 2 + 3", true, true) }</script><code onclick="$$repple385$392()" class="repple-paste">my-variable = 1 + 2 + 3</code></p>
+        <p><script>function $$repple1$8() { $$repple1.process("my-variable = 1 + 2 + 3", true, true) }</script><code onclick="$$repple1$8()" class="repple-paste">my-variable = 1 + 2 + 3</code></p>
     
         <p>Why don't you put your name in a variable so you won't forget it?
-        A string is delimited by double quotes. My name is <script>function $$repple385$393() { $$repple385.process("\"Olivier\"", true, true) }</script><code onclick="$$repple385$393()" class="repple-paste">"Olivier"</code> for
+        A string is delimited by double quotes. My name is <script>function $$repple1$9() { $$repple1.process("\"Olivier\"", true, true) }</script><code onclick="$$repple1$9()" class="repple-paste">"Olivier"</code> for
         example.</p></li>
     
-      </ol><p>Type <script>function $$repple385$394() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$394()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-395"><div class="repple-card repple-card-tut"><h2>Arrays</h2><div>
+      </ol><p>Type <script>function $$repple1$10() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$10()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-11"><div class="repple-card repple-card-tut"><h2>Arrays</h2><div>
     
       <p>Variables are nice, but a variable can only hold one thing, and
       that's a bummer. If only there was a way to hold more than one thing
@@ -181,15 +181,15 @@ undefined</pre></p>
       <p><strong>Arrays</strong> store sequences of things. An array in Earl Grey is denoted
       by curly braces:</p>
     
-      <p><ul><li>Empty array: <script>function $$repple385$396() { $$repple385.process("{}", true, true) }</script><code onclick="$$repple385$396()" class="repple-paste">{}</code></li>
-      <li>Array of numbers: <script>function $$repple385$397() { $$repple385.process("{12, 87, -4}", true, true) }</script><code onclick="$$repple385$397()" class="repple-paste">{12, 87, -4}</code></li>
-      <li>Array of stuff: <script>function $$repple385$398() { $$repple385.process("{\"Hello\", 123, {\"nested\", \"things\", 10 * 10}}", true, true) }</script><code onclick="$$repple385$398()" class="repple-paste">{"Hello", 123, {"nested", "things", 10 * 10}}</code></li></ul></p>
+      <p><ul><li>Empty array: <script>function $$repple1$12() { $$repple1.process("{}", true, true) }</script><code onclick="$$repple1$12()" class="repple-paste">{}</code></li>
+      <li>Array of numbers: <script>function $$repple1$13() { $$repple1.process("{12, 87, -4}", true, true) }</script><code onclick="$$repple1$13()" class="repple-paste">{12, 87, -4}</code></li>
+      <li>Array of stuff: <script>function $$repple1$14() { $$repple1.process("{\"Hello\", 123, {\"nested\", \"things\", 10 * 10}}", true, true) }</script><code onclick="$$repple1$14()" class="repple-paste">{"Hello", 123, {"nested", "things", 10 * 10}}</code></li></ul></p>
     
       <p>Accessing members of an array may be done using square brackets,
-      starting from zero: <script>function $$repple385$399() { $$repple385.process("{18, 9, 71}[0]", true, true) }</script><code onclick="$$repple385$399()" class="repple-paste">{18, 9, 71}[0]</code>. You can also omit the brackets:
-      <script>function $$repple385$400() { $$repple385.process("{18, 9, 71} 0", true, true) }</script><code onclick="$$repple385$400()" class="repple-paste">{18, 9, 71} 0</code>.</p>
+      starting from zero: <script>function $$repple1$15() { $$repple1.process("{18, 9, 71}[0]", true, true) }</script><code onclick="$$repple1$15()" class="repple-paste">{18, 9, 71}[0]</code>. You can also omit the brackets:
+      <script>function $$repple1$16() { $$repple1.process("{18, 9, 71} 0", true, true) }</script><code onclick="$$repple1$16()" class="repple-paste">{18, 9, 71} 0</code>.</p>
     
-      <p>Type <script>function $$repple385$401() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$401()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-402"><div class="repple-card repple-card-tut"><h2>...Arrays</h2><div>
+      <p>Type <script>function $$repple1$17() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$17()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-18"><div class="repple-card repple-card-tut"><h2>...Arrays</h2><div>
     
       <p>Now, what can you do on arrays? Well, all operations supported in
       JavaScript are also supported, and the syntax is the same. See
@@ -199,57 +199,57 @@ undefined</pre></p>
       <p>(Reminder: you can click these)</p>
     
       <div class="blocks">
-        <script>function $$repple385$403() { $$repple385.process("{1, 2, 3, 4}.reverse()", true, true) }</script><code onclick="$$repple385$403()" class="repple-paste">{1, 2, 3, 4}.reverse()</code>
-        <script>function $$repple385$404() { $$repple385.process("{1, 2} ++ {5, 6}", true, true) }</script><code onclick="$$repple385$404()" class="repple-paste">{1, 2} ++ {5, 6}</code>
-        <script>function $$repple385$405() { $$repple385.process("{10, 8, 71, 13, 24}[2...]", true, true) }</script><code onclick="$$repple385$405()" class="repple-paste">{10, 8, 71, 13, 24}[2...]</code>
-        <script>function $$repple385$406() { $$repple385.process("{10, 8, 71, 13, 24}[... -2]", true, true) }</script><code onclick="$$repple385$406()" class="repple-paste">{10, 8, 71, 13, 24}[... -2]</code>
-        <script>function $$repple385$407() { $$repple385.process("{10, 8, 71, 13, 24}[2 ... -2]", true, true) }</script><code onclick="$$repple385$407()" class="repple-paste">{10, 8, 71, 13, 24}[2 ... -2]</code>
-        <script>function $$repple385$408() { $$repple385.process("enumerate({53, 87, -22, 41})", true, true) }</script><code onclick="$$repple385$408()" class="repple-paste">enumerate({53, 87, -22, 41})</code>
-        <script>function $$repple385$409() { $$repple385.process("neighbours({53, 87, -22, 41})", true, true) }</script><code onclick="$$repple385$409()" class="repple-paste">neighbours({53, 87, -22, 41})</code>
-        <script>function $$repple385$410() { $$repple385.process("zip({1, 2, 3, 4}, {11, 22, 33, 44})", true, true) }</script><code onclick="$$repple385$410()" class="repple-paste">zip({1, 2, 3, 4}, {11, 22, 33, 44})</code>
-        <script>function $$repple385$411() { $$repple385.process("{1, 2, 3, 4, 5} each x -> x * x", true, true) }</script><code onclick="$$repple385$411()" class="repple-paste">{1, 2, 3, 4, 5} each x -> x * x</code></div>
+        <script>function $$repple1$19() { $$repple1.process("{1, 2, 3, 4}.reverse()", true, true) }</script><code onclick="$$repple1$19()" class="repple-paste">{1, 2, 3, 4}.reverse()</code>
+        <script>function $$repple1$20() { $$repple1.process("{1, 2} ++ {5, 6}", true, true) }</script><code onclick="$$repple1$20()" class="repple-paste">{1, 2} ++ {5, 6}</code>
+        <script>function $$repple1$21() { $$repple1.process("{10, 8, 71, 13, 24}[2...]", true, true) }</script><code onclick="$$repple1$21()" class="repple-paste">{10, 8, 71, 13, 24}[2...]</code>
+        <script>function $$repple1$22() { $$repple1.process("{10, 8, 71, 13, 24}[... -2]", true, true) }</script><code onclick="$$repple1$22()" class="repple-paste">{10, 8, 71, 13, 24}[... -2]</code>
+        <script>function $$repple1$23() { $$repple1.process("{10, 8, 71, 13, 24}[2 ... -2]", true, true) }</script><code onclick="$$repple1$23()" class="repple-paste">{10, 8, 71, 13, 24}[2 ... -2]</code>
+        <script>function $$repple1$24() { $$repple1.process("enumerate({53, 87, -22, 41})", true, true) }</script><code onclick="$$repple1$24()" class="repple-paste">enumerate({53, 87, -22, 41})</code>
+        <script>function $$repple1$25() { $$repple1.process("neighbours({53, 87, -22, 41})", true, true) }</script><code onclick="$$repple1$25()" class="repple-paste">neighbours({53, 87, -22, 41})</code>
+        <script>function $$repple1$26() { $$repple1.process("zip({1, 2, 3, 4}, {11, 22, 33, 44})", true, true) }</script><code onclick="$$repple1$26()" class="repple-paste">zip({1, 2, 3, 4}, {11, 22, 33, 44})</code>
+        <script>function $$repple1$27() { $$repple1.process("{1, 2, 3, 4, 5} each x -> x * x", true, true) }</script><code onclick="$$repple1$27()" class="repple-paste">{1, 2, 3, 4, 5} each x -> x * x</code></div>
     
       <p>
-      Type <script>function $$repple385$412() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$412()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-413"><div class="repple-card repple-card-tut"><h2>Objects</h2><div>
+      Type <script>function $$repple1$28() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$28()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-29"><div class="repple-card repple-card-tut"><h2>Objects</h2><div>
     
       <p><strong>Objects</strong> map <em>names</em>, which are strings, numbers or symbols, to
       <em>stuff</em>, which can be anything. Like arrays, objects are declared
       with curly brackets, but with the addition of the <code class="hlinline">=</code> or <code class="hlinline">=&gt;</code>
       operator:</p>
     
-      <p><ul><li>Empty object: <script>function $$repple385$414() { $$repple385.process("{=}", true, true) }</script><code onclick="$$repple385$414()" class="repple-paste">{=}</code></li>
-      <li>My name and age: <script>function $$repple385$415() { $$repple385.process("{name = \"Olivier\", age = 30}", true, true) }</script><code onclick="$$repple385$415()" class="repple-paste">{name = "Olivier", age = 30}</code></li>
-      <li>Also acceptable: <script>function $$repple385$416() { $$repple385.process("{\"name\" => \"Olivier\", \"age\" => 30}", true, true) }</script><code onclick="$$repple385$416()" class="repple-paste">{"name" => "Olivier", "age" => 30}</code></li></ul></p>
+      <p><ul><li>Empty object: <script>function $$repple1$30() { $$repple1.process("{=}", true, true) }</script><code onclick="$$repple1$30()" class="repple-paste">{=}</code></li>
+      <li>My name and age: <script>function $$repple1$31() { $$repple1.process("{name = \"Olivier\", age = 30}", true, true) }</script><code onclick="$$repple1$31()" class="repple-paste">{name = "Olivier", age = 30}</code></li>
+      <li>Also acceptable: <script>function $$repple1$32() { $$repple1.process("{\"name\" => \"Olivier\", \"age\" => 30}", true, true) }</script><code onclick="$$repple1$32()" class="repple-paste">{"name" => "Olivier", "age" => 30}</code></li></ul></p>
     
       <p>To get the value of an object's field, use square brackets, the dot
       operator, or nothing at all:</p>
     
-      <p><ul><li><script>function $$repple385$417() { $$repple385.process("{name = \"Olivier\"}[\"name\"]", true, true) }</script><code onclick="$$repple385$417()" class="repple-paste">{name = "Olivier"}["name"]</code></li>
-      <li><script>function $$repple385$418() { $$repple385.process("{name = \"Olivier\"} \"name\"", true, true) }</script><code onclick="$$repple385$418()" class="repple-paste">{name = "Olivier"} "name"</code></li>
-      <li><script>function $$repple385$419() { $$repple385.process("{name = \"Olivier\"}.name", true, true) }</script><code onclick="$$repple385$419()" class="repple-paste">{name = "Olivier"}.name</code></li></ul></p>
+      <p><ul><li><script>function $$repple1$33() { $$repple1.process("{name = \"Olivier\"}[\"name\"]", true, true) }</script><code onclick="$$repple1$33()" class="repple-paste">{name = "Olivier"}["name"]</code></li>
+      <li><script>function $$repple1$34() { $$repple1.process("{name = \"Olivier\"} \"name\"", true, true) }</script><code onclick="$$repple1$34()" class="repple-paste">{name = "Olivier"} "name"</code></li>
+      <li><script>function $$repple1$35() { $$repple1.process("{name = \"Olivier\"}.name", true, true) }</script><code onclick="$$repple1$35()" class="repple-paste">{name = "Olivier"}.name</code></li></ul></p>
     
       <p><div class="note">
-        <script>function $$repple385$420() { $$repple385.process(".name", true, true) }</script><code onclick="$$repple385$420()" class="repple-paste">.name</code> and <script>function $$repple385$421() { $$repple385.process("\"name\"", true, true) }</script><code onclick="$$repple385$421()" class="repple-paste">"name"</code> are actually the same thing. If a string could
+        <script>function $$repple1$36() { $$repple1.process(".name", true, true) }</script><code onclick="$$repple1$36()" class="repple-paste">.name</code> and <script>function $$repple1$37() { $$repple1.process("\"name\"", true, true) }</script><code onclick="$$repple1$37()" class="repple-paste">"name"</code> are actually the same thing. If a string could
         be a variable name, then you can put a dot in front instead of quotes
         around it.</div></p>
     
-      <p>Type <script>function $$repple385$422() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$422()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-423"><div class="repple-card repple-card-tut"><h2>Functions</h2><div>
+      <p>Type <script>function $$repple1$38() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$38()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-39"><div class="repple-card repple-card-tut"><h2>Functions</h2><div>
     
       <p>Numbers, strings, arrays and objects are amazing, but you won't get
       very far without better abstractions. A <strong>function</strong> lets you
       encapsulate behavior so that you don't repeat yourself. For
       instance, define a function to square a number:</p>
     
-      <p><script>function $$repple385$424() { $$repple385.process("square(x) = x * x", true, true) }</script><code onclick="$$repple385$424()" class="repple-paste">square(x) = x * x</code></p>
+      <p><script>function $$repple1$40() { $$repple1.process("square(x) = x * x", true, true) }</script><code onclick="$$repple1$40()" class="repple-paste">square(x) = x * x</code></p>
     
-      <p>Simple, eh? You can use it like this: <script>function $$repple385$425() { $$repple385.process("square(5)", true, true) }</script><code onclick="$$repple385$425()" class="repple-paste">square(5)</code>. And if you want to
+      <p>Simple, eh? You can use it like this: <script>function $$repple1$41() { $$repple1.process("square(5)", true, true) }</script><code onclick="$$repple1$41()" class="repple-paste">square(5)</code>. And if you want to
       define a long function, then you can <em>indent</em> the body:</p>
     
-      <p><script>function $$repple385$426() { $$repple385.process("square(x) =\n   print 'I am squaring {x}!'\n   x * x", true, true) }</script><code onclick="$$repple385$426()" class="repple-paste">square(x) =
+      <p><script>function $$repple1$42() { $$repple1.process("square(x) =\n   print 'I am squaring {x}!'\n   x * x", true, true) }</script><code onclick="$$repple1$42()" class="repple-paste">square(x) =
    print 'I am squaring {x}!'
    x * x</code></p>
     
-      <p>Type <script>function $$repple385$427() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$427()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-428"><div class="repple-card repple-card-tut"><h2>...Functions</h2><div>
+      <p>Type <script>function $$repple1$43() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$43()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-44"><div class="repple-card repple-card-tut"><h2>...Functions</h2><div>
     
       <p>Sometimes you may need to give a function to another function to do
       stuff. For example, the <code class="hlinline">for-each</code> method of arrays takes a function
@@ -260,30 +260,30 @@ undefined</pre></p>
     
       <ol><li><p>Declare a named function, especially if you need it elsewhere:</p>
     
-        <p><script>function $$repple385$429() { $$repple385.process("f(x) = print x\n{1, 2, 3}.for-each(f)", true, true) }</script><code onclick="$$repple385$429()" class="repple-paste">f(x) = print x
+        <p><script>function $$repple1$45() { $$repple1.process("f(x) = print x\n{1, 2, 3}.for-each(f)", true, true) }</script><code onclick="$$repple1$45()" class="repple-paste">f(x) = print x
 {1, 2, 3}.for-each(f)</code></p></li>
     
       <li><p>Inline, for small functions</p>
     
-        <p><script>function $$repple385$430() { $$repple385.process("{1, 2, 3}.for-each(x -> print x)", true, true) }</script><code onclick="$$repple385$430()" class="repple-paste">{1, 2, 3}.for-each(x -> print x)</code></p></li>
+        <p><script>function $$repple1$46() { $$repple1.process("{1, 2, 3}.for-each(x -> print x)", true, true) }</script><code onclick="$$repple1$46()" class="repple-paste">{1, 2, 3}.for-each(x -> print x)</code></p></li>
     
       <li><p><code class="hlinline">with</code> operator, to avoid brackets and indent the body, when the function is the last argument</p>
     
-        <p><script>function $$repple385$431() { $$repple385.process("{1, 2, 3}.for-each with x ->\n   print x", true, true) }</script><code onclick="$$repple385$431()" class="repple-paste">{1, 2, 3}.for-each with x ->
+        <p><script>function $$repple1$47() { $$repple1.process("{1, 2, 3}.for-each with x ->\n   print x", true, true) }</script><code onclick="$$repple1$47()" class="repple-paste">{1, 2, 3}.for-each with x ->
    print x</code></p></li>
     
       <li><p><code class="hlinline">where</code> operator, if it is clearer/more practical to name the function, especially when the function isn't the last argument</p>
     
-        <p><script>function $$repple385$432() { $$repple385.process("print \"watch for it...\"\nset-timeout(f, 1000) where f() =\n   print \"there it is!\"", true, true) }</script><code onclick="$$repple385$432()" class="repple-paste">print "watch for it..."
+        <p><script>function $$repple1$48() { $$repple1.process("print \"watch for it...\"\nset-timeout(f, 1000) where f() =\n   print \"there it is!\"", true, true) }</script><code onclick="$$repple1$48()" class="repple-paste">print "watch for it..."
 set-timeout(f, 1000) where f() =
    print "there it is!"</code></p></li>
     
-      </ol><p>Type <script>function $$repple385$433() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$433()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-434"><div class="repple-card repple-card-tut"><h2>Conditions</h2><div>
+      </ol><p>Type <script>function $$repple1$49() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$49()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-50"><div class="repple-card repple-card-tut"><h2>Conditions</h2><div>
     
       <p><strong><code class="hlinline">if</code></strong> executes code conditionally. Its syntax is the same as in
       Python:</p>
     
-      <p><script>function $$repple385$435() { $$repple385.process("if 1 + 1 == 2:\n   \"Everything is fine!\"\nelif 2 + 2 == 4:\n   \"I think this was just a fluke.\"\nelse:\n   \"Oh no! Mathematics are falling apart!\"", true, true) }</script><code onclick="$$repple385$435()" class="repple-paste">if 1 + 1 == 2:
+      <p><script>function $$repple1$51() { $$repple1.process("if 1 + 1 == 2:\n   \"Everything is fine!\"\nelif 2 + 2 == 4:\n   \"I think this was just a fluke.\"\nelse:\n   \"Oh no! Mathematics are falling apart!\"", true, true) }</script><code onclick="$$repple1$51()" class="repple-paste">if 1 + 1 == 2:
    "Everything is fine!"
 elif 2 + 2 == 4:
    "I think this was just a fluke."
@@ -293,13 +293,13 @@ else:
       <p><code class="hlinline">if</code> returns its result. There is also an alternative syntax for
       one-liners:</p>
     
-      <p><script>function $$repple385$436() { $$repple385.process("if{1 + 1 == 2, \"yay\", \"boooo!\"}", true, true) }</script><code onclick="$$repple385$436()" class="repple-paste">if{1 + 1 == 2, "yay", "boooo!"}</code></p>
+      <p><script>function $$repple1$52() { $$repple1.process("if{1 + 1 == 2, \"yay\", \"boooo!\"}", true, true) }</script><code onclick="$$repple1$52()" class="repple-paste">if{1 + 1 == 2, "yay", "boooo!"}</code></p>
     
-      <p>Type <script>function $$repple385$437() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$437()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-438"><div class="repple-card repple-card-tut"><h2>Loops</h2><div>
+      <p>Type <script>function $$repple1$53() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$53()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-54"><div class="repple-card repple-card-tut"><h2>Loops</h2><div>
     
       <p><strong><code class="hlinline">while</code></strong> loops work as they do in Python:</p>
     
-      <p><script>function $$repple385$439() { $$repple385.process("var i = 10\nwhile i >= 0:\n   print i\n   i -= 1", true, true) }</script><code onclick="$$repple385$439()" class="repple-paste">var i = 10
+      <p><script>function $$repple1$55() { $$repple1.process("var i = 10\nwhile i >= 0:\n   print i\n   i -= 1", true, true) }</script><code onclick="$$repple1$55()" class="repple-paste">var i = 10
 while i >= 0:
    print i
    i -= 1</code></p>
@@ -310,24 +310,24 @@ while i >= 0:
       <p>C-style <code class="hlinline">for</code> loops are available, if for some reason you want to use
       them:</p>
     
-      <p><script>function $$repple385$440() { $$repple385.process("for (var i = 10; i >= 0; i--): print i", true, true) }</script><code onclick="$$repple385$440()" class="repple-paste">for (var i = 10; i >= 0; i--): print i</code></p>
+      <p><script>function $$repple1$56() { $$repple1.process("for (var i = 10; i >= 0; i--): print i", true, true) }</script><code onclick="$$repple1$56()" class="repple-paste">for (var i = 10; i >= 0; i--): print i</code></p>
     
       <p><code class="hlinline">break</code> and <code class="hlinline">continue</code> inside loops work as they do in other
       languages.</p>
     
-      <p>Type <script>function $$repple385$441() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$441()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-442"><div class="repple-card repple-card-tut"><h2>...Loops</h2><div>
+      <p>Type <script>function $$repple1$57() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$57()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-58"><div class="repple-card repple-card-tut"><h2>...Loops</h2><div>
     
       <p>The <strong><code class="hlinline">each</code></strong> operator is the generic way to loop over sequences
       such as arrays or ranges.</p>
     
-      <p><script>function $$repple385$443() { $$repple385.process("1..100 each i -> i * i", true, true) }</script><code onclick="$$repple385$443()" class="repple-paste">1..100 each i -> i * i</code></p>
+      <p><script>function $$repple1$59() { $$repple1.process("1..100 each i -> i * i", true, true) }</script><code onclick="$$repple1$59()" class="repple-paste">1..100 each i -> i * i</code></p>
     
       <p><code class="hlinline">each</code> accepts an indented block, but also multiple <em>clauses</em>,
       executed in order. A "clause" maps some kind of pattern to a
       body. There are many kinds of patterns. Can you figure out what
       these do? (click to verify)</p>
     
-      <p><script>function $$repple385$444() { $$repple385.process("{1, \"banana\", 6, {98}, {2, 3}, \"mess\", {=}} each\n   Number? i                       -> i + 1\n   String? s when s.ends-with(\"s\") -> s + \"es\"\n   String? s                       -> s + \"s\"\n   {x}                             -> x + 1\n   {x, y}                          -> x + y\n   else                            -> null", true, true) }</script><code onclick="$$repple385$444()" class="repple-paste">{1, "banana", 6, {98}, {2, 3}, "mess", {=}} each
+      <p><script>function $$repple1$60() { $$repple1.process("{1, \"banana\", 6, {98}, {2, 3}, \"mess\", {=}} each\n   Number? i                       -> i + 1\n   String? s when s.ends-with(\"s\") -> s + \"es\"\n   String? s                       -> s + \"s\"\n   {x}                             -> x + 1\n   {x, y}                          -> x + y\n   else                            -> null", true, true) }</script><code onclick="$$repple1$60()" class="repple-paste">{1, "banana", 6, {98}, {2, 3}, "mess", {=}} each
    Number? i                       -> i + 1
    String? s when s.ends-with("s") -> s + "es"
    String? s                       -> s + "s"
@@ -339,7 +339,7 @@ while i >= 0:
       condition and the results. For instance, this computes the squares
       of odd numbers less than ten:</p>
     
-      <p><script>function $$repple385$445() { $$repple385.process("1..100000 each\n   i when i > 10 ->\n      break\n   i when i mod 2 == 0 ->\n      continue\n   i ->\n      i * i", true, true) }</script><code onclick="$$repple385$445()" class="repple-paste">1..100000 each
+      <p><script>function $$repple1$61() { $$repple1.process("1..100000 each\n   i when i > 10 ->\n      break\n   i when i mod 2 == 0 ->\n      continue\n   i ->\n      i * i", true, true) }</script><code onclick="$$repple1$61()" class="repple-paste">1..100000 each
    i when i > 10 ->
       break
    i when i mod 2 == 0 ->
@@ -347,7 +347,7 @@ while i >= 0:
    i ->
       i * i</code></p>
     
-      <p>Type <script>function $$repple385$446() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$446()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-447"><div class="repple-card repple-card-tut"><h2>Pattern matching</h2><div>
+      <p>Type <script>function $$repple1$62() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$62()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-63"><div class="repple-card repple-card-tut"><h2>Pattern matching</h2><div>
     
       <p>As you just saw, <code class="hlinline">each's</code> clauses let you match patterns against
       values. But you can do that almost everywhere in EG! It would be
@@ -355,24 +355,24 @@ while i >= 0:
       give you an idea:</p>
     
       <p><div class="blocks">
-        <script>function $$repple385$448() { $$repple385.process("{x, {y, z}} = {1, {2, 3}}", true, true) }</script><code onclick="$$repple385$448()" class="repple-paste">{x, {y, z}} = {1, {2, 3}}</code>
-        <script>function $$repple385$449() { $$repple385.process("{x, 5} = {1, 2}   ;; This will fail!", true, true) }</script><code onclick="$$repple385$449()" class="repple-paste">{x, 5} = {1, 2}   ;; This will fail!</code>
-        <script>function $$repple385$450() { $$repple385.process("String? s = 4     ;; This will fail!", true, true) }</script><code onclick="$$repple385$450()" class="repple-paste">String? s = 4     ;; This will fail!</code>
-        <script>function $$repple385$451() { $$repple385.process("Array! a = 4      ;; *Create* an array if needed", true, true) }</script><code onclick="$$repple385$451()" class="repple-paste">Array! a = 4      ;; *Create* an array if needed</code>
-        <script>function $$repple385$452() { $$repple385.process("n > 0 = 8         ;; Try with -1 instead of 8", true, true) }</script><code onclick="$$repple385$452()" class="repple-paste">n > 0 = 8         ;; Try with -1 instead of 8</code>
-        <script>function $$repple385$453() { $$repple385.process("double(Number! x) = x + x\ndouble! x = \"9\"", true, true) }</script><code onclick="$$repple385$453()" class="repple-paste">double(Number! x) = x + x
+        <script>function $$repple1$64() { $$repple1.process("{x, {y, z}} = {1, {2, 3}}", true, true) }</script><code onclick="$$repple1$64()" class="repple-paste">{x, {y, z}} = {1, {2, 3}}</code>
+        <script>function $$repple1$65() { $$repple1.process("{x, 5} = {1, 2}   ;; This will fail!", true, true) }</script><code onclick="$$repple1$65()" class="repple-paste">{x, 5} = {1, 2}   ;; This will fail!</code>
+        <script>function $$repple1$66() { $$repple1.process("String? s = 4     ;; This will fail!", true, true) }</script><code onclick="$$repple1$66()" class="repple-paste">String? s = 4     ;; This will fail!</code>
+        <script>function $$repple1$67() { $$repple1.process("Array! a = 4      ;; *Create* an array if needed", true, true) }</script><code onclick="$$repple1$67()" class="repple-paste">Array! a = 4      ;; *Create* an array if needed</code>
+        <script>function $$repple1$68() { $$repple1.process("n > 0 = 8         ;; Try with -1 instead of 8", true, true) }</script><code onclick="$$repple1$68()" class="repple-paste">n > 0 = 8         ;; Try with -1 instead of 8</code>
+        <script>function $$repple1$69() { $$repple1.process("double(Number! x) = x + x\ndouble! x = \"9\"", true, true) }</script><code onclick="$$repple1$69()" class="repple-paste">double(Number! x) = x + x
 double! x = "9"</code>
-        <script>function $$repple385$454() { $$repple385.process("{x} or x = 9      ;; Try with {9} instead of 9", true, true) }</script><code onclick="$$repple385$454()" class="repple-paste">{x} or x = 9      ;; Try with {9} instead of 9</code>
-        <script>function $$repple385$455() { $$repple385.process("a and b = 100     ;; Set two variables at the same time", true, true) }</script><code onclick="$$repple385$455()" class="repple-paste">a and b = 100     ;; Set two variables at the same time</code>
-        <script>function $$repple385$456() { $$repple385.process("{=> name} = {name = \"Peter\"}", true, true) }</script><code onclick="$$repple385$456()" class="repple-paste">{=> name} = {name = "Peter"}</code>
-        <script>function $$repple385$457() { $$repple385.process("{p1 => {x => x1, y => y1}, p2 => {x => x2, y => y2}} =\n   {p1 = {x = 1, y = 1}, p2 = {x = 8, y = 3}}", true, true) }</script><code onclick="$$repple385$457()" class="repple-paste">{p1 => {x => x1, y => y1}, p2 => {x => x2, y => y2}} =
+        <script>function $$repple1$70() { $$repple1.process("{x} or x = 9      ;; Try with {9} instead of 9", true, true) }</script><code onclick="$$repple1$70()" class="repple-paste">{x} or x = 9      ;; Try with {9} instead of 9</code>
+        <script>function $$repple1$71() { $$repple1.process("a and b = 100     ;; Set two variables at the same time", true, true) }</script><code onclick="$$repple1$71()" class="repple-paste">a and b = 100     ;; Set two variables at the same time</code>
+        <script>function $$repple1$72() { $$repple1.process("{=> name} = {name = \"Peter\"}", true, true) }</script><code onclick="$$repple1$72()" class="repple-paste">{=> name} = {name = "Peter"}</code>
+        <script>function $$repple1$73() { $$repple1.process("{p1 => {x => x1, y => y1}, p2 => {x => x2, y => y2}} =\n   {p1 = {x = 1, y = 1}, p2 = {x = 8, y = 3}}", true, true) }</script><code onclick="$$repple1$73()" class="repple-paste">{p1 => {x => x1, y => y1}, p2 => {x => x2, y => y2}} =
    {p1 = {x = 1, y = 1}, p2 = {x = 8, y = 3}}</code></div></p>
     
-      <p>Type <script>function $$repple385$458() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$458()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-459"><div class="repple-card repple-card-tut"><h2>...Pattern matching</h2><div>
+      <p>Type <script>function $$repple1$74() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$74()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-75"><div class="repple-card repple-card-tut"><h2>...Pattern matching</h2><div>
     
       <p><code class="hlinline">match</code> specializes in matching:</p>
     
-      <p><script>function $$repple385$460() { $$repple385.process("match {7, 8}:\n   {} -> 0\n   {x} -> x\n   {x, y} -> x + y", true, true) }</script><code onclick="$$repple385$460()" class="repple-paste">match {7, 8}:
+      <p><script>function $$repple1$76() { $$repple1.process("match {7, 8}:\n   {} -> 0\n   {x} -> x\n   {x, y} -> x + y", true, true) }</script><code onclick="$$repple1$76()" class="repple-paste">match {7, 8}:
    {} -> 0
    {x} -> x
    {x, y} -> x + y</code></p>
@@ -381,39 +381,39 @@ double! x = "9"</code>
       immediately, so as shorthand you can put the <code class="hlinline">match</code> keyword directly
       <em>inside</em> the arguments list:</p>
     
-      <p><script>function $$repple385$461() { $$repple385.process("fact(match) =\n   0 -> 1\n   n -> n * fact(n - 1)\nfact(10)", true, true) }</script><code onclick="$$repple385$461()" class="repple-paste">fact(match) =
+      <p><script>function $$repple1$77() { $$repple1.process("fact(match) =\n   0 -> 1\n   n -> n * fact(n - 1)\nfact(10)", true, true) }</script><code onclick="$$repple1$77()" class="repple-paste">fact(match) =
    0 -> 1
    n -> n * fact(n - 1)
 fact(10)</code></p>
     
       <p>You can nest <code class="hlinline">match</code> inside patterns indefinitely:</p>
     
-      <p><script>function $$repple385$462() { $$repple385.process("silly(match, y) =\n   {match} -> {match} -> {match} -> x -> x * y\nsilly({{{5}}}, 7)", true, true) }</script><code onclick="$$repple385$462()" class="repple-paste">silly(match, y) =
+      <p><script>function $$repple1$78() { $$repple1.process("silly(match, y) =\n   {match} -> {match} -> {match} -> x -> x * y\nsilly({{{5}}}, 7)", true, true) }</script><code onclick="$$repple1$78()" class="repple-paste">silly(match, y) =
    {match} -> {match} -> {match} -> x -> x * y
 silly({{{5}}}, 7)</code></p>
     
       <p><div class="tip"><p>
         The same trick can be used with <code class="hlinline">each</code>:</p>
     
-        <p><script>function $$repple385$463() { $$repple385.process("square(each x) = x * x\nsquare(1..10)", true, true) }</script><code onclick="$$repple385$463()" class="repple-paste">square(each x) = x * x
+        <p><script>function $$repple1$79() { $$repple1.process("square(each x) = x * x\nsquare(1..10)", true, true) }</script><code onclick="$$repple1$79()" class="repple-paste">square(each x) = x * x
 square(1..10)</code></p></div></p>
     
-      <p>Type <script>function $$repple385$464() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$464()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-465"><div class="repple-card repple-card-tut"><h2>Documents</h2><div>
+      <p>Type <script>function $$repple1$80() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$80()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-81"><div class="repple-card repple-card-tut"><h2>Documents</h2><div>
     
       <p>EG comes with a mini-language to define "documents". Assuming you
       know HTML, it is relatively straightforward:</p>
     
-      <p><script>function $$repple385$466() { $$repple385.process("strong % \"I AM YELLING!\"", true, true) }</script><code onclick="$$repple385$466()" class="repple-paste">strong % "I AM YELLING!"</code></p>
+      <p><script>function $$repple1$82() { $$repple1.process("strong % \"I AM YELLING!\"", true, true) }</script><code onclick="$$repple1$82()" class="repple-paste">strong % "I AM YELLING!"</code></p>
     
-      <p><script>function $$repple385$467() { $$repple385.process("span[raw] % \"<em>this works in a pinch</em>\"", true, true) }</script><code onclick="$$repple385$467()" class="repple-paste">span[raw] % "<em>this works in a pinch</em>"</code></p>
+      <p><script>function $$repple1$83() { $$repple1.process("span[raw] % \"<em>this works in a pinch</em>\"", true, true) }</script><code onclick="$$repple1$83()" class="repple-paste">span[raw] % "<em>this works in a pinch</em>"</code></p>
     
-      <p><script>function $$repple385$468() { $$repple385.process("ol %\n   type = \"i\"\n   li % \"Collect Underpants\"\n   li % \"?\"\n   li % \"Profit\"", true, true) }</script><code onclick="$$repple385$468()" class="repple-paste">ol %
+      <p><script>function $$repple1$84() { $$repple1.process("ol %\n   type = \"i\"\n   li % \"Collect Underpants\"\n   li % \"?\"\n   li % \"Profit\"", true, true) }</script><code onclick="$$repple1$84()" class="repple-paste">ol %
    type = "i"
    li % "Collect Underpants"
    li % "?"
    li % "Profit"</code></p>
     
-      <p><script>function $$repple385$469() { $$repple385.process(".card %\n   style = \"border: 5px solid black;\"\n   h2 % \"This is not part of the tutorial!\"\n   p % \"Do you know your multiplication table?\"\n   table % 1..10 each row ->\n      tr % 1..10 each col ->\n         td % row * col", true, true) }</script><code onclick="$$repple385$469()" class="repple-paste">.card %
+      <p><script>function $$repple1$85() { $$repple1.process(".card %\n   style = \"border: 5px solid black;\"\n   h2 % \"This is not part of the tutorial!\"\n   p % \"Do you know your multiplication table?\"\n   table % 1..10 each row ->\n      tr % 1..10 each col ->\n         td % row * col", true, true) }</script><code onclick="$$repple1$85()" class="repple-paste">.card %
    style = "border: 5px solid black;"
    h2 % "This is not part of the tutorial!"
    p % "Do you know your multiplication table?"
@@ -423,21 +423,21 @@ square(1..10)</code></p></div></p>
     
       <p>These objects can be converted to HTML with the <code class="hlinline">/html</code> package:</p>
     
-      <p><script>function $$repple385$470() { $$repple385.process("require: /html\nhtml(em % \"hello\")", true, true) }</script><code onclick="$$repple385$470()" class="repple-paste">require: /html
+      <p><script>function $$repple1$86() { $$repple1.process("require: /html\nhtml(em % \"hello\")", true, true) }</script><code onclick="$$repple1$86()" class="repple-paste">require: /html
 html(em % "hello")</code></p>
     
-      <p>Type <script>function $$repple385$471() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$471()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-472"><div class="repple-card repple-card-tut"><h2>Libraries</h2><div>
+      <p>Type <script>function $$repple1$87() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$87()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-88"><div class="repple-card repple-card-tut"><h2>Libraries</h2><div>
     
       <p>Use <code class="hlinline">require</code> to import libraries. If you use it here, it will import
       from the <code class="hlinline">npm</code> repositories. Pretty neat! (Give a few seconds for the
       package to be fetched the first time, it can be a bit slow).</p>
     
-      <p><script>function $$repple385$473() { $$repple385.process("require: markdown\ndiv[raw] % markdown.parse(\"This *works*! Yay!\")", true, true) }</script><code onclick="$$repple385$473()" class="repple-paste">require: markdown
+      <p><script>function $$repple1$89() { $$repple1.process("require: markdown\ndiv[raw] % markdown.parse(\"This *works*! Yay!\")", true, true) }</script><code onclick="$$repple1$89()" class="repple-paste">require: markdown
 div[raw] % markdown.parse("This *works*! Yay!")</code></p>
     
-      <p>You can check the contents of the package just by typing <script>function $$repple385$474() { $$repple385.process("markdown", true, true) }</script><code onclick="$$repple385$474()" class="repple-paste">markdown</code>.</p>
+      <p>You can check the contents of the package just by typing <script>function $$repple1$90() { $$repple1.process("markdown", true, true) }</script><code onclick="$$repple1$90()" class="repple-paste">markdown</code>.</p>
     
-      <p>Type <script>function $$repple385$475() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$475()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-476"><div class="repple-card repple-card-tut"><h2>Asynchronous programming</h2><div>
+      <p>Type <script>function $$repple1$91() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$91()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-92"><div class="repple-card repple-card-tut"><h2>Asynchronous programming</h2><div>
     
       <p>Sometimes you need to wait for data, or for some event to happen in
       order to keep doing something. Maybe you're waiting for a file to be
@@ -456,7 +456,7 @@ div[raw] % markdown.parse("This *works*! Yay!")</code></p>
       <p>An asynchronous function is marked with the keyword <code class="hlinline">async</code>, and it
       can freely wait on any sub-operation with <code class="hlinline">await</code>.</p>
     
-      <p><script>function $$repple385$477() { $$repple385.process("async f(seconds) =\n   await wait(seconds * 1000)\n   print 'I have waited {seconds} seconds.'\n{f{5}, f{1}, f{2}}", true, true) }</script><code onclick="$$repple385$477()" class="repple-paste">async f(seconds) =
+      <p><script>function $$repple1$93() { $$repple1.process("async f(seconds) =\n   await wait(seconds * 1000)\n   print 'I have waited {seconds} seconds.'\n{f{5}, f{1}, f{2}}", true, true) }</script><code onclick="$$repple1$93()" class="repple-paste">async f(seconds) =
    await wait(seconds * 1000)
    print 'I have waited {seconds} seconds.'
 {f{5}, f{1}, f{2}}</code></p>
@@ -475,11 +475,11 @@ div[raw] % markdown.parse("This *works*! Yay!")</code></p>
         assuming they follow protocol, these functions can be converted
         with the <code class="hlinline">promisify</code> builtin.</div></p>
     
-      <p>Type <script>function $$repple385$478() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$478()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-479"><div class="repple-card repple-card-tut"><h2>The End</h2><div>
+      <p>Type <script>function $$repple1$94() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$94()" class="repple-paste">next</code> to get to the next topic.</p></div></div></div><div id="repple-card-95"><div class="repple-card repple-card-tut"><h2>The End</h2><div>
     
       <p>The tutorial is over :)</p>
     
-      <p>You can restart it with <script>function $$repple385$480() { $$repple385.process("next", true, true) }</script><code onclick="$$repple385$480()" class="repple-paste">next</code>, or simply keep playing around in the
+      <p>You can restart it with <script>function $$repple1$96() { $$repple1.process("next", true, true) }</script><code onclick="$$repple1$96()" class="repple-paste">next</code>, or simply keep playing around in the
       interactive interpreter. Cheers!</p></div></div></div></div>
 
 
