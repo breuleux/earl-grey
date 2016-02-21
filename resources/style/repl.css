@@ -1,6 +1,12 @@
 body {
   font-size: 16px; }
 
+.repple-container.repple-theme-light {
+  background: #f8f8f8 !important; }
+
+.repple-container .repple-entry > * {
+  padding: 6px 0px 6px 4px !important; }
+
 .container {
   width: 100%;
   max-width: 1200px;

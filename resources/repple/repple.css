@@ -419,6 +419,9 @@
   .repple-container.repple-theme-dark .error_type {
     color: #f00; }
 
+.repple-entry .CodeMirror {
+  height: auto; }
+
 .repple-entry {
   white-space: pre;
   font-family: monospace; }

@@ -70,11 +70,11 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
 
             case 20:
               context$3$0.prev = 20;
-              context$3$0.t2 = context$3$0["catch"](13);
+              context$3$0.t7 = context$3$0["catch"](13);
               e$0 = undefined;
               rp$0 = undefined;
               t0$2 = undefined;
-              t0$2 = context$3$0.t2;
+              t0$2 = context$3$0.t7;
               if (!getChecker(ReloadAfterPromise$0)(t0$2)) {
                 context$3$0.next = 33;
                 break;
@@ -87,7 +87,7 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
               return context$3$0.abrupt("return", ev$0(text$0));
 
             case 33:
-              e$0 = context$3$0.t2;throw e$0;
+              e$0 = context$3$0.t7;throw e$0;
 
             case 35:
               if (getChecker(Into$0)(res$0)) {
@@ -107,9 +107,9 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
 
             case 39:
               context$3$0.prev = 39;
-              context$3$0.t3 = context$3$0["catch"](10);
+              context$3$0.t8 = context$3$0["catch"](10);
               e$1 = undefined;
-              e$1 = context$3$0.t3;rval$0 = ["failure", e$1];rval$0;
+              e$1 = context$3$0.t8;rval$0 = ["failure", e$1];rval$0;
 
             case 45:
               context$3$0.prev = 45;
@@ -254,7 +254,7 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
   return x$2;
 });stdsetup$0 = function stdsetup(config$0) {
   return spawn.call(this, regeneratorRuntime.mark(function callee$1$0() {
-    var m$7, acc$4, temp$9, accum$10, accum$11, accum$12, accum$13, $targ$16, name$2, f$2, m$6$0, di$0, elements$2, targets$1, c$1, bindings$1, dynamic__minus__bindings$1, settings$3, repl$2, editor$0, focus$0, $targ$15, rval$1;
+    var m$7, acc$4, temp$9, accum$10, accum$11, accum$12, accum$13, accum$14, $targ$16, name$2, f$2, m$6$0, di$0, elements$2, targets$1, c$1, bindings$1, dynamic__minus__bindings$1, settings$3, repl$2, editor$0, focus$0, $targ$15, rval$1;
     return regeneratorRuntime.wrap(function callee$1$0$(context$2$0) {
       while (1) switch (context$2$0.prev = context$2$0.next) {
         case 0:
@@ -265,6 +265,7 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
           accum$11 = undefined;
           accum$12 = undefined;
           accum$13 = undefined;
+          accum$14 = undefined;
           $targ$16 = undefined;
           name$2 = undefined;
           f$2 = undefined;
@@ -296,9 +297,11 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
             return send(send(send(repl$2, "repple", true), "io", true), repl$2.repple.current);
           }, accum$11), __amp____colon__((accum$12 = {}, accum$12.$repl = function $repl() {
             return repl$2;
-          }, accum$12), (accum$13 = {}, accum$13.$repple = function $repple() {
+          }, accum$12), __amp____colon__((accum$13 = {}, accum$13.$editor = function $editor() {
+            return editor$0;
+          }, accum$13), (accum$14 = {}, accum$14.$repple = function $repple() {
             return repl$2;
-          }, accum$13)));settings$3 = __amp__(config$0, { targets: targets$1, bindings: bindings$1, dynamicBindings: dynamic__minus__bindings$1 });if (elements$2.repl) {
+          }, accum$14))));settings$3 = __amp__(config$0, { targets: targets$1, bindings: bindings$1, dynamicBindings: dynamic__minus__bindings$1 });if (elements$2.repl) {
             repl$2 = stdrepl$0(elements$2, settings$3);
           } else {
             repl$2 = null;
@@ -330,24 +333,24 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
             repl$2.setenv();
           }colorize$0(config$0.lang, config$0.theme);rval$1 = { repl: repl$2, editor: editor$0 };m$6$0 = config$0.after;
           if (!(typeof m$6$0 === "function")) {
-            context$2$0.next = 48;
+            context$2$0.next = 49;
             break;
           }
 
           f$2 = m$6$0;return context$2$0.abrupt("return", f$2(rval$1));
 
-        case 48:
+        case 49:
           if (!(typeof m$6$0 === "string")) {
-            context$2$0.next = 53;
+            context$2$0.next = 54;
             break;
           }
 
           name$2 = m$6$0;return context$2$0.abrupt("return", send(global, name$2, true)(rval$1));
 
-        case 53:
+        case 54:
           return context$2$0.abrupt("return", rval$1);
 
-        case 54:
+        case 55:
         case "end":
           return context$2$0.stop();
       }
@@ -66600,7 +66603,7 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
     data$0 = Array.prototype.slice.call(m$1$0, 0);result$0 = DOM$0(ENode(["div"], {}, (acc$0 = [], temp$0 = null, m$2 = null, (function () {
       $0: for (var _iterator = data$0[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
         m$2 = _step.value;
-        var bridge$$7622$0 = undefined;var x$0 = undefined;var ph$0$0 = undefined;var t0$2 = undefined;t0$2 = m$2;x$0 = t0$2;ph$0$0 = t0$2;bridge$$7622$0 = ph$0$0;if (getChecker(Element)(bridge$$7622$0) || getChecker(ENode)(bridge$$7622$0)) {
+        var bridge$$17334$0 = undefined;var x$0 = undefined;var ph$0$0 = undefined;var t0$2 = undefined;t0$2 = m$2;x$0 = t0$2;ph$0$0 = t0$2;bridge$$17334$0 = ph$0$0;if (getChecker(Element)(bridge$$17334$0) || getChecker(ENode)(bridge$$17334$0)) {
           temp$0 = x$0;
         } else {
           temp$0 = ENode([".repple-data"], {}, repr$0(x$0));
@@ -66626,13 +66629,13 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
   }$targ$8 = __at___$2.CodeMirror.Pass;__at___$2.pass = $targ$8;if (!__at___$2.CodeMirror.runMode) {
     throw ErrorFactory(["repple", "runMode"]).create("Missing run mode for CodeMirror. Try to require('codemirror/addon/runmode/runmode')");
   }$targ$9 = { io: [], current: -1 };__at___$2.repple = $targ$9;$targ$10 = gensym__minus__r$0();__at___$2.reppleSymbol = $targ$10;__at___$2.setenv((function () {
-    var $$8352 = {};$$8352[__at___$2.reppleSymbol] = __at___$2.repple;return $$8352;
+    var $$18064 = {};$$18064[__at___$2.reppleSymbol] = __at___$2.repple;return $$18064;
   })());$targ$11 = opts$0.elements.inputline;__at___$2.inputline = $targ$11;$targ$12 = opts$0.elements.keymap || {};__at___$2.keymap = $targ$12;if (opts$0.sink) {
     $targ$15 = opts$0.sink;__at___$2.sink = $targ$15;void 0;
   }__at___$2.keymap = __at___$2.keymap || {};__at___$2.setup_cm(__at___$2.textarea);$targ$13 = 0;__at___$2.cursor = $targ$13;$targ$14 = [""];__at___$2.history = $targ$14;return __at___$2;
 };Repl$0.prototype.setup_cm = function setup_cm(textarea$0) {
   var accum$2 = undefined;var $targ$17 = undefined;var accum$3 = undefined;var $targ$18 = undefined;var accum$4 = undefined;var $targ$19 = undefined;var accum$5 = undefined;var $targ$20 = undefined;var accum$6 = undefined;var accum$7 = undefined;var accum$8 = undefined;var $targ$21 = undefined;var accum$9 = undefined;var $targ$22 = undefined;var accum$10 = undefined;var $targ$23 = undefined;var accum$11 = undefined;var $targ$24 = undefined;var accum$12 = undefined;var km$0 = undefined;var $targ$16 = undefined;var __at___$3 = undefined;var self$1 = undefined;__at___$3 = this;self$1 = this;$targ$16 = __at___$3.CodeMirror.fromTextArea(textarea$0, { indentUnit: 3, viewportMargin: 1 / 0, theme: __at___$3.theme });__at___$3.cm = $targ$16;km$0 = __amp____colon__((accum$2 = {}, accum$2.Enter = function Enter(cm$0) {
-    var s$0 = undefined;var bridge$$7799$0 = undefined;var bridge$$7801$0 = undefined;var ph$1$0 = undefined;var m$3$0 = undefined;m$3$0 = __at___$3.continuate;if (typeof m$3$0 === "function") {
+    var s$0 = undefined;var bridge$$17511$0 = undefined;var bridge$$17513$0 = undefined;var ph$1$0 = undefined;var m$3$0 = undefined;m$3$0 = __at___$3.continuate;if (typeof m$3$0 === "function") {
       if (__at___$3.continuate(cm$0)) {
         __at___$3.sink();return __at___$3.pass;
       } else {
@@ -66643,10 +66646,10 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
         __at___$3.sink();return __at___$3.pass;
       } else {
         ph$1$0 = m$3$0;if (cm$0.lineCount() === 1) {
-          bridge$$7799$0 = ph$1$0;if (bridge$$7799$0 === null || bridge$$7799$0 === void 0) {
+          bridge$$17511$0 = ph$1$0;if (bridge$$17511$0 === null || bridge$$17511$0 === void 0) {
             return __at___$3.submit();
           } else {
-            bridge$$7801$0 = ph$1$0;if (typeof bridge$$7801$0 === "string" && (s$0 = bridge$$7801$0, true) || getChecker(RegExp)(bridge$$7801$0) && (s$0 = bridge$$7801$0, true)) {
+            bridge$$17513$0 = ph$1$0;if (typeof bridge$$17513$0 === "string" && (s$0 = bridge$$17513$0, true) || getChecker(RegExp)(bridge$$17513$0) && (s$0 = bridge$$17513$0, true)) {
               if (cm$0.getLine(0).match(s$0)) {
                 __at___$3.sink();return __at___$3.pass;
               } else {
@@ -66672,13 +66675,13 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
       __at___$3.cm.setValue(send(send(__at___$3, "history", true), ++__at___$3.cursor));__at___$3.cm.setCursor(0, __at___$3.cm.getLine(0).length);return __at___$3.sink();
     }
   }, accum$6 = {}, accum$6["Ctrl-Down"] = $targ$20, accum$6), __amp____colon__((accum$7 = {}, accum$7.Up = function Up(temp$1$0) {
-    var t0$4 = undefined;var $$7878$0 = undefined;var cm$4 = undefined;var ph$2$0 = undefined;t0$4 = temp$1$0;cm$4 = t0$4;ph$2$0 = t0$4;if (__at___$3.cursor > 0 && __at___$3.cm.getCursor().line === 0) {
+    var t0$4 = undefined;var $$17590$0 = undefined;var cm$4 = undefined;var ph$2$0 = undefined;t0$4 = temp$1$0;cm$4 = t0$4;ph$2$0 = t0$4;if (__at___$3.cursor > 0 && __at___$3.cm.getCursor().line === 0) {
       __at___$3.cm.setValue(send(send(__at___$3, "history", true), --__at___$3.cursor));__at___$3.cm.setCursor(__at___$3.cm.lineCount(), 0);return __at___$3.sink();
     } else {
       return __at___$3.pass;
     }
   }, accum$7), __amp____colon__((accum$8 = {}, accum$8.Down = function Down(temp$2$0) {
-    var t0$5 = undefined;var $$7902$0 = undefined;var cm$5 = undefined;var ph$3$0 = undefined;t0$5 = temp$2$0;cm$5 = t0$5;ph$3$0 = t0$5;if (__at___$3.cursor < __at___$3.history.length - 1 && __at___$3.cm.getCursor().line === __at___$3.cm.lineCount() - 1) {
+    var t0$5 = undefined;var $$17614$0 = undefined;var cm$5 = undefined;var ph$3$0 = undefined;t0$5 = temp$2$0;cm$5 = t0$5;ph$3$0 = t0$5;if (__at___$3.cursor < __at___$3.history.length - 1 && __at___$3.cm.getCursor().line === __at___$3.cm.lineCount() - 1) {
       __at___$3.cm.setValue(send(send(__at___$3, "history", true), ++__at___$3.cursor));__at___$3.cm.setCursor(0, __at___$3.cm.getLine(0).length);return __at___$3.sink();
     } else {
       return __at___$3.pass;
@@ -66735,9 +66738,9 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
 
         case 11:
           context$2$0.prev = 11;
-          context$2$0.t6 = context$2$0["catch"](6);
+          context$2$0.t10 = context$2$0["catch"](6);
           e$0 = undefined;
-          e$0 = context$2$0.t6;done$0 = true;console.log(e$0.stack);
+          e$0 = context$2$0.t10;done$0 = true;console.log(e$0.stack);
 
         case 17:
           if (!done$0) {
@@ -66761,9 +66764,9 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
     }hl$1 = [];__at___$7.CodeMirror.runMode(text$2 || " ", __at___$7.lang, function (text$3, style$0) {
       return hl$1.push(style$0 ? ENode(["span", ".cm-" + style$0], {}, text$3) : ENode(["span"], {}, text$3));
     });if (inline$0) {
-      return ENode(["span"], { "class": "cm-s-" + __at___$7.theme }, hl$1);
+      return ENode(["span"], { "class": "CodeMirror cm-s-" + __at___$7.theme }, hl$1);
     } else {
-      return ENode(["div"], { "class": "cm-s-" + __at___$7.theme }, hl$1);
+      return ENode(["div"], { "class": "CodeMirror cm-s-" + __at___$7.theme }, hl$1);
     }
   } else {
     return ___match_error(m$4$0, "{text, inline = false}");
@@ -66851,23 +66854,23 @@ require("earlgrey-runtime/5");var $targ$0 = undefined;var $targ$1 = undefined;va
           case 13:
             result$1 = context$2$0.sent;
             obox$0.appendChild((node$0 = (f$3 = function f(ph$4$0) {
-              var rval$0 = undefined;var rval$1 = undefined;var error$0 = undefined;var value$0 = undefined;var n$0 = undefined;var $$8213$0 = undefined;var $$8214$0 = undefined;var $$8215$0 = undefined;var $$8216$0 = undefined;var t0$9 = undefined;var t1$1 = undefined;var t2$0 = undefined;if (text$5.trim() === "") {
+              var rval$0 = undefined;var rval$1 = undefined;var error$0 = undefined;var value$0 = undefined;var n$0 = undefined;var $$17925$0 = undefined;var $$17926$0 = undefined;var $$17927$0 = undefined;var $$17928$0 = undefined;var t0$9 = undefined;var t1$1 = undefined;var t2$0 = undefined;if (text$5.trim() === "") {
                 return "";
               } else {
-                t0$9 = ph$4$0;t1$1 = t0$9.length;if (($$8215$0 = t1$1 === 2) && (($$8216$0 = t0$9[0] === "success") && t0$9[1] === void 0)) {
+                t0$9 = ph$4$0;t1$1 = t0$9.length;if (($$17927$0 = t1$1 === 2) && (($$17928$0 = t0$9[0] === "success") && t0$9[1] === void 0)) {
                   return "";
                 } else {
-                  if ($$8216$0 && (t2$0 = t0$9[1], getChecker(ENode)(t2$0))) {
+                  if ($$17928$0 && (t2$0 = t0$9[1], getChecker(ENode)(t2$0))) {
                     n$0 = t2$0;return n$0;
                   } else {
-                    if ($$8216$0) {
+                    if ($$17928$0) {
                       value$0 = t0$9[1];rval$0 = false;try {
                         rval$0 = ENode(["div", ".repple-out"], {}, [ENode(["div", ".repple-outbanner"], {}, []), ENode(["div", ".repple-result"], {}, ENode([".repple-data"], {}, repr$0(value$0)))]);rval$0;
                       } catch (excv$1) {
                         var e$1 = undefined;e$1 = excv$1;rval$0 = f$3(["failure", e$1]);rval$0;
                       }return rval$0;
                     } else {
-                      if ($$8215$0 && t0$9[0] === "failure") {
+                      if ($$17927$0 && t0$9[0] === "failure") {
                         error$0 = t0$9[1];console.error(error$0);return ENode(["div", ".repple-err"], {}, [ENode(["div", ".repple-errbanner"], {}, []), ENode(["div", ".repple-result"], {}, ENode([".repple-data"], {}, (rval$1 = false, (function () {
                           try {
                             rval$1 = repr$0(error$0);rval$1;
