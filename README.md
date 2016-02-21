@@ -4,7 +4,7 @@ Earl Grey
 
 [![Join the chat at https://gitter.im/breuleux/earl-grey](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/breuleux/earl-grey?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Earl Grey ([website](http://breuleux.github.io/earl-grey/)) is a new
+Earl Grey ([website](http://earl-grey.io)) is a new
 language that compiles to JavaScript (ES6). Here's a quick rundown of
 its amazing features:
 
@@ -28,12 +28,12 @@ its amazing features:
 Resources
 ---------
 
-* [Website](http://breuleux.github.io/earl-grey/)
-* [Installation instructions](http://breuleux.github.io/earl-grey/use.html)
-* [Documentation](http://breuleux.github.io/earl-grey/doc.html)
-* [Editor support](http://breuleux.github.io/earl-grey/tooling.html)
-* [Contributing](http://breuleux.github.io/earl-grey/contrib.html)
-* [Try it here!](http://breuleux.github.io/earl-grey/repl.html)
+* [Website](http://earl-grey.io/)
+* [Installation instructions](http://earl-grey.io/use.html)
+* [Documentation](http://earl-grey.io/doc.html)
+* [Editor support](http://earl-grey.io/tooling.html)
+* [Contributing](http://earl-grey.io/contrib.html)
+* [Try it here!](http://earl-grey.io/repl.html)
 
 
 Examples
