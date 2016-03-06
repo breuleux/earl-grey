@@ -36,6 +36,7 @@ getCache{file, opts = {=}} =
 
    {g, compiled, srcfile} =
       if not opts.recompile
+         \ and not opts.interactive
          \ and cacheopts == newcacheopts
          \ and cstat and sstat.mtime.getTime{} < cstat.mtime.getTime{}:
          if opts.verbose:
