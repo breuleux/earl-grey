@@ -44,22 +44,32 @@ global_variables = {
    .and
    .arguments
    .Array
+   .ArrayBuffer
    .Buffer
+   .clearImmediate
    .clearInterval
    .clearTimeout
    .clone
    .console
    .consume
    .contains
+   .DataView
    .Date
+   .decodeURI
+   .decodeURIComponent
    .dir
+   .encodeURI
+   .encodeURIComponent
    .ENode
    .enumerate
    .equal
    .Error
    .ErrorFactory
    .eval
+   .EvalError
    .exports
+   .Float32Array
+   .Float64Array
    .Function
    .getChecker
    .getProjector
@@ -68,6 +78,12 @@ global_variables = {
    .in
    .Infinity
    .instanceof
+   .Int16Array
+   .Int32Array
+   .Int8Array
+   .Intl
+   .isFinite
+   .isNaN
    .items
    .JSON
    .keys
@@ -75,6 +91,7 @@ global_variables = {
    .Math
    .mod
    .module
+   .NaN
    .neighbours
    .nequal
    .not
@@ -88,20 +105,32 @@ global_variables = {
    .product
    .Promise
    .promisify
+   .Proxy
    .range
+   .RangeError
    .ReferenceError
+   .Reflect
    .RegExp
    .repr
    .send
    .Set
+   .setImmediate
    .setInterval
    .setTimeout
    .spawn
    .Symbol
+   .SyntaxError
    .take
    .this
    .TypeError
    .typeof
+   .Uint16Array
+   .Uint32Array
+   .Uint8Array
+   .Uint8ClampedArray
+   .URIError
+   .WeakMap
+   .WeakSet
    .zip
 }
 
