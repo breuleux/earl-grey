@@ -50,6 +50,7 @@ global_variables = {
    .clone
    .console
    .consume
+   .contains
    .Date
    .dir
    .ENode
@@ -97,6 +98,7 @@ global_variables = {
    .setTimeout
    .spawn
    .Symbol
+   .take
    .this
    .TypeError
    .typeof
