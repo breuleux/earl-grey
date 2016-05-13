@@ -10,60 +10,97 @@ inject:
 
 
 global_variables = {
-
-   "+", "-", "*", "/", "mod"
-   "&+", "|+", "^+"
-   "and", "or", "not"
-   ;; "==", "!="
-   "===", "!=="
-   "<", ">", "<=", ">="
-   "<<", ">>", ">>>"
-   "in", "instanceof", "--"
+   "!="
+   "!=="
+   "&"
+   "&+"
+   "&:"
+   "*"
+   "+"
    "++"
-
-   ;; .true, .false, .null, .undefined
-
-   .typeof
-   ;; .String, .Number, .Boolean
-   .Array, .Object, .Symbol
-   .RegExp, .Function, .Date
-   .parseInt, .parseFloat, .Math, .Infinity
-   .Error, .TypeError, .ReferenceError
-   .console, .process, .eval
-
-   .setTimeout, .clearTimeout
-   .setInterval, .clearInterval
-
-   .___js_fetch, .___node
-
-   .arguments, .this, .module, .exports
-
-   .send
-   .object, .keys, .items, .enumerate
-   .zip, .product, .neighbours, .range
-   .predicate
-   "==", "!="
-   .equal, .nequal
-   "&", "&:"
-   .clone, .dir
-   .getProjector, .getChecker
-   .ErrorFactory, .ENode
-   .repr, .getProperty
-
+   "-"
+   "--"
+   "/"
+   "<"
+   "<<"
+   "<="
+   "=="
+   "==="
+   ">"
+   ">="
+   ">>"
+   ">>>"
+   "^+"
+   "|+"
    .___build_array
-   .___hasprop
    .___extend
+   .___hasprop
+   .___js_fetch
    .___match_error
+   .___node
    .___serialize_ast
-
-   .JSON
-   .Set, .Map
-   .consume
-   .Promise, .promisify, .spawn
-
+   .__dirname
+   .__filename
+   .and
+   .arguments
+   .Array
    .Buffer
-
-   .global, .__dirname, .__filename
+   .clearInterval
+   .clearTimeout
+   .clone
+   .console
+   .consume
+   .Date
+   .dir
+   .ENode
+   .enumerate
+   .equal
+   .Error
+   .ErrorFactory
+   .eval
+   .exports
+   .Function
+   .getChecker
+   .getProjector
+   .getProperty
+   .global
+   .in
+   .Infinity
+   .instanceof
+   .items
+   .JSON
+   .keys
+   .Map
+   .Math
+   .mod
+   .module
+   .neighbours
+   .nequal
+   .not
+   .Object
+   .object
+   .or
+   .parseFloat
+   .parseInt
+   .predicate
+   .process
+   .product
+   .Promise
+   .promisify
+   .range
+   .ReferenceError
+   .RegExp
+   .repr
+   .send
+   .Set
+   .setInterval
+   .setTimeout
+   .spawn
+   .Symbol
+   .this
+   .TypeError
+   .typeof
+   .zip
 }
 
 global_variables each gvar ->
