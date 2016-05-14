@@ -10,60 +10,128 @@ inject:
 
 
 global_variables = {
-
-   "+", "-", "*", "/", "mod"
-   "&+", "|+", "^+"
-   "and", "or", "not"
-   ;; "==", "!="
-   "===", "!=="
-   "<", ">", "<=", ">="
-   "<<", ">>", ">>>"
-   "in", "instanceof", "--"
+   "!="
+   "!=="
+   "&"
+   "&+"
+   "&:"
+   "*"
+   "+"
    "++"
-
-   ;; .true, .false, .null, .undefined
-
-   .typeof
-   ;; .String, .Number, .Boolean
-   .Array, .Object, .Symbol
-   .RegExp, .Function, .Date
-   .parseInt, .parseFloat, .Math, .Infinity
-   .Error, .TypeError, .ReferenceError
-   .console, .process, .eval
-
-   .setTimeout, .clearTimeout
-   .setInterval, .clearInterval
-
-   .___js_fetch, .___node
-
-   .arguments, .this, .module, .exports
-
-   .send
-   .object, .keys, .items, .enumerate
-   .zip, .product, .neighbours, .range
-   .predicate
-   "==", "!="
-   .equal, .nequal
-   "&", "&:"
-   .clone, .dir
-   .getProjector, .getChecker
-   .ErrorFactory, .ENode
-   .repr, .getProperty
-
+   "-"
+   "--"
+   "/"
+   "<"
+   "<<"
+   "<="
+   "=="
+   "==="
+   ">"
+   ">="
+   ">>"
+   ">>>"
+   "^+"
+   "|+"
    .___build_array
-   .___hasprop
    .___extend
+   .___hasprop
+   .___js_fetch
    .___match_error
+   .___node
    .___serialize_ast
-
-   .JSON
-   .Set, .Map
-   .consume
-   .Promise, .promisify, .spawn
-
+   .__dirname
+   .__filename
+   .and
+   .arguments
+   .Array
+   .ArrayBuffer
    .Buffer
-
-   .global, .__dirname, .__filename
+   .clearImmediate
+   .clearInterval
+   .clearTimeout
+   .clone
+   .console
+   .consume
+   .contains
+   .DataView
+   .Date
+   .decodeURI
+   .decodeURIComponent
+   .dir
+   .encodeURI
+   .encodeURIComponent
+   .ENode
+   .enumerate
+   .equal
+   .Error
+   .ErrorFactory
+   .eval
+   .EvalError
+   .exports
+   .Float32Array
+   .Float64Array
+   .Function
+   .getChecker
+   .getProjector
+   .getProperty
+   .global
+   .in
+   .Infinity
+   .instanceof
+   .Int16Array
+   .Int32Array
+   .Int8Array
+   .Intl
+   .isFinite
+   .isNaN
+   .items
+   .JSON
+   .keys
+   .Map
+   .Math
+   .mod
+   .module
+   .NaN
+   .neighbours
+   .nequal
+   .not
+   .Object
+   .object
+   .or
+   .parseFloat
+   .parseInt
+   .predicate
+   .process
+   .product
+   .Promise
+   .promisify
+   .Proxy
+   .range
+   .RangeError
+   .ReferenceError
+   .Reflect
+   .RegExp
+   .repr
+   .send
+   .Set
+   .setImmediate
+   .setInterval
+   .setTimeout
+   .spawn
+   .Symbol
+   .SyntaxError
+   .take
+   .this
+   .TypeError
+   .typeof
+   .Uint16Array
+   .Uint32Array
+   .Uint8Array
+   .Uint8ClampedArray
+   .URIError
+   .WeakMap
+   .WeakSet
+   .zip
 }
 
 global_variables each gvar ->
