@@ -1,0 +1,74 @@
+require-macros:
+   "earl-mocha" ->
+      describe, it
+
+
+JS_GLOBALS = {
+   .__dirname
+   .__filename
+   .Array
+   .ArrayBuffer
+   .Boolean
+   .Buffer
+   .clearImmediate
+   .clearInterval
+   .clearTimeout
+   .console
+   .DataView
+   .Date
+   .decodeURI
+   .decodeURIComponent
+   .encodeURI
+   .encodeURIComponent
+   .Error
+   .eval
+   .EvalError
+   .Float32Array
+   .Float64Array
+   .Function
+   .global
+   .Infinity
+   .Int16Array
+   .Int32Array
+   .Int8Array
+   .Intl
+   .isFinite
+   .isNaN
+   .JSON
+   .Map
+   .Math
+   .module
+   .NaN
+   .Object
+   .parseFloat
+   .parseInt
+   .process
+   .Promise
+   .Proxy
+   .RangeError
+   .ReferenceError
+   .Reflect
+   .RegExp
+   .Set
+   .setImmediate
+   .setInterval
+   .setTimeout
+   .String
+   .Symbol
+   .SyntaxError
+   .this
+   .TypeError
+   .Uint16Array
+   .Uint32Array
+   .Uint8Array
+   .Uint8ClampedArray
+   .URIError
+   .WeakMap
+   .WeakSet
+}
+
+
+describe "JavaScript and Node.js globals":
+   JS_GLOBALS each name ->
+      it 'should provide {name}':
+         eval(name)
