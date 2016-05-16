@@ -284,7 +284,7 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
          }
 
       match context:
-         #expr{.multi} -> node
+         #expr{.multi} or #expr{.ignore} -> node
          other -> #multi{node}
 
    match expr:
