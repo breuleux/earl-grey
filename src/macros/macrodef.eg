@@ -6,6 +6,7 @@ require:
       Env, topscope
    "./helpers" ->
       ctx_mac, expr_mac2, multimacro, inject-tools
+   "../util" -> camelCase
 
 inject: mac
 
@@ -63,7 +64,7 @@ mac{"macro"}! macro_mac = mak{{}} where
                       *provides
                       `tmp.__path = __filename`
                       `tmp`} where
-                  provides = tosave each sym and #symbol{name} ->
+                  provides = tosave each sym and #symbol{camelCase! name} ->
                      `provide{^sym as ^exp}, deps[^=name] = ^=expn` where
                         expn = "__mdep_" + name
                         exp = #symbol{expn}
