@@ -1,0 +1,12 @@
+require-macros:
+   "earl-mocha" ->
+      assert, describe, it
+   "./macros" ->
+      add-two-macro
+      try-expand
+
+
+describe "macros":
+   it "should permit kebab-case names in dependencies":
+      let {success, result} = try-expand(add-two-macro(4))
+      assert success

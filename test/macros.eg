@@ -1,0 +1,29 @@
+provide:
+   add-two-macro
+   try-expand
+
+
+ast-as-array(ast) =
+   let contents = ast.map with match ->
+      Array? arr -> ast-as-array{arr}
+      x -> #value{x}
+   #data{*contents}
+
+
+macro try-expand(expr) =
+   try:
+      let expanded-ast = @expand(@context, expr)
+   catch err:
+      let msg = '{err.name}: {err.message}'
+      return `{false, ^=msg}`
+   `{true, ^ast-as-array(expanded-ast)}`
+
+
+add-two(x) = x + 1
+
+
+macro{add-two} add-two-macro(#data{#value{Number? v}}) =
+   let {=> add-two} = @deps
+   ```
+   [^add-two](^=v)
+   ```
