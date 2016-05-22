@@ -32,9 +32,18 @@ provide:
    compile
 
 
-es5Transform{x, opts = null} =
-   require: babel
-   babel.transform{x, opts}
+es5Transform{x, opts = {=}} =
+   require:
+      babel-core
+      babel-preset-es2015
+   babel-core.transform{
+      x
+      opts & {
+         babelrc = false
+         compact = true
+         presets = {babel-preset-es2015}
+      }
+   }
 
 
 
@@ -262,7 +271,7 @@ class Generator:
          result = toCodeAndSourceMap{result, source.url}
 
          if opts.es5:
-            {=> code, => map} = es5Transform{result.code, {sourceMap = true}}
+            {=> code, => map} = es5Transform{result.code, {source-maps = true}}
             newmap = transfer with {
                fromSourceMap = map
                toSourceMap = result.map.toString{}
