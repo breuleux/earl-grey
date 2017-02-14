@@ -1,4 +1,130 @@
 @charset "UTF-8";
+.container {
+  margin: auto; }
+
+html {
+  font-size: 19px; }
+
+body {
+  margin: 0px;
+  font-family: "Open Sans";
+  line-height: 1.5;
+  background: #fafafa;
+  color: #333; }
+
+pre {
+  line-height: 110%; }
+
+a {
+  color: #00f;
+  text-decoration: none; }
+
+a:hover {
+  text-decoration: underline; }
+
+a:visited {
+  color: #808; }
+
+h1 {
+  font-family: "Mate SC";
+  color: #333; }
+
+h2, h3 {
+  font-family: "Mate SC";
+  color: #333;
+  line-height: 1.2; }
+
+h1 {
+  font-size: 2rem; }
+
+h2 {
+  font-size: 1.5rem; }
+
+h3 {
+  font-size: 1.2rem; }
+
+tr:nth-child(even) {
+  background: #fff; }
+
+tr:nth-child(odd) {
+  color: black;
+  background: #fff; }
+
+table {
+  border-collapse: collapse;
+  color: black;
+  width: 100%; }
+
+th {
+  text-align: left;
+  color: white;
+  background: #000; }
+
+th, td {
+  padding: 5px; }
+
+pre {
+  font: Monospace;
+  color: black;
+  background: #fafafa; }
+
+code {
+  font: Monospace;
+  color: black;
+  background: #fafafa; }
+
+/* SHARING */
+.share-buttons {
+  margin-top: 50px;
+  text-align: center; }
+
+.share-buttons > a {
+  margin-left: 10px;
+  margin-right: 10px;
+  display: inline-block; }
+
+.share-buttons img {
+  height: 40px; }
+
+/* QUAINT ERRORS */
+.error {
+  color: red;
+  font-weight: bold; }
+
+div.error {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  white-space: pre;
+  font-size: 11pt;
+  color: red;
+  line-height: 120%;
+  font-weight: bold; }
+
+/* DESKTOP */
+@media screen and (min-device-aspect-ratio: 100 / 99) {
+  .container {
+    max-width: 970px;
+    padding: 0 10px; }
+  body {
+    font-size: 19px; }
+  pre {
+    font-size: 80%; } }
+
+/* MOBILE */
+@media screen and (max-device-aspect-ratio: 99 / 100) {
+  pre {
+    font-size: 1.7rem; }
+  table {
+    font-size: 2rem; }
+  .container {
+    padding: 0 50px; }
+  h1 {
+    font-size: 4rem; }
+  h2 {
+    font-size: 2.5rem; }
+  h3 {
+    font-size: 1.5rem; } }
+
 .nav-container-desktop, .nav-container-mobile {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -16,9 +142,6 @@
   border-bottom: 0px solid #bbbbbb;
   font-family: "Mate SC";
   box-sizing: border-box; }
-
-.nav-container-desktop {
-  height: 70px; }
 
 .nav-main > ul, .nav-leftmost > ul, .nav-rightmost > ul, .nav-mobile > ul {
   display: -webkit-box;
@@ -47,22 +170,18 @@
   -webkit-box-pack: justify;
       -ms-flex-pack: justify;
           justify-content: space-between;
-  /* height: 1.7em */
-  height: 1.5em;
-  padding: 0.3em;
-  box-sizing: border-box; }
+  height: 1.7em;
+  padding: 10px; }
 
 .icon-bar {
   display: block;
-  background-color: black;
-  width: 1em;
-  height: 2px;
-  border-radius: 2px; }
+  background-color: black; }
 
 /* COMMON */
 .nav-container-desktop nav li a, .nav-container-mobile nav li a {
   display: inline-block;
   width: 100%;
+  height: 100%;
   color: inherit; }
 
 .nav-container-desktop nav li a:hover, .nav-container-mobile nav li a:hover {
@@ -76,13 +195,6 @@
   -webkit-box-pack: justify;
       -ms-flex-pack: justify;
           justify-content: space-between; }
-  .nav-container-desktop nav > ul > li {
-    box-sizing: border-box;
-    height: 70px; }
-    .nav-container-desktop nav > ul > li > :first-child {
-      line-height: 70px;
-      padding-left: 5px;
-      padding-right: 5px; }
   .nav-container-desktop nav li {
     display: -webkit-box;
     display: -ms-flexbox;
@@ -95,9 +207,8 @@
         -ms-flex-align: stretch;
             align-items: stretch;
     margin: 0px; }
-  .nav-container-desktop nav li > * {
-    box-sizing: border-box;
-    padding: 0px 10px 0px 10px; }
+    .nav-container-desktop nav li > * {
+      padding: 5px 10px; }
   .nav-container-desktop nav .dropdown a:hover {
     background-color: #bbbbbb;
     color: black; }
@@ -131,9 +242,6 @@
     color: black;
     min-width: 200px;
     font-size: 19px; }
-  .nav-container-desktop nav .dropdown li > * {
-    padding-top: 5px;
-    padding-bottom: 5px; }
   .nav-container-desktop .nav-main {
     margin: auto; }
   .nav-container-desktop .dropdown {
@@ -168,6 +276,9 @@
 
 /* MOBILE */
 .nav-container-mobile {
+  /* li */
+  /*   /* padding: 5px 10px */
+  /*   width: 100% */
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -178,8 +289,14 @@
   -webkit-box-align: stretch;
       -ms-flex-align: stretch;
           align-items: stretch;
-  font-size: 19px;
-  height: 70px; }
+  font-size: 57px; }
+  .nav-container-mobile .icon-bar {
+    width: 75px;
+    height: 5px;
+    border-radius: 2px; }
+  .nav-container-mobile .hamburger {
+    box-sizing: border-box;
+    padding: 20px; }
   .nav-container-mobile .nav-mobile-menu.dropdown {
     position: relative; }
     .nav-container-mobile .nav-mobile-menu.dropdown > ul {
@@ -203,7 +320,7 @@
       position: relative; }
       .nav-container-mobile .dropdown > :first-child > .caret:after {
         position: absolute;
-        font-size: 15.2px;
+        font-size: 76px;
         margin-left: 10px;
         right: 10px;
         top: -20px; }
@@ -225,18 +342,18 @@
       background: #eee;
       color: black;
       list-style-type: none;
-      font-size: 19px; }
+      font-size: 57px; }
       .nav-container-mobile .dropdown > ul > li {
         width: 100%;
-        border-left: 10px solid #bbbbbb; }
+        border-left: 20px solid #bbbbbb; }
         .nav-container-mobile .dropdown > ul > li > :first-child {
-          padding-left: 10px;
-          padding-top: 10px;
-          padding-bottom: 10px; }
+          padding-left: 20px;
+          padding-top: 20px;
+          padding-bottom: 20px; }
         .nav-container-mobile .dropdown > ul > li > a {
-          padding: 10px 0px; }
+          padding: 20px 0px; }
         .nav-container-mobile .dropdown > ul > li > ul {
-          border-left: 10px solid #bbbbbb; }
+          border-left: 20px solid #bbbbbb; }
     .nav-container-mobile .dropdown .dropdown > ul {
       top: 100%; }
   .nav-container-mobile .dropdown.active {
@@ -257,10 +374,10 @@
   .nav-container-mobile .nav-mobile {
     width: 100%; }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-device-aspect-ratio: 99 / 100) {
   .nav-container-desktop {
     display: none; } }
 
-@media screen and (min-width: 800px) {
+@media screen and (min-device-aspect-ratio: 100 / 99) {
   .nav-container-mobile {
     display: none; } }

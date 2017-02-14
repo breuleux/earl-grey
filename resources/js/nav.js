@@ -13,19 +13,10 @@ function $$quaintNavFunctionality() {
     for (var i = 0; i < dropdowns.length; i++) {
         (function (_elem) {
             var elem = _elem.childNodes[0];
-            var onMobile = false;
-            elem.ontouchend = function (e) {
-                onMobile = true;
+            elem.onclick = elem.ontouchend = function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleActive(_elem);
-            }
-            elem.onclick = function (e) {
-                if (!onMobile) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    toggleActive(_elem);
-                }
             }
         })(dropdowns[i]);
     }
