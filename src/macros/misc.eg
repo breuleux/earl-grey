@@ -299,6 +299,101 @@ mac{"class"}! class_mac{context, info and {=> env}, form, expr} =
          helper{#symbol{info.gensym{}}, null, stmts}
 
 
+mac{"jsclass"}! jsclass_mac{context, info and {=> env}, form, expr} =
+   helper{name, super, stmts} =
+      var statics = #data{`[=]`}
+      var ctor = {#data{}, #multi{} & {env = env}}
+
+      new_stmts = stmts each stmt -> process-stmt{stmt, false} where
+         process-stmt{match stmt, is-constructor} =
+            `static ^lhs = ^rhs` ->
+               #static{process-stmt{`^lhs = ^rhs`, false}}
+            `get ^lhs = ^rhs` ->
+               #getter{process-stmt{`^lhs = ^rhs`, false}}
+            `set ^lhs = ^rhs` ->
+               #setter{process-stmt{`^lhs = ^rhs`, false}}
+            `constructor[^args] = ^rhs` when is-constructor is false ->
+               process-stmt{stmt, true}
+            `^lhs = ^rhs` ->
+               PatternCompiler{lhs, info, opt}.extract_from_rhs{rhs} where opt =
+                  pattern_handlers.build_object & {
+                     allow_nested = false
+                     assign{match, value} =
+                        #symbol{camelCase! v} or #value{v} ->
+                           #do{#method{#value{v}, value} <<: v}
+                        v ->
+                           #do{#method{v, value} <<: v}
+                     declare{vars} = {}
+                     wrap_target{match} =
+                        `^args -> ^body` ->
+                           {env => other_env} = body
+                           it = #symbol{"@"} & {env = other_env}
+                           it2 = #symbol{"self"} & {env = other_env}
+                           {pre, meat} =
+                              if is-constructor:
+                                 {super-call, rest} =
+                                    if super:
+                                       match body:
+                                          #multi{s, *rest} ->
+                                             {s, #multi{*rest}}
+                                          else ->
+                                             {body, #splice{}}
+                                    else:
+                                       {#splice{}, body}
+                                 {#splice{super-call, `let ^it = this`, `let ^it2 = this`}
+                                  #splice{rest, `undefined`}}
+                              else:
+                                 {#splice{`let ^it = this`, `let ^it2 = this`}, body}
+                           `_lambda{^args, ^pre, ^meat, ^=null, ^=false}`
+                        other ->
+                           other
+                     success{_} = #splice{}
+                  }
+            stmt ->
+               throw E.syntax.class{"Illegal statement in class", {stmt = stmt}}
+
+      methods = new_stmts each stmt -> process-stmt{stmt} where process-stmt{match} =
+         #getter{spec} ->
+            rval = process-stmt{spec}
+            rval[1][1] = "get"
+            rval
+         #setter{spec} ->
+            rval = process-stmt{spec}
+            rval[1][1] = "set"
+            rval
+         #static{spec} ->
+            rval = process-stmt{spec}
+            rval[1][1] = "static"
+            rval
+         #splice{#splice{}, #multi{#multi{#method{name, body}, #splice{}}}} ->
+            #data{#value{""}, name, body}
+         stmt ->
+            throw E.syntax.class{"Probably illegal statement in class", {stmt = stmt}}
+
+      #symbol{clsname} = name
+      cls = #js_class{#value{clsname}, super or #value{null}, #data{*methods}}
+      node =
+         #splice{
+            `let ^name = ^cls`
+            name
+         }
+
+      match context:
+         #expr{.multi} or #expr{.ignore} -> node
+         other -> #multi{node}
+
+   match expr:
+      #data{match, Body! {*stmts}} ->
+         `[^name < ^super]` ->
+            helper{name, super, stmts}
+         `[^name {^super}]` ->
+            helper{name, super, stmts}
+         `[^name {}]` or [#symbol{_} and name] ->
+            helper{name, null, stmts}
+      #data{Body! {*stmts}} ->
+         helper{#symbol{info.gensym{}}, null, stmts}
+
+
 ;;;;;;;;;;;;;;;;;;;
 ;; ERROR FACTORY ;;
 ;;;;;;;;;;;;;;;;;;;

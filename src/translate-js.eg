@@ -541,6 +541,22 @@ class Translator:
                   @translate{y, .expr}, "){"
                   @translate{body, .stmt}, "}"
 
+         #js_class{#value{name}, super, #array{*mthds}} ->
+            is-super = match super:
+               #value{null?} -> false
+               else -> true
+            @expr{r, mode} where r =
+               splice %
+                  "(class ", name,
+                  if is-super:
+                     then: {" extends ", @translate{super, .expr}}
+                     else: ""
+                  "{"
+                  mthds each #array{#value{type}, #value{name}, #lambda{args, body, _}} ->
+                     argstr = [args each [#symbol{v} or #variable{v}] -> v].join(',')
+                     {type, " ", name, "(", argstr, ")", "{", @translate{body, .return}, "}"}
+                  "})"
+
          #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body, _}, finally} ->
             r = match mode:
                .expr -> @body{expr, .expr}

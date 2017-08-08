@@ -120,6 +120,7 @@ global_variables = {
    .spawn
    .Symbol
    .SyntaxError
+   .super
    .take
    .this
    .TypeError

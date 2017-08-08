@@ -54,4 +54,5 @@ make_expander{pipeline} =
          .js_break, .js_continue, .js_return
          .js_delete, .js_throw, .js_try, .js_new
          .js_yield
+         .js_class, .js_super
       }

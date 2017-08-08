@@ -129,7 +129,7 @@ hoistable = {
 
 not_hoistable = {
    .void
-   .js_while, .js_for, .js_for_in, .js_for_of, .js_label
+   .js_while, .js_for, .js_for_in, .js_for_of, .js_label, .js_class
 }
 
 hoist_helper{match expr} =
