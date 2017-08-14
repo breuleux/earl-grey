@@ -553,8 +553,9 @@ class Translator:
                      else: ""
                   "{"
                   mthds each #array{#value{type}, #value{name}, #lambda{args, body, _}} ->
-                     argstr = [args each [#symbol{v} or #variable{v}] -> v].join(',')
-                     {type, " ", name, "(", argstr, ")", "{", @translate{body, .return}, "}"}
+                     argstr = [args each v -> @translate{v, .expr}].join(',')
+                     {type, " ", name, "(", argstr, ")",
+                      "{", @translate{body, .return}, "}"}
                   "})"
 
          #js_try{attempt, #lambda{{#symbol{v} or #variable{v}}, body, _}, finally} ->
